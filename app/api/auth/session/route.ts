@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     const sessionCookie = await createSessionCookie(parsed.data.idToken)
     await setSessionCookie(sessionCookie)
     return NextResponse.json({ user: toUserDTO(user) }, { status: 200 })
-  } catch {
+  } catch (error) {
+    console.error('POST /api/auth/session failed:', error)
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
   }
 }
