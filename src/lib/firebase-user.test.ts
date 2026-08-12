@@ -8,7 +8,13 @@ import {
 } from '@/lib/firebase-user'
 import { type UserDoc } from '@/lib/db'
 
-type Token = { uid: string; email?: string | null; name?: string | null; picture?: string | null }
+type Token = {
+  uid: string
+  email?: string | null
+  name?: string | null
+  picture?: string | null
+  email_verified?: boolean
+}
 
 function fakeUsers(): Collection<UserDoc> {
   const docs: UserDoc[] = []
@@ -90,13 +96,30 @@ describe('firebase-user', () => {
       users
     )
     const user = await resolveUserCascade(
-      { uid: 'fb-new', email: 'SAME@x.com', name: 'B' } as never,
+      { uid: 'fb-new', email: 'SAME@x.com', name: 'B', email_verified: true } as never,
       'google' as ProviderName,
       users
     )
     expect(user.uid).toBe('fb-new')
     expect(user.providers).toContain('password')
     expect(user.providers).toContain('google')
+  })
+
+  it('does not bind an unverified email onto an existing user', async () => {
+    const users = fakeUsers()
+    await resolveUserCascade(
+      { uid: 'fb-old', email: 'same@x.com', name: 'A' } as never,
+      'password' as ProviderName,
+      users
+    )
+    const user = await resolveUserCascade(
+      { uid: 'fb-new', email: 'SAME@x.com', name: 'B', email_verified: false } as never,
+      'google' as ProviderName,
+      users
+    )
+    expect(user.uid).toBe('fb-new')
+    expect(user.providers).toEqual(['google'])
+    expect(user.providers).not.toContain('password')
   })
 
   it('dedupes providers on repeat login', async () => {

@@ -51,7 +51,7 @@ export async function resolveUserCascade(
     )
   }
 
-  if (email) {
+  if (email && token.email_verified === true) {
     const emailMatch = await collection.findOne({ email })
     if (emailMatch) {
       return (
