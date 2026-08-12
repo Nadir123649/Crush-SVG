@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken'
 export interface TokenPair {
   tokenType: 'Bearer'
   accessToken: string
-  accessTokenExpires: string
+  accessTokenExpires: jwt.SignOptions['expiresIn']
   refreshToken: string
-  refreshTokenExpires: string
+  refreshTokenExpires: jwt.SignOptions['expiresIn']
 }
 
 export interface DecodedAccessToken {
@@ -22,8 +22,10 @@ export interface DecodedRefreshToken {
   ver?: number
 }
 
-const ACCESS_EXPIRES = process.env.ACCESS_TOKEN_EXPIRES || '15m'
-const REFRESH_EXPIRES = process.env.REFRESH_TOKEN_EXPIRES || '7d'
+const ACCESS_EXPIRES: jwt.SignOptions['expiresIn'] =
+  (process.env.ACCESS_TOKEN_EXPIRES || '15m') as jwt.SignOptions['expiresIn']
+const REFRESH_EXPIRES: jwt.SignOptions['expiresIn'] =
+  (process.env.REFRESH_TOKEN_EXPIRES || '7d') as jwt.SignOptions['expiresIn']
 
 function requireSecret(name: string): string {
   const value = process.env[name]
