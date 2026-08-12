@@ -86,16 +86,45 @@ export const oauthSchema = z.object({
 })
 ```
 
-- [ ] **Step 6: Verify**
+- [ ] **Step 6: Create lib/rate-limit.ts** (shared by oauth + refresh routes)
+
+```ts
+import 'server-only'
+
+const buckets = new Map<string, { count: number; resetAt: number }>()
+
+export function checkRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; retryAfterSeconds: number } {
+  const now = Date.now()
+  const bucket = buckets.get(key)
+  if (!bucket || bucket.resetAt <= now) {
+    buckets.set(key, { count: 1, resetAt: now + windowMs })
+    return { allowed: true, retryAfterSeconds: 0 }
+  }
+  if (bucket.count >= limit) {
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.ceil((bucket.resetAt - now) / 1000),
+    }
+  }
+  bucket.count += 1
+  return { allowed: true, retryAfterSeconds: 0 }
+}
+```
+
+- [ ] **Step 7: Verify**
 
 Run: `npx vitest run --passWithNoTests`
 Expected: exit 0, "No test files found" is fine.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add package.json package-lock.json vitest.config.ts .env.example lib/validation.ts
-git commit -m "chore: add vitest, jwt deps, oauth schema, env vars"
+git add package.json package-lock.json vitest.config.ts .env.example lib/validation.ts lib/rate-limit.ts
+git commit -m "chore: add vitest, jwt deps, oauth schema, rate limiter, env vars"
 ```
 
 ---
@@ -1203,21 +1232,12 @@ export async function resolveUserCascade(
 }
 ```
 
-- [ ] **Step 4: Remove signInProvider from lib/firebase-admin.ts**
-
-Delete the `signInProvider` function and its `DecodedIdToken` type import if unused there (verify with `rg "signInProvider"` — only `lib/auth.ts` imports it, rewritten in Task 10; keep `verifyIdToken`, `createSessionCookie`, `verifySessionCookie`, `generatePasswordResetLink` for a moment, all consumers rewritten by Task 10-11).
-
-- [ ] **Step 5: Run tests to verify they pass**
+- [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- lib/firebase-user.test.ts`
 Expected: 4 tests PASS.
 
-- [ ] **Step 6: Commit**
-
-```bash
-git add lib/firebase-user.ts lib/firebase-user.test.ts lib/firebase-admin.ts
-git commit -m "feat: OAuth user resolution cascade with provider linking"
-```
+(Note: `signInProvider` in `lib/firebase-admin.ts` is removed in Task 10, not here — `lib/auth.ts` still imports it until Task 8.)
 
 ---
 
@@ -1240,6 +1260,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase-admin'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { createSession, getSessionsCollection } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { oauthSchema } from '@/lib/validation'
@@ -1252,28 +1273,6 @@ const PROVIDER_URL_MAP: Record<string, string> = {
   github: 'github.com',
   x: 'twitter.com',
   password: 'password',
-}
-
-const rateBuckets = new Map<string, { count: number; resetAt: number }>()
-
-function checkRateLimit(key: string, limit: number, windowMs: number): {
-  allowed: boolean
-  retryAfterSeconds: number
-} {
-  const now = Date.now()
-  const bucket = rateBuckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    rateBuckets.set(key, { count: 1, resetAt: now + windowMs })
-    return { allowed: true, retryAfterSeconds: 0 }
-  }
-  if (bucket.count >= limit) {
-    return {
-      allowed: false,
-      retryAfterSeconds: Math.ceil((bucket.resetAt - now) / 1000),
-    }
-  }
-  bucket.count += 1
-  return { allowed: true, retryAfterSeconds: 0 }
 }
 
 export async function POST(
@@ -1415,7 +1414,15 @@ git commit -m "feat: OAuth exchange route with provider linking and session issu
   - `POST /api/v1/auth/logout-all` — bearer; revoke all, full cache clear, publishLogout, delete cookie, 200
   - `lib/auth.ts`: `getSessionUser(request: NextRequest): Promise<UserDoc | null>` via `auth()`; delete `setSessionCookie`/`clearSessionCookie`/`SESSION_COOKIE_NAME` (v1 cookie code)
 
-- [ ] **Step 1: Rewrite lib/auth.ts**
+- [ ] **Step 1: Delete old v1 auth routes (they import the cookie helpers being removed in this task)**
+
+```bash
+rm -r app/api/auth/session app/api/auth/reset-password
+```
+
+Verify with `rg "api/auth/session|reset-password" --glob "!node_modules"` — remaining hits must be docs only.
+
+- [ ] **Step 2: Rewrite lib/auth.ts**
 
 ```ts
 import 'server-only'
@@ -1460,38 +1467,28 @@ export async function getSessionUser(request: NextRequest): Promise<UserDoc | nu
 }
 ```
 
-(Note: keep `upsertUser` only if still referenced — after Task 10 the cascade replaces it; remove it in Task 10.)
+(Note: keep `upsertUser` only if still referenced — after this task the cascade replaces it; remove it in this rewrite and drop `signInProvider` from `lib/firebase-admin.ts`, its last consumer is gone once the old routes are deleted in Step 1.)
 
-- [ ] **Step 2: Write app/api/v1/auth/refresh/route.ts**
+- [ ] **Step 3: Write app/api/v1/auth/refresh/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getSessionsCollection, getSessionRemember, rotateSession } from '@/lib/sessions'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { getSessionsCollection, rotateSession } from '@/lib/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth'
 import { getUsersCollection } from '@/lib/db'
 
 export const runtime = 'nodejs'
 
-const rateBuckets = new Map<string, { count: number; resetAt: number }>()
-
-function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now()
-  const bucket = rateBuckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    rateBuckets.set(key, { count: 1, resetAt: now + windowMs })
-    return true
-  }
-  if (bucket.count >= limit) return false
-  bucket.count += 1
-  return true
-}
-
 export async function POST(request: NextRequest) {
   const rl = checkRateLimit('auth:refresh', 120, 60_000)
-  if (!rl) {
-    return NextResponse.json({ success: false, payload: { error: { code: 'rate_limited' } } }, { status: 429 })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { success: false, payload: { error: { code: 'rate_limited', retryAfterSeconds: rl.retryAfterSeconds } } },
+      { status: 429 }
+    )
   }
 
   const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value
@@ -1574,7 +1571,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 3: Write app/api/v1/auth/logout/route.ts**
+- [ ] **Step 4: Write app/api/v1/auth/logout/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server'
@@ -1606,7 +1603,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 4: Write app/api/v1/auth/logout-all/route.ts**
+- [ ] **Step 5: Write app/api/v1/auth/logout-all/route.ts**
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server'
@@ -1640,15 +1637,15 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 5: Verify compile + smoke test**
+- [ ] **Step 6: Verify compile + smoke test**
 
 Run: `npx next build` (no errors), then Postman: exchange → refresh (200, rotated token, cookie replaced) → logout (cookie gone, old access token now 401 on `/api/me`) → re-login → logout-all.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add lib/auth.ts app/api/v1/auth/
-git commit -m "feat: refresh rotation, logout, logout-all routes"
+git add -A
+git commit -m "feat: refresh rotation, logout, logout-all routes; drop v1 session cookie routes"
 ```
 
 ---
@@ -1768,12 +1765,11 @@ git commit -m "feat: session list and revoke routes"
 
 ---
 
-### Task 10: Update /api/me + remove v1 auth routes
+### Task 10: Update /api/me + remove signInProvider
 
 **Files:**
 - Modify: `app/api/me/route.ts` (bearer auth via `auth()`, drop cookie session)
-- Delete: `app/api/auth/session/route.ts`
-- Delete: `app/api/auth/reset-password/route.ts`
+- Modify: `lib/firebase-admin.ts` — remove `signInProvider` (and its `DecodedIdToken` type import if then unused); keep `verifyIdToken`, `createSessionCookie`, `verifySessionCookie`, `generatePasswordResetLink` (createSessionCookie/verifySessionCookie now unused server-side — remove them too if `rg` shows no consumers; keep `generatePasswordResetLink` for the client-reset parity decision)
 - Modify: `lib/db.ts` — nothing (users collection shape unchanged)
 
 **Interfaces:**
@@ -1806,30 +1802,23 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: Delete old routes**
+- [ ] **Step 2: Remove signInProvider from lib/firebase-admin.ts**
 
-```bash
-rm app/api/auth/session/route.ts app/api/auth/reset-password/route.ts
-rm -r app/api/auth/session app/api/auth/reset-password 2>$null
-```
+Delete the `signInProvider` function; drop `type DecodedIdToken` from the import if no longer referenced. Verify consumers: `rg "signInProvider|verifySessionCookie|createSessionCookie" --glob "!node_modules"` — any remaining hits must be the intentionally kept helpers' own definitions only.
 
-- [ ] **Step 3: Sweep dead references**
-
-Run `rg "createSessionCookie|verifySessionCookie|generatePasswordResetLink|exchangeIdToken|clearSessionCookie|setSessionCookie|SESSION_COOKIE_NAME|upsertUser" --glob "!node_modules"` — remaining hits must be `lib/firebase-admin.ts` (kept helpers, now unused server-side but harmless) and `lib/firebase-client.ts` (rewritten in Task 11). Remove `signInProvider` if still present in `lib/firebase-admin.ts` and unused.
-
-- [ ] **Step 4: Verify full build**
+- [ ] **Step 3: Verify full build**
 
 Run: `npx next build` — expected: no errors.
 
-- [ ] **Step 5: Postman re-verify the full happy path**
+- [ ] **Step 4: Postman re-verify the full happy path**
 
 Exchange → `/api/me` with Bearer token (200) → refresh → old access token on `/api/me` → 401 → new access token → 200.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add -A
-git commit -m "feat: bearer auth on /api/me, remove Firebase session-cookie routes"
+git add app/api/me/route.ts lib/firebase-admin.ts
+git commit -m "feat: bearer auth on /api/me, drop unused firebase-admin helpers"
 ```
 
 ---
