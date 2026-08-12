@@ -12,7 +12,13 @@ export async function POST(request: NextRequest) {
   const rl = checkRateLimit('auth:refresh', 120, 60_000)
   if (!rl.allowed) {
     return NextResponse.json(
-      { success: false, payload: { error: { code: 'rate_limited', retryAfterSeconds: rl.retryAfterSeconds } } },
+      {
+        success: false,
+        version: '1.0.0',
+        payload: { error: { code: 'rate_limited' } },
+        serverTimestamp: new Date().toISOString(),
+        retryAfterSeconds: rl.retryAfterSeconds,
+      },
       { status: 429 }
     )
   }

@@ -6,7 +6,7 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import { createSession, getSessionsCollection } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { oauthSchema } from '@/lib/validation'
-import { toUserDTO } from '@/lib/auth'
+import { REFRESH_COOKIE_NAME, toUserDTO } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -102,7 +102,7 @@ export async function POST(
       },
       { status: 200 }
     )
-    res.cookies.set('crushsvg_refresh', tokenPair.refreshToken, {
+    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

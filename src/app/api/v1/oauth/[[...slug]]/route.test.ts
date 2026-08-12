@@ -22,7 +22,7 @@ vi.mock('@/lib/sessions', () => ({
   createSession: mocks.createSession,
 }))
 vi.mock('@/lib/tokens', () => ({ buildTokenPayload: mocks.buildTokenPayload }))
-vi.mock('@/lib/auth', () => ({ toUserDTO: mocks.toUserDTO }))
+vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh', toUserDTO: mocks.toUserDTO }))
 
 import { POST } from './route'
 
