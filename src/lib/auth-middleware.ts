@@ -52,7 +52,7 @@ export async function auth(
   }
 
   const header = request.headers.get('authorization')
-  if (!header?.startsWith('Bearer ')) {
+  if (!header?.toLowerCase().startsWith('bearer ')) {
     return {
       error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     }
@@ -60,7 +60,7 @@ export async function auth(
 
   let decoded: DecodedAccessToken
   try {
-    decoded = await verifyAccessToken(header.slice('Bearer '.length))
+    decoded = await verifyAccessToken(header.slice('bearer '.length))
   } catch {
     return {
       error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),

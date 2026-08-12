@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-import { invalidateSessionCache, isAllowedOrigin, isMethodExempt } from '@/middleware'
+import { invalidateSessionCache, isAllowedOrigin, isMethodExempt } from '@/lib/auth-middleware'
 
 describe('auth-middleware', () => {
   beforeEach(() => {
