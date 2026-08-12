@@ -4,6 +4,7 @@ import {
   getAuth,
   GithubAuthProvider,
   GoogleAuthProvider,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -12,6 +13,13 @@ import {
   type Auth,
   type AuthError,
 } from 'firebase/auth'
+
+const PROVIDER_URL_MAP: Record<string, string> = {
+  'google.com': 'google',
+  'github.com': 'github',
+  'twitter.com': 'x',
+  password: 'password',
+}
 
 let app: FirebaseApp | undefined
 let auth: Auth | undefined
@@ -33,9 +41,15 @@ export function getFirebaseAuth(): Auth {
 }
 
 export function getErrorMessage(error: unknown): string {
-  const code = (error as AuthError)?.code ?? ''
+  const e = error as AuthError
+  const code = e?.code ?? ''
+  const message = e?.message ?? ''
 
-  switch (code) {
+  switch (code || message) {
+    case 'email_not_verified':
+      return 'Please verify your email before logging in'
+    case 'auth/too-many-requests':
+      return 'Too many attempts — wait a bit and try again'
     case 'auth/email-already-in-use':
       return "That email's already registered — log in instead?"
     case 'auth/weak-password':
@@ -116,26 +130,49 @@ export interface SessionResponse {
     createdAt: string
     lastLoginAt: string
   }
+  token: {
+    tokenType: 'Bearer'
+    accessToken: string
+    accessTokenExpires: string
+    refreshToken: string
+    refreshTokenExpires: string
+  }
 }
 
-export async function exchangeIdToken(): Promise<SessionResponse> {
+export async function exchangeIdToken(rememberMe = true): Promise<SessionResponse> {
   const currentUser = getFirebaseAuth().currentUser
   if (!currentUser) {
     throw new Error('Not signed in')
   }
+  const providerId = currentUser.providerData[0]?.providerId ?? 'password'
+  const provider = PROVIDER_URL_MAP[providerId] ?? 'password'
   const idToken = await currentUser.getIdToken()
-  const response = await fetch('/api/auth/session', {
+  const response = await fetch(`/api/v1/oauth/${provider}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken }),
+    body: JSON.stringify({ firebaseToken: idToken, rememberMe }),
   })
+  if (response.status === 403) {
+    throw new Error('email_not_verified')
+  }
+  if (response.status === 429) {
+    throw new Error('auth/too-many-requests')
+  }
   if (!response.ok) {
     throw new Error('Failed to create session')
   }
   return response.json()
 }
 
+export async function resendVerificationEmail(): Promise<void> {
+  const currentUser = getFirebaseAuth().currentUser
+  if (!currentUser) {
+    throw new Error('Not signed in')
+  }
+  await sendEmailVerification(currentUser)
+}
+
 export async function signOut() {
-  await fetch('/api/auth/session', { method: 'DELETE' })
+  await fetch('/api/v1/auth/logout', { method: 'POST' })
   await firebaseSignOut(getFirebaseAuth())
 }
