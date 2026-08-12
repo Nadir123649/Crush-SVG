@@ -1,6 +1,4 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest'
-
-vi.mock('server-only', () => ({}))
+import { describe, it, expect, beforeAll } from 'vitest'
 
 import {
   buildTokenPayload,
