@@ -1,12 +1,9 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import {
-  createUserWithEmailAndPassword,
   getAuth,
   GithubAuthProvider,
   GoogleAuthProvider,
   sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
   signInWithPopup,
   signOut as firebaseSignOut,
   TwitterAuthProvider,
@@ -18,7 +15,6 @@ const PROVIDER_URL_MAP: Record<string, string> = {
   'google.com': 'google',
   'github.com': 'github',
   'twitter.com': 'x',
-  password: 'password',
 }
 
 let app: FirebaseApp | undefined
@@ -50,13 +46,7 @@ export function getErrorMessage(error: unknown): string {
       return 'Please verify your email before logging in'
     case 'auth/too-many-requests':
       return 'Too many attempts — wait a bit and try again'
-    case 'auth/email-already-in-use':
-      return "That email's already registered — log in instead?"
-    case 'auth/weak-password':
-      return 'Use at least 8 characters'
     case 'auth/invalid-credential':
-    case 'auth/wrong-password':
-    case 'auth/user-not-found':
       return "That email and password don't match — try again"
     case 'auth/invalid-email':
       return 'Enter a valid email address'
@@ -66,40 +56,6 @@ export function getErrorMessage(error: unknown): string {
       return 'Sign-in was cancelled'
     default:
       return 'Something went wrong — please try again'
-  }
-}
-
-export async function signUpWithEmail(
-  email: string,
-  password: string
-): Promise<{ user: { uid: string; email: string | null } }> {
-  const credential = await createUserWithEmailAndPassword(
-    getFirebaseAuth(),
-    email,
-    password
-  )
-  return {
-    user: {
-      uid: credential.user.uid,
-      email: credential.user.email,
-    },
-  }
-}
-
-export async function signInWithEmail(
-  email: string,
-  password: string
-): Promise<{ user: { uid: string; email: string | null } }> {
-  const credential = await signInWithEmailAndPassword(
-    getFirebaseAuth(),
-    email,
-    password
-  )
-  return {
-    user: {
-      uid: credential.user.uid,
-      email: credential.user.email,
-    },
   }
 }
 
@@ -113,10 +69,6 @@ export async function signInWithX() {
 
 export async function signInWithGitHub() {
   return signInWithPopup(getFirebaseAuth(), new GithubAuthProvider())
-}
-
-export async function resetPassword(email: string) {
-  return sendPasswordResetEmail(getFirebaseAuth(), email)
 }
 
 export interface SessionResponse {
@@ -144,8 +96,8 @@ export async function exchangeIdToken(rememberMe = true): Promise<SessionRespons
   if (!currentUser) {
     throw new Error('Not signed in')
   }
-  const providerId = currentUser.providerData[0]?.providerId ?? 'password'
-  const provider = PROVIDER_URL_MAP[providerId] ?? 'password'
+  const providerId = currentUser.providerData[0]?.providerId
+  const provider = providerId ? (PROVIDER_URL_MAP[providerId] ?? 'password') : 'password'
   const idToken = await currentUser.getIdToken()
   const response = await fetch(`/api/v1/oauth/${provider}`, {
     method: 'POST',

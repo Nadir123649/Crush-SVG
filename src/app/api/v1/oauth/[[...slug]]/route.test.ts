@@ -33,7 +33,7 @@ function fakeUser() {
     email: 't@t.com',
     displayName: 'Test User',
     photoURL: null,
-    providers: ['password'],
+    providers: ['google'],
     conversionsUsed: 0,
     createdAt: new Date('2026-01-01T00:00:00Z'),
     updatedAt: new Date('2026-01-01T00:00:00Z'),
@@ -45,7 +45,7 @@ function fakeSession() {
   return {
     _id: new ObjectId(),
     userId: new ObjectId(),
-    provider: 'password',
+    provider: 'google',
     remember: true,
     tokenVersion: 0,
     status: 'active',
@@ -76,19 +76,27 @@ function post(provider: string, body?: unknown, raw?: string) {
   )
 }
 
-function passwordToken(emailVerified = true) {
+function googleToken() {
   return {
     uid: 'uid-1',
     email: 't@t.com',
-    email_verified: emailVerified,
-    firebase: { sign_in_provider: 'password' },
+    email_verified: true,
+    firebase: { sign_in_provider: 'google.com' },
   }
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.verifyIdToken.mockResolvedValue(passwordToken(true))
-  mocks.providerIdToName.mockImplementation((id: string) => id)
+  mocks.verifyIdToken.mockResolvedValue(googleToken())
+  mocks.providerIdToName.mockImplementation((id: string) => {
+    switch (id) {
+      case 'google.com': return 'google'
+      case 'github.com': return 'github'
+      case 'twitter.com': return 'x'
+      case 'password': return 'password'
+      default: return id
+    }
+  })
   mocks.resolveUserCascade.mockResolvedValue(fakeUser())
   mocks.getSessionsCollection.mockResolvedValue(null)
   mocks.createSession.mockResolvedValue(fakeSession())
@@ -103,48 +111,46 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
     expect(await res.json()).toEqual({ error: 'Unknown provider' })
   })
 
+  it('returns 404 for the removed password provider', async () => {
+    const res = await post('password', { firebaseToken: 't' })
+    expect(res.status).toBe(404)
+  })
+
   it('returns 400 for invalid JSON body', async () => {
-    const res = await post('password', undefined, '{')
+    const res = await post('google', undefined, '{')
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ error: 'Invalid JSON body' })
   })
 
   it('returns 400 with field errors for missing firebaseToken', async () => {
-    const res = await post('password', {})
+    const res = await post('google', {})
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error.firebaseToken).toBeDefined()
   })
 
   it('returns 400 when token provider does not match route provider', async () => {
-    mocks.verifyIdToken.mockResolvedValue(passwordToken())
-    const res = await post('google', { firebaseToken: 't' })
+    mocks.verifyIdToken.mockResolvedValue(googleToken())
+    const res = await post('x', { firebaseToken: 't' })
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ error: 'Provider mismatch' })
   })
 
-  it('returns 403 for password provider with unverified email', async () => {
-    mocks.verifyIdToken.mockResolvedValue(passwordToken(false))
-    const res = await post('password', { firebaseToken: 't' })
-    expect(res.status).toBe(403)
-    expect(await res.json()).toEqual({ error: 'email_not_verified' })
-  })
-
   it('returns 401 when firebase token verification fails', async () => {
     mocks.verifyIdToken.mockRejectedValue(new Error('firebase failure'))
-    const res = await post('password', { firebaseToken: 'garbage' })
+    const res = await post('google', { firebaseToken: 'garbage' })
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Invalid or expired token' })
   })
 
   it('returns 200 with user, token, sessionId and refresh cookie', async () => {
-    mocks.verifyIdToken.mockResolvedValue(passwordToken(true))
+    mocks.verifyIdToken.mockResolvedValue(googleToken())
     const user = fakeUser()
     const session = fakeSession()
     mocks.resolveUserCascade.mockResolvedValue(user)
     mocks.createSession.mockResolvedValue(session)
 
-    const res = await post('password', { firebaseToken: 't', rememberMe: true })
+    const res = await post('google', { firebaseToken: 't', rememberMe: true })
 
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -153,12 +159,12 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
       token: fakeTokenPair(),
       sessionId: session._id.toString(),
     })
-    expect(mocks.providerIdToName).toHaveBeenCalledWith('password')
+    expect(mocks.providerIdToName).toHaveBeenCalledWith('google.com')
     expect(mocks.createSession).toHaveBeenCalledWith(
       null,
       expect.objectContaining({
         userId: user._id,
-        provider: 'password',
+        provider: 'google',
         remember: true,
       })
     )
@@ -174,8 +180,8 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
   })
 
   it('passes rememberMe false into session creation', async () => {
-    mocks.verifyIdToken.mockResolvedValue(passwordToken(true))
-    const res = await post('password', { firebaseToken: 't', rememberMe: false })
+    mocks.verifyIdToken.mockResolvedValue(googleToken())
+    const res = await post('google', { firebaseToken: 't', rememberMe: false })
     expect(res.status).toBe(200)
     expect(mocks.createSession).toHaveBeenCalledWith(
       null,

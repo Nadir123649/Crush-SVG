@@ -1,14 +1,22 @@
 import 'server-only'
 
-import { MongoClient, type Collection } from 'mongodb'
+import { MongoClient, type Collection, type Client, type MongoClientOptions } from 'mongodb'
 
 export interface UserDoc {
   _id: import('mongodb').ObjectId
   uid: string
   email: string | null
   displayName: string
+  name?: string | null
   photoURL: string | null
   providers: string[]
+  linkedProviders?: string[]
+  password?: string
+  isVerified?: boolean
+  emailVerificationToken?: string
+  emailVerificationTokenExpire?: number
+  resetPasswordToken?: string
+  resetPasswordTokenExpire?: number
   conversionsUsed: number
   createdAt: Date
   updatedAt: Date
@@ -27,16 +35,20 @@ function getMongoUri(): string {
   return uri
 }
 
-function createClient(): MongoClient {
+async function createClient(): Promise<MongoClient> {
   const client = new MongoClient(getMongoUri(), {
     appName: 'crushsvg',
     serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 10000,
   })
-  void client.connect().catch((err) => {
+  try {
+    await client.connect()
+    console.log('Connected to MongoDB successfully')
+    return client
+  } catch (err) {
     console.error('Failed to connect to MongoDB:', err)
-  })
-  globalThis.__crushSvgMongoClient = client
-  return client
+    throw err
+  }
 }
 
 export function getMongoClient(): MongoClient {

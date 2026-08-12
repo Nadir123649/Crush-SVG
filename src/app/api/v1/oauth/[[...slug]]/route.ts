@@ -14,7 +14,6 @@ const PROVIDER_URL_MAP: Record<string, string> = {
   google: 'google.com',
   github: 'github.com',
   x: 'twitter.com',
-  password: 'password',
 }
 
 export async function POST(
@@ -64,9 +63,11 @@ export async function POST(
         { status: 400 }
       )
     }
-    if (provider === 'password' && !token.email_verified) {
+
+    // Password gate: email must be verified for password provider
+    if (provider === 'password' && token.email_verified !== true) {
       return NextResponse.json(
-        { error: 'email_not_verified' },
+        { error: 'Email not verified. Please verify your email before logging in.' },
         { status: 403 }
       )
     }
