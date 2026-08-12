@@ -10,6 +10,7 @@
 
 ## Global Constraints
 
+- This repo uses the App Router src/ layout: all source lives under `src/` (`src/app` routes, `src/lib` helpers); use src-prefixed paths in every command and file reference
 - Next 16.3.0: read the relevant guide in `node_modules/next/dist/docs/` before writing any route handler; `params` is `Promise<{ slug?: string[] }>`; `cookies()` is async
 - `runtime = 'nodejs'` on every new route
 - Provider names (canonical, used in URLs, DB, cookies): `google`, `github`, `x`, `password` — Firebase provider ids map: `google.com`, `github.com`, `twitter.com`, `password`
@@ -28,7 +29,7 @@
 - Modify: `package.json` (deps + test script)
 - Create: `vitest.config.ts`
 - Modify: `.env.example`
-- Modify: `lib/validation.ts`
+- Modify: `src/lib/validation.ts`
 
 **Interfaces:**
 - Consumes: nothing
@@ -57,7 +58,7 @@ import path from 'path'
 
 export default defineConfig({
   resolve: {
-    alias: { '@': path.resolve(__dirname) },
+    alias: { '@': path.resolve(__dirname, 'src') },
   },
   test: {
     environment: 'node',
@@ -76,7 +77,7 @@ ACCESS_TOKEN_EXPIRES=15m
 REFRESH_TOKEN_EXPIRES=7d
 ```
 
-- [ ] **Step 5: Extend lib/validation.ts**
+- [ ] **Step 5: Extend src/lib/validation.ts**
 
 Append:
 ```ts
@@ -86,7 +87,7 @@ export const oauthSchema = z.object({
 })
 ```
 
-- [ ] **Step 6: Create lib/rate-limit.ts** (shared by oauth + refresh routes)
+- [ ] **Step 6: Create src/lib/rate-limit.ts** (shared by oauth + refresh routes)
 
 ```ts
 import 'server-only'
@@ -123,17 +124,17 @@ Expected: exit 0, "No test files found" is fine.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add package.json package-lock.json vitest.config.ts .env.example lib/validation.ts lib/rate-limit.ts
+git add package.json package-lock.json vitest.config.ts .env.example src/lib/validation.ts src/lib/rate-limit.ts
 git commit -m "chore: add vitest, jwt deps, oauth schema, rate limiter, env vars"
 ```
 
 ---
 
-### Task 2: JWT tokens (`lib/tokens.ts`)
+### Task 2: JWT tokens (`src/lib/tokens.ts`)
 
 **Files:**
-- Create: `lib/tokens.ts`
-- Test: `lib/tokens.test.ts`
+- Create: `src/lib/tokens.ts`
+- Test: `src/lib/tokens.test.ts`
 
 **Interfaces:**
 - Consumes: nothing
@@ -202,10 +203,10 @@ describe('tokens', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- lib/tokens.test.ts`
+Run: `npm test -- src/lib/tokens.test.ts`
 Expected: FAIL — module `@/lib/tokens` not found.
 
-- [ ] **Step 3: Write lib/tokens.ts**
+- [ ] **Step 3: Write src/lib/tokens.ts**
 
 ```ts
 import 'server-only'
@@ -336,23 +337,23 @@ export function verifyRefreshToken(token: string): Promise<DecodedRefreshToken> 
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npm test -- lib/tokens.test.ts`
+Run: `npm test -- src/lib/tokens.test.ts`
 Expected: 4 tests PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/tokens.ts lib/tokens.test.ts
+git add src/lib/tokens.ts src/lib/tokens.test.ts
 git commit -m "feat: JWT access/refresh token helpers"
 ```
 
 ---
 
-### Task 3: Sessions collection + ops (`lib/sessions.ts`)
+### Task 3: Sessions collection + ops (`src/lib/sessions.ts`)
 
 **Files:**
-- Create: `lib/sessions.ts`
-- Test: `lib/sessions.test.ts`
+- Create: `src/lib/sessions.ts`
+- Test: `src/lib/sessions.test.ts`
 
 **Interfaces:**
 - Consumes: `getMongoClient` from `@/lib/db`; `ObjectId` from `mongodb`
@@ -544,10 +545,10 @@ describe('sessions', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- lib/sessions.test.ts`
+Run: `npm test -- src/lib/sessions.test.ts`
 Expected: FAIL — `@/lib/sessions` not found.
 
-- [ ] **Step 3: Write lib/sessions.ts**
+- [ ] **Step 3: Write src/lib/sessions.ts**
 
 ```ts
 import 'server-only'
@@ -735,23 +736,23 @@ export async function rotateSession(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npm test -- lib/sessions.test.ts`
+Run: `npm test -- src/lib/sessions.test.ts`
 Expected: all tests PASS. (The fake `findOneAndUpdate` returns `undefined` value — `rotateSession` treats it as miss and falls back to `findOne`; adjust the fake if the fallback path is exercised differently.)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/sessions.ts lib/sessions.test.ts
+git add src/lib/sessions.ts src/lib/sessions.test.ts
 git commit -m "feat: sessions collection with fingerprint reuse and rotation"
 ```
 
 ---
 
-### Task 4: Auth middleware + session cache (`lib/auth-middleware.ts`)
+### Task 4: Auth middleware + session cache (`src/lib/auth-middleware.ts`)
 
 **Files:**
-- Create: `lib/auth-middleware.ts`
-- Test: `lib/auth-middleware.test.ts`
+- Create: `src/lib/auth-middleware.ts`
+- Test: `src/lib/auth-middleware.test.ts`
 
 **Interfaces:**
 - Consumes: `verifyAccessToken` from `@/lib/tokens`; `getSessionsCollection` from `@/lib/sessions`; `NextRequest`/`Response` from `next/server`
@@ -807,10 +808,10 @@ describe('auth-middleware', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- lib/auth-middleware.test.ts`
+Run: `npm test -- src/lib/auth-middleware.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write lib/auth-middleware.ts**
+- [ ] **Step 3: Write src/lib/auth-middleware.ts**
 
 ```ts
 import 'server-only'
@@ -919,22 +920,22 @@ export async function auth(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npm test -- lib/auth-middleware.test.ts`
+Run: `npm test -- src/lib/auth-middleware.test.ts`
 Expected: 4 tests PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/auth-middleware.ts lib/auth-middleware.test.ts
+git add src/lib/auth-middleware.ts src/lib/auth-middleware.test.ts
 git commit -m "feat: auth middleware with bearer verify and session cache"
 ```
 
 ---
 
-### Task 5: SSE session broker (`lib/session-broker.ts`)
+### Task 5: SSE session broker (`src/lib/session-broker.ts`)
 
 **Files:**
-- Create: `lib/session-broker.ts`
+- Create: `src/lib/session-broker.ts`
 
 **Interfaces:**
 - Consumes: nothing
@@ -944,7 +945,7 @@ git commit -m "feat: auth middleware with bearer verify and session cache"
   - `unsubscribe(userId: string, controller: SseController): void`
   - `publishLogout(userId: string): number` — enqueues `data: logout\n\n` to every live controller, closes them, deletes the entry; returns subscriber count
 
-- [ ] **Step 1: Write lib/session-broker.ts**
+- [ ] **Step 1: Write src/lib/session-broker.ts**
 
 ```ts
 import 'server-only'
@@ -994,17 +995,17 @@ Run: `npx next build 2>&1 | Select-String -Pattern "error|warn"` — expected: n
 - [ ] **Step 3: Commit**
 
 ```bash
-git add lib/session-broker.ts
+git add src/lib/session-broker.ts
 git commit -m "feat: SSE logout session broker"
 ```
 
 ---
 
-### Task 6: User cascade (`lib/firebase-user.ts`)
+### Task 6: User cascade (`src/lib/firebase-user.ts`)
 
 **Files:**
-- Create: `lib/firebase-user.ts`
-- Test: `lib/firebase-user.test.ts`
+- Create: `src/lib/firebase-user.ts`
+- Test: `src/lib/firebase-user.test.ts`
 
 **Interfaces:**
 - Consumes: `type DecodedIdToken` from `firebase-admin/auth`; `getUsersCollection`, `type UserDoc` from `@/lib/db`
@@ -1012,7 +1013,7 @@ git commit -m "feat: SSE logout session broker"
   - `type ProviderName = 'google' | 'github' | 'x' | 'password'`
   - `providerIdToName(providerId: string): ProviderName` — map `google.com/github.com/twitter.com/password`, fallback returns providerId as-is
   - `resolveUserCascade(token: DecodedIdToken, provider: ProviderName, users?: Collection<UserDoc>): Promise<UserDoc>` — cascade: `uid` match → `email` match (bind provider, backfill photoURL/displayName) → create; always `$addToSet` provider, refresh profile, bump `lastLoginAt`/`updatedAt`
-  - Delete `signInProvider` from `lib/firebase-admin.ts` (its only consumer `lib/auth.ts` is rewritten in Task 10)
+  - Delete `signInProvider` from `src/lib/firebase-admin.ts` (its only consumer `src/lib/auth.ts` is rewritten in Task 10)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1134,10 +1135,10 @@ describe('firebase-user', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- lib/firebase-user.test.ts`
+Run: `npm test -- src/lib/firebase-user.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write lib/firebase-user.ts**
+- [ ] **Step 3: Write src/lib/firebase-user.ts**
 
 ```ts
 import 'server-only'
@@ -1234,10 +1235,10 @@ export async function resolveUserCascade(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npm test -- lib/firebase-user.test.ts`
+Run: `npm test -- src/lib/firebase-user.test.ts`
 Expected: 4 tests PASS.
 
-(Note: `signInProvider` in `lib/firebase-admin.ts` is removed in Task 10, not here — `lib/auth.ts` still imports it until Task 8.)
+(Note: `signInProvider` in `src/lib/firebase-admin.ts` is removed in Task 10, not here — `src/lib/auth.ts` still imports it until Task 8.)
 
 ---
 
@@ -1392,7 +1393,7 @@ Expected: 200 `{ user, token, sessionId }`, `crushsvg_refresh` cookie set. Wrong
 - [ ] **Step 4: Commit**
 
 ```bash
-git add app/api/v1/oauth/[[...slug]]/route.ts
+git add src/app/api/v1/oauth/[[...slug]]/route.ts
 git commit -m "feat: OAuth exchange route with provider linking and session issue"
 ```
 
@@ -1404,7 +1405,7 @@ git commit -m "feat: OAuth exchange route with provider linking and session issu
 - Create: `app/api/v1/auth/refresh/route.ts`
 - Create: `app/api/v1/auth/logout/route.ts`
 - Create: `app/api/v1/auth/logout-all/route.ts`
-- Modify: `lib/auth.ts` — add `REFRESH_COOKIE_NAME`, `setRefreshCookie(res, token, remember)`, `clearRefreshCookie(res)`, `getSessionUser(request)` (bearer-based, replaces cookie-based `getSessionUser`)
+- Modify: `src/lib/auth.ts` — add `REFRESH_COOKIE_NAME`, `setRefreshCookie(res, token, remember)`, `clearRefreshCookie(res)`, `getSessionUser(request)` (bearer-based, replaces cookie-based `getSessionUser`)
 
 **Interfaces:**
 - Consumes: `verifyRefreshToken`, `buildTokenPayload` from `@/lib/tokens`; `getSessionsCollection`, `rotateSession`, `getSessionRemember`, `getSessionTokenVersion`, `revokeAllSessions`, `revokeSession` from `@/lib/sessions`; `auth`, `invalidateSessionCache` from `@/lib/auth-middleware`; `getUsersCollection` from `@/lib/db`; `publishLogout` from `@/lib/session-broker`; `toUserDTO` etc. from `@/lib/auth`
@@ -1412,17 +1413,17 @@ git commit -m "feat: OAuth exchange route with provider linking and session issu
   - `POST /api/v1/auth/refresh` — cookie-driven; rotates `tokenVersion`; race-tolerant: stale version + alive session → re-issue at current version, never delete cookie; revoked/missing session → 401 `session_revoked` + delete cookie; missing cookie → 200 `{ success: false, payload: { error: ... } }` (Puzz 11 shape, no throw)
   - `POST /api/v1/auth/logout` — bearer; revoke current session, invalidate cache, publishLogout, delete cookie, 200
   - `POST /api/v1/auth/logout-all` — bearer; revoke all, full cache clear, publishLogout, delete cookie, 200
-  - `lib/auth.ts`: `getSessionUser(request: NextRequest): Promise<UserDoc | null>` via `auth()`; delete `setSessionCookie`/`clearSessionCookie`/`SESSION_COOKIE_NAME` (v1 cookie code)
+  - `src/lib/auth.ts`: `getSessionUser(request: NextRequest): Promise<UserDoc | null>` via `auth()`; delete `setSessionCookie`/`clearSessionCookie`/`SESSION_COOKIE_NAME` (v1 cookie code)
 
 - [ ] **Step 1: Delete old v1 auth routes (they import the cookie helpers being removed in this task)**
 
 ```bash
-rm -r app/api/auth/session app/api/auth/reset-password
+rm -r src/app/api/auth/session app/api/auth/reset-password
 ```
 
 Verify with `rg "api/auth/session|reset-password" --glob "!node_modules"` — remaining hits must be docs only.
 
-- [ ] **Step 2: Rewrite lib/auth.ts**
+- [ ] **Step 2: Rewrite src/lib/auth.ts**
 
 ```ts
 import 'server-only'
@@ -1467,7 +1468,7 @@ export async function getSessionUser(request: NextRequest): Promise<UserDoc | nu
 }
 ```
 
-(Note: keep `upsertUser` only if still referenced — after this task the cascade replaces it; remove it in this rewrite and drop `signInProvider` from `lib/firebase-admin.ts`, its last consumer is gone once the old routes are deleted in Step 1.)
+(Note: keep `upsertUser` only if still referenced — after this task the cascade replaces it; remove it in this rewrite and drop `signInProvider` from `src/lib/firebase-admin.ts`, its last consumer is gone once the old routes are deleted in Step 1.)
 
 - [ ] **Step 3: Write app/api/v1/auth/refresh/route.ts**
 
@@ -1759,7 +1760,7 @@ Run: `npx next build`; Postman: GET sessions (list), DELETE one (204, then that 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add app/api/v1/sessions/
+git add src/app/api/v1/sessions/
 git commit -m "feat: session list and revoke routes"
 ```
 
@@ -1769,8 +1770,8 @@ git commit -m "feat: session list and revoke routes"
 
 **Files:**
 - Modify: `app/api/me/route.ts` (bearer auth via `auth()`, drop cookie session)
-- Modify: `lib/firebase-admin.ts` — remove `signInProvider` (and its `DecodedIdToken` type import if then unused); keep `verifyIdToken`, `createSessionCookie`, `verifySessionCookie`, `generatePasswordResetLink` (createSessionCookie/verifySessionCookie now unused server-side — remove them too if `rg` shows no consumers; keep `generatePasswordResetLink` for the client-reset parity decision)
-- Modify: `lib/db.ts` — nothing (users collection shape unchanged)
+- Modify: `src/lib/firebase-admin.ts` — remove `signInProvider` (and its `DecodedIdToken` type import if then unused); keep `verifyIdToken`, `createSessionCookie`, `verifySessionCookie`, `generatePasswordResetLink` (createSessionCookie/verifySessionCookie now unused server-side — remove them too if `rg` shows no consumers; keep `generatePasswordResetLink` for the client-reset parity decision)
+- Modify: `src/lib/db.ts` — nothing (users collection shape unchanged)
 
 **Interfaces:**
 - Consumes: `auth` from `@/lib/auth-middleware`; `getUsersCollection` from `@/lib/db`; `toUserDTO` from `@/lib/auth`
@@ -1802,7 +1803,7 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: Remove signInProvider from lib/firebase-admin.ts**
+- [ ] **Step 2: Remove signInProvider from src/lib/firebase-admin.ts**
 
 Delete the `signInProvider` function; drop `type DecodedIdToken` from the import if no longer referenced. Verify consumers: `rg "signInProvider|verifySessionCookie|createSessionCookie" --glob "!node_modules"` — any remaining hits must be the intentionally kept helpers' own definitions only.
 
@@ -1817,16 +1818,16 @@ Exchange → `/api/me` with Bearer token (200) → refresh → old access token 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add app/api/me/route.ts lib/firebase-admin.ts
+git add src/app/api/me/route.ts src/lib/firebase-admin.ts
 git commit -m "feat: bearer auth on /api/me, drop unused firebase-admin helpers"
 ```
 
 ---
 
-### Task 11: Client helpers (`lib/firebase-client.ts`)
+### Task 11: Client helpers (`src/lib/firebase-client.ts`)
 
 **Files:**
-- Modify: `lib/firebase-client.ts`
+- Modify: `src/lib/firebase-client.ts`
 
 **Interfaces:**
 - Consumes: existing Firebase client SDK helpers
@@ -1836,7 +1837,7 @@ git commit -m "feat: bearer auth on /api/me, drop unused firebase-admin helpers"
   - `resendVerificationEmail()` — `sendEmailVerification(currentUser)`
   - `getErrorMessage` gains: `email_not_verified` → "Please verify your email before logging in", `auth/too-many-requests` → "Too many attempts — wait a bit and try again", 429 → same message
 
-- [ ] **Step 1: Rewrite the affected parts of lib/firebase-client.ts**
+- [ ] **Step 1: Rewrite the affected parts of src/lib/firebase-client.ts**
 
 ```ts
 import {
@@ -1923,7 +1924,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add lib/firebase-client.ts
+git add src/lib/firebase-client.ts
 git commit -m "feat: client auth helpers for OAuth exchange, logout-all, resend verification"
 ```
 
@@ -1981,3 +1982,5 @@ git commit -m "chore: final auth v2 lint, tests, and docs sweep"
 - Spec out-of-scope items deliberately absent: guest docs, usernames, geo, brute-force (Firebase-owned), verification UI
 - Rate limits on 3 routes (oauth/refresh + logout paths left unthrottled — logout/logout-all rely on bearer auth; oauth + refresh throttled per spec)
 - Sessions list DTO drops `tokenVersion`/`rotatedAt` (internal), keeps `remember`, `status`
+
+
