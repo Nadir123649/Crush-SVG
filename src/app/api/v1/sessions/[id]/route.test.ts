@@ -1,0 +1,79 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ObjectId } from 'mongodb'
+import { NextRequest, NextResponse } from 'next/server'
+
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  invalidateSessionCache: vi.fn(),
+  getSessionsCollection: vi.fn(),
+  revokeSession: vi.fn(),
+  publishLogout: vi.fn(),
+}))
+
+vi.mock('@/lib/auth-middleware', () => ({
+  auth: mocks.auth,
+  invalidateSessionCache: mocks.invalidateSessionCache,
+}))
+vi.mock('@/lib/sessions', () => ({
+  getSessionsCollection: mocks.getSessionsCollection,
+  revokeSession: mocks.revokeSession,
+}))
+vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
+
+import { DELETE } from './route'
+
+const USER_ID = '507f1f77bcf86cd799439011'
+const SESSION_ID = '507f1f77bcf86cd799439012'
+
+function del(id: string = SESSION_ID) {
+  return DELETE(
+    new NextRequest(`http://localhost/api/v1/sessions/${id}`, {
+      method: 'DELETE',
+      headers: { authorization: 'Bearer token' },
+    }),
+    { params: Promise.resolve({ id }) }
+  )
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mocks.auth.mockResolvedValue({
+    user: { id: USER_ID, role: 'free', jti: SESSION_ID },
+  })
+  mocks.getSessionsCollection.mockResolvedValue(null)
+  mocks.revokeSession.mockResolvedValue(true)
+})
+
+describe('DELETE /api/v1/sessions/[id]', () => {
+  it('returns 204 and revokes the owned session with cache invalidation', async () => {
+    const res = await del()
+    expect(res.status).toBe(204)
+    expect(await res.text()).toBe('')
+    expect(mocks.revokeSession).toHaveBeenCalledWith(
+      null,
+      SESSION_ID,
+      new ObjectId(USER_ID)
+    )
+    expect(mocks.invalidateSessionCache).toHaveBeenCalledWith(SESSION_ID)
+    expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('returns 404 without side effects when session not found', async () => {
+    mocks.revokeSession.mockResolvedValue(false)
+    const res = await del()
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual({ error: 'Session not found' })
+    expect(mocks.invalidateSessionCache).not.toHaveBeenCalled()
+    expect(mocks.publishLogout).not.toHaveBeenCalled()
+  })
+
+  it('returns auth error without revoking when unauthenticated', async () => {
+    mocks.auth.mockResolvedValue({
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+    })
+    const res = await del()
+    expect(res.status).toBe(401)
+    expect(mocks.revokeSession).not.toHaveBeenCalled()
+    expect(mocks.publishLogout).not.toHaveBeenCalled()
+  })
+})
