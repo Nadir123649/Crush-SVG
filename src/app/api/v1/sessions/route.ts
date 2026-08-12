@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth, invalidateSessionCache } from '@/lib/auth-middleware'
+import { REFRESH_COOKIE_NAME } from '@/lib/auth'
 import { getSessionsCollection, listActiveSessions, revokeAllSessions } from '@/lib/sessions'
 import { publishLogout } from '@/lib/session-broker'
 
@@ -46,5 +47,8 @@ export async function DELETE(request: NextRequest) {
   )
   invalidateSessionCache()
   publishLogout(who.user.id)
-  return new NextResponse(null, { status: 204 })
+
+  const res = new NextResponse(null, { status: 204 })
+  res.cookies.delete(REFRESH_COOKIE_NAME)
+  return res
 }

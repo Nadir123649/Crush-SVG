@@ -1,10 +1,6 @@
 import 'server-only'
 
-import type { NextRequest } from 'next/server'
 import type { UserDoc } from '@/lib/db'
-
-import { auth } from '@/lib/auth-middleware'
-import { getUsersCollection } from '@/lib/db'
 
 export const REFRESH_COOKIE_NAME = 'crushsvg_refresh'
 
@@ -30,11 +26,4 @@ export function toUserDTO(user: UserDoc): UserDTO {
     createdAt: user.createdAt.toISOString(),
     lastLoginAt: user.lastLoginAt.toISOString(),
   }
-}
-
-export async function getSessionUser(request: NextRequest): Promise<UserDoc | null> {
-  const who = await auth(request)
-  if ('error' in who) return null
-  const users = await getUsersCollection()
-  return users.findOne({ _id: new (await import('mongodb')).ObjectId(who.user.id) })
 }

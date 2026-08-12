@@ -124,7 +124,7 @@ export async function revokeSession(
 export async function revokeAllSessions(
   c: Collection<SessionDoc>,
   userId: ObjectId,
-  status: SessionStatus
+  status: 'logged_out' | 'revoked'
 ): Promise<void> {
   await c.updateMany({ userId, status: 'active' }, { $set: { status } })
 }

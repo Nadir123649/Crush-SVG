@@ -19,6 +19,7 @@ vi.mock('@/lib/sessions', () => ({
   revokeSession: mocks.revokeSession,
 }))
 vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
+vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 
 import { DELETE } from './route'
 
@@ -49,6 +50,7 @@ describe('DELETE /api/v1/sessions/[id]', () => {
     const res = await del()
     expect(res.status).toBe(204)
     expect(await res.text()).toBe('')
+    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
     expect(mocks.revokeSession).toHaveBeenCalledWith(
       null,
       SESSION_ID,
@@ -56,6 +58,23 @@ describe('DELETE /api/v1/sessions/[id]', () => {
     )
     expect(mocks.invalidateSessionCache).toHaveBeenCalledWith(SESSION_ID)
     expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('returns 404 without side effects when session id is not a valid ObjectId', async () => {
+    const res = await del('not-an-object-id')
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual({ error: 'Session not found' })
+    expect(mocks.revokeSession).not.toHaveBeenCalled()
+    expect(mocks.invalidateSessionCache).not.toHaveBeenCalled()
+    expect(mocks.publishLogout).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('keeps refresh cookie when revoking a different session', async () => {
+    const res = await del('507f1f77bcf86cd799439013')
+    expect(res.status).toBe(204)
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(mocks.revokeSession).toHaveBeenCalled()
   })
 
   it('returns 404 without side effects when session not found', async () => {

@@ -1,0 +1,764 @@
+# Review package: 0827674..HEAD
+
+## Commits
+8a78b89 feat: refresh rotation, logout, logout-all routes; drop v1 session cookie routes
+
+## Files changed
+ src/app/api/auth/reset-password/route.ts     |  33 -----
+ src/app/api/auth/session/route.ts            |  40 ------
+ src/app/api/v1/auth/logout-all/route.test.ts |  73 ++++++++++
+ src/app/api/v1/auth/logout-all/route.ts      |  29 ++++
+ src/app/api/v1/auth/logout/route.test.ts     |  90 ++++++++++++
+ src/app/api/v1/auth/logout/route.ts          |  27 ++++
+ src/app/api/v1/auth/refresh/route.test.ts    | 201 +++++++++++++++++++++++++++
+ src/app/api/v1/auth/refresh/route.ts         |  97 +++++++++++++
+ src/lib/auth.ts                              |  76 ++--------
+ 9 files changed, 526 insertions(+), 140 deletions(-)
+
+## Diff
+diff --git a/src/app/api/auth/reset-password/route.ts b/src/app/api/auth/reset-password/route.ts
+deleted file mode 100644
+index e28397f..0000000
+--- a/src/app/api/auth/reset-password/route.ts
++++ /dev/null
+@@ -1,33 +0,0 @@
+-import { NextResponse } from 'next/server'
+-
+-import { generatePasswordResetLink } from '@/lib/firebase-admin'
+-import { resetPasswordSchema } from '@/lib/validation'
+-
+-export const runtime = 'nodejs'
+-
+-export async function POST(request: Request) {
+-  let body: unknown
+-  try {
+-    body = await request.json()
+-  } catch {
+-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+-  }
+-
+-  const parsed = resetPasswordSchema.safeParse(body)
+-  if (!parsed.success) {
+-    return NextResponse.json(
+-      { error: parsed.error.flatten().fieldErrors },
+-      { status: 400 }
+-    )
+-  }
+-
+-  try {
+-    const link = await generatePasswordResetLink(parsed.data.email)
+-    if (process.env.NODE_ENV !== 'production') {
+-      return NextResponse.json({ ok: true, devLink: link }, { status: 200 })
+-    }
+-    return NextResponse.json({ ok: true }, { status: 200 })
+-  } catch {
+-    return NextResponse.json({ ok: true }, { status: 200 })
+-  }
+-}
+diff --git a/src/app/api/auth/session/route.ts b/src/app/api/auth/session/route.ts
+deleted file mode 100644
+index b150dd7..0000000
+--- a/src/app/api/auth/session/route.ts
++++ /dev/null
+@@ -1,40 +0,0 @@
+-import { NextResponse } from 'next/server'
+-
+-import { createSessionCookie, verifyIdToken } from '@/lib/firebase-admin'
+-import { clearSessionCookie, setSessionCookie, toUserDTO, upsertUser } from '@/lib/auth'
+-import { sessionSchema } from '@/lib/validation'
+-
+-export const runtime = 'nodejs'
+-
+-export async function POST(request: Request) {
+-  let body: unknown
+-  try {
+-    body = await request.json()
+-  } catch {
+-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+-  }
+-
+-  const parsed = sessionSchema.safeParse(body)
+-  if (!parsed.success) {
+-    return NextResponse.json(
+-      { error: parsed.error.flatten().fieldErrors },
+-      { status: 400 }
+-    )
+-  }
+-
+-  try {
+-    const token = await verifyIdToken(parsed.data.idToken)
+-    const user = await upsertUser(token)
+-    const sessionCookie = await createSessionCookie(parsed.data.idToken)
+-    await setSessionCookie(sessionCookie)
+-    return NextResponse.json({ user: toUserDTO(user) }, { status: 200 })
+-  } catch (error) {
+-    console.error('POST /api/auth/session failed:', error)
+-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+-  }
+-}
+-
+-export async function DELETE() {
+-  await clearSessionCookie()
+-  return new NextResponse(null, { status: 204 })
+-}
+diff --git a/src/app/api/v1/auth/logout-all/route.test.ts b/src/app/api/v1/auth/logout-all/route.test.ts
+new file mode 100644
+index 0000000..01a847c
+--- /dev/null
++++ b/src/app/api/v1/auth/logout-all/route.test.ts
+@@ -0,0 +1,73 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import { ObjectId } from 'mongodb'
++import { NextRequest, NextResponse } from 'next/server'
++
++const mocks = vi.hoisted(() => ({
++  auth: vi.fn(),
++  invalidateSessionCache: vi.fn(),
++  getSessionsCollection: vi.fn(),
++  revokeAllSessions: vi.fn(),
++  publishLogout: vi.fn(),
++}))
++
++vi.mock('@/lib/auth-middleware', () => ({
++  auth: mocks.auth,
++  invalidateSessionCache: mocks.invalidateSessionCache,
++}))
++vi.mock('@/lib/sessions', () => ({
++  getSessionsCollection: mocks.getSessionsCollection,
++  revokeAllSessions: mocks.revokeAllSessions,
++}))
++vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
++vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
++
++import { POST } from './route'
++
++const USER_ID = '507f1f77bcf86cd799439011'
++
++function post() {
++  return POST(
++    new NextRequest('http://localhost/api/v1/auth/logout-all', {
++      method: 'POST',
++      headers: { authorization: 'Bearer token' },
++    })
++  )
++}
++
++beforeEach(() => {
++  vi.clearAllMocks()
++  mocks.auth.mockResolvedValue({
++    user: { id: USER_ID, role: 'free', jti: '507f1f77bcf86cd799439012' },
++  })
++  mocks.getSessionsCollection.mockResolvedValue(null)
++})
++
++describe('POST /api/v1/auth/logout-all', () => {
++  it('returns 200 with message, revokes all and deletes cookie', async () => {
++    const res = await post()
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body).toEqual({
++      success: true,
++      payload: { message: 'Logged out from all devices' },
++    })
++    expect(mocks.revokeAllSessions).toHaveBeenCalledWith(
++      null,
++      new ObjectId(USER_ID),
++      'logged_out'
++    )
++    expect(mocks.invalidateSessionCache).toHaveBeenCalledWith()
++    expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('returns auth error when not authenticated', async () => {
++    mocks.auth.mockResolvedValue({
++      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
++    })
++    const res = await post()
++    expect(res.status).toBe(401)
++    expect(mocks.revokeAllSessions).not.toHaveBeenCalled()
++    expect(mocks.publishLogout).not.toHaveBeenCalled()
++  })
++})
+diff --git a/src/app/api/v1/auth/logout-all/route.ts b/src/app/api/v1/auth/logout-all/route.ts
+new file mode 100644
+index 0000000..cd1aac2
+--- /dev/null
++++ b/src/app/api/v1/auth/logout-all/route.ts
+@@ -0,0 +1,29 @@
++import { NextRequest, NextResponse } from 'next/server'
++
++import { auth, invalidateSessionCache } from '@/lib/auth-middleware'
++import { getSessionsCollection, revokeAllSessions } from '@/lib/sessions'
++import { publishLogout } from '@/lib/session-broker'
++import { REFRESH_COOKIE_NAME } from '@/lib/auth'
++
++export const runtime = 'nodejs'
++
++export async function POST(request: NextRequest) {
++  const who = await auth(request)
++  if ('error' in who) return who.error
++
++  const sessions = await getSessionsCollection()
++  await revokeAllSessions(
++    sessions,
++    new (await import('mongodb')).ObjectId(who.user.id),
++    'logged_out'
++  )
++  invalidateSessionCache()
++  publishLogout(who.user.id)
++
++  const res = NextResponse.json(
++    { success: true, payload: { message: 'Logged out from all devices' } },
++    { status: 200 }
++  )
++  res.cookies.delete(REFRESH_COOKIE_NAME)
++  return res
++}
+diff --git a/src/app/api/v1/auth/logout/route.test.ts b/src/app/api/v1/auth/logout/route.test.ts
+new file mode 100644
+index 0000000..dceed60
+--- /dev/null
++++ b/src/app/api/v1/auth/logout/route.test.ts
+@@ -0,0 +1,90 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import { ObjectId } from 'mongodb'
++import { NextRequest, NextResponse } from 'next/server'
++
++const mocks = vi.hoisted(() => ({
++  auth: vi.fn(),
++  invalidateSessionCache: vi.fn(),
++  getSessionsCollection: vi.fn(),
++  revokeSession: vi.fn(),
++  publishLogout: vi.fn(),
++}))
++
++vi.mock('@/lib/auth-middleware', () => ({
++  auth: mocks.auth,
++  invalidateSessionCache: mocks.invalidateSessionCache,
++}))
++vi.mock('@/lib/sessions', () => ({
++  getSessionsCollection: mocks.getSessionsCollection,
++  revokeSession: mocks.revokeSession,
++}))
++vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
++vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
++
++import { POST } from './route'
++
++const USER_ID = '507f1f77bcf86cd799439011'
++const SESSION_ID = '507f1f77bcf86cd799439012'
++
++function post() {
++  return POST(
++    new NextRequest('http://localhost/api/v1/auth/logout', {
++      method: 'POST',
++      headers: { authorization: 'Bearer token' },
++    })
++  )
++}
++
++beforeEach(() => {
++  vi.clearAllMocks()
++  mocks.auth.mockResolvedValue({
++    user: { id: USER_ID, role: 'free', jti: SESSION_ID },
++  })
++  mocks.getSessionsCollection.mockResolvedValue(null)
++  mocks.revokeSession.mockResolvedValue(true)
++})
++
++describe('POST /api/v1/auth/logout', () => {
++  it('returns 200 with success message and deletes cookie', async () => {
++    const res = await post()
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body).toEqual({
++      success: true,
++      payload: { message: 'Logged out successfully' },
++    })
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('revokes session, invalidates cache and publishes logout when authenticated', async () => {
++    await post()
++    expect(mocks.revokeSession).toHaveBeenCalledWith(
++      null,
++      SESSION_ID,
++      new ObjectId(USER_ID)
++    )
++    expect(mocks.invalidateSessionCache).toHaveBeenCalledWith(SESSION_ID)
++    expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
++  })
++
++  it('skips revocation when access token has no jti', async () => {
++    mocks.auth.mockResolvedValue({ user: { id: USER_ID, role: 'free' } })
++    const res = await post()
++    expect(res.status).toBe(200)
++    expect(mocks.revokeSession).not.toHaveBeenCalled()
++    expect(mocks.invalidateSessionCache).not.toHaveBeenCalled()
++    expect(mocks.publishLogout).not.toHaveBeenCalled()
++  })
++
++  it('returns 200 without revocation when auth fails', async () => {
++    mocks.auth.mockResolvedValue({
++      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
++    })
++    const res = await post()
++    expect(res.status).toBe(200)
++    expect((await res.json()).success).toBe(true)
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++    expect(mocks.revokeSession).not.toHaveBeenCalled()
++    expect(mocks.invalidateSessionCache).not.toHaveBeenCalled()
++  })
++})
+diff --git a/src/app/api/v1/auth/logout/route.ts b/src/app/api/v1/auth/logout/route.ts
+new file mode 100644
+index 0000000..ca982b5
+--- /dev/null
++++ b/src/app/api/v1/auth/logout/route.ts
+@@ -0,0 +1,27 @@
++import { NextRequest, NextResponse } from 'next/server'
++
++import { auth, invalidateSessionCache } from '@/lib/auth-middleware'
++import { getSessionsCollection, revokeSession } from '@/lib/sessions'
++import { publishLogout } from '@/lib/session-broker'
++import { REFRESH_COOKIE_NAME } from '@/lib/auth'
++
++export const runtime = 'nodejs'
++
++export async function POST(request: NextRequest) {
++  const who = await auth(request)
++  const res = NextResponse.json(
++    { success: true, payload: { message: 'Logged out successfully' } },
++    { status: 200 }
++  )
++  res.cookies.delete(REFRESH_COOKIE_NAME)
++
++  if ('user' in who) {
++    const sessions = await getSessionsCollection()
++    if (who.user.jti) {
++      await revokeSession(sessions, who.user.jti, new (await import('mongodb')).ObjectId(who.user.id))
++      invalidateSessionCache(who.user.jti)
++      publishLogout(who.user.id)
++    }
++  }
++  return res
++}
+diff --git a/src/app/api/v1/auth/refresh/route.test.ts b/src/app/api/v1/auth/refresh/route.test.ts
+new file mode 100644
+index 0000000..f8d75e1
+--- /dev/null
++++ b/src/app/api/v1/auth/refresh/route.test.ts
+@@ -0,0 +1,201 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import { ObjectId } from 'mongodb'
++import { NextRequest } from 'next/server'
++
++const mocks = vi.hoisted(() => ({
++  verifyRefreshToken: vi.fn(),
++  buildTokenPayload: vi.fn(),
++  getSessionsCollection: vi.fn(),
++  sessionFindOne: vi.fn(),
++  rotateSession: vi.fn(),
++  getUsersCollection: vi.fn(),
++  usersFindOne: vi.fn(),
++}))
++
++vi.mock('@/lib/tokens', () => ({
++  verifyRefreshToken: mocks.verifyRefreshToken,
++  buildTokenPayload: mocks.buildTokenPayload,
++}))
++vi.mock('@/lib/sessions', () => ({
++  getSessionsCollection: mocks.getSessionsCollection,
++  rotateSession: mocks.rotateSession,
++}))
++vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
++vi.mock('@/lib/db', () => ({ getUsersCollection: mocks.getUsersCollection }))
++
++import { POST } from './route'
++
++const USER_ID = '507f1f77bcf86cd799439011'
++const SESSION_ID = '507f1f77bcf86cd799439012'
++
++function decodedRefresh(ver = 0) {
++  return { id: USER_ID, jti: SESSION_ID, ver }
++}
++
++function fakeTokenPair() {
++  return {
++    tokenType: 'Bearer',
++    accessToken: 'access-token',
++    accessTokenExpires: '15m',
++    refreshToken: 'refresh-token',
++    refreshTokenExpires: '7d',
++  }
++}
++
++function post(cookie?: string) {
++  const headers = new Headers()
++  if (cookie) headers.set('cookie', `crushsvg_refresh=${cookie}`)
++  return POST(
++    new NextRequest('http://localhost/api/v1/auth/refresh', {
++      method: 'POST',
++      headers,
++    })
++  )
++}
++
++beforeEach(() => {
++  vi.clearAllMocks()
++  mocks.verifyRefreshToken.mockResolvedValue(decodedRefresh())
++  mocks.buildTokenPayload.mockReturnValue(fakeTokenPair())
++  mocks.getSessionsCollection.mockResolvedValue({ findOne: mocks.sessionFindOne })
++  mocks.sessionFindOne.mockResolvedValue(null)
++  mocks.rotateSession.mockResolvedValue({ rotated: true, currentVersion: 1, remember: true })
++  mocks.getUsersCollection.mockResolvedValue({ findOne: mocks.usersFindOne })
++  mocks.usersFindOne.mockResolvedValue({ _id: new ObjectId(USER_ID), uid: 'uid-1' })
++})
++
++describe('POST /api/v1/auth/refresh', () => {
++  it('returns 200 token_missing when cookie absent', async () => {
++    const res = await post()
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body.success).toBe(false)
++    expect(body.version).toBe('1.0.0')
++    expect(body.payload.error.code).toBe('token_missing')
++    expect(typeof body.serverTimestamp).toBe('string')
++    expect(mocks.verifyRefreshToken).not.toHaveBeenCalled()
++  })
++
++  it('returns 200 token_invalid and deletes cookie when token verification fails', async () => {
++    mocks.verifyRefreshToken.mockRejectedValue(new Error('bad token'))
++    const res = await post('garbage')
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body.success).toBe(false)
++    expect(body.payload.error.code).toBe('token_invalid')
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('rotates the session and reissues tokens on success', async () => {
++    const res = await post('valid-refresh')
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body.success).toBe(true)
++    expect(body.payload.token).toEqual(fakeTokenPair())
++    expect(mocks.rotateSession).toHaveBeenCalledWith(
++      { findOne: mocks.sessionFindOne },
++      SESSION_ID,
++      0,
++      new ObjectId(USER_ID)
++    )
++    expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
++      id: USER_ID,
++      role: 'free',
++      sessionId: SESSION_ID,
++      tokenVersion: 1,
++    })
++    const cookie = res.cookies.get('crushsvg_refresh')
++    expect(cookie?.value).toBe('refresh-token')
++    expect(cookie?.httpOnly).toBe(true)
++    expect(cookie?.maxAge).toBe(7 * 24 * 60 * 60)
++  })
++
++  it('re-issues at current version when session alive despite stale version', async () => {
++    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 2, remember: false })
++    mocks.sessionFindOne.mockResolvedValue({
++      _id: new ObjectId(SESSION_ID),
++      userId: new ObjectId(USER_ID),
++      status: 'active',
++    })
++    const res = await post('stale-refresh')
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body.success).toBe(true)
++    expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
++      id: USER_ID,
++      role: 'free',
++      sessionId: SESSION_ID,
++      tokenVersion: 2,
++    })
++    expect(res.cookies.get('crushsvg_refresh')?.value).toBe('refresh-token')
++  })
++
++  it('does not set maxAge when session remember is false', async () => {
++    mocks.rotateSession.mockResolvedValue({ rotated: true, currentVersion: 1, remember: false })
++    const res = await post('valid-refresh')
++    expect(res.status).toBe(200)
++    expect(res.cookies.get('crushsvg_refresh')?.maxAge).toBeUndefined()
++  })
++
++  it('returns 401 session_revoked and deletes cookie when session revoked', async () => {
++    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 0, remember: true })
++    mocks.sessionFindOne.mockResolvedValue({
++      _id: new ObjectId(SESSION_ID),
++      userId: new ObjectId(USER_ID),
++      status: 'revoked',
++    })
++    const res = await post('revoked-refresh')
++    expect(res.status).toBe(401)
++    const body = await res.json()
++    expect(body.success).toBe(false)
++    expect(body.payload.error.code).toBe('session_revoked')
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('returns 401 session_revoked and deletes cookie when session missing', async () => {
++    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 0, remember: true })
++    const res = await post('missing-refresh')
++    expect(res.status).toBe(401)
++    const body = await res.json()
++    expect(body.payload.error.code).toBe('session_revoked')
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('returns 401 session_revoked when session belongs to another user', async () => {
++    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 0, remember: true })
++    mocks.sessionFindOne.mockResolvedValue({
++      _id: new ObjectId(SESSION_ID),
++      userId: new ObjectId('507f1f77bcf86cd799439099'),
++      status: 'active',
++    })
++    const res = await post('foreign-refresh')
++    expect(res.status).toBe(401)
++    expect((await res.json()).payload.error.code).toBe('session_revoked')
++  })
++
++  it('returns 401 user_not_found and deletes cookie when user missing', async () => {
++    mocks.usersFindOne.mockResolvedValue(null)
++    const res = await post('valid-refresh')
++    expect(res.status).toBe(401)
++    const body = await res.json()
++    expect(body.payload.error.code).toBe('user_not_found')
++    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
++  })
++
++  it('returns 429 rate_limited after 120 requests within the window', async () => {
++    let res: Response | undefined
++    for (let i = 0; i < 150; i++) {
++      const r = await post()
++      if (r.status === 429) {
++        res = r
++        break
++      }
++      expect(r.status).toBe(200)
++    }
++    expect(res).toBeDefined()
++    const body = await (res as Response).json()
++    expect(body.success).toBe(false)
++    expect(body.payload.error.code).toBe('rate_limited')
++    expect(body.payload.error.retryAfterSeconds).toBeGreaterThan(0)
++  })
++})
+diff --git a/src/app/api/v1/auth/refresh/route.ts b/src/app/api/v1/auth/refresh/route.ts
+new file mode 100644
+index 0000000..c624220
+--- /dev/null
++++ b/src/app/api/v1/auth/refresh/route.ts
+@@ -0,0 +1,97 @@
++import { NextRequest, NextResponse } from 'next/server'
++
++import { checkRateLimit } from '@/lib/rate-limit'
++import { getSessionsCollection, rotateSession } from '@/lib/sessions'
++import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
++import { REFRESH_COOKIE_NAME } from '@/lib/auth'
++import { getUsersCollection } from '@/lib/db'
++
++export const runtime = 'nodejs'
++
++export async function POST(request: NextRequest) {
++  const rl = checkRateLimit('auth:refresh', 120, 60_000)
++  if (!rl.allowed) {
++    return NextResponse.json(
++      { success: false, payload: { error: { code: 'rate_limited', retryAfterSeconds: rl.retryAfterSeconds } } },
++      { status: 429 }
++    )
++  }
++
++  const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value
++  if (!refreshToken) {
++    return NextResponse.json(
++      { success: false, version: '1.0.0', payload: { error: { code: 'token_missing' } }, serverTimestamp: new Date().toISOString() },
++      { status: 200 }
++    )
++  }
++
++  try {
++    const decoded = await verifyRefreshToken(refreshToken)
++
++    const sessions = await getSessionsCollection()
++    const result = await rotateSession(
++      sessions,
++      decoded.jti,
++      decoded.ver ?? 0,
++      new (await import('mongodb')).ObjectId(decoded.id)
++    )
++
++    if (!result.rotated) {
++      const current = await sessions.findOne({
++        _id: new (await import('mongodb')).ObjectId(decoded.jti),
++      })
++      const sessionActive =
++        !!current &&
++        current.status === 'active' &&
++        current.userId.toString() === decoded.id
++      if (!sessionActive) {
++        const res = NextResponse.json(
++          { success: false, version: '1.0.0', payload: { error: { code: 'session_revoked' } }, serverTimestamp: new Date().toISOString() },
++          { status: 401 }
++        )
++        res.cookies.delete(REFRESH_COOKIE_NAME)
++        return res
++      }
++    }
++
++    const currentVersion = result.currentVersion
++    const remember = result.remember
++
++    const users = await getUsersCollection()
++    const user = await users.findOne({ _id: new (await import('mongodb')).ObjectId(decoded.id) })
++    if (!user) {
++      const res = NextResponse.json(
++        { success: false, version: '1.0.0', payload: { error: { code: 'user_not_found' } }, serverTimestamp: new Date().toISOString() },
++        { status: 401 }
++      )
++      res.cookies.delete(REFRESH_COOKIE_NAME)
++      return res
++    }
++
++    const tokenPair = buildTokenPayload({
++      id: user._id.toString(),
++      role: 'free',
++      sessionId: decoded.jti,
++      tokenVersion: currentVersion,
++    })
++    const res = NextResponse.json(
++      { success: true, payload: { token: tokenPair }, timestamp: Date.now() },
++      { status: 200 }
++    )
++    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
++      httpOnly: true,
++      secure: process.env.NODE_ENV === 'production',
++      sameSite: 'lax',
++      path: '/',
++      maxAge: remember ? 7 * 24 * 60 * 60 : undefined,
++    })
++    return res
++  } catch {
++    const res = NextResponse.json(
++      { success: false, version: '1.0.0', payload: { error: { code: 'token_invalid' } }, serverTimestamp: new Date().toISOString() },
++      { status: 200 }
++    )
++    res.cookies.delete(REFRESH_COOKIE_NAME)
++    return res
++  }
++}
+diff --git a/src/lib/auth.ts b/src/lib/auth.ts
+index 3c83359..85eb3da 100644
+--- a/src/lib/auth.ts
++++ b/src/lib/auth.ts
+@@ -1,20 +1,19 @@
+ import 'server-only'
+ 
+-import { cookies } from 'next/headers'
+-import type { DecodedIdToken } from 'firebase-admin/auth'
++import type { NextRequest } from 'next/server'
++import type { UserDoc } from '@/lib/db'
+ 
+-import { signInProvider, verifySessionCookie } from '@/lib/firebase-admin'
+-import { getUsersCollection, type UserDoc } from '@/lib/db'
++import { auth } from '@/lib/auth-middleware'
++import { getUsersCollection } from '@/lib/db'
+ 
+-export const SESSION_COOKIE_NAME = 'crushsvg_session'
+-export const SESSION_COOKIE_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000
++export const REFRESH_COOKIE_NAME = 'crushsvg_refresh'
+ 
+ export interface UserDTO {
+   uid: string
+   email: string | null
+   displayName: string
+   photoURL: string | null
+   providers: string[]
+   conversionsUsed: number
+   createdAt: string
+   lastLoginAt: string
+@@ -26,73 +25,16 @@ export function toUserDTO(user: UserDoc): UserDTO {
+     email: user.email,
+     displayName: user.displayName,
+     photoURL: user.photoURL,
+     providers: user.providers,
+     conversionsUsed: user.conversionsUsed,
+     createdAt: user.createdAt.toISOString(),
+     lastLoginAt: user.lastLoginAt.toISOString(),
+   }
+ }
+ 
+-export async function upsertUser(token: DecodedIdToken): Promise<UserDoc> {
++export async function getSessionUser(request: NextRequest): Promise<UserDoc | null> {
++  const who = await auth(request)
++  if ('error' in who) return null
+   const users = await getUsersCollection()
+-  const now = new Date()
+-  const provider = signInProvider(token)
+-  const email = token.email ?? null
+-
+-  const user = await users.findOneAndUpdate(
+-    { uid: token.uid },
+-    {
+-      $set: {
+-        email,
+-        displayName: token.name ?? 'CrushSVG user',
+-        photoURL: token.picture ?? null,
+-        updatedAt: now,
+-        lastLoginAt: now,
+-      },
+-      $setOnInsert: {
+-        conversionsUsed: 0,
+-        createdAt: now,
+-      },
+-      $addToSet: { providers: provider },
+-    },
+-    { upsert: true, returnDocument: 'after' }
+-  )
+-
+-  if (!user) {
+-    throw new Error('Failed to upsert user')
+-  }
+-
+-  return user
+-}
+-
+-export async function setSessionCookie(sessionCookie: string): Promise<void> {
+-  const cookieStore = await cookies()
+-  cookieStore.set(SESSION_COOKIE_NAME, sessionCookie, {
+-    httpOnly: true,
+-    secure: process.env.NODE_ENV === 'production',
+-    sameSite: 'lax',
+-    maxAge: Math.floor(SESSION_COOKIE_MAX_AGE_MS / 1000),
+-    path: '/',
+-  })
+-}
+-
+-export async function clearSessionCookie(): Promise<void> {
+-  const cookieStore = await cookies()
+-  cookieStore.delete(SESSION_COOKIE_NAME)
+-}
+-
+-export async function getSessionUser(): Promise<UserDoc | null> {
+-  const cookieStore = await cookies()
+-  const session = cookieStore.get(SESSION_COOKIE_NAME)?.value
+-  if (!session) return null
+-
+-  let token: DecodedIdToken
+-  try {
+-    token = await verifySessionCookie(session)
+-  } catch {
+-    return null
+-  }
+-
+-  const users = await getUsersCollection()
+-  return users.findOne({ uid: token.uid })
++  return users.findOne({ _id: new (await import('mongodb')).ObjectId(who.user.id) })
+ }

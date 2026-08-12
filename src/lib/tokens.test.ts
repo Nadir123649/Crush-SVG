@@ -32,9 +32,13 @@ describe('tokens', () => {
 
   it('rejects tokens signed with the wrong secret', async () => {
     const token = generateAccessToken({ id: 'user-1', role: 'free' })
+    const original = process.env.JWT_ACCESS_SECRET
     process.env.JWT_ACCESS_SECRET = 'different-secret'
-    await expect(verifyAccessToken(token)).rejects.toThrow()
-    process.env.JWT_ACCESS_SECRET = 'test-access-secret'
+    try {
+      await expect(verifyAccessToken(token)).rejects.toThrow()
+    } finally {
+      process.env.JWT_ACCESS_SECRET = original
+    }
   })
 
   it('buildTokenPayload returns 4 token fields', () => {

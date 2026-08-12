@@ -21,6 +21,7 @@ vi.mock('@/lib/sessions', () => ({
   revokeAllSessions: mocks.revokeAllSessions,
 }))
 vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
+vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 
 import { GET, DELETE } from './route'
 
@@ -133,10 +134,11 @@ describe('GET /api/v1/sessions', () => {
 })
 
 describe('DELETE /api/v1/sessions', () => {
-  it('returns 204 and revokes all sessions with cache clear and logout publish', async () => {
+  it('returns 204 and revokes all sessions with cache clear, logout publish and cookie delete', async () => {
     const res = await del()
     expect(res.status).toBe(204)
     expect(await res.text()).toBe('')
+    expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
     expect(mocks.revokeAllSessions).toHaveBeenCalledWith(
       null,
       new ObjectId(USER_ID),
