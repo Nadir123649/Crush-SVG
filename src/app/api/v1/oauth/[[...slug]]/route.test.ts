@@ -87,6 +87,7 @@ function passwordToken(emailVerified = true) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mocks.verifyIdToken.mockResolvedValue(passwordToken(true))
   mocks.providerIdToName.mockImplementation((id: string) => id)
   mocks.resolveUserCascade.mockResolvedValue(fakeUser())
   mocks.getSessionsCollection.mockResolvedValue(null)
