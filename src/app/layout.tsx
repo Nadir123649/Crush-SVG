@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Footer } from "@/components/sections/Footer";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -29,12 +31,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col items-center bg-background" suppressHydrationWarning>
-        <div className="w-full max-w-[1440px] mx-auto px-[80px] flex flex-col">
-          <Navbar />
+        <Navbar />
+        <div className="w-full max-w-[1440px] mx-auto px-[80px] flex flex-col flex-1">
           <main className="w-full flex-1">
             {children}
           </main>
         </div>
+        <Footer />
       </body>
     </html>
   );

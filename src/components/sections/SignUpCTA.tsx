@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 
 export function SignUpCTA() {
   return (
@@ -90,8 +91,12 @@ export function SignUpCTA() {
             </p>
 
             <div className="flex flex-col w-full gap-[16px]">
-              <Button className="w-full h-[42px] rounded-[12px]">Sign Up</Button>
-              <Button variant="outline" className="w-full h-[42px] rounded-[12px]">Log In</Button>
+              <Link href="/signup" className="w-full">
+                <Button className="w-full h-[42px] rounded-[12px]">Sign Up</Button>
+              </Link>
+              <Link href="/login" className="w-full">
+                <Button variant="outline" className="w-full h-[42px] rounded-[12px]">Log In</Button>
+              </Link>
             </div>
 
             <p className="font-body font-normal text-[12px] leading-[18.67px] text-center text-[#A1A1AA] mt-[26px]">
