@@ -1,37 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { trackUsageSchema } from '@/lib/validation'
-import { getUsersCollection } from '@/lib/db'
-import { getGuestUsage, incrementGuestUsage } from '@/lib/guest-usage'
-import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
-import { ObjectId } from 'mongodb'
+import { User } from '@/lib/db'
+import { getGuestId, getGuestUsage, incrementGuestUsage } from '@/lib/guest-usage'
+import { successResponse, errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
 const GUEST_LIMIT = 3
 const RATE_LIMIT_WINDOW = 60_000
 
-function getGuestId(request: NextRequest): string | null {
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  return request.headers.get('cf-connecting-ip')
-}
-
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('usage:track', 60, RATE_LIMIT_WINDOW)
+  const rl = await checkRateLimit(request, 'usage:track', 60, RATE_LIMIT_WINDOW)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many usage tracking requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const parsed = trackUsageSchema.safeParse(body)
@@ -46,15 +37,14 @@ export async function POST(request: NextRequest) {
     const who = await auth(request)
     if ('error' in who) return who.error
 
-    const users = await getUsersCollection()
-    const user = await users.findOneAndUpdate(
-      { _id: new ObjectId(who.user.id) },
+    const user = await User.findByIdAndUpdate(
+      who.user.id,
       { $inc: { conversionsUsed: 1 } },
-      { returnDocument: 'after' }
+      { new: true }
     )
 
     if (!user) {
-      return errorResponse(404, 'user_not_found', 'User not found')
+      return errorResponse(404, '', '', undefined, request)
     }
 
     return successResponse({
@@ -67,7 +57,7 @@ export async function POST(request: NextRequest) {
   if (!guestId) {
     const clientIp = getGuestId(request)
     if (!clientIp) {
-      return errorResponse(400, 'validation_error', 'Unable to identify client')
+      return errorResponse(400, '', '', undefined, request)
     }
     const usage = await incrementGuestUsage(clientIp)
     const remaining = Math.max(0, GUEST_LIMIT - usage)
@@ -92,9 +82,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const rl = checkRateLimit('usage:check', 120, RATE_LIMIT_WINDOW)
+  const rl = await checkRateLimit(request, 'usage:check', 120, RATE_LIMIT_WINDOW)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many usage check requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   const authHeader = request.headers.get('authorization')
@@ -104,11 +94,10 @@ export async function GET(request: NextRequest) {
     const who = await auth(request)
     if ('error' in who) return who.error
 
-    const users = await getUsersCollection()
-    const user = await users.findOne({ _id: new ObjectId(who.user.id) })
+    const user = await User.findById(who.user.id)
 
     if (!user) {
-      return errorResponse(404, 'user_not_found', 'User not found')
+      return errorResponse(404, '', '', undefined, request)
     }
 
     return successResponse({
@@ -120,7 +109,7 @@ export async function GET(request: NextRequest) {
 
   const guestId = getGuestId(request)
   if (!guestId) {
-    return errorResponse(400, 'validation_error', 'Unable to identify client')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const usage = await getGuestUsage(guestId)

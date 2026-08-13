@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ObjectId } from 'mongodb'
+import { Types } from 'mongoose'
 import { NextRequest, NextResponse } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
-  getUsersCollection: vi.fn(),
-  usersFindOne: vi.fn(),
+  userFindById: vi.fn(),
   toUserDTO: vi.fn(),
 }))
 
 vi.mock('@/lib/auth-middleware', () => ({ auth: mocks.auth }))
-vi.mock('@/lib/db', () => ({ getUsersCollection: mocks.getUsersCollection }))
+vi.mock('@/lib/db', () => ({ User: { findById: mocks.userFindById } }))
 vi.mock('@/lib/auth', () => ({ toUserDTO: mocks.toUserDTO }))
 
 import { GET } from './route'
@@ -18,7 +17,7 @@ import { GET } from './route'
 const USER_ID = '507f1f77bcf86cd799439011'
 
 const USER_DOC = {
-  _id: new ObjectId(USER_ID),
+  _id: new Types.ObjectId(USER_ID),
   uid: 'uid-1',
   email: 'alice@example.com',
   displayName: 'Alice',
@@ -57,8 +56,7 @@ function okWho() {
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.auth.mockResolvedValue(okWho())
-  mocks.getUsersCollection.mockResolvedValue({ findOne: mocks.usersFindOne })
-  mocks.usersFindOne.mockResolvedValue(USER_DOC)
+  mocks.userFindById.mockResolvedValue(USER_DOC)
   mocks.toUserDTO.mockReturnValue(USER_DTO)
 })
 
@@ -70,11 +68,11 @@ describe('GET /api/me', () => {
     const res = await get()
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Unauthorized' })
-    expect(mocks.usersFindOne).not.toHaveBeenCalled()
+    expect(mocks.userFindById).not.toHaveBeenCalled()
   })
 
   it('returns 404 when the authenticated user has no document', async () => {
-    mocks.usersFindOne.mockResolvedValue(null)
+    mocks.userFindById.mockResolvedValue(null)
     const res = await get()
     expect(res.status).toBe(404)
     expect(await res.json()).toEqual({ error: 'User not found' })
@@ -82,9 +80,7 @@ describe('GET /api/me', () => {
 
   it('looks up the user by the authenticated id', async () => {
     await get()
-    expect(mocks.usersFindOne).toHaveBeenCalledWith({
-      _id: new ObjectId(USER_ID),
-    })
+    expect(mocks.userFindById).toHaveBeenCalledWith(USER_ID)
   })
 
   it('returns 200 with the user DTO', async () => {

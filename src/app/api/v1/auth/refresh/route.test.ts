@@ -1,15 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ObjectId } from 'mongodb'
+import { Types } from 'mongoose'
 import { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
   verifyRefreshToken: vi.fn(),
   buildTokenPayload: vi.fn(),
-  getSessionsCollection: vi.fn(),
   sessionFindOne: vi.fn(),
   rotateSession: vi.fn(),
-  getUsersCollection: vi.fn(),
-  usersFindOne: vi.fn(),
+  usersFindById: vi.fn(),
 }))
 
 vi.mock('@/lib/tokens', () => ({
@@ -17,11 +15,13 @@ vi.mock('@/lib/tokens', () => ({
   buildTokenPayload: mocks.buildTokenPayload,
 }))
 vi.mock('@/lib/sessions', () => ({
-  getSessionsCollection: mocks.getSessionsCollection,
   rotateSession: mocks.rotateSession,
 }))
 vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
-vi.mock('@/lib/db', () => ({ getUsersCollection: mocks.getUsersCollection }))
+vi.mock('@/lib/db', () => ({
+  Session: { findOne: mocks.sessionFindOne },
+  User: { findById: mocks.usersFindById },
+}))
 
 import { POST } from './route'
 
@@ -57,11 +57,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.verifyRefreshToken.mockResolvedValue(decodedRefresh())
   mocks.buildTokenPayload.mockReturnValue(fakeTokenPair())
-  mocks.getSessionsCollection.mockResolvedValue({ findOne: mocks.sessionFindOne })
   mocks.sessionFindOne.mockResolvedValue(null)
   mocks.rotateSession.mockResolvedValue({ rotated: true, currentVersion: 1, remember: true })
-  mocks.getUsersCollection.mockResolvedValue({ findOne: mocks.usersFindOne })
-  mocks.usersFindOne.mockResolvedValue({ _id: new ObjectId(USER_ID), uid: 'uid-1' })
+  mocks.usersFindById.mockResolvedValue({ _id: new Types.ObjectId(USER_ID), uid: 'uid-1' })
 })
 
 describe('POST /api/v1/auth/refresh', () => {
@@ -92,12 +90,7 @@ describe('POST /api/v1/auth/refresh', () => {
     const body = await res.json()
     expect(body.success).toBe(true)
     expect(body.payload.token).toEqual(fakeTokenPair())
-    expect(mocks.rotateSession).toHaveBeenCalledWith(
-      { findOne: mocks.sessionFindOne },
-      SESSION_ID,
-      0,
-      new ObjectId(USER_ID)
-    )
+    expect(mocks.rotateSession).toHaveBeenCalledWith(SESSION_ID, 0, USER_ID)
     expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
       id: USER_ID,
       role: 'free',
@@ -113,8 +106,8 @@ describe('POST /api/v1/auth/refresh', () => {
   it('re-issues at current version when session alive despite stale version', async () => {
     mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 2, remember: false })
     mocks.sessionFindOne.mockResolvedValue({
-      _id: new ObjectId(SESSION_ID),
-      userId: new ObjectId(USER_ID),
+      _id: new Types.ObjectId(SESSION_ID),
+      userId: new Types.ObjectId(USER_ID),
       status: 'active',
     })
     const res = await post('stale-refresh')
@@ -140,8 +133,8 @@ describe('POST /api/v1/auth/refresh', () => {
   it('returns 401 session_revoked and deletes cookie when session revoked', async () => {
     mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 0, remember: true })
     mocks.sessionFindOne.mockResolvedValue({
-      _id: new ObjectId(SESSION_ID),
-      userId: new ObjectId(USER_ID),
+      _id: new Types.ObjectId(SESSION_ID),
+      userId: new Types.ObjectId(USER_ID),
       status: 'revoked',
     })
     const res = await post('revoked-refresh')
@@ -164,8 +157,8 @@ describe('POST /api/v1/auth/refresh', () => {
   it('returns 401 session_revoked when session belongs to another user', async () => {
     mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 0, remember: true })
     mocks.sessionFindOne.mockResolvedValue({
-      _id: new ObjectId(SESSION_ID),
-      userId: new ObjectId('507f1f77bcf86cd799439099'),
+      _id: new Types.ObjectId(SESSION_ID),
+      userId: new Types.ObjectId('507f1f77bcf86cd799439099'),
       status: 'active',
     })
     const res = await post('foreign-refresh')
@@ -174,7 +167,7 @@ describe('POST /api/v1/auth/refresh', () => {
   })
 
   it('returns 401 user_not_found and deletes cookie when user missing', async () => {
-    mocks.usersFindOne.mockResolvedValue(null)
+    mocks.usersFindById.mockResolvedValue(null)
     const res = await post('valid-refresh')
     expect(res.status).toBe(401)
     const body = await res.json()

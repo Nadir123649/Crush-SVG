@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ObjectId } from 'mongodb'
+import { Types } from 'mongoose'
 import { NextRequest, NextResponse } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   invalidateSessionCache: vi.fn(),
-  getSessionsCollection: vi.fn(),
   listActiveSessions: vi.fn(),
   revokeAllSessions: vi.fn(),
-  publishLogout: vi.fn(),
 }))
 
 vi.mock('@/lib/auth-middleware', () => ({
@@ -16,11 +14,9 @@ vi.mock('@/lib/auth-middleware', () => ({
   invalidateSessionCache: mocks.invalidateSessionCache,
 }))
 vi.mock('@/lib/sessions', () => ({
-  getSessionsCollection: mocks.getSessionsCollection,
   listActiveSessions: mocks.listActiveSessions,
   revokeAllSessions: mocks.revokeAllSessions,
 }))
-vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
 vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 
 import { GET, DELETE } from './route'
@@ -29,8 +25,8 @@ const USER_ID = '507f1f77bcf86cd799439011'
 
 function fakeSessionDoc(overrides: Partial<Record<string, unknown>> = {}) {
   return {
-    _id: new ObjectId(),
-    userId: new ObjectId(USER_ID),
+    _id: new Types.ObjectId(),
+    userId: new Types.ObjectId(USER_ID),
     provider: 'password',
     remember: true,
     tokenVersion: 0,
@@ -69,8 +65,7 @@ beforeEach(() => {
   mocks.auth.mockResolvedValue({
     user: { id: USER_ID, role: 'free', jti: '507f1f77bcf86cd799439012' },
   })
-  mocks.getSessionsCollection.mockResolvedValue(null)
-  mocks.listActiveSessions.mockResolvedValue([])
+  mocks.listActiveSessions.mockResolvedValue({ docs: [], total: 0 })
 })
 
 describe('GET /api/v1/sessions', () => {
@@ -86,16 +81,14 @@ describe('GET /api/v1/sessions', () => {
         ip: undefined,
       }),
     ]
-    mocks.listActiveSessions.mockResolvedValue(docs)
+    mocks.listActiveSessions.mockResolvedValue({ docs, total: docs.length })
 
     const res = await get()
     expect(res.status).toBe(200)
-    expect(mocks.listActiveSessions).toHaveBeenCalledWith(
-      null,
-      new ObjectId(USER_ID)
-    )
+    expect(mocks.listActiveSessions).toHaveBeenCalledWith(USER_ID, 1, 20)
     const body = await res.json()
     expect(body.sessions).toHaveLength(2)
+    expect(body.meta).toEqual({ total: 2, page: 1, per_page: 20, total_pages: 1 })
     expect(body.sessions[0]).toEqual({
       id: docs[0]._id.toString(),
       provider: 'password',
@@ -134,18 +127,13 @@ describe('GET /api/v1/sessions', () => {
 })
 
 describe('DELETE /api/v1/sessions', () => {
-  it('returns 204 and revokes all sessions with cache clear, logout publish and cookie delete', async () => {
+  it('returns 204 and revokes all sessions with cache clear and cookie delete', async () => {
     const res = await del()
     expect(res.status).toBe(204)
     expect(await res.text()).toBe('')
     expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
-    expect(mocks.revokeAllSessions).toHaveBeenCalledWith(
-      null,
-      new ObjectId(USER_ID),
-      'revoked'
-    )
+    expect(mocks.revokeAllSessions).toHaveBeenCalledWith(USER_ID, 'revoked')
     expect(mocks.invalidateSessionCache).toHaveBeenCalledWith()
-    expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
   })
 
   it('returns auth error without revoking when unauthenticated', async () => {
@@ -155,6 +143,5 @@ describe('DELETE /api/v1/sessions', () => {
     const res = await del()
     expect(res.status).toBe(401)
     expect(mocks.revokeAllSessions).not.toHaveBeenCalled()
-    expect(mocks.publishLogout).not.toHaveBeenCalled()
   })
 })

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit } from '@/lib/rate-limit'
-import { getUsersCollection } from '@/lib/db'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { User, isDuplicateKeyError } from '@/lib/db'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { toUserDTO } from '@/lib/auth'
-import { ObjectId } from 'mongodb'
 
 export const runtime = 'nodejs'
 
@@ -18,9 +17,9 @@ async function requireAdmin(who: { user: { id: string; role: string } } | { erro
 }
 
 export async function GET(request: NextRequest) {
-  const rl = checkRateLimit('admin:users:list', 20, 60_000)
+  const rl = await checkRateLimit(request, 'admin:users:list', 20, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   const who = await auth(request)
@@ -33,8 +32,6 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit
   const search = searchParams.get('search')?.trim()
 
-  const users = await getUsersCollection()
-
   const filter: Record<string, unknown> = {}
   if (search) {
     filter.$or = [
@@ -45,12 +42,8 @@ export async function GET(request: NextRequest) {
   }
 
   const [total, docs] = await Promise.all([
-    users.countDocuments(filter),
-    users.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray(),
+    User.countDocuments(filter),
+    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
   ])
 
   return successResponse({
@@ -67,9 +60,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('admin:users:create', 10, 60_000)
+  const rl = await checkRateLimit(request, 'admin:users:create', 10, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   const who = await auth(request)
@@ -80,35 +73,37 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const { email, displayName, role = 'user' } = body as { email: string; displayName?: string; role?: string }
 
   if (!email || !email.includes('@')) {
-    return errorResponse(400, 'validation_error', 'Valid email is required')
+    return errorResponse(400, '', '', undefined, request)
   }
 
-  const users = await getUsersCollection()
-  const existing = await users.findOne({ email: email.toLowerCase().trim() })
+  const existing = await User.findOne({ email: email.toLowerCase().trim() })
   if (existing) {
-    return errorResponse(409, 'email_taken', 'Email already registered')
+    return errorResponse(409, '', '', undefined, request)
   }
 
-  const now = new Date()
-  const doc = await users.insertOne({
-    _id: new ObjectId(),
-    uid: `admin_${email}`,
-    email: email.toLowerCase().trim(),
-    displayName: displayName ?? email.split('@')[0],
-    photoURL: null,
-    providers: ['admin'],
-    conversionsUsed: 0,
-    createdAt: now,
-    updatedAt: now,
-    lastLoginAt: now,
-  })
+  let created
+  try {
+    created = await User.create({
+      uid: `admin_${email}`,
+      email: email.toLowerCase().trim(),
+      displayName: displayName ?? email.split('@')[0],
+      photoURL: null,
+      providers: ['admin'],
+      conversionsUsed: 0,
+      lastLoginAt: new Date(),
+    })
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      return errorResponse(409, '', '', undefined, request)
+    }
+    throw error
+  }
 
-  const created = await users.findOne({ _id: doc.insertedId })
-  return successResponse({ user: toUserDTO(created!) }, 201)
+  return successResponse({ user: toUserDTO(created) }, 201, rateLimitHeaders(rl), request)
 }

@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
+import { getClientIp } from '@/lib/ip'
 import {
-  getClientIp,
   checkBruteForce,
   recordFailure,
   resetBruteForce,
 } from '@/lib/brute-force'
+import { resetRateStore } from '@/lib/rate-store'
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {
   return new NextRequest('http://localhost', { headers })
@@ -35,10 +36,7 @@ describe('getClientIp', () => {
 
 describe('brute force', () => {
   beforeEach(() => {
-    for (const ip of ['203.0.113.5', '198.51.100.7']) {
-      resetBruteForce(makeRequest({ 'x-forwarded-for': ip }), 'login:user@example.com')
-    }
-    resetBruteForce(makeRequest(), 'login:user@example.com')
+    resetRateStore()
     vi.useFakeTimers()
   })
 
@@ -46,63 +44,63 @@ describe('brute force', () => {
     vi.useRealTimers()
   })
 
-  it('allows requests before any failure', () => {
+  it('allows requests before any failure', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
-    expect(checkBruteForce(req, 'login:user@example.com')).toEqual({ blocked: false, retryAfter: 0 })
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toEqual({ blocked: false, retryAfter: 0 })
   })
 
-  it('records failures and locks at the 5th attempt for 5s', () => {
+  it('records failures and locks at the 5th attempt for 5s', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
     for (let i = 1; i < 5; i++) {
-      expect(recordFailure(req, 'login:user@example.com')).toBeNull()
+      await expect(recordFailure(req, 'login:user@example.com')).resolves.toBeNull()
     }
-    expect(recordFailure(req, 'login:user@example.com')).toBe(5000)
-    expect(checkBruteForce(req, 'login:user@example.com')).toEqual({ blocked: true, retryAfter: 5000 })
+    await expect(recordFailure(req, 'login:user@example.com')).resolves.toBe(5000)
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toEqual({ blocked: true, retryAfter: 5000 })
   })
 
-  it('locks for 30s at 10 failures and 300s at 20 failures', () => {
+  it('locks for 30s at 10 failures and 300s at 20 failures', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
     let lock: number | null = null
     for (let i = 0; i < 20; i++) {
-      lock = recordFailure(req, 'login:user@example.com')
+      lock = await recordFailure(req, 'login:user@example.com')
     }
     expect(lock).toBe(300_000)
-    expect(checkBruteForce(req, 'login:user@example.com')).toEqual({ blocked: true, retryAfter: 300_000 })
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toEqual({ blocked: true, retryAfter: 300_000 })
     const req2 = makeRequest({ 'x-forwarded-for': '198.51.100.7' })
     for (let i = 0; i < 10; i++) {
-      recordFailure(req2, 'login:user@example.com')
+      await recordFailure(req2, 'login:user@example.com')
     }
-    expect(checkBruteForce(req2, 'login:user@example.com')).toEqual({ blocked: true, retryAfter: 30_000 })
+    await expect(checkBruteForce(req2, 'login:user@example.com')).resolves.toEqual({ blocked: true, retryAfter: 30_000 })
   })
 
-  it('unblocks after the lock window expires', () => {
+  it('unblocks after the lock window expires', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
     for (let i = 0; i < 5; i++) {
-      recordFailure(req, 'login:user@example.com')
+      await recordFailure(req, 'login:user@example.com')
     }
-    expect(checkBruteForce(req, 'login:user@example.com').blocked).toBe(true)
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toMatchObject({ blocked: true })
     vi.advanceTimersByTime(5001)
-    expect(checkBruteForce(req, 'login:user@example.com')).toEqual({ blocked: false, retryAfter: 0 })
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toEqual({ blocked: false, retryAfter: 0 })
   })
 
-  it('keys failures by identifier and ip', () => {
+  it('keys failures by identifier and ip', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
     for (let i = 0; i < 5; i++) {
-      recordFailure(req, 'login:user@example.com')
+      await recordFailure(req, 'login:user@example.com')
     }
     const otherIp = makeRequest({ 'x-forwarded-for': '198.51.100.7' })
-    expect(checkBruteForce(otherIp, 'login:user@example.com')).toEqual({ blocked: false, retryAfter: 0 })
-    expect(checkBruteForce(req, 'login:other@example.com')).toEqual({ blocked: false, retryAfter: 0 })
-    expect(checkBruteForce(req, 'login:user@example.com').blocked).toBe(true)
+    await expect(checkBruteForce(otherIp, 'login:user@example.com')).resolves.toEqual({ blocked: false, retryAfter: 0 })
+    await expect(checkBruteForce(req, 'login:other@example.com')).resolves.toEqual({ blocked: false, retryAfter: 0 })
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toMatchObject({ blocked: true })
   })
 
-  it('resetBruteForce clears the lock', () => {
+  it('resetBruteForce clears the lock', async () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5' })
     for (let i = 0; i < 5; i++) {
-      recordFailure(req, 'login:user@example.com')
+      await recordFailure(req, 'login:user@example.com')
     }
-    expect(checkBruteForce(req, 'login:user@example.com').blocked).toBe(true)
-    resetBruteForce(req, 'login:user@example.com')
-    expect(checkBruteForce(req, 'login:user@example.com')).toEqual({ blocked: false, retryAfter: 0 })
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toMatchObject({ blocked: true })
+    await resetBruteForce(req, 'login:user@example.com')
+    await expect(checkBruteForce(req, 'login:user@example.com')).resolves.toEqual({ blocked: false, retryAfter: 0 })
   })
 })

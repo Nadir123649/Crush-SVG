@@ -1,9 +1,9 @@
 import 'server-only'
 
-import { ObjectId, type Collection } from 'mongodb'
+import type { Model } from 'mongoose'
 import type { DecodedIdToken } from 'firebase-admin/auth'
 
-import { getUsersCollection, type UserDoc } from '@/lib/db'
+import { User, type UserDoc } from '@/lib/db'
 
 export type ProviderName = 'google' | 'github' | 'x' | 'password'
 
@@ -25,66 +25,59 @@ export function providerIdToName(providerId: string): ProviderName {
 export async function resolveUserCascade(
   token: DecodedIdToken,
   provider: ProviderName,
-  users?: Collection<UserDoc>
+  users?: Model<UserDoc>
 ): Promise<UserDoc> {
-  const collection = users ?? (await getUsersCollection())
+  const model = users ?? User
   const now = new Date()
   const email = token.email ? token.email.toLowerCase().trim() : null
 
-  const existing = await collection.findOne({ uid: token.uid })
+  const existing = await model.findOne({ uid: token.uid })
   if (existing) {
     return (
-      (await collection.findOneAndUpdate(
+      (await model.findOneAndUpdate(
         { uid: token.uid },
         {
           $set: {
             email: token.email ?? existing.email,
             displayName: token.name ?? existing.displayName,
             photoURL: token.picture ?? existing.photoURL,
-            updatedAt: now,
             lastLoginAt: now,
           },
           $addToSet: { providers: provider },
         },
-        { returnDocument: 'after' }
+        { new: true }
       )) ?? existing
     )
   }
 
   if (email && token.email_verified === true) {
-    const emailMatch = await collection.findOne({ email })
+    const emailMatch = await model.findOne({ email })
     if (emailMatch) {
       return (
-        (await collection.findOneAndUpdate(
+        (await model.findOneAndUpdate(
           { _id: emailMatch._id },
           {
             $set: {
               uid: token.uid,
               displayName: token.name ?? emailMatch.displayName,
               photoURL: token.picture ?? emailMatch.photoURL,
-              updatedAt: now,
               lastLoginAt: now,
             },
             $addToSet: { providers: provider },
           },
-          { returnDocument: 'after' }
+          { new: true }
         )) ?? emailMatch
       )
     }
   }
 
-  const doc: UserDoc = {
-    _id: new ObjectId(),
+  return model.create({
     uid: token.uid,
     email: email ?? token.email ?? null,
     displayName: token.name ?? 'CrushSVG user',
     photoURL: token.picture ?? null,
     providers: [provider],
     conversionsUsed: 0,
-    createdAt: now,
-    updatedAt: now,
     lastLoginAt: now,
-  }
-  await collection.insertOne(doc)
-  return doc
+  })
 }

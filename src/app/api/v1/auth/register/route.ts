@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server'
-import { ObjectId } from 'mongodb'
 
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { registerSchema } from '@/lib/auth-validation'
-import { getUsersCollection } from '@/lib/db'
+import { User, isDuplicateKeyError } from '@/lib/db'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/passwords'
 import { sendVerificationEmail } from '@/lib/email'
 import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
@@ -11,16 +10,16 @@ import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('auth:register', 3, 60_000)
+  const rl = await checkRateLimit(request, 'auth:register', 3, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many registration attempts. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const parsed = registerSchema.safeParse(body)
@@ -31,9 +30,8 @@ export async function POST(request: NextRequest) {
   }
 
   const email = parsed.data.email.toLowerCase().trim()
-  const users = await getUsersCollection()
 
-  const existingUser = await users.findOne({ email })
+  const existingUser = await User.findOne({ email })
   if (existingUser) {
     return errorResponse(
       409,
@@ -46,24 +44,32 @@ export async function POST(request: NextRequest) {
   const token = generateToken()
   const now = Date.now()
 
-  await users.insertOne({
-    _id: new ObjectId(),
-    uid: `email_${email}`,
-    email,
-    displayName: parsed.data.name,
-    name: parsed.data.name,
-    photoURL: null,
-    providers: ['email'],
-    linkedProviders: ['email'],
-    password,
-    isVerified: false,
-    emailVerificationToken: hashToken(token),
-    emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
-    conversionsUsed: 0,
-    createdAt: new Date(now),
-    updatedAt: new Date(now),
-    lastLoginAt: new Date(now),
-  })
+  try {
+    await User.create({
+      uid: `email_${email}`,
+      email,
+      displayName: parsed.data.name,
+      name: parsed.data.name,
+      photoURL: null,
+      providers: ['email'],
+      linkedProviders: ['email'],
+      password,
+      isVerified: false,
+      emailVerificationToken: hashToken(token),
+      emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
+      conversionsUsed: 0,
+      lastLoginAt: new Date(now),
+    })
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      return errorResponse(
+        409,
+        'account_already_exists',
+        'An account with this email already exists. Please log in instead.'
+      )
+    }
+    throw error
+  }
 
   const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
   void sendVerificationEmail(email, verifyUrl).catch((e) => {
@@ -74,7 +80,5 @@ export async function POST(request: NextRequest) {
   }
 
   return successResponse(
-    { message: 'Registration successful. Please check your email to verify your account.' },
-    201
-  )
+    { message: 'Registration successful. Please check your email to verify your account.' }, 201, rateLimitHeaders(rl), request)
 }

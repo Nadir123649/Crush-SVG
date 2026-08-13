@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { svgValidationSchema } from '@/lib/validation'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
@@ -53,16 +53,16 @@ function isValidSVG(svg: string): { valid: boolean; error?: string } {
 }
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('svg:validate', 30, 60_000)
+  const rl = await checkRateLimit(request, 'svg:validate', 30, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many validation requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const parsed = svgValidationSchema.safeParse(body)

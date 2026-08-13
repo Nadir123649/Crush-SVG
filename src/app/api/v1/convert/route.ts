@@ -1,46 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { convertSchema } from '@/lib/convert-validation'
-import { successResponse, errorResponse } from '@/lib/api-response'
+import { convertSvgQueued } from '@/lib/conversion-queue'
+import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/conversion-usage'
+import { errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
-function parseSvgForSharp(svg: string): { width?: number; height?: number } {
-  const widthMatch = svg.match(/width\s*=\s*["']?([\d.]+)["']?/i)
-  const heightMatch = svg.match(/height\s*=\s*["']?([\d.]+)["']?/i)
-  const viewBoxMatch = svg.match(/viewBox\s*=\s*["']?[\d\s.]+([\d.]+)["']?/i)
-
-  return {
-    width: widthMatch ? parseFloat(widthMatch[1]) : undefined,
-    height: heightMatch ? parseFloat(heightMatch[1]) : undefined,
-  }
-}
-
-function sanitizeSvg(svg: string): string {
-  let sanitized = svg
-
-  if (!sanitized.includes('xmlns="http://www.w3.org/2000/svg"') &&
-      !sanitized.includes("xmlns='http://www.w3.org/2000/svg'")) {
-    sanitized = sanitized.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"')
-  }
-
-  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
-  sanitized = sanitized.replace(/javascript:/gi, '')
-  sanitized = sanitized.replace(/data:/gi, '')
-  sanitized = sanitized.replace(/vbscript:/gi, '')
-  sanitized = sanitized.replace(/expression\s*\(/gi, '')
-
-  return sanitized
-}
-
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('convert:svg', 30, 60_000)
+  const rl = await checkRateLimit(request, 'convert:svg', 30, 60_000)
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many conversion requests. Try again later.', retryAfterSeconds: rl.retryAfterSeconds },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     )
   }
 
@@ -57,69 +30,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: first }, { status: 400 })
   }
 
+  const usage = await getConversionUsage(request)
+  if (usage.kind === 'guest' && usage.limitReached) {
+    return errorResponse(
+      429,
+      'limit_reached',
+      "You've used your 3 free conversions. Create a free account to keep converting."
+    )
+  }
+
   const { svg, format, width, scale, transparent, quality } = parsed.data
 
   try {
-    const sharp = (await import('sharp')).default
-
-    const sanitizedSvg = sanitizeSvg(svg)
-    const svgBuffer = Buffer.from(sanitizedSvg, 'utf-8')
-
-    const { width: svgWidth, height: svgHeight } = parseSvgForSharp(sanitizedSvg)
-
-    let targetWidth = width
-    let targetHeight: number | undefined
-
-    if (targetWidth && svgWidth && svgHeight) {
-      targetHeight = Math.round((targetWidth / svgWidth) * svgHeight)
-    } else if (!targetWidth && svgWidth) {
-      targetWidth = Math.round(svgWidth * scale)
-      if (svgHeight) {
-        targetHeight = Math.round(svgHeight * scale)
-      }
-    }
-
-    const pipeline = sharp(svgBuffer, {
-      density: 300,
-      limitInputPixels: 50_000_000,
-    })
-
-    if (targetWidth) {
-      pipeline.resize({
-        width: targetWidth,
-        height: targetHeight,
-        fit: 'inside',
-        withoutEnlargement: false,
-      })
-    }
-
-    if (format === 'png') {
-      pipeline.png({
-        quality,
-        compressionLevel: 9,
-        adaptiveFiltering: true,
-      })
-    } else if (format === 'jpeg') {
-      pipeline.jpeg({
-        quality,
-        progressive: true,
-        mozjpeg: true,
-      })
-      if (!transparent) {
-        pipeline.flatten({ background: { r: 255, g: 255, b: 255 } })
-      }
-    } else if (format === 'webp') {
-      pipeline.webp({
-        quality,
-        lossless: false,
-        nearLossless: false,
-        smartSubsample: true,
-      })
-    }
-
-    const outputBuffer = await pipeline.toBuffer()
-    const base64 = outputBuffer.toString('base64')
+    const result = await convertSvgQueued(svg, { format, width, scale, transparent, quality })
+    const base64 = result.buffer.toString('base64')
     const mimeType = `image/${format === 'jpeg' ? 'jpeg' : format}`
+
+    const conversionsUsed = await incrementConversionUsage(request)
+    const remaining =
+      usage.kind === 'guest' ? Math.max(0, GUEST_CONVERSION_LIMIT - conversionsUsed) : undefined
+
+    const acceptsBinary =
+      request.headers.get('accept')?.includes('application/octet-stream') ||
+      request.nextUrl.searchParams.get('download') === '1'
+
+    if (acceptsBinary) {
+      return new NextResponse(new Uint8Array(result.buffer), {
+        status: 200,
+        headers: {
+          'Content-Type': mimeType,
+          'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.${format === 'jpeg' ? 'jpg' : format}"`,
+          'Content-Length': String(result.buffer.length),
+          'X-Conversions-Used': String(conversionsUsed),
+          ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
+        },
+      })
+    }
 
     return NextResponse.json(
       {
@@ -128,10 +74,12 @@ export async function POST(request: NextRequest) {
         payload: {
           data: base64,
           mimeType,
-          size: outputBuffer.length,
+          size: result.buffer.length,
           format,
-          width: targetWidth,
-          height: targetHeight,
+          width: result.width,
+          height: result.height,
+          conversionsUsed,
+          remaining,
         },
         serverTimestamp: new Date().toISOString(),
       },

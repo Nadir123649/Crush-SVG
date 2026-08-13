@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ObjectId, type Collection, type Document } from 'mongodb'
+import { Types, type Model } from 'mongoose'
 
 import {
   providerIdToName,
@@ -16,49 +16,45 @@ type Token = {
   email_verified?: boolean
 }
 
-function fakeUsers(): Collection<UserDoc> {
+function fakeUsers(): Model<UserDoc> {
   const docs: UserDoc[] = []
   return {
-    findOne: async (filter: Document) =>
+    findOne: async (filter: Record<string, unknown>) =>
       docs.find((d) =>
         filter.uid
           ? d.uid === filter.uid
           : filter.email === d.email
       ) ?? null,
-    insertOne: async (doc: UserDoc) => {
-      docs.push(doc)
-      return { insertedId: doc._id } as never
-    },
-    findOneAndUpdate: async (filter: Document, update: Document) => {
-      let doc = docs.find((d) => filter.uid === d.uid)
+    create: async (doc: Partial<UserDoc>) => {
       const now = new Date()
-      if (!doc && filter.email) doc = docs.find((d) => filter.email === d.email)
-      if (!doc && filter._id) doc = docs.find((d) => d._id.equals(filter._id))
-      if (!doc) {
-        doc = {
-          _id: new ObjectId(),
-          uid: String(filter.uid ?? ''),
-          email: (filter.email as string) ?? null,
-          displayName: 'CrushSVG user',
-          photoURL: null,
-          providers: [],
-          conversionsUsed: 0,
-          createdAt: now,
-          updatedAt: now,
-          lastLoginAt: now,
-        }
-        docs.push(doc)
-        return doc
+      const full: UserDoc = {
+        _id: new Types.ObjectId(),
+        uid: String(doc.uid ?? ''),
+        email: (doc.email as string | null) ?? null,
+        displayName: doc.displayName ?? 'CrushSVG user',
+        photoURL: doc.photoURL ?? null,
+        providers: doc.providers ?? [],
+        conversionsUsed: doc.conversionsUsed ?? 0,
+        createdAt: now,
+        updatedAt: now,
+        lastLoginAt: doc.lastLoginAt ?? now,
       }
+      docs.push(full)
+      return full
+    },
+    findOneAndUpdate: async (filter: Record<string, unknown>, update: Record<string, unknown>) => {
+      let doc = docs.find((d) => filter.uid === d.uid)
+      if (!doc && filter.email) doc = docs.find((d) => filter.email === d.email)
+      if (!doc && filter._id) doc = docs.find((d) => d._id.equals(filter._id as Types.ObjectId))
+      if (!doc) return null
       const set = (update.$set ?? {}) as Record<string, unknown>
-      const addRaw = update.$addToSet?.providers
-      const add: string[] = Array.isArray(addRaw) ? addRaw : addRaw ? [addRaw] : []
+      const addRaw = (update.$addToSet as { providers?: unknown } | undefined)?.providers
+      const add: string[] = Array.isArray(addRaw) ? addRaw : addRaw ? [addRaw as string] : []
       Object.assign(doc, set)
       for (const p of add) if (!doc.providers.includes(p)) doc.providers.push(p)
       return doc
     },
-    createIndex: async () => '',
-  } as unknown as Collection<UserDoc>
+  } as unknown as Model<UserDoc>
 }
 
 describe('firebase-user', () => {

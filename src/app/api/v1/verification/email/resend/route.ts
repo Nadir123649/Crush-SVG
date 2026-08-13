@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { forgotPasswordSchema } from '@/lib/auth-validation'
-import { getUsersCollection } from '@/lib/db'
+import { User } from '@/lib/db'
 import { generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/passwords'
 import { sendVerificationEmail } from '@/lib/email'
 import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
@@ -10,16 +10,16 @@ import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('verification:resend', 3, 60_000)
+  const rl = await checkRateLimit(request, 'verification:resend', 3, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const parsed = forgotPasswordSchema.safeParse(body)
@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   const email = parsed.data.email.toLowerCase().trim()
-  const users = await getUsersCollection()
-  const user = await users.findOne({ email })
+  const user = await User.findOne({ email })
   if (!user || user.isVerified) {
     return successResponse({
       message: 'If the account exists and is unverified, a verification email has been sent.',
@@ -39,13 +38,12 @@ export async function POST(request: NextRequest) {
 
   const token = generateToken()
   const now = Date.now()
-  await users.updateOne(
+  await User.updateOne(
     { _id: user._id },
     {
       $set: {
         emailVerificationToken: hashToken(token),
         emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
-        updatedAt: new Date(now),
       },
     }
   )

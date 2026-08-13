@@ -1,10 +1,10 @@
 import 'server-only'
 
-import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getSessionsCollection } from '@/lib/sessions'
+import { Session } from '@/lib/db'
 import { verifyAccessToken, type DecodedAccessToken } from '@/lib/tokens'
+import { getRateStore } from '@/lib/rate-store'
 
 export interface AuthUser {
   id: string
@@ -12,13 +12,11 @@ export interface AuthUser {
   jti?: string
 }
 
-const SESSION_CACHE_TTL_MS = 30_000
-
-const sessionCache = new Map<string, { valid: boolean; expiresAt: number }>()
+const SESSION_CACHE_TTL_MS = 5_000
 
 function allowedOrigins(): string[] {
   const origins = [process.env.NEXT_PUBLIC_APP_URL, 'http://localhost:3000']
-  return origins.filter((o): o is string => !!o)
+  return [...new Set(origins.filter((o): o is string => !!o))]
 }
 
 export function isMethodExempt(request: NextRequest): boolean {
@@ -28,14 +26,27 @@ export function isMethodExempt(request: NextRequest): boolean {
 export function isAllowedOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin') ?? request.headers.get('referer')
   if (!origin) return false
-  return allowedOrigins().some((o) => origin.startsWith(o))
+
+  let parsed: URL
+  try {
+    parsed = new URL(origin)
+  } catch {
+    return false
+  }
+
+  return allowedOrigins().some((allowed) => {
+    try {
+      const target = new URL(allowed)
+      return parsed.hostname === target.hostname && parsed.port === target.port
+    } catch {
+      return false
+    }
+  })
 }
 
-export function invalidateSessionCache(jti?: string): void {
+export async function invalidateSessionCache(jti?: string): Promise<void> {
   if (jti) {
-    sessionCache.delete(jti)
-  } else {
-    sessionCache.clear()
+    await getRateStore().reset(`sess:${jti}`)
   }
 }
 
@@ -68,31 +79,30 @@ export async function auth(
   }
 
   if (decoded.jti) {
-    const now = Date.now()
-    const cached = sessionCache.get(decoded.jti)
-    if (cached && cached.expiresAt > now) {
-      if (!cached.valid) {
-        return {
-          error: NextResponse.json({ error: 'Session revoked' }, { status: 401 }),
-        }
+    const store = getRateStore()
+    const cacheKey = `sess:${decoded.jti}`
+    const cached = await store.get(cacheKey)
+
+    if (cached === '1') {
+      return {
+        user: { id: decoded.id, role: decoded.role, jti: decoded.jti },
       }
-    } else {
-      const sessions = await getSessionsCollection()
-      const session = await sessions.findOne({
-        _id: new ObjectId(decoded.jti),
-      })
-      const valid =
-        !!session &&
-        session.userId.toString() === decoded.id &&
-        session.status === 'active'
-      sessionCache.set(decoded.jti, {
-        valid,
-        expiresAt: now + SESSION_CACHE_TTL_MS,
-      })
-      if (!valid) {
-        return {
-          error: NextResponse.json({ error: 'Session revoked' }, { status: 401 }),
-        }
+    }
+    if (cached === '0') {
+      return {
+        error: NextResponse.json({ error: 'Session revoked' }, { status: 401 }),
+      }
+    }
+
+    const session = await Session.findOne({ _id: decoded.jti })
+    const valid =
+      !!session &&
+      session.userId.toString() === decoded.id &&
+      session.status === 'active'
+    await store.set(cacheKey, valid ? '1' : '0', SESSION_CACHE_TTL_MS)
+    if (!valid) {
+      return {
+        error: NextResponse.json({ error: 'Session revoked' }, { status: 401 }),
       }
     }
   }

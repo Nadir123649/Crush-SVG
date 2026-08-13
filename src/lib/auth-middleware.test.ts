@@ -16,6 +16,22 @@ describe('auth-middleware', () => {
     expect(isAllowedOrigin(req)).toBe(true)
   })
 
+  it('rejects spoofed subdomain lookalike origins', () => {
+    const req = new NextRequest('https://crushsvg.com/api/v1/auth/logout', {
+      method: 'POST',
+      headers: { origin: 'https://crushsvg.com.evil.example' },
+    })
+    expect(isAllowedOrigin(req)).toBe(false)
+  })
+
+  it('allows localhost origins with any protocol', () => {
+    const req = new NextRequest('http://localhost:3000/api/v1/auth/logout', {
+      method: 'POST',
+      headers: { origin: 'http://localhost:3000' },
+    })
+    expect(isAllowedOrigin(req)).toBe(true)
+  })
+
   it('rejects cross-origin POST', () => {
     const req = new NextRequest('https://crushsvg.com/api/v1/auth/logout', {
       method: 'POST',
@@ -32,8 +48,8 @@ describe('auth-middleware', () => {
     expect(isMethodExempt(req)).toBe(true)
   })
 
-  it('invalidateSessionCache clears a single entry or everything', () => {
-    invalidateSessionCache()
-    expect(() => invalidateSessionCache()).not.toThrow()
+  it('invalidateSessionCache clears a single entry or everything', async () => {
+    await invalidateSessionCache()
+    await expect(invalidateSessionCache()).resolves.not.toThrow()
   })
 })

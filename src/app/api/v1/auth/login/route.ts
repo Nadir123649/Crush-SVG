@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { loginSchema } from '@/lib/auth-validation'
-import { getUsersCollection } from '@/lib/db'
+import { User } from '@/lib/db'
 import { verifyPassword } from '@/lib/passwords'
 import { checkBruteForce, recordFailure, resetBruteForce } from '@/lib/brute-force'
 import { issueSession } from '@/lib/auth-helpers'
@@ -12,16 +12,16 @@ import { REFRESH_COOKIE_NAME } from '@/lib/auth'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('auth:login', 10, 60_000)
+  const rl = await checkRateLimit(request, 'auth:login', 10, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many login attempts. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'validation_error', 'Invalid JSON body')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const parsed = loginSchema.safeParse(body)
@@ -33,25 +33,24 @@ export async function POST(request: NextRequest) {
   const email = parsed.data.email.toLowerCase().trim()
   const rememberMe = (body as { rememberMe?: unknown })?.rememberMe === true
 
-  const bf = checkBruteForce(request, `login:${email}`)
+  const bf = await checkBruteForce(request, `login:${email}`)
   if (bf.blocked) {
-    return errorResponse(429, 'account_locked', 'Too many failed login attempts. Please wait before trying again.')
+    return errorResponse(429, 'account_locked', 'Too many failed login attempts. Please wait before trying again.', { 'Retry-After': String(Math.ceil(bf.retryAfter / 1000)) })
   }
 
-  const users = await getUsersCollection()
-  const user = await users.findOne({ email })
+  const user = await User.findOne({ email })
   if (!user) {
-    recordFailure(request, `login:${email}`)
-    return errorResponse(401, 'invalid_credentials', 'Invalid email or password')
+    await recordFailure(request, `login:${email}`)
+    return errorResponse(401, '', '', undefined, request)
   }
   if (!user.password) {
-    recordFailure(request, `login:${email}`)
-    return errorResponse(401, 'invalid_credentials', 'Invalid email or password')
+    await recordFailure(request, `login:${email}`)
+    return errorResponse(401, '', '', undefined, request)
   }
   const isMatch = await verifyPassword(parsed.data.password, user.password)
   if (!isMatch) {
-    recordFailure(request, `login:${email}`)
-    return errorResponse(401, 'invalid_credentials', 'Invalid email or password')
+    await recordFailure(request, `login:${email}`)
+    return errorResponse(401, '', '', undefined, request)
   }
   if (!user.isVerified) {
     return errorResponse(
@@ -61,12 +60,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  resetBruteForce(request, `login:${email}`)
+  await resetBruteForce(request, `login:${email}`)
   const now = new Date()
-  await users.updateOne(
+  await User.updateOne(
     { _id: user._id },
     {
-      $set: { lastLoginAt: now, updatedAt: now },
+      $set: { lastLoginAt: now },
       $addToSet: { linkedProviders: 'email' },
     }
   )

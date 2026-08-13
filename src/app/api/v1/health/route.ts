@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getMongoClient } from '@/lib/db'
+import { connectToDatabase } from '@/lib/db'
 import { successResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
@@ -10,8 +10,8 @@ export async function GET() {
 
   const dbStart = Date.now()
   try {
-    const client = getMongoClient()
-    await client.db('crushsvg').command({ ping: 1 })
+    const connection = await connectToDatabase()
+    await connection.getClient().db().command({ ping: 1 })
     checks.database = { status: 'ok', latencyMs: Date.now() - dbStart }
   } catch (error) {
     checks.database = { status: 'error', message: (error as Error).message, latencyMs: Date.now() - dbStart }

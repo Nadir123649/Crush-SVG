@@ -1,63 +1,69 @@
-import type { NextRequest } from 'next/server'
+import 'server-only'
 
-interface BruteForceEntry {
-  count: number
-  lockedUntil: number
-}
+import { NextRequest } from 'next/server'
 
-const store = new Map<string, BruteForceEntry>()
-
-export function getClientIp(request: NextRequest): string | null {
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  return request.headers.get('cf-connecting-ip')
-}
+import { getClientIp } from '@/lib/ip'
+import { getRateStore } from '@/lib/rate-store'
 
 export interface BruteForceResult {
   blocked: boolean
   retryAfter: number
 }
 
-export function checkBruteForce(request: NextRequest, identifier: string): BruteForceResult {
-  const key = `${identifier}:${getClientIp(request)}`
-  const entry = store.get(key)
-  if (!entry) return { blocked: false, retryAfter: 0 }
-  if (entry.lockedUntil > Date.now()) {
-    return { blocked: true, retryAfter: entry.lockedUntil - Date.now() }
+const countKey = (identifier: string, ip: string | null) => `bf:${identifier}:${ip}:count`
+const lockKey = (identifier: string, ip: string | null) => `bf:${identifier}:${ip}:lock`
+
+export async function checkBruteForce(
+  request: NextRequest,
+  identifier: string
+): Promise<BruteForceResult> {
+  const ip = getClientIp(request)
+  const store = getRateStore()
+  const lockedUntil = Number((await store.get(lockKey(identifier, ip))) ?? 0)
+  if (lockedUntil > Date.now()) {
+    return { blocked: true, retryAfter: lockedUntil - Date.now() }
   }
   return { blocked: false, retryAfter: 0 }
 }
 
-export function recordFailure(request: NextRequest, identifier: string): number | null {
-  const key = `${identifier}:${getClientIp(request)}`
-  const now = Date.now()
-  const entry = store.get(key)
-  if (!entry) {
-    store.set(key, { count: 1, lockedUntil: 0 })
-    return null
-  }
-  if (entry.lockedUntil <= now) {
-    entry.lockedUntil = 0
-  }
-  entry.count += 1
-  if (entry.count >= 20) {
-    entry.lockedUntil = now + 300_000
+export async function recordFailure(
+  request: NextRequest,
+  identifier: string
+): Promise<number | null> {
+  const ip = getClientIp(request)
+  const store = getRateStore()
+  const count = await store.increment(countKey(identifier, ip), 300_000)
+
+  if (count >= 20) {
+    await applyLockout(store, identifier, ip, 300_000)
     return 300_000
   }
-  if (entry.count >= 10) {
-    entry.lockedUntil = now + 30_000
+  if (count >= 10) {
+    await applyLockout(store, identifier, ip, 30_000)
     return 30_000
   }
-  if (entry.count >= 5) {
-    entry.lockedUntil = now + 5_000
+  if (count >= 5) {
+    await applyLockout(store, identifier, ip, 5_000)
     return 5_000
   }
   return null
 }
 
-export function resetBruteForce(request: NextRequest, identifier: string): void {
-  const key = `${identifier}:${getClientIp(request)}`
-  store.delete(key)
+async function applyLockout(
+  store: import('@/lib/rate-store').RateStore,
+  identifier: string,
+  ip: string | null,
+  durationMs: number
+): Promise<void> {
+  await store.set(lockKey(identifier, ip), Date.now() + durationMs, durationMs)
+}
+
+export async function resetBruteForce(
+  request: NextRequest,
+  identifier: string
+): Promise<void> {
+  const ip = getClientIp(request)
+  const store = getRateStore()
+  await store.reset(countKey(identifier, ip))
+  await store.reset(lockKey(identifier, ip))
 }

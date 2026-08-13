@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export function successResponse(data: unknown, status = 200) {
+import { getRequestId } from '@/lib/logger'
+
+export function successResponse(
+  data: unknown,
+  status = 200,
+  headers?: Record<string, string>,
+  request?: NextRequest
+) {
+  const responseHeaders: Record<string, string> = { ...headers }
+  if (request) responseHeaders['x-request-id'] = getRequestId(request)
   return NextResponse.json(
     {
       success: true,
@@ -8,11 +17,19 @@ export function successResponse(data: unknown, status = 200) {
       payload: data,
       serverTimestamp: new Date().toISOString(),
     },
-    { status }
+    { status, headers: responseHeaders }
   )
 }
 
-export function errorResponse(status: number, code: string, message: string) {
+export function errorResponse(
+  status: number,
+  code: string,
+  message: string,
+  headers?: Record<string, string>,
+  request?: NextRequest
+) {
+  const responseHeaders: Record<string, string> = { ...headers }
+  if (request) responseHeaders['x-request-id'] = getRequestId(request)
   return NextResponse.json(
     {
       success: false,
@@ -20,7 +37,7 @@ export function errorResponse(status: number, code: string, message: string) {
       payload: { error: { code, message } },
       serverTimestamp: new Date().toISOString(),
     },
-    { status }
+    { status, headers: responseHeaders }
   )
 }
 

@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { conversionHistoryQuerySchema } from '@/lib/validation'
-import { getUsersCollection } from '@/lib/db'
+import { User } from '@/lib/db'
 import { successResponse, errorResponse } from '@/lib/api-response'
-import { ObjectId } from 'mongodb'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
-  const rl = checkRateLimit('conversions:history', 30, 60_000)
+  const rl = await checkRateLimit(request, 'conversions:history', 30, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests. Try again later.')
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
   const who = await auth(request)
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
   })
 
   if (!parsed.success) {
-    return errorResponse(400, 'validation_error', 'Invalid query parameters')
+    return errorResponse(400, '', '', undefined, request)
   }
 
   const { page, limit, sort } = parsed.data
@@ -34,11 +33,10 @@ export async function GET(request: NextRequest) {
   const sortField = sort.startsWith('-') ? sort.slice(1) : sort
   const sortOrder = sort.startsWith('-') ? -1 : 1
 
-  const users = await getUsersCollection()
-  const user = await users.findOne({ _id: new ObjectId(who.user.id) })
+  const user = await User.findById(who.user.id)
 
   if (!user) {
-    return errorResponse(404, 'user_not_found', 'User not found')
+    return errorResponse(404, '', '', undefined, request)
   }
 
   return successResponse({

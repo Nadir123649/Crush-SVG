@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase-admin'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
-import { checkRateLimit } from '@/lib/rate-limit'
-import { createSession, getSessionsCollection } from '@/lib/sessions'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { createSession } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { oauthSchema } from '@/lib/validation'
 import { REFRESH_COOKIE_NAME, toUserDTO } from '@/lib/auth'
+import { successResponse, errorResponse } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 
@@ -25,17 +27,17 @@ export async function POST(
   const provider = rawProvider && PROVIDER_URL_MAP[rawProvider] ? rawProvider : undefined
 
   if (!provider) {
-    return NextResponse.json(
-      { error: 'Unknown provider' },
-      { status: 404 }
-    )
+    return errorResponse(404, 'unknown_provider', 'Unknown provider', undefined, request)
   }
 
-  const rl = checkRateLimit(`oauth:${provider}`, 10, 60_000)
+  const rl = await checkRateLimit(request, `oauth:${provider}`, 10, 60_000)
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: 'Too many requests. Try again later.', retryAfterSeconds: rl.retryAfterSeconds },
-      { status: 429 }
+    return errorResponse(
+      429,
+      'rate_limit_exceeded',
+      'Too many requests. Try again later.',
+      rateLimitHeaders(rl),
+      request
     )
   }
 
@@ -43,14 +45,17 @@ export async function POST(
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return errorResponse(400, 'validation_error', 'Invalid JSON body', undefined, request)
   }
 
   const parsed = oauthSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+    return errorResponse(
+      400,
+      'validation_error',
+      Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Invalid input',
+      undefined,
+      request
     )
   }
 
@@ -58,25 +63,24 @@ export async function POST(
     const token = await verifyIdToken(parsed.data.firebaseToken)
     const expectedProviderId = PROVIDER_URL_MAP[provider]
     if (token.firebase?.sign_in_provider !== expectedProviderId) {
-      return NextResponse.json(
-        { error: 'Provider mismatch' },
-        { status: 400 }
-      )
+      return errorResponse(400, 'provider_mismatch', 'Provider mismatch', undefined, request)
     }
 
     // Password gate: email must be verified for password provider
     if (provider === 'password' && token.email_verified !== true) {
-      return NextResponse.json(
-        { error: 'Email not verified. Please verify your email before logging in.' },
-        { status: 403 }
+      return errorResponse(
+        403,
+        'email_not_verified',
+        'Email not verified. Please verify your email before logging in.',
+        undefined,
+        request
       )
     }
 
     const providerName = providerIdToName(token.firebase?.sign_in_provider ?? provider)
     const user = await resolveUserCascade(token, providerName)
 
-    const sessions = await getSessionsCollection()
-    const session = await createSession(sessions, {
+    const session = await createSession({
       userId: user._id,
       provider: providerName,
       remember: parsed.data.rememberMe ?? true,
@@ -95,13 +99,15 @@ export async function POST(
     })
 
     const remember = parsed.data.rememberMe ?? true
-    const res = NextResponse.json(
+    const res = successResponse(
       {
         user: toUserDTO(user),
         token: tokenPair,
         sessionId: session._id.toString(),
       },
-      { status: 200 }
+      200,
+      rateLimitHeaders(rl),
+      request
     )
     res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
       httpOnly: true,
@@ -112,10 +118,7 @@ export async function POST(
     })
     return res
   } catch (error) {
-    console.error('POST /api/v1/oauth failed:', error)
-    return NextResponse.json(
-      { error: 'Invalid or expired token' },
-      { status: 401 }
-    )
+    logger.error('oauth_failed', { provider, requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
+    return errorResponse(401, 'invalid_token', 'Invalid or expired token', undefined, request)
   }
 }

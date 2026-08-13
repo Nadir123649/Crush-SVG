@@ -1,10 +1,9 @@
 import 'server-only'
 
 import { NextRequest } from 'next/server'
-import { ObjectId } from 'mongodb'
 
 import type { UserDoc } from '@/lib/db'
-import { getSessionsCollection, createSession } from '@/lib/sessions'
+import { createSession } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { toUserDTO } from '@/lib/auth'
 
@@ -28,9 +27,8 @@ export async function issueSession(
   provider: string,
   remember = true
 ): Promise<{ sessionId: string; payload: Record<string, unknown> }> {
-  const sessions = await getSessionsCollection()
-  const session = await createSession(sessions, {
-    userId: new ObjectId(user._id),
+  const session = await createSession({
+    userId: user._id,
     provider,
     remember,
     ip: request.headers.get('x-forwarded-for') ?? undefined,

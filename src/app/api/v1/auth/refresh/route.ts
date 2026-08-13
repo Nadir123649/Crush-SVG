@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit } from '@/lib/rate-limit'
-import { getSessionsCollection, rotateSession } from '@/lib/sessions'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { rotateSession } from '@/lib/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth'
-import { getUsersCollection } from '@/lib/db'
+import { Session, User } from '@/lib/db'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const rl = checkRateLimit('auth:refresh', 120, 60_000)
+  const rl = await checkRateLimit(request, 'auth:refresh', 120, 60_000)
   if (!rl.allowed) {
     return NextResponse.json(
       {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
         serverTimestamp: new Date().toISOString(),
         retryAfterSeconds: rl.retryAfterSeconds,
       },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     )
   }
 
@@ -27,25 +27,17 @@ export async function POST(request: NextRequest) {
   if (!refreshToken) {
     return NextResponse.json(
       { success: false, version: '1.0.0', payload: { error: { code: 'token_missing' } }, serverTimestamp: new Date().toISOString() },
-      { status: 200 }
+      { status: 200, headers: rateLimitHeaders(rl) }
     )
   }
 
   try {
     const decoded = await verifyRefreshToken(refreshToken)
 
-    const sessions = await getSessionsCollection()
-    const result = await rotateSession(
-      sessions,
-      decoded.jti,
-      decoded.ver ?? 0,
-      new (await import('mongodb')).ObjectId(decoded.id)
-    )
+    const result = await rotateSession(decoded.jti, decoded.ver ?? 0, decoded.id)
 
     if (!result.rotated) {
-      const current = await sessions.findOne({
-        _id: new (await import('mongodb')).ObjectId(decoded.jti),
-      })
+      const current = await Session.findOne({ _id: decoded.jti })
       const sessionActive =
         !!current &&
         current.status === 'active' &&
@@ -53,7 +45,7 @@ export async function POST(request: NextRequest) {
       if (!sessionActive) {
         const res = NextResponse.json(
           { success: false, version: '1.0.0', payload: { error: { code: 'session_revoked' } }, serverTimestamp: new Date().toISOString() },
-          { status: 401 }
+          { status: 401, headers: rateLimitHeaders(rl) }
         )
         res.cookies.delete(REFRESH_COOKIE_NAME)
         return res
@@ -63,12 +55,11 @@ export async function POST(request: NextRequest) {
     const currentVersion = result.currentVersion
     const remember = result.remember
 
-    const users = await getUsersCollection()
-    const user = await users.findOne({ _id: new (await import('mongodb')).ObjectId(decoded.id) })
+    const user = await User.findById(decoded.id)
     if (!user) {
       const res = NextResponse.json(
         { success: false, version: '1.0.0', payload: { error: { code: 'user_not_found' } }, serverTimestamp: new Date().toISOString() },
-        { status: 401 }
+        { status: 401, headers: rateLimitHeaders(rl) }
       )
       res.cookies.delete(REFRESH_COOKIE_NAME)
       return res
@@ -81,8 +72,13 @@ export async function POST(request: NextRequest) {
       tokenVersion: currentVersion,
     })
     const res = NextResponse.json(
-      { success: true, payload: { token: tokenPair }, timestamp: Date.now() },
-      { status: 200 }
+      {
+        success: true,
+        version: '1.0.0',
+        payload: { token: tokenPair },
+        serverTimestamp: new Date().toISOString(),
+      },
+      { status: 200, headers: rateLimitHeaders(rl) }
     )
     res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
       httpOnly: true,
@@ -95,7 +91,7 @@ export async function POST(request: NextRequest) {
   } catch {
     const res = NextResponse.json(
       { success: false, version: '1.0.0', payload: { error: { code: 'token_invalid' } }, serverTimestamp: new Date().toISOString() },
-      { status: 200 }
+      { status: 200, headers: rateLimitHeaders(rl) }
     )
     res.cookies.delete(REFRESH_COOKIE_NAME)
     return res

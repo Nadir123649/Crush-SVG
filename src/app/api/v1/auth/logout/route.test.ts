@@ -1,13 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   invalidateSessionCache: vi.fn(),
-  getSessionsCollection: vi.fn(),
   revokeSession: vi.fn(),
-  publishLogout: vi.fn(),
 }))
 
 vi.mock('@/lib/auth-middleware', () => ({
@@ -15,10 +12,8 @@ vi.mock('@/lib/auth-middleware', () => ({
   invalidateSessionCache: mocks.invalidateSessionCache,
 }))
 vi.mock('@/lib/sessions', () => ({
-  getSessionsCollection: mocks.getSessionsCollection,
   revokeSession: mocks.revokeSession,
 }))
-vi.mock('@/lib/session-broker', () => ({ publishLogout: mocks.publishLogout }))
 vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 
 import { POST } from './route'
@@ -40,7 +35,6 @@ beforeEach(() => {
   mocks.auth.mockResolvedValue({
     user: { id: USER_ID, role: 'free', jti: SESSION_ID },
   })
-  mocks.getSessionsCollection.mockResolvedValue(null)
   mocks.revokeSession.mockResolvedValue(true)
 })
 
@@ -56,15 +50,10 @@ describe('POST /api/v1/auth/logout', () => {
     expect(res.headers.get('set-cookie')).toContain('crushsvg_refresh=;')
   })
 
-  it('revokes session, invalidates cache and publishes logout when authenticated', async () => {
+  it('revokes session and invalidates cache when authenticated', async () => {
     await post()
-    expect(mocks.revokeSession).toHaveBeenCalledWith(
-      null,
-      SESSION_ID,
-      new ObjectId(USER_ID)
-    )
+    expect(mocks.revokeSession).toHaveBeenCalledWith(SESSION_ID, USER_ID)
     expect(mocks.invalidateSessionCache).toHaveBeenCalledWith(SESSION_ID)
-    expect(mocks.publishLogout).toHaveBeenCalledWith(USER_ID)
   })
 
   it('skips revocation when access token has no jti', async () => {
@@ -73,7 +62,6 @@ describe('POST /api/v1/auth/logout', () => {
     expect(res.status).toBe(200)
     expect(mocks.revokeSession).not.toHaveBeenCalled()
     expect(mocks.invalidateSessionCache).not.toHaveBeenCalled()
-    expect(mocks.publishLogout).not.toHaveBeenCalled()
   })
 
   it('returns 200 without revocation when auth fails', async () => {

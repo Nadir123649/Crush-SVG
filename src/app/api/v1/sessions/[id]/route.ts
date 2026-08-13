@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { isValidObjectId } from 'mongoose'
+
 import { auth, invalidateSessionCache } from '@/lib/auth-middleware'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth'
-import { getSessionsCollection, revokeSession } from '@/lib/sessions'
-import { publishLogout } from '@/lib/session-broker'
+import { revokeSession } from '@/lib/sessions'
 
 export const runtime = 'nodejs'
 
@@ -15,22 +16,15 @@ export async function DELETE(
   if ('error' in who) return who.error
 
   const { id } = await params
-  const { ObjectId } = await import('mongodb')
-  if (!ObjectId.isValid(id)) {
+  if (!isValidObjectId(id)) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
   }
 
-  const sessions = await getSessionsCollection()
-  const revoked = await revokeSession(
-    sessions,
-    id,
-    new ObjectId(who.user.id)
-  )
+  const revoked = await revokeSession(id, who.user.id)
   if (!revoked) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
   }
-  invalidateSessionCache(id)
-  publishLogout(who.user.id)
+  await invalidateSessionCache(id)
 
   const res = new NextResponse(null, { status: 204 })
   if (who.user.jti === id) {

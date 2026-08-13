@@ -1,24 +1,39 @@
 import 'server-only'
 
-const buckets = new Map<string, { count: number; resetAt: number }>()
+import { NextRequest } from 'next/server'
 
-export function checkRateLimit(
-  key: string,
+import { getClientIp } from '@/lib/ip'
+import { getRateStore } from '@/lib/rate-store'
+
+export interface RateLimitResult {
+  allowed: boolean
+  retryAfterSeconds: number
+  limit: number
+  remaining: number
+}
+
+export async function checkRateLimit(
+  request: NextRequest,
+  scope: string,
   limit: number,
   windowMs: number
-): { allowed: boolean; retryAfterSeconds: number } {
-  const now = Date.now()
-  const bucket = buckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs })
-    return { allowed: true, retryAfterSeconds: 0 }
+): Promise<RateLimitResult> {
+  const ip = getClientIp(request) ?? 'unknown'
+  const key = `rl:${scope}:${ip}`
+  const count = await getRateStore().increment(key, windowMs)
+  const allowed = count <= limit
+  return {
+    allowed,
+    remaining: Math.max(0, limit - count),
+    limit,
+    retryAfterSeconds: allowed ? 0 : Math.ceil(windowMs / 1000),
   }
-  if (bucket.count >= limit) {
-    return {
-      allowed: false,
-      retryAfterSeconds: Math.ceil((bucket.resetAt - now) / 1000),
-    }
+}
+
+export function rateLimitHeaders(rl: RateLimitResult): Record<string, string> {
+  return {
+    'X-RateLimit-Limit': String(rl.limit),
+    'X-RateLimit-Remaining': String(rl.remaining),
+    'Retry-After': String(rl.retryAfterSeconds),
   }
-  bucket.count += 1
-  return { allowed: true, retryAfterSeconds: 0 }
 }
