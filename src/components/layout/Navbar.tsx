@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button";
 
 export function Navbar() {
   return (
-    <nav className="w-full mt-[40px] flex items-center justify-between h-[42px]">
+    <div className="w-full bg-[#FFFCFA] flex justify-center pt-[40px] pb-[10px] px-[80px] z-50 relative">
+      <nav className="w-full max-w-[1280px] flex items-center justify-between h-[42px]">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-[10px]">
         <Image 
@@ -32,14 +33,19 @@ export function Navbar() {
         </Link>
         
         <div className="flex items-center gap-[16px]">
-          <Button variant="outline" className="w-[139px] h-[42px] bg-[#FFFFFF]">
-            Log In
-          </Button>
-          <Button variant="solid" className="w-[139px] h-[42px]">
-            Sign Up
-          </Button>
+          <Link href="/login">
+            <Button variant="outline" className="w-[139px] h-[42px] bg-[#FFFFFF]">
+              Log In
+            </Button>
+          </Link>
+          <Link href="/signup">
+            <Button variant="solid" className="w-[139px] h-[42px]">
+              Sign Up
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
+    </div>
   );
 }
