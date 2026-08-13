@@ -12,14 +12,23 @@ export function Button({ children, className = "", variant = "solid", ...props }
   if (variant === "outline") {
     return (
       <button
-        style={{
-          border: "1px solid transparent",
-          background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box"
-        }}
-        className={`text-text-dark rounded-[12px] px-[10px] hover:opacity-90 transition-opacity active:scale-[0.98] ${baseTextStyles} ${className}`}
+        className={`group relative rounded-[12px] px-[10px] active:scale-[0.98] overflow-hidden ${baseTextStyles} ${className}`}
         {...props}
       >
-        {children}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none" 
+          style={{
+            border: "1px solid transparent",
+            background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+            borderRadius: "inherit"
+          }} 
+        />
+        <div 
+          className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" 
+        />
+        <span className="relative z-10 text-text-dark group-hover:text-white transition-colors duration-300 ease-in-out flex items-center justify-center">
+          {children}
+        </span>
       </button>
     );
   }

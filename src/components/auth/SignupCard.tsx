@@ -27,7 +27,7 @@ export function SignupCard() {
 
         <div className="mt-[8px] flex flex-col gap-[16px]">
           {/* Continue with Google */}
-          <button className="flex items-center justify-center w-full h-[34px] rounded-[8px] border-[1px] border-[#B8B8B8] bg-transparent gap-[10px] hover:bg-black/5 transition-colors">
+          <button className="flex items-center justify-center w-full h-[34px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors">
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
             <span className="font-afacad font-medium text-[14px] text-black">Continue with Google</span>
           </button>
@@ -59,7 +59,7 @@ export function SignupCard() {
             <input 
               type="email" 
               placeholder="Enter your email"
-              className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+              className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />
           </div>
           <div className="flex flex-col gap-[4px]">
@@ -68,7 +68,7 @@ export function SignupCard() {
               <input 
                 type="password" 
                 placeholder="Enter password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
