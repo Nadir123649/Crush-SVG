@@ -3,6 +3,8 @@ import { ConverterUI } from "@/components/sections/ConverterUI";
 import { Features } from "@/components/sections/Features";
 import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
+import { TargetAudience } from "@/components/sections/TargetAudience";
+import { FAQ } from "@/components/sections/FAQ";
 
 export default function Home() {
   return (
@@ -12,6 +14,8 @@ export default function Home() {
       <Features />
       <SignUpCTA />
       <StepsSection />
+      <TargetAudience />
+      <FAQ />
     </div>
   );
 }

@@ -24,5 +24,6 @@ export const IMAGES = {
   twitterLogin: "/twitter-login.svg",
   twitter: "/twitter.svg",
   verification: "/verification.svg",
+  emailVerification: "/message-filled.svg",
   window: "/window.svg",
 } as const;
