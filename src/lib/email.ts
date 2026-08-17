@@ -1,5 +1,8 @@
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
+import VerifyEmail from '@/emails/templates/VerifyEmail'
+import PasswordReset from '@/emails/templates/PasswordReset'
+import { renderEmail } from '@/emails/renderEmail'
 
 const DEFAULT_FROM = 'CrushSVG <onboarding@resend.dev>'
 
@@ -65,31 +68,13 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 }
 
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-  await sendEmail(
-    to,
-    'Verify your CrushSVG email',
-    `<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #fafafa; border-radius: 8px;">
-      <h2 style="margin: 0 0 12px;">Verify your CrushSVG email</h2>
-      <p>Click the button below to verify your email address:</p>
-      <p style="margin: 24px 0;">
-        <a href="${url}" style="display: inline-block; padding: 10px 20px; background: #6d28d9; color: #ffffff; border-radius: 6px; text-decoration: none;">Verify email</a>
-      </p>
-      <p>Or open this link: <a href="${url}">${url}</a></p>
-    </div>`
-  )
+  await sendEmail(to, 'Verify your CrushSVG email', await renderEmail(VerifyEmail({ verifyUrl: url })))
 }
 
 export async function sendResetPasswordEmail(to: string, url: string, minutes: number): Promise<void> {
   await sendEmail(
     to,
     'Reset your CrushSVG password',
-    `<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #fafafa; border-radius: 8px;">
-      <h2 style="margin: 0 0 12px;">Reset your CrushSVG password</h2>
-      <p>Click the button below to choose a new password. This link expires in ${minutes} minutes.</p>
-      <p style="margin: 24px 0;">
-        <a href="${url}" style="display: inline-block; padding: 10px 20px; background: #6d28d9; color: #ffffff; border-radius: 6px; text-decoration: none;">Reset password</a>
-      </p>
-      <p>Or open this link: <a href="${url}">${url}</a></p>
-    </div>`
+    await renderEmail(PasswordReset({ resetUrl: url, expiresInMinutes: minutes }))
   )
 }

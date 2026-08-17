@@ -3,6 +3,8 @@ import 'server-only'
 import type { Types } from 'mongoose'
 
 import { Session, type SessionDoc } from '@/lib/db'
+import { parseUserAgent } from '@/lib/user-agent'
+import { geoLocate } from '@/lib/geo'
 
 export type { SessionDoc, SessionStatus } from '@/lib/db'
 
@@ -18,14 +20,21 @@ export async function createSession(input: {
   os?: string
   deviceType?: string
 }): Promise<SessionDoc> {
+  const parsed = parseUserAgent(input.userAgent ?? null)
+  const browser = input.browser ?? parsed.browser
+  const os = input.os ?? parsed.os
+  const deviceType = input.deviceType ?? parsed.deviceType
+
   const fingerprint = {
     userId: input.userId,
-    browser: input.browser,
-    os: input.os,
-    deviceType: input.deviceType,
+    browser,
+    os,
+    deviceType,
   }
   const existing = await Session.findOne({ ...fingerprint, status: 'active' })
   const now = new Date()
+
+  let sessionId: Types.ObjectId
 
   if (existing) {
     await Session.updateOne(
@@ -41,23 +50,35 @@ export async function createSession(input: {
         },
       }
     )
-    return (await Session.findOne({ _id: existing._id }))!
+    sessionId = existing._id
+  } else {
+    const created = await Session.create({
+      userId: input.userId,
+      provider: input.provider,
+      remember: input.remember,
+      tokenVersion: 0,
+      status: 'active',
+      rotatedAt: null,
+      lastSeenAt: now,
+      browser,
+      os,
+      deviceType,
+      ip: input.ip,
+      userAgent: input.userAgent,
+    })
+    sessionId = created._id
   }
 
-  return Session.create({
-    userId: input.userId,
-    provider: input.provider,
-    remember: input.remember,
-    tokenVersion: 0,
-    status: 'active',
-    rotatedAt: null,
-    lastSeenAt: now,
-    browser: input.browser,
-    os: input.os,
-    deviceType: input.deviceType,
-    ip: input.ip,
-    userAgent: input.userAgent,
-  })
+  // Geo lookup is an external network call — never block session creation on it.
+  // Fire-and-forget: fill in the location once the provider responds.
+  if (input.ip) {
+    void geoLocate(input.ip).then((location) => {
+      if (location === 'Unknown Location') return
+      void Session.updateOne({ _id: sessionId }, { $set: { location } }).catch(() => {})
+    })
+  }
+
+  return (await Session.findById(sessionId))!
 }
 
 export interface SessionPage {

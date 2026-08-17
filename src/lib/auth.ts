@@ -1,23 +1,11 @@
 import 'server-only'
 
 import type { UserDoc } from '@/lib/db'
+import type { UserDTO } from '@/lib/shared-types'
 
 export const REFRESH_COOKIE_NAME = 'crushsvg_refresh'
 
-export interface UserDTO {
-  uid: string
-  email: string | null
-  displayName: string
-  name: string | null
-  photoURL: string | null
-  providers: string[]
-  linkedProviders: string[]
-  hasPassword: boolean
-  isVerified: boolean
-  conversionsUsed: number
-  createdAt: string
-  lastLoginAt: string
-}
+export type { UserDTO, TokenPairDTO, SessionDTO, UsageInfo } from '@/lib/shared-types'
 
 export function toUserDTO(user: UserDoc): UserDTO {
   return {

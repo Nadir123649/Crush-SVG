@@ -20,6 +20,7 @@ export interface SessionDoc {
   os?: string
   deviceType?: string
   ip?: string
+  location?: string
   userAgent?: string
   createdAt: Date
   updatedAt: Date
@@ -38,6 +39,7 @@ const sessionSchema = new Schema(
     os: { type: String },
     deviceType: { type: String },
     ip: { type: String },
+    location: { type: String },
     userAgent: { type: String },
   },
   { timestamps: true }

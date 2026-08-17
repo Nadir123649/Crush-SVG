@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 import { getClientIp } from '@/lib/ip'
 import {
   checkBruteForce,
-  recordFailure,
+  recordFailure,  
   resetBruteForce,
 } from '@/lib/brute-force'
 import { resetRateStore } from '@/lib/rate-store'

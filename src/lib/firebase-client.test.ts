@@ -71,6 +71,24 @@ function mockFetch(response: { status: number; body?: unknown }) {
   return fetchMock
 }
 
+function envelope(payload: unknown) {
+  return {
+    success: true,
+    version: '1.0.0',
+    payload,
+    serverTimestamp: '2026-01-01T00:00:00Z',
+  }
+}
+
+function errorEnvelope(status: number, message: string) {
+  return {
+    success: false,
+    version: '1.0.0',
+    payload: { error: { code: 'test_error', message } },
+    serverTimestamp: '2026-01-01T00:00:00Z',
+  }
+}
+
 beforeEach(() => {
   mocks.currentUser = null
   mocks.getAuth.mockImplementation(() => ({
@@ -88,7 +106,7 @@ afterEach(() => {
 describe('exchangeIdToken', () => {
   it('posts the id token to the provider endpoint and returns the session', async () => {
     setCurrentUser('google.com')
-    const fetchMock = mockFetch({ status: 200, body: sessionPayload })
+    const fetchMock = mockFetch({ status: 200, body: envelope(sessionPayload) })
 
     const result = await exchangeIdToken()
 
@@ -102,7 +120,7 @@ describe('exchangeIdToken', () => {
 
   it('passes rememberMe false through to the server', async () => {
     setCurrentUser('google.com')
-    const fetchMock = mockFetch({ status: 200, body: sessionPayload })
+    const fetchMock = mockFetch({ status: 200, body: envelope(sessionPayload) })
 
     await exchangeIdToken(false)
 
@@ -115,7 +133,7 @@ describe('exchangeIdToken', () => {
   })
 
   it('maps github and twitter provider ids to endpoint names', async () => {
-    const fetchMock = mockFetch({ status: 200, body: sessionPayload })
+    const fetchMock = mockFetch({ status: 200, body: envelope(sessionPayload) })
 
     setCurrentUser('github.com')
     await exchangeIdToken()
@@ -131,7 +149,7 @@ describe('exchangeIdToken', () => {
 
   it('falls back to the password endpoint when no provider id is present', async () => {
     setCurrentUser()
-    const fetchMock = mockFetch({ status: 200, body: sessionPayload })
+    const fetchMock = mockFetch({ status: 200, body: envelope(sessionPayload) })
 
     await exchangeIdToken()
 
@@ -161,7 +179,7 @@ describe('exchangeIdToken', () => {
 
   it('throws a generic failure message on other errors', async () => {
     setCurrentUser('password')
-    mockFetch({ status: 500 })
+    mockFetch({ status: 500, body: errorEnvelope(500, 'Failed to create session') })
 
     await expect(exchangeIdToken()).rejects.toThrow('Failed to create session')
   })
