@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Afacad } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -42,15 +43,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
-        <AuthProvider>
-          <Navbar />
-          <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
-            <main className="w-full flex-1">
-              {children}
-            </main>
-          </div>
-          <Footer />
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Navbar />
+            <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
+              <main className="w-full flex-1">
+                {children}
+              </main>
+            </div>
+            <Footer />
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );
