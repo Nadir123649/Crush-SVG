@@ -21,8 +21,9 @@ export default function ResetPasswordPage() {
     let cancelled = false;
     void (async () => {
       try {
-        await apiFetch<{ valid: boolean }>(`/api/v1/passwords/reset?token=${encodeURIComponent(token)}`)
-        if (!cancelled) setTokenState("valid")
+        const body = await apiFetch<{ valid: boolean }>(`/api/v1/passwords/reset?token=${encodeURIComponent(token)}`)
+        if (cancelled) return
+        setTokenState(body.valid === true ? "valid" : "invalid")
       } catch {
         if (!cancelled) setTokenState("invalid")
       }

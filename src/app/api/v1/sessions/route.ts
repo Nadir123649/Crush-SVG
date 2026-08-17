@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
         os: d.os,
         deviceType: d.deviceType,
         ip: d.ip,
+        location: d.location,
         remember: d.remember,
         createdAt: d.createdAt.toISOString(),
         lastSeenAt: d.lastSeenAt.toISOString(),

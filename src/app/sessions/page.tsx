@@ -47,7 +47,7 @@ function SessionRow({
             )}
           </div>
           <p className="font-body font-normal text-[13px] text-[#64748B] truncate">
-            {[session.deviceType, session.ip].filter(Boolean).join(" · ")} · Last seen {formatDate(session.lastSeenAt)}
+            {[session.deviceType, session.ip, session.location].filter(Boolean).join(" · ")} · Last seen {formatDate(session.lastSeenAt)}
           </p>
         </div>
       </div>

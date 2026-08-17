@@ -28,6 +28,7 @@ export interface SessionDTO {
   os?: string
   deviceType?: string
   ip?: string
+  location?: string
   remember: boolean
   createdAt: string
   lastSeenAt: string
