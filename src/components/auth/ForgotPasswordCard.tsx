@@ -36,7 +36,7 @@ export function ForgotPasswordCard() {
         {/* Header Text */}
         <div className="flex flex-col gap-[8px] items-center text-center">
           <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
-            Forgot Your Password ?
+            Forgot Your Password?
           </h2>
           <p className="font-afacad text-[14px] text-[#4B5563]">
             Enter your email address below and we&apos;ll send you a link to reset your password.
