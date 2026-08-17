@@ -62,7 +62,7 @@ export function ConverterUI() {
       .then((u) => { if (!cancelled) setUsage(u) })
       .catch(() => { /* guest usage unavailable — hide badge */ })
     return () => { cancelled = true }
-  }, []);
+  }, [status]);
 
   const previewSvgUrl = useMemo(() => svgToDataUrl(svgCode), [svgCode]);
 
