@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -41,11 +42,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
 
+  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('crush_user')
+      const storedStatus = localStorage.getItem('crush_status')
+      if (storedUser && storedStatus === 'authed') {
+        setUser(JSON.parse(storedUser))
+        setStatus('authed')
+      } else if (storedStatus === 'guest') {
+        setStatus('guest')
+      }
+    } catch {}
+  }, [])
+
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
     setSessionId(payload.sessionId ?? null)
     setUser(payload.user)
     setStatus('authed')
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('crush_user', JSON.stringify(payload.user))
+      localStorage.setItem('crush_status', 'authed')
+    }
   }, [])
 
   const clearAuth = useCallback(() => {
@@ -53,6 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionId(null)
     setUser(null)
     setStatus('guest')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('crush_user')
+      localStorage.setItem('crush_status', 'guest')
+    }
   }, [])
 
   useEffect(() => {

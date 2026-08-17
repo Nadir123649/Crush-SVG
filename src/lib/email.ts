@@ -1,8 +1,7 @@
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
-import VerifyEmail from '@/emails/templates/VerifyEmail'
-import PasswordReset from '@/emails/templates/PasswordReset'
-import { renderEmail } from '@/emails/renderEmail'
+import fs from 'fs/promises'
+import path from 'path'
 
 const DEFAULT_FROM = 'CrushSVG <onboarding@resend.dev>'
 
@@ -68,13 +67,17 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 }
 
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-  await sendEmail(to, 'Verify your CrushSVG email', await renderEmail(VerifyEmail({ verifyUrl: url })))
+  const filePath = path.join(process.cwd(), 'src/emails/email-verification.html')
+  let html = await fs.readFile(filePath, 'utf-8')
+  html = html.replace(/href="#"/g, `href="${url}"`)
+  html = html.replace(/{{first_name}}/g, 'there')
+  await sendEmail(to, 'Verify your CrushSVG email', html)
 }
 
 export async function sendResetPasswordEmail(to: string, url: string, minutes: number): Promise<void> {
-  await sendEmail(
-    to,
-    'Reset your CrushSVG password',
-    await renderEmail(PasswordReset({ resetUrl: url, expiresInMinutes: minutes }))
-  )
+  const filePath = path.join(process.cwd(), 'src/emails/reset-password.html')
+  let html = await fs.readFile(filePath, 'utf-8')
+  html = html.replace(/href="#"/g, `href="${url}"`)
+  html = html.replace(/{{first_name}}/g, 'there')
+  await sendEmail(to, 'Reset your CrushSVG password', html)
 }
