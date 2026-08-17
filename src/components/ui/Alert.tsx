@@ -29,7 +29,7 @@ export function Alert({
       <div className="flex items-center gap-[10px] overflow-hidden">
         {/* Left Icon */}
         {isError ? (
-          <div className="w-[18px] h-[18px] rounded-full bg-white flex items-center justify-center shrink-0">
+          <div className="w-[18px] h-[18px] rounded-full bg-[#FFE3DA] flex items-center justify-center shrink-0">
             <svg
               width="18"
               height="18"
@@ -37,7 +37,7 @@ export function Alert({
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="9" cy="9" r="9" fill="white" />
+              <circle cx="9" cy="9" r="9" fill="#FFE3DA" />
               <path
                 d="M9 5V9.5M9 12.5V13"
                 stroke="#D94A1E"
@@ -47,7 +47,7 @@ export function Alert({
             </svg>
           </div>
         ) : (
-          <div className="w-[18px] h-[18px] rounded-full bg-[#6EE7B7] flex items-center justify-center shrink-0">
+          <div className="w-[18px] h-[18px] rounded-full bg-[#ACDABD] flex items-center justify-center shrink-0">
             <svg
               width="18"
               height="18"
@@ -55,7 +55,7 @@ export function Alert({
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="9" cy="9" r="9" fill="#6EE7B7" />
+              <circle cx="9" cy="9" r="9" fill="#ACDABD" />
               <path
                 d="M5.5 9L8 11.5L12.5 6.5"
                 stroke="#047857"

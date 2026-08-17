@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export function Navbar() {
   const { user, status, logout } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -33,6 +35,7 @@ export function Navbar() {
 
   async function handleLogout() {
     await logout();
+    addToast("Logged out successfully");
     router.push("/");
     router.refresh();
   }

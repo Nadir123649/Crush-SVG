@@ -8,6 +8,8 @@ import { IMAGES } from "@/lib/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase-client";
 
+import { useToast } from "@/components/ui/ToastProvider";
+
 interface AuthCardProps {
   type: "login" | "signup";
 }
@@ -19,6 +21,7 @@ export function AuthCard({ type }: AuthCardProps) {
   const isLogin = type === "login";
   const router = useRouter();
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
+  const { addToast } = useToast();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,6 +40,7 @@ export function AuthCard({ type }: AuthCardProps) {
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
+        addToast("Logged in successfully");
         router.push("/");
       } else {
         await register(name, email, password);
@@ -54,6 +58,7 @@ export function AuthCard({ type }: AuthCardProps) {
     setSubmitting(provider);
     try {
       await loginWithOAuth(provider, true);
+      addToast("Logged in successfully");
       router.push("/");
     } catch (err) {
       setError(getErrorMessage(err));
