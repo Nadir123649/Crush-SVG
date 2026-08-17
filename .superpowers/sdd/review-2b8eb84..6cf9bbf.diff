@@ -1,0 +1,195 @@
+# Review package: 2b8eb84..HEAD
+
+## Commits
+6cf9bbf feat: bearer auth on /api/me, drop unused firebase-admin helpers
+
+## Files changed
+ src/app/api/me/route.test.ts | 97 ++++++++++++++++++++++++++++++++++++++++++++
+ src/app/api/me/route.ts      | 18 +++++---
+ src/lib/firebase-admin.ts    | 31 --------------
+ 3 files changed, 110 insertions(+), 36 deletions(-)
+
+## Diff
+diff --git a/src/app/api/me/route.test.ts b/src/app/api/me/route.test.ts
+new file mode 100644
+index 0000000..3ba47d2
+--- /dev/null
++++ b/src/app/api/me/route.test.ts
+@@ -0,0 +1,97 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import { ObjectId } from 'mongodb'
++import { NextRequest, NextResponse } from 'next/server'
++
++const mocks = vi.hoisted(() => ({
++  auth: vi.fn(),
++  getUsersCollection: vi.fn(),
++  usersFindOne: vi.fn(),
++  toUserDTO: vi.fn(),
++}))
++
++vi.mock('@/lib/auth-middleware', () => ({ auth: mocks.auth }))
++vi.mock('@/lib/db', () => ({ getUsersCollection: mocks.getUsersCollection }))
++vi.mock('@/lib/auth', () => ({ toUserDTO: mocks.toUserDTO }))
++
++import { GET } from './route'
++
++const USER_ID = '507f1f77bcf86cd799439011'
++
++const USER_DOC = {
++  _id: new ObjectId(USER_ID),
++  uid: 'uid-1',
++  email: 'alice@example.com',
++  displayName: 'Alice',
++  photoURL: 'https://example.com/a.png',
++  providers: ['google'],
++  conversionsUsed: 2,
++  createdAt: new Date('2026-01-01T00:00:00.000Z'),
++  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
++  lastLoginAt: new Date('2026-01-02T00:00:00.000Z'),
++}
++
++const USER_DTO = {
++  uid: 'uid-1',
++  email: 'alice@example.com',
++  displayName: 'Alice',
++  photoURL: 'https://example.com/a.png',
++  providers: ['google'],
++  conversionsUsed: 2,
++  createdAt: '2026-01-01T00:00:00.000Z',
++  lastLoginAt: '2026-01-02T00:00:00.000Z',
++}
++
++function get() {
++  return GET(
++    new NextRequest('http://localhost/api/me', {
++      method: 'GET',
++      headers: { authorization: 'Bearer access-token' },
++    })
++  )
++}
++
++function okWho() {
++  return { user: { id: USER_ID, role: 'free' } }
++}
++
++beforeEach(() => {
++  vi.clearAllMocks()
++  mocks.auth.mockResolvedValue(okWho())
++  mocks.getUsersCollection.mockResolvedValue({ findOne: mocks.usersFindOne })
++  mocks.usersFindOne.mockResolvedValue(USER_DOC)
++  mocks.toUserDTO.mockReturnValue(USER_DTO)
++})
++
++describe('GET /api/me', () => {
++  it('passes through the auth error when the bearer token is rejected', async () => {
++    mocks.auth.mockResolvedValue({
++      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
++    })
++    const res = await get()
++    expect(res.status).toBe(401)
++    expect(await res.json()).toEqual({ error: 'Unauthorized' })
++    expect(mocks.usersFindOne).not.toHaveBeenCalled()
++  })
++
++  it('returns 404 when the authenticated user has no document', async () => {
++    mocks.usersFindOne.mockResolvedValue(null)
++    const res = await get()
++    expect(res.status).toBe(404)
++    expect(await res.json()).toEqual({ error: 'User not found' })
++  })
++
++  it('looks up the user by the authenticated id', async () => {
++    await get()
++    expect(mocks.usersFindOne).toHaveBeenCalledWith({
++      _id: new ObjectId(USER_ID),
++    })
++  })
++
++  it('returns 200 with the user DTO', async () => {
++    const res = await get()
++    expect(res.status).toBe(200)
++    const body = await res.json()
++    expect(body.user).toEqual(USER_DTO)
++    expect(mocks.toUserDTO).toHaveBeenCalledWith(USER_DOC)
++  })
++})
+diff --git a/src/app/api/me/route.ts b/src/app/api/me/route.ts
+index 2ffd5a8..e4bb617 100644
+--- a/src/app/api/me/route.ts
++++ b/src/app/api/me/route.ts
+@@ -1,13 +1,21 @@
+-import { NextResponse } from 'next/server'
++import { NextRequest, NextResponse } from 'next/server'
+ 
+-import { getSessionUser, toUserDTO } from '@/lib/auth'
++import { auth } from '@/lib/auth-middleware'
++import { getUsersCollection } from '@/lib/db'
++import { toUserDTO } from '@/lib/auth'
+ 
+ export const runtime = 'nodejs'
+ 
+-export async function GET() {
+-  const user = await getSessionUser()
++export async function GET(request: NextRequest) {
++  const who = await auth(request)
++  if ('error' in who) return who.error
++
++  const users = await getUsersCollection()
++  const user = await users.findOne({
++    _id: new (await import('mongodb')).ObjectId(who.user.id),
++  })
+   if (!user) {
+-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
++    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+   }
+   return NextResponse.json({ user: toUserDTO(user) }, { status: 200 })
+ }
+diff --git a/src/lib/firebase-admin.ts b/src/lib/firebase-admin.ts
+index 712e6e4..d6bb3aa 100644
+--- a/src/lib/firebase-admin.ts
++++ b/src/lib/firebase-admin.ts
+@@ -25,44 +25,13 @@ function getFirebaseApp() {
+     }),
+   })
+ }
+ 
+ export const adminAuth = () => getAuth(getFirebaseApp())
+ 
+ export async function verifyIdToken(idToken: string): Promise<DecodedIdToken> {
+   return adminAuth().verifyIdToken(idToken)
+ }
+ 
+-export async function createSessionCookie(
+-  idToken: string,
+-  maxAgeMs = 14 * 24 * 60 * 60 * 1000
+-): Promise<string> {
+-  return adminAuth().createSessionCookie(idToken, {
+-    expiresIn: maxAgeMs,
+-  })
+-}
+-
+-export async function verifySessionCookie(
+-  sessionCookie: string
+-): Promise<DecodedIdToken> {
+-  return adminAuth().verifySessionCookie(sessionCookie, true)
+-}
+-
+ export async function generatePasswordResetLink(email: string): Promise<string> {
+   return adminAuth().generatePasswordResetLink(email)
+ }
+-
+-export function signInProvider(token: DecodedIdToken): string {
+-  const providerId = token.firebase?.sign_in_provider ?? ''
+-  switch (providerId) {
+-    case 'google.com':
+-      return 'google'
+-    case 'github.com':
+-      return 'github'
+-    case 'twitter.com':
+-      return 'twitter'
+-    case 'password':
+-      return 'password'
+-    default:
+-      return providerId
+-  }
+-}

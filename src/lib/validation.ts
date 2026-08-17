@@ -1,9 +1,26 @@
 import { z } from 'zod'
 
-export const sessionSchema = z.object({
-  idToken: z.string().min(1, 'idToken is required'),
+export const oauthSchema = z.object({
+  firebaseToken: z.string().min(1, 'firebaseToken is required'),
+  rememberMe: z.boolean().optional(),
 })
 
-export const resetPasswordSchema = z.object({
-  email: z.string().trim().email('A valid email is required'),
+export const trackUsageSchema = z.object({
+  guestId: z.string().optional(),
+  isAuthenticated: z.boolean().optional(),
+})
+
+export const svgValidationSchema = z.object({
+  svg: z.string().min(1, 'SVG content is required'),
+})
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().min(1).max(50).optional(),
+  name: z.string().min(1).max(50).optional(),
+})
+
+export const conversionHistoryQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['createdAt', '-createdAt']).default('-createdAt'),
 })

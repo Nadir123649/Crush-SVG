@@ -16,6 +16,7 @@ export function Navbar() {
             width={32}
             height={31.3}
             className="object-contain w-[32px] h-[31.3px] md:w-[42px] md:h-[41.11px]"
+            style={{ width: 'auto', height: 'auto' }}
           />
           <div className="font-heading font-semibold text-[20px] md:text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
             <span className="text-text-dark">Crush</span>

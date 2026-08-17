@@ -5,11 +5,11 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[80px]">
-      <div className="w-full max-w-[1280px] flex flex-col md:flex-row justify-between items-center md:items-start gap-[32px] md:gap-0">
+    <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[40px] lg:px-[80px]">
+      <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
         
         {/* Left: Logo & Desc */}
-        <div className="flex flex-col items-center md:items-start w-full md:w-[276px] gap-[12px] text-center md:text-left">
+        <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
           <Link href="/" className="flex items-center gap-[10px]">
             <Image 
               src={IMAGES.logo} 
@@ -17,6 +17,7 @@ export function Footer() {
               width={42} 
               height={41.11} 
               className="object-contain"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <div className="font-heading font-semibold text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
               <span className="text-text-dark">Crush</span>
@@ -29,8 +30,8 @@ export function Footer() {
           </p>
         </div>
 
-        {/* Engineered For Quality (Shown in middle on mobile) */}
-        <div className="flex flex-col items-center md:hidden w-full gap-[12px] text-center">
+        {/* Engineered For Quality (Shown in middle on mobile/tablet) */}
+        <div className="flex flex-col items-center lg:hidden w-full gap-[12px] text-center">
           <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E]">Engineered For Quality</h4>
           <div className="flex flex-wrap justify-center gap-[8px]">
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
@@ -54,7 +55,7 @@ export function Footer() {
         </div>
 
         {/* Middle: Links */}
-        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[54px] ml-0 md:ml-[80px] items-center text-center md:text-left">
+        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[54px] ml-0 lg:ml-[80px] items-center text-center md:text-left">
           {/* Column 1 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Explore</h4>
@@ -73,13 +74,13 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Company</h4>
             <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">About Us</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Cookies</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Terms of Service</Link>
+            <Link href="/privacy-policy" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Cookies</Link>
+            <Link href="/terms" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
 
         {/* Right: Engineered For Quality (Desktop only) */}
-        <div className="hidden md:flex flex-col w-[340px] gap-[21px]">
+        <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
           <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E]">Engineered For Quality</h4>
           
           {/* 3 Quality Badges */}
@@ -106,32 +107,32 @@ export function Footer() {
           {/* Social Icons */}
           <div className="flex justify-center gap-[24px] mt-[12px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
           </div>
         </div>
 
-        {/* Mobile Social Section */}
-        <div className="flex flex-col md:hidden w-full items-center">
+        {/* Mobile/Tablet Social Section */}
+        <div className="flex flex-col lg:hidden w-full items-center">
           {/* Divider Above Social Icons (Mobile) */}
           <div className="w-full h-[1px] bg-[#353A3E] opacity-10 mb-[16px]"></div>
 
           {/* Social Icons (Mobile) */}
           <div className="flex justify-center gap-[24px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" />
+              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
           </div>
         </div>
@@ -146,9 +147,13 @@ export function Footer() {
         <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
           © 2026 CrushSVG. All rights reserved.
         </span>
-        <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
-          Terms <span className="mx-[8px]">•</span> Privacy <span className="mx-[8px]">•</span> Support
-        </span>
+        <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">
+          <Link href="/terms" className="hover:text-brand-primary transition-colors">Terms</Link>
+          <span className="mx-[8px]">•</span>
+          <Link href="/privacy-policy" className="hover:text-brand-primary transition-colors">Privacy</Link>
+          <span className="mx-[8px]">•</span>
+          <Link href="/help" className="hover:text-brand-primary transition-colors">Support</Link>
+        </div>
       </div>
     </footer>
   );
