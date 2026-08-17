@@ -47,12 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useIsomorphicLayoutEffect(() => {
     try {
       const storedUser = localStorage.getItem('crush_user')
-      const storedStatus = localStorage.getItem('crush_status')
-      if (storedUser && storedStatus === 'authed') {
+      if (storedUser) {
         setUser(JSON.parse(storedUser))
-        setStatus('authed')
-      } else if (storedStatus === 'guest') {
-        setStatus('guest')
       }
     } catch {}
   }, [])
@@ -64,7 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authed')
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
-      localStorage.setItem('crush_status', 'authed')
     }
   }, [])
 
@@ -75,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('guest')
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
-      localStorage.setItem('crush_status', 'guest')
     }
   }, [])
 

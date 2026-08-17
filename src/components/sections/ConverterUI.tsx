@@ -57,6 +57,7 @@ export function ConverterUI() {
   }, []);
 
   useEffect(() => {
+    if (status === 'loading') return;
     let cancelled = false;
     getUsage()
       .then((u) => { if (!cancelled) setUsage(u) })

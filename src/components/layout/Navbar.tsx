@@ -65,12 +65,7 @@ export function Navbar() {
             Need Help?
           </Link>
 
-          {status === "loading" ? (
-            <div className="flex items-center gap-[14px] md:gap-[16px]">
-              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
-              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
-            </div>
-          ) : status === "authed" && user ? (
+          {user ? (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -135,6 +130,11 @@ export function Navbar() {
                   </button>
                 </div>
               )}
+            </div>
+          ) : status === "loading" ? (
+            <div className="flex items-center gap-[14px] md:gap-[16px]">
+              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
+              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
             </div>
           ) : (
             <div className="flex items-center gap-[14px] md:gap-[16px]">
