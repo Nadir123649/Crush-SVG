@@ -33,30 +33,30 @@ export function FAQ() {
   };
 
   return (
-    <section className="w-full flex flex-col items-center mb-[100px]">
-      <h2 className="font-heading font-semibold text-[48px] leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[60px]">
+    <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px]">
+      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
         Frequently Asked <span className="text-brand-primary">Questions</span>
       </h2>
 
-      <div className="flex flex-col w-full max-w-[890px] gap-[36px]">
+      <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[36px]">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
           return (
             <div 
               key={index}
               onClick={() => toggleFaq(index)}
-              className="w-full bg-white rounded-[12px] p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center"
+              className="w-full bg-white rounded-[12px] p-[12px] md:p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center min-w-[360px] md:min-w-0"
               style={{
                 boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)"
               }}
             >
-              <div className="flex justify-between items-center">
-                <h3 className="font-heading font-medium text-[18px] text-text-dark">
+              <div className="flex justify-between items-center gap-[10px]">
+                <h3 className="font-heading font-medium text-[15px] md:text-[18px] text-text-dark">
                   {faq.question}
                 </h3>
                 <svg 
-                  width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg"
-                  className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                  viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  className={`w-[12px] h-[9px] md:w-[16px] md:h-[12px] transform transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                 >
                   <path d="M8 12L0 0L16 0L8 12Z" fill="#D94A1E"/>
                 </svg>
@@ -67,7 +67,7 @@ export function FAQ() {
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="font-body font-normal text-[16px] leading-[24px] text-text-muted">
+                  <p className="font-body font-normal text-[13px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
                     {faq.answer}
                   </p>
                 </div>

@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col items-center bg-background" suppressHydrationWarning>
         <Navbar />
-        <div className="w-full max-w-[1440px] mx-auto px-[80px] flex flex-col flex-1">
+        <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
           <main className="w-full flex-1">
             {children}
           </main>
