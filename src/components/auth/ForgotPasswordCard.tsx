@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function ForgotPasswordCard() {
   return (
-    <div className="w-[440px] h-[270px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
+    <div className="w-full max-w-[440px] h-auto min-h-[270px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
       
       {/* Close Icon */}
       <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1">
@@ -13,7 +13,7 @@ export function ForgotPasswordCard() {
         </svg>
       </Link>
 
-      <div className="flex flex-col w-[376px] gap-[16px] mx-auto relative mt-[4px]">
+      <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
         
         {/* Header Text */}
         <div className="flex flex-col gap-[8px]">

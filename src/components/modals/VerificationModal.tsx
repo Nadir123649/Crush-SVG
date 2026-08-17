@@ -10,7 +10,7 @@ interface VerificationModalProps {
 
 export function VerificationModal({ onClose }: VerificationModalProps) {
   return (
-    <div className="relative w-full max-w-[440px] h-[463px] bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden" style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}>
+    <div className="relative w-full max-w-[440px] h-auto min-h-[463px] pb-[30px] md:h-[463px] md:pb-0 px-[16px] md:px-0 bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden" style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}>
       {/* Close Button */}
       <button 
         onClick={onClose}
@@ -37,7 +37,7 @@ export function VerificationModal({ onClose }: VerificationModalProps) {
       </div>
 
       {/* Heading */}
-      <h2 className="font-heading font-bold text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[20px]">
+      <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[20px] px-[16px]">
         Verification Complete
       </h2>
 
@@ -53,7 +53,7 @@ export function VerificationModal({ onClose }: VerificationModalProps) {
       </div>
 
       {/* Text Body */}
-      <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-[294px] mt-[39px]">
+      <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px] px-[16px] mt-[39px]">
         Your email has been verified successfully. Click the button below to continue.
       </p>
 

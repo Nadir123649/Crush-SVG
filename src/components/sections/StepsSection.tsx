@@ -22,27 +22,27 @@ export function StepsSection() {
   ];
 
   return (
-    <section className="w-full flex flex-col items-center mb-[100px] mt-[10px]">
+    <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[10px]">
       {/* Heading */}
-      <h2 className="font-heading font-semibold text-[48px] leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[807px]">
+      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
         One File. <span className="text-[#D94A1E]">Three Simple Steps.</span>
       </h2>
 
       {/* Steps Container */}
-      <div className="w-full max-w-[1044px] flex justify-center gap-[40px] mt-[60px]">
+      <div className="w-full max-w-[1044px] flex flex-col md:flex-row justify-center items-center gap-[30px] md:gap-[40px] mt-[30px] md:mt-[60px]">
         {steps.map((step, index) => (
-          <div key={index} className="flex flex-col items-center text-center gap-[14px] flex-1 max-w-[320px]">
+          <div key={index} className="flex flex-col items-center text-center gap-[10px] md:gap-[14px] flex-1 w-full max-w-[320px]">
             <Image 
               src={step.icon} 
               alt={step.title} 
-              width={104} 
-              height={104} 
-              className="object-contain"
+              width={80} 
+              height={80} 
+              className="object-contain w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
             />
-            <h3 className="font-heading font-medium text-[24px] leading-[18.67px] text-text-dark mt-[4px]">
+            <h3 className="font-heading font-medium text-[20px] md:text-[24px] leading-[24px] md:leading-[18.67px] text-text-dark mt-[4px]">
               {step.title}
             </h3>
-            <p className="font-body font-normal text-[16px] leading-[18px] text-text-muted">
+            <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] text-text-muted">
               {step.description}
             </p>
           </div>
