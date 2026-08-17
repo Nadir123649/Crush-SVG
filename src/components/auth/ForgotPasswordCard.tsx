@@ -47,6 +47,7 @@ export function ForgotPasswordCard() {
           <div className="flex flex-col items-center gap-[12px] py-[16px]">
             <PasswordResetSuccessAlert 
               message="Password reset email sent successfully. Please check your inbox." 
+              onClose={() => setSent(false)}
             />
             <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mt-[12px]">
               If an account exists for <span className="font-semibold text-[#353A3E]">{email}</span>,

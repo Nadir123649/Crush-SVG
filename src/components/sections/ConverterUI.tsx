@@ -240,7 +240,7 @@ export function ConverterUI() {
             </h2>
             
             {/* Live Preview Box */}
-            <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30">
+            <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[16px] md:p-[24px]">
               {previewUrl ? (
                 <>
                   <img src={previewUrl} alt="SVG preview" className="max-w-full max-h-full object-contain" />

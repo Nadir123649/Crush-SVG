@@ -72,28 +72,30 @@ export function Alert({
       </div>
 
       {/* Right Close Icon */}
-      <button
-        onClick={onClose}
-        type="button"
-        className="text-white hover:opacity-80 transition-opacity shrink-0 ml-[4px] p-0.5 cursor-pointer"
-        aria-label="Close alert"
-      >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      {onClose && (
+        <button
+          onClick={onClose}
+          type="button"
+          className="text-white hover:opacity-80 transition-opacity shrink-0 ml-[4px] p-0.5 cursor-pointer"
+          aria-label="Close alert"
         >
-          <path
-            d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
+              stroke="white"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
