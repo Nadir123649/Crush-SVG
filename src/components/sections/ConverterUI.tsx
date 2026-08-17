@@ -35,15 +35,14 @@ export function ConverterUI() {
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
-  const [usage, setUsage] = useState<UsageInfo | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('crush_usage');
-        if (stored) return JSON.parse(stored);
-      } catch {}
-    }
-    return null;
-  });
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('crush_usage');
+      if (stored) setUsage(JSON.parse(stored));
+    } catch {}
+  }, []);
   const [dragOver, setDragOver] = useState(false);
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
 
@@ -167,7 +166,7 @@ export function ConverterUI() {
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
 
   return (
-    <section className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
+    <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
       {/* Outer Dashed Border Box */}
       <div className="w-full h-auto lg:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
         

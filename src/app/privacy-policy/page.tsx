@@ -16,9 +16,6 @@ export default function PrivacyPolicy() {
           <h1 className="font-heading font-semibold text-[32px] md:text-[48px] text-[#D94A1E] leading-[120%] tracking-[0%]">
             Privacy Policy
           </h1>
-          <p className="font-body font-normal text-[16px] text-[#4B5563]">
-            Last Updated: August 2026
-          </p>
         </div>
 
         {/* Content */}
@@ -94,7 +91,7 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Changes to This Privacy Policy</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date.
+            We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
           </p>
         </section>
 

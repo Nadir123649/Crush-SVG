@@ -16,9 +16,6 @@ export default function TermsAndConditions() {
           <h1 className="font-heading font-semibold text-[32px] md:text-[48px] text-[#D94A1E] leading-[120%] tracking-[0%]">
             Terms & Conditions
           </h1>
-          <p className="font-body font-normal text-[16px] text-[#4B5563]">
-            Last Updated: August 2026
-          </p>
         </div>
 
         {/* Content */}

@@ -2,7 +2,7 @@ import React from "react";
 
 export function Features() {
   return (
-    <section className="flex flex-col items-center w-full mb-[60px] md:mb-[100px]">
+    <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px]">
       
       {/* Heading & Description */} 
       <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">

@@ -59,16 +59,16 @@ export function Footer() {
           {/* Column 1 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Explore</h4>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG to PNG Converter</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Features</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">How It Works</Link>
+            <Link href="/#converter" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG to PNG Converter</Link>
+            <Link href="/#features" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Features</Link>
+            <Link href="/#how-it-works" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">How It Works</Link>
           </div>
           {/* Column 2 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Resources</h4>
             <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG Guides</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
+            <Link href="/#faq" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
+            <Link href="/contact-us" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
           </div>
           {/* Column 3 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
@@ -152,7 +152,7 @@ export function Footer() {
           <span className="mx-[8px]">•</span>
           <Link href="/privacy-policy" className="hover:text-brand-primary transition-colors">Privacy</Link>
           <span className="mx-[8px]">•</span>
-          <Link href="/help" className="hover:text-brand-primary transition-colors">Support</Link>
+          <Link href="/contact-us" className="hover:text-brand-primary transition-colors">Support</Link>
         </div>
       </div>
     </footer>

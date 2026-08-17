@@ -33,7 +33,7 @@ export function FAQ() {
   };
 
   return (
-    <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px]">
+    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px]">
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
         Frequently Asked <span className="text-brand-primary">Questions</span>
       </h2>
