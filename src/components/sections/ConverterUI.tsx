@@ -35,7 +35,15 @@ export function ConverterUI() {
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
-  const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('crush_usage');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return null;
+  });
   const [dragOver, setDragOver] = useState(false);
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
 
@@ -57,10 +65,23 @@ export function ConverterUI() {
   }, []);
 
   useEffect(() => {
+    if (usage && typeof window !== 'undefined') {
+      localStorage.setItem('crush_usage', JSON.stringify(usage));
+    }
+  }, [usage]);
+
+  useEffect(() => {
     if (status === 'loading') return;
     let cancelled = false;
     getUsage()
-      .then((u) => { if (!cancelled) setUsage(u) })
+      .then((u) => { 
+        if (!cancelled) {
+          setUsage(u);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('crush_usage', JSON.stringify(u));
+          }
+        }
+      })
       .catch(() => { /* guest usage unavailable — hide badge */ })
     return () => { cancelled = true }
   }, [status]);
