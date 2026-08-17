@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('guest')
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
+      localStorage.removeItem('crush_usage')
     }
   }, [])
 

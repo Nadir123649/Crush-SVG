@@ -40,18 +40,23 @@ export function Navbar() {
     router.refresh();
   }
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="w-full bg-[#FFFCFA] flex justify-center pt-[24px] md:pt-[40px] pb-[10px] px-[16px] md:px-[80px] z-50 relative">
       <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-[4px] md:gap-[10px]">
+        <Link href="/" className="flex items-center gap-[4px] md:gap-[6px]">
           <Image
             src={IMAGES.logo}
             alt="CrushSVG Icon"
-            width={32}
-            height={31.3}
-            className="object-contain w-[32px] h-[31.3px] md:w-[42px] md:h-[41.11px]"
-            style={{ width: 'auto', height: 'auto' }}
+            width={26}
+            height={26}
+            className="w-[20px] h-[20px] md:w-[26px] md:h-[26px] object-contain"
           />
           <div className="font-heading font-semibold text-[20px] md:text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
             <span className="text-text-dark">Crush</span>
@@ -60,24 +65,27 @@ export function Navbar() {
         </Link>
 
         {/* Right Side Links & Buttons */}
-        <div className="flex items-center gap-[14px] md:gap-[24px]">
-          <Link
-            href="/help"
-            className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body underline decoration-solid underline-offset-4 hover:text-text-dark transition-colors"
-          >
-            Need Help?
-          </Link>
+        {!mounted ? (
+          <div className="w-[120px] h-[32px] md:w-[150px] md:h-[42px]" />
+        ) : (
+          <div className="flex items-center gap-[14px] md:gap-[24px]">
+            <Link
+              href="/help"
+              className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body underline decoration-solid underline-offset-4 hover:text-text-dark transition-colors"
+            >
+              Need Help?
+            </Link>
 
-          {user ? (
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
-              >
-                {user.photoURL ? (
+            {user ? (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+                >
+                  {user.photoURL ? (
                   <Image
                     src={user.photoURL}
                     alt=""
@@ -134,11 +142,6 @@ export function Navbar() {
                 </div>
               )}
             </div>
-          ) : status === "loading" ? (
-            <div className="flex items-center gap-[14px] md:gap-[16px]">
-              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
-              <div className="w-[80px] h-[32px] md:w-[139px] md:h-[42px] rounded-[8px] md:rounded-[12px] bg-gray-200/60 animate-pulse" />
-            </div>
           ) : (
             <div className="flex items-center gap-[14px] md:gap-[16px]">
               <Link href="/login">
@@ -154,6 +157,7 @@ export function Navbar() {
             </div>
           )}
         </div>
+        )}
       </nav>
     </div>
   );
