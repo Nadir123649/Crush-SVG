@@ -337,36 +337,34 @@ export function ConverterUI() {
               )}
 
               {/* Action Buttons Row */}
-              <div className="flex justify-center mt-[16px] gap-[12px] md:gap-[16px]">
+              <div className="flex justify-center mt-[16px]">
                 {limitReached && status !== "authed" ? (
                   <Link href="/signup" className="w-full md:w-auto h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity">
                     Sign up for unlimited conversions
                   </Link>
                 ) : (
-                  <>
-                    <Button className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" onClick={handleConvert} disabled={converting}>
-                      {converting ? (
-                        <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                          <span className="w-[14px] h-[14px] md:w-[16px] md:h-[16px] rounded-full border-[2px] border-white/40 border-t-white animate-spin" />
-                          Converting...
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                          Convert PNG
-                        </span>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]"
-                      onClick={handleDownload}
-                      disabled={!result?.data}
-                    >
-                      <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="object-contain md:w-[18px] md:h-[18px]" />
-                      Download
-                    </Button>
-                  </>
+                  <Button 
+                    className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
+                    onClick={result?.data && previewIsConverted ? handleDownload : handleConvert} 
+                    disabled={converting}
+                  >
+                    {converting ? (
+                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                        <span className="w-[14px] h-[14px] md:w-[16px] md:h-[16px] rounded-full border-[2px] border-white/40 border-t-white animate-spin" />
+                        Converting...
+                      </span>
+                    ) : result?.data && previewIsConverted ? (
+                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                        <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                        Download PNG
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                        <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                        Convert
+                      </span>
+                    )}
+                  </Button>
                 )}
               </div>
               
