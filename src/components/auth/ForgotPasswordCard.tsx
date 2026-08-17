@@ -1,7 +1,33 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
+import { apiFetch } from "@/lib/client/http";
+import { PasswordResetErrorAlert, PasswordResetSuccessAlert } from "@/components/ui/Alert";
 
 export function ForgotPasswordCard() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await apiFetch<{ message: string }>("/api/v1/passwords/forgot", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="w-full max-w-[440px] h-auto min-h-[270px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
 
@@ -17,29 +43,60 @@ export function ForgotPasswordCard() {
           </p>
         </div>
 
-        {/* Input */}
-        <div className="flex flex-col gap-[12px]">
-          <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
-            <input 
-              type="email" 
-              placeholder="Enter your email"
-              className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+        {sent ? (
+          <div className="flex flex-col items-center gap-[12px] py-[16px]">
+            <PasswordResetSuccessAlert 
+              message="Password reset email sent successfully. Please check your inbox." 
             />
+            <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mt-[12px]">
+              If an account exists for <span className="font-semibold text-[#353A3E]">{email}</span>,
+              a reset link has been sent. It expires in 60 minutes.
+            </p>
+            <Link href="/login" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline mt-[8px]">
+              Back to login
+            </Link>
           </div>
-        </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[12px]">
+            <div className="flex flex-col gap-[4px]">
+              <label htmlFor="fp-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
+              <input 
+                id="fp-email"
+                type="email" 
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+              />
+            </div>
 
-        {/* CTA Button */}
-        <button className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity">
-          Send Reset Link
-        </button>
+            {error && (
+              <PasswordResetErrorAlert 
+                message={error} 
+                onClose={() => setError(null)} 
+              />
+            )}
+
+            <button 
+              type="submit"
+              disabled={submitting}
+              className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed mt-[4px]"
+            >
+              {submitting ? "Sending..." : "Send Reset Link"}
+            </button>
+          </form>
+        )}
 
         {/* Footer Text */}
-        <div className="text-center mt-[-8px]">
-          <p className="font-afacad font-normal text-[11px] text-[#4B5563]">
-            Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
-          </p>
-        </div>
+        {!sent && (
+          <div className="text-center mt-[-4px]">
+            <p className="font-afacad font-normal text-[11px] text-[#4B5563]">
+              Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

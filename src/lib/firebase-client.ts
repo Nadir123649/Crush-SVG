@@ -11,6 +11,8 @@ import {
   type AuthError,
 } from 'firebase/auth'
 
+import type { UserDTO } from '@/lib/shared-types'
+
 const PROVIDER_URL_MAP: Record<string, string> = {
   'google.com': 'google',
   'github.com': 'github',
@@ -54,6 +56,14 @@ export function getErrorMessage(error: unknown): string {
       return 'Network error — check your connection and try again'
     case 'auth/popup-closed-by-user':
       return 'Sign-in was cancelled'
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized in Firebase — add it under Authentication > Settings > Authorized domains'
+    case 'auth/operation-not-allowed':
+      return 'Google sign-in is not enabled in Firebase — enable it under Authentication > Sign-in method'
+    case 'auth/popup-blocked':
+      return 'Popup was blocked — allow popups for this site and try again'
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using a different sign-in method'
     default:
       return 'Something went wrong — please try again'
   }
@@ -72,16 +82,7 @@ export async function signInWithGitHub() {
 }
 
 export interface SessionResponse {
-  user: {
-    uid: string
-    email: string | null
-    displayName: string
-    photoURL: string | null
-    providers: string[]
-    conversionsUsed: number
-    createdAt: string
-    lastLoginAt: string
-  }
+  user: UserDTO
   token: {
     tokenType: 'Bearer'
     accessToken: string
@@ -110,10 +111,16 @@ export async function exchangeIdToken(rememberMe = true): Promise<SessionRespons
   if (response.status === 429) {
     throw new Error('auth/too-many-requests')
   }
+  const body = (await response.json().catch(() => null)) as
+    | { success?: boolean; payload?: SessionResponse & { error?: { code?: string; message?: string } } }
+    | null
   if (!response.ok) {
-    throw new Error('Failed to create session')
+    throw new Error(body?.payload?.error?.message ?? 'Failed to create session')
   }
-  return response.json()
+  if (body?.success === true && body.payload) {
+    return body.payload as SessionResponse
+  }
+  throw new Error('Failed to create session')
 }
 
 export async function resendVerificationEmail(): Promise<void> {
