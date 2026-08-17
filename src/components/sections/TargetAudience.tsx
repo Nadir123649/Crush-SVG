@@ -34,7 +34,7 @@ export function TargetAudience() {
       </h2>
 
       {/* Cards Container */}
-      <div className="w-full max-w-[360px] md:max-w-[1280px] flex flex-col md:grid md:grid-cols-4 gap-[16px] md:gap-[40px]">
+      <div className="w-full max-w-[360px] md:max-w-[720px] lg:max-w-[1280px] flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-[16px] md:gap-[40px]">
         {cards.map((card, index) => (
           <div 
             key={index} 

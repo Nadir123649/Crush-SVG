@@ -5,18 +5,11 @@ export function ResetPasswordCard() {
   return (
     <div className="w-full max-w-[440px] h-auto min-h-[374px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
       
-      {/* Close Icon */}
-      <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M6 6L18 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </Link>
 
       <div className="flex flex-col w-full max-w-[376px] gap-[12px] mx-auto relative h-full">
         
         {/* Header Text */}
-        <div className="flex flex-col gap-[8px]">
+        <div className="flex flex-col gap-[8px] items-center text-center">
           <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">
             Create New Password
           </h2>

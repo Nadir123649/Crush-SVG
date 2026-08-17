@@ -27,15 +27,15 @@ export function ConverterUI() {
   }, []);
 
   return (
-    <section className="w-full max-w-[362px] md:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
+    <section className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
       {/* Outer Dashed Border Box */}
-      <div className="w-full h-auto md:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
+      <div className="w-full h-auto lg:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
         
         {/* Inner Dashed Border Box */}
-        <div className="w-full h-auto md:h-[626.23px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col md:flex-row justify-center px-0 md:px-[40px] py-0 md:py-[20px] gap-[24px] md:gap-[30px]">
+        <div className="w-full h-auto lg:h-[626.23px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col lg:flex-row justify-center px-0 md:px-[40px] py-0 md:py-[20px] gap-[24px] md:gap-[30px]">
           
           {/* Left Column (SVG Code) */}
-          <div className="w-full md:w-[536.9px] flex flex-col">
+          <div className="w-full lg:w-[536.9px] flex flex-col">
             <h2 className="font-heading font-semibold text-[16px] mb-[12px]" style={{ color: "#64748B" }}>
               SVG Code
             </h2>
@@ -73,7 +73,7 @@ viewBox="0 0 120 120">
           </div>
 
           {/* Right Column (Live Preview) */}
-          <div className="w-full md:w-[536.9px] flex flex-col">
+          <div className="w-full lg:w-[536.9px] flex flex-col">
             <h2 className="font-heading font-semibold text-[16px] mb-[12px]" style={{ color: "#64748B" }}>
               Live Preview
             </h2>
