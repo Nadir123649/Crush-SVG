@@ -52,8 +52,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {/* Container slightly below the navbar (e.g. top 80px) and centered */}
-      <div className="fixed top-[80px] left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-[10px] items-center pointer-events-none">
+      {/* Container perfectly overlapping the navbar in the center */}
+      <div className="absolute top-[20px] md:top-[41px] left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-[10px] items-center pointer-events-none">
         {toasts.map((toast) => (
           <div
             key={toast.id}
@@ -65,7 +65,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               variant={toast.variant}
               message={toast.message}
               onClose={() => closeToast(toast.id)}
-              className="shadow-[0px_4px_16px_rgba(0,0,0,0.1)]"
+              className="shadow-[0px_4px_16px_rgba(0,0,0,0.15)]"
             />
           </div>
         ))}
