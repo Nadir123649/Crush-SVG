@@ -1,17 +1,21 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import {
-  createUserWithEmailAndPassword,
   getAuth,
   GithubAuthProvider,
   GoogleAuthProvider,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
+  sendEmailVerification,
   signInWithPopup,
   signOut as firebaseSignOut,
   TwitterAuthProvider,
   type Auth,
   type AuthError,
 } from 'firebase/auth'
+
+const PROVIDER_URL_MAP: Record<string, string> = {
+  'google.com': 'google',
+  'github.com': 'github',
+  'twitter.com': 'x',
+}
 
 let app: FirebaseApp | undefined
 let auth: Auth | undefined
@@ -33,16 +37,16 @@ export function getFirebaseAuth(): Auth {
 }
 
 export function getErrorMessage(error: unknown): string {
-  const code = (error as AuthError)?.code ?? ''
+  const e = error as AuthError
+  const code = e?.code ?? ''
+  const message = e?.message ?? ''
 
-  switch (code) {
-    case 'auth/email-already-in-use':
-      return "That email's already registered — log in instead?"
-    case 'auth/weak-password':
-      return 'Use at least 8 characters'
+  switch (code || message) {
+    case 'email_not_verified':
+      return 'Please verify your email before logging in'
+    case 'auth/too-many-requests':
+      return 'Too many attempts — wait a bit and try again'
     case 'auth/invalid-credential':
-    case 'auth/wrong-password':
-    case 'auth/user-not-found':
       return "That email and password don't match — try again"
     case 'auth/invalid-email':
       return 'Enter a valid email address'
@@ -52,40 +56,6 @@ export function getErrorMessage(error: unknown): string {
       return 'Sign-in was cancelled'
     default:
       return 'Something went wrong — please try again'
-  }
-}
-
-export async function signUpWithEmail(
-  email: string,
-  password: string
-): Promise<{ user: { uid: string; email: string | null } }> {
-  const credential = await createUserWithEmailAndPassword(
-    getFirebaseAuth(),
-    email,
-    password
-  )
-  return {
-    user: {
-      uid: credential.user.uid,
-      email: credential.user.email,
-    },
-  }
-}
-
-export async function signInWithEmail(
-  email: string,
-  password: string
-): Promise<{ user: { uid: string; email: string | null } }> {
-  const credential = await signInWithEmailAndPassword(
-    getFirebaseAuth(),
-    email,
-    password
-  )
-  return {
-    user: {
-      uid: credential.user.uid,
-      email: credential.user.email,
-    },
   }
 }
 
@@ -101,10 +71,6 @@ export async function signInWithGitHub() {
   return signInWithPopup(getFirebaseAuth(), new GithubAuthProvider())
 }
 
-export async function resetPassword(email: string) {
-  return sendPasswordResetEmail(getFirebaseAuth(), email)
-}
-
 export interface SessionResponse {
   user: {
     uid: string
@@ -116,26 +82,49 @@ export interface SessionResponse {
     createdAt: string
     lastLoginAt: string
   }
+  token: {
+    tokenType: 'Bearer'
+    accessToken: string
+    accessTokenExpires: string
+    refreshToken: string
+    refreshTokenExpires: string
+  }
 }
 
-export async function exchangeIdToken(): Promise<SessionResponse> {
+export async function exchangeIdToken(rememberMe = true): Promise<SessionResponse> {
   const currentUser = getFirebaseAuth().currentUser
   if (!currentUser) {
     throw new Error('Not signed in')
   }
+  const providerId = currentUser.providerData[0]?.providerId
+  const provider = providerId ? (PROVIDER_URL_MAP[providerId] ?? 'password') : 'password'
   const idToken = await currentUser.getIdToken()
-  const response = await fetch('/api/auth/session', {
+  const response = await fetch(`/api/v1/oauth/${provider}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken }),
+    body: JSON.stringify({ firebaseToken: idToken, rememberMe }),
   })
+  if (response.status === 403) {
+    throw new Error('email_not_verified')
+  }
+  if (response.status === 429) {
+    throw new Error('auth/too-many-requests')
+  }
   if (!response.ok) {
     throw new Error('Failed to create session')
   }
   return response.json()
 }
 
+export async function resendVerificationEmail(): Promise<void> {
+  const currentUser = getFirebaseAuth().currentUser
+  if (!currentUser) {
+    throw new Error('Not signed in')
+  }
+  await sendEmailVerification(currentUser)
+}
+
 export async function signOut() {
-  await fetch('/api/auth/session', { method: 'DELETE' })
+  await fetch('/api/v1/auth/logout', { method: 'POST' })
   await firebaseSignOut(getFirebaseAuth())
 }

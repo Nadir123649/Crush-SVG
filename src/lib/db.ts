@@ -1,22 +1,20 @@
 import 'server-only'
 
-import { MongoClient, type Collection } from 'mongodb'
+import dns from 'node:dns'
+import { connect, type Connection } from 'mongoose'
 
-export interface UserDoc {
-  _id: import('mongodb').ObjectId
-  uid: string
-  email: string | null
-  displayName: string
-  photoURL: string | null
-  providers: string[]
-  conversionsUsed: number
-  createdAt: Date
-  updatedAt: Date
-  lastLoginAt: Date
-}
+import { User } from '@/lib/models/user'
+import { Session } from '@/lib/models/session'
+import { GuestUsage } from '@/lib/models/guest-usage'
+
+export { User, Session, GuestUsage }
+
+export type { UserDoc } from '@/lib/models/user'
+export type { SessionDoc, SessionStatus } from '@/lib/models/session'
+export type { GuestUsageDoc } from '@/lib/models/guest-usage'
 
 declare global {
-  var __crushSvgMongoClient: MongoClient | undefined
+  var __crushSvgMongoose: Promise<Connection> | undefined
 }
 
 function getMongoUri(): string {
@@ -27,36 +25,39 @@ function getMongoUri(): string {
   return uri
 }
 
-function createClient(): MongoClient {
-  const client = new MongoClient(getMongoUri(), {
+export function isDuplicateKeyError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 11000
+}
+
+export async function connectToDatabase(): Promise<Connection> {
+  const cached = globalThis.__crushSvgMongoose
+  if (cached) return cached
+
+  const dnsServers = process.env.DNS_SERVERS
+  if (dnsServers) {
+    dns.setServers(dnsServers.split(',').map((s) => s.trim()))
+  }
+
+  const dbName = process.env.MONGODB_DB_NAME || 'crushsvg'
+  const maxPoolSize = Number(process.env.MONGODB_MAX_POOL_SIZE) || 10
+  const promise = connect(getMongoUri(), {
+    dbName,
     appName: 'crushsvg',
     serverSelectionTimeoutMS: 5000,
+    maxPoolSize,
+    minPoolSize: 0,
+    maxIdleTimeMS: 60_000,
   })
-  void client.connect().catch((err) => {
-    console.error('Failed to connect to MongoDB:', err)
-  })
-  globalThis.__crushSvgMongoClient = client
-  return client
-}
+    .then((conn) => {
+      console.log('Connected to MongoDB successfully')
+      return conn.connection
+    })
+    .catch((err) => {
+      globalThis.__crushSvgMongoose = undefined
+      console.error('Failed to connect to MongoDB:', err)
+      throw err
+    })
 
-export function getMongoClient(): MongoClient {
-  const existing = globalThis.__crushSvgMongoClient
-  if (existing) return existing
-  return createClient()
-}
-
-export async function getUsersCollection(): Promise<Collection<UserDoc>> {
-  const client = getMongoClient()
-  const collection = client.db('crushsvg').collection<UserDoc>('users')
-  await ensureIndexes(collection)
-  return collection
-}
-
-let indexesEnsured = false
-
-async function ensureIndexes(collection: Collection<UserDoc>): Promise<void> {
-  if (indexesEnsured) return
-  await collection.createIndex({ uid: 1 }, { unique: true })
-  await collection.createIndex({ email: 1 }, { unique: true, sparse: true })
-  indexesEnsured = true
+  globalThis.__crushSvgMongoose = promise
+  return promise
 }

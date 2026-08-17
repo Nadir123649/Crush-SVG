@@ -6,25 +6,43 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "worker": "tsx scripts/conversion-worker.ts"
   },
   "dependencies": {
+    "@types/sharp": "^0.31.1",
+    "@upstash/redis": "^1.38.2",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^6.1.0",
+    "cloudinary": "^2.10.0",
     "firebase": "^12.17.1",
     "firebase-admin": "^14.2.0",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
+    "mongoose": "^9.9.2",
     "next": "16.3.0",
+    "nodemailer": "^9.0.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.19.0",
+    "sharp": "^0.35.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "server-only": "^0.0.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.12",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }
