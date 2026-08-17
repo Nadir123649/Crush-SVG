@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authed')
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
+      localStorage.removeItem('crush_usage')
     }
   }, [])
 
