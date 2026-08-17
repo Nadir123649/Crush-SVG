@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Afacad } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/sections/Footer";
+import { AuthProvider } from "@/lib/client/auth-context";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -19,9 +21,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/CrushSVG-logo.svg",
   },
+  openGraph: {
+    title: "CrushSVG | Convert SVG to PNG Exactly as Intended",
+    description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.",
+    type: "website",
+    images: ["/CrushSVG-logo.svg"],
+  },
+  twitter: {
+    card: "summary",
+    title: "CrushSVG | Convert SVG to PNG Exactly as Intended",
+    description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.",
+  },
 };
-
-import { Footer } from "@/components/sections/Footer";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,13 +42,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col items-center bg-background" suppressHydrationWarning>
-        <Navbar />
-        <div className="w-full max-w-[1440px] mx-auto px-[80px] flex flex-col flex-1">
-          <main className="w-full flex-1">
-            {children}
-          </main>
-        </div>
-        <Footer />
+        <AuthProvider>
+          <Navbar />
+          <div className="w-full max-w-[1440px] mx-auto px-[80px] flex flex-col flex-1">
+            <main className="w-full flex-1">
+              {children}
+            </main>
+          </div>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 import { User } from '@/lib/db'
 import { hashToken } from '@/lib/passwords'
-import { successResponse, errorResponse } from '@/lib/api-response'
+import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -12,11 +12,19 @@ export async function GET(
 ) {
   const { token } = await params
 
+  const wantsHtml = request.headers.get('accept')?.includes('text/html') ?? false
+  const base = getOrigin(request)
+
   const user = await User.findOne({
     emailVerificationToken: hashToken(token),
     emailVerificationTokenExpire: { $gt: Date.now() },
   })
-  if (!user) return errorResponse(400, 'token_invalid', 'Invalid or expired verification link')
+  if (!user) {
+    if (wantsHtml) {
+      return NextResponse.redirect(new URL('/verify?status=invalid', base))
+    }
+    return errorResponse(400, 'token_invalid', 'Invalid or expired verification link')
+  }
 
   await User.updateOne(
     { _id: user._id },
@@ -26,5 +34,8 @@ export async function GET(
     }
   )
 
+  if (wantsHtml) {
+    return NextResponse.redirect(new URL('/verify?status=success', base))
+  }
   return successResponse({ message: 'Email verified. You can now log in.' })
 }

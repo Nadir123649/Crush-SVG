@@ -1,51 +1,154 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/lib/client/auth-context";
 
 export function Navbar() {
+  const { user, status, logout } = useAuth();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  async function handleLogout() {
+    await logout();
+    router.push("/");
+    router.refresh();
+  }
+
   return (
     <div className="w-full bg-[#FFFCFA] flex justify-center pt-[40px] pb-[10px] px-[80px] z-50 relative">
       <nav className="w-full max-w-[1280px] flex items-center justify-between h-[42px]">
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-[10px]">
-        <Image 
-          src={IMAGES.logo} 
-          alt="CrushSVG Icon" 
-          width={42} 
-          height={41.11} 
-          className="object-contain"
-        />
-        <div className="font-heading font-semibold text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
-          <span className="text-text-dark">Crush</span>
-          <span className="text-brand-primary">SVG</span>
-        </div>
-      </Link>
-
-      {/* Right Side Links & Buttons */}
-      <div className="flex items-center gap-[24px]">
-        <Link 
-          href="/help" 
-          className="font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body underline decoration-solid underline-offset-4 hover:text-text-dark transition-colors"
-        >
-          Need Help?
+        <Link href="/" className="flex items-center gap-[10px]">
+          <Image
+            src={IMAGES.logo}
+            alt="CrushSVG Icon"
+            width={42}
+            height={41.11}
+            className="object-contain"
+          />
+          <div className="font-heading font-semibold text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
+            <span className="text-text-dark">Crush</span>
+            <span className="text-brand-primary">SVG</span>
+          </div>
         </Link>
-        
-        <div className="flex items-center gap-[16px]">
-          <Link href="/login">
-            <Button variant="outline" className="w-[139px] h-[42px] bg-[#FFFFFF]">
-              Log In
-            </Button>
+
+        <div className="flex items-center gap-[24px]">
+          <Link
+            href="/help"
+            className="font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body underline decoration-solid underline-offset-4 hover:text-text-dark transition-colors"
+          >
+            Need Help?
           </Link>
-          <Link href="/signup">
-            <Button variant="solid" className="w-[139px] h-[42px]">
-              Sign Up
-            </Button>
-          </Link>
+
+          {status === "loading" ? (
+            <div className="flex items-center gap-[16px]">
+              <div className="w-[139px] h-[42px] rounded-[12px] bg-gray-200/60 animate-pulse" />
+              <div className="w-[139px] h-[42px] rounded-[12px] bg-gray-200/60 animate-pulse" />
+            </div>
+          ) : status === "authed" && user ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                className="flex items-center gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[6px] pr-[14px] py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+              >
+                {user.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt=""
+                    width={30}
+                    height={30}
+                    className="rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[14px]">
+                    {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="font-body font-medium text-[14px] text-text-dark max-w-[140px] truncate">
+                  {user.displayName || user.email}
+                </span>
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 12 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`}
+                >
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
+                >
+                  <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
+                    <p className="font-body font-medium text-[13px] text-text-dark truncate">{user.displayName || "CrushSVG user"}</p>
+                    <p className="font-body text-[12px] text-text-muted truncate">{user.email}</p>
+                  </div>
+                  <Link
+                    href="/sessions"
+                    onClick={() => setMenuOpen(false)}
+                    role="menuitem"
+                    className="block px-[16px] py-[10px] font-body text-[14px] text-text-body hover:bg-gray-50 hover:text-text-dark transition-colors"
+                  >
+                    Manage sessions
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
+                  >
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-[16px]">
+              <Link href="/login">
+                <Button variant="outline" className="w-[139px] h-[42px] bg-[#FFFFFF]">
+                  Log In
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button variant="solid" className="w-[139px] h-[42px]">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
-      </div>
-    </nav>
+      </nav>
     </div>
   );
 }
