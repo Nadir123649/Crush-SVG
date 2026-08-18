@@ -16,7 +16,10 @@ const afacad = Afacad({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://crush-svg.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "CrushSVG | Convert SVG to PNG Exactly as Intended",
   description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.",
   icons: {
