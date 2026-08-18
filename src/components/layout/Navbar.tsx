@@ -47,6 +47,13 @@ export function Navbar() {
 
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -60,7 +67,7 @@ export function Navbar() {
       <div className={`w-full flex justify-center px-[16px] md:px-[80px] pt-[24px] md:pt-[40px] pb-[10px] transition-all duration-300 absolute top-0 ${isScrolled ? "bg-[#FFFCFA]/95 backdrop-blur-md" : "bg-[#FFFCFA]"}`}>
         <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-[4px] md:gap-[6px]">
+        <Link href="/" onClick={handleLogoClick} className="flex items-center gap-[4px] md:gap-[6px]">
           <Image
             src={IMAGES.logo}
             alt="CrushSVG Icon"

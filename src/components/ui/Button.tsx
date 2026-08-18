@@ -12,7 +12,7 @@ export function Button({ children, className = "", variant = "solid", ...props }
   if (variant === "outline") {
     return (
       <button
-        className={`group relative rounded-[12px] px-[10px] active:scale-[0.98] overflow-hidden cursor-pointer ${baseTextStyles} ${className}`}
+        className={`group relative rounded-[12px] px-[10px] active:scale-[0.98] overflow-hidden cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none ${baseTextStyles} ${className}`}
         {...props}
       >
         <div 
@@ -35,7 +35,7 @@ export function Button({ children, className = "", variant = "solid", ...props }
 
   return (
     <button
-      className={`bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white rounded-[12px] px-[10px] hover:opacity-90 transition-opacity active:scale-[0.98] cursor-pointer ${baseTextStyles} ${className}`}
+      className={`bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white rounded-[12px] px-[10px] hover:opacity-90 transition-opacity active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none ${baseTextStyles} ${className}`}
       {...props}
     >
       {children}

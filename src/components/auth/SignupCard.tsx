@@ -23,6 +23,7 @@ export function SignupCard() {
             <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Name</label>
             <input 
               type="text" 
+              maxLength={16}
               placeholder="Enter your name"
               className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />

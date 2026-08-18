@@ -9,6 +9,16 @@ import { useAuth } from "@/lib/client/auth-context";
 
 export function SignUpCTA() {
   const { status } = useAuth();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch by rendering null on server/first pass
+  if (!mounted) {
+    return null;
+  }
 
   // If user is authenticated, they don't need the signup CTA
   if (status === "authed") {

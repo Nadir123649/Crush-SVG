@@ -214,7 +214,7 @@ export function ConverterUI() {
                 }}
                 spellCheck={false}
                 aria-label="SVG code"
-                className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                className={`w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] ${svgCode === SAMPLE_SVG ? "text-[#D2D2D2]" : "text-black"} whitespace-pre-wrap overflow-auto brand-scrollbar`}
               />
               {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
               <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
@@ -407,7 +407,7 @@ export function ConverterUI() {
                   <Button 
                     className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
                     onClick={result?.data && previewIsConverted ? handleDownload : handleConvert} 
-                    disabled={converting}
+                    disabled={converting || svgCode === SAMPLE_SVG || !isValidSvg}
                   >
                     {converting ? (
                       <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
