@@ -6,6 +6,7 @@ import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
+import { useToast } from "@/components/ui/ToastProvider";
 import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
@@ -39,13 +40,13 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 
 export function ConverterUI() {
   const { status } = useAuth();
+  const { addToast } = useToast();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("480px");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
   const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
-  const [isFocused, setIsFocused] = useState(false);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
@@ -55,8 +56,11 @@ export function ConverterUI() {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
+  const [progress, setProgress] = useState(0);
   const [previewError, setPreviewError] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const widthRef = useRef<HTMLDivElement>(null);
+  const heightRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
@@ -65,13 +69,32 @@ export function ConverterUI() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (openDropdown === "width" && widthRef.current && !widthRef.current.contains(target)) {
+        setOpenDropdown(null);
+      }
+      if (openDropdown === "height" && heightRef.current && !heightRef.current.contains(target)) {
+        setOpenDropdown(null);
+      }
+      if (openDropdown === "scale" && scaleRef.current && !scaleRef.current.contains(target)) {
         setOpenDropdown(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [openDropdown]);
+
+  useEffect(() => {
+    if (converting) {
+      setProgress(0);
+      const timer = setTimeout(() => {
+        setProgress(100);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      setProgress(0);
+    }
+  }, [converting]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -183,8 +206,12 @@ export function ConverterUI() {
 
     setConverting(true);
     try {
-      const res = await convertText(svgCode, options);
+      const [res] = await Promise.all([
+        convertText(svgCode, options),
+        new Promise((resolve) => setTimeout(resolve, 2000))
+      ]);
       setResult(res);
+      addToast("Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         setUsage({
@@ -222,6 +249,7 @@ export function ConverterUI() {
   }
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
+  const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null);
 
   return (
     <>
@@ -250,16 +278,19 @@ export function ConverterUI() {
               {/* SVG Code Box */}
               <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                 <textarea
-                  value={svgCode === SAMPLE_SVG ? (isFocused ? "" : DUMMY_CODE) : svgCode}
-                  onChange={(e) => handleSvgChange(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => {
-                    setIsFocused(false);
-                    if (svgCode.trim() === "") handleSvgChange(SAMPLE_SVG);
+                  value={svgCode === SAMPLE_SVG ? "" : svgCode}
+                  placeholder={DUMMY_CODE}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      handleSvgChange(SAMPLE_SVG);
+                    } else {
+                      handleSvgChange(val);
+                    }
                   }}
                   spellCheck={false}
                   aria-label="SVG code"
-                  className={`w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] ${svgCode === SAMPLE_SVG ? "text-[#D2D2D2]" : "text-black"} whitespace-pre-wrap overflow-auto brand-scrollbar`}
+                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-black placeholder:text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
                 />
                 {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
@@ -293,7 +324,7 @@ export function ConverterUI() {
               </div>
 
               {/* Bottom Source Text */}
-              <p className="font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-[12px] md:mt-[16px] ">
+              <p className="font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-[12px] md:mt-[10px] ">
                 {dims.width && dims.height
                   ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
                   : "Source size: unknown — set width/height or viewBox on your SVG"}
@@ -329,12 +360,12 @@ export function ConverterUI() {
 
 
               {/* Settings & Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px]" ref={dropdownRef}>
+              <div className="w-full mt-[16px] md:mt-[20px]">
                 {/* Dropdowns Row */}
                 <div className="flex gap-[12px] md:gap-[20px] w-full">
 
                   {/* Width Input */}
-                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
+                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
                     <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width</label>
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
                       <input
@@ -377,7 +408,7 @@ export function ConverterUI() {
                   </div>
 
                   {/* Height Input */}
-                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
+                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
                     <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Height</label>
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
                       <input
@@ -420,7 +451,7 @@ export function ConverterUI() {
                   </div>
 
                   {/* Scale Input */}
-                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
+                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
                     <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
                       <input
@@ -483,53 +514,69 @@ export function ConverterUI() {
                 )}
 
                 {/* Action Buttons Row */}
-                <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
-                  {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowSignupPrompt(true)}
-                      className="w-full md:w-auto h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
-                    >
-                      Sign up for unlimited conversions
-                    </button>
-                  ) : result?.data ? (
-                    <Button
-                      className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
-                      onClick={handleDownload}
-                      disabled={converting}
-                    >
-                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                        <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                        Download PNG
-                      </span>
-                    </Button>
-                  ) : (
-                    <Button
-                      className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
-                      onClick={handleConvert}
-                      disabled={converting}
-                    >
-                      {converting ? (
-                        <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                          <span className="w-[14px] h-[14px] md:w-[16px] md:h-[16px] rounded-full border-[2px] border-white/40 border-t-white animate-spin" />
-                          Converting...
+                {converting ? (
+                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                    <div className="w-[254px] max-w-full h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] transition-all duration-[2000ms] ease-linear"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
+                    {isCheckingUsage ? (
+                      <Button
+                        className="w-[254px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
+                        disabled
+                      >
+                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
+                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                          Loading...
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                      </Button>
+                    ) : limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPrompt(true)}
+                        className="w-[254px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                      >
+                        Sign up for unlimited conversions
+                      </button>
+                    ) : result?.data ? (
+                      <Button
+                        className="w-[254px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        onClick={handleDownload}
+                        disabled={converting}
+                      >
+                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
+                          <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                          Download PNG
+                        </span>
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-[254px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        onClick={handleConvert}
+                        disabled={converting}
+                      >
+                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                           Convert
                         </span>
-                      )}
-                    </Button>
-                  )}
+                      </Button>
+                    )}
 
-                  {result && result.size !== undefined && (
-                    <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
-                      {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
-                      {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
-                    </p>
-                  )}
-                </div>
+                    {result && result.size !== undefined && (
+                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                        {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
+                        {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+
               </div>
 
             </div>

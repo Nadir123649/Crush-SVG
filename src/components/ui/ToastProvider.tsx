@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ addToast }}>
       {children}
       {/* Container perfectly overlapping the navbar in the center */}
-      <div className="absolute top-[20px] md:top-[41px] left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-[10px] items-center pointer-events-none">
+      <div className="fixed top-[20px] md:top-[41px] left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-[10px] items-center pointer-events-none">
         {toasts.map((toast) => (
           <div
             key={toast.id}
