@@ -131,9 +131,6 @@ export function ConverterUI() {
           isUnlimited: false,
           limitReached: reached,
         });
-        if (reached && status !== "authed") {
-          setShowSignupPrompt(true);
-        }
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
@@ -156,6 +153,9 @@ export function ConverterUI() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+    }
   }
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
