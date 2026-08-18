@@ -38,20 +38,25 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserDTO | null>(null)
+  const [user, setUser] = useState<UserDTO | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        return storedUser ? JSON.parse(storedUser) : null
+      } catch {}
+    }
+    return null
+  })
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [status, setStatus] = useState<AuthStatus>('loading')
-
-  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-  useIsomorphicLayoutEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('crush_user')
-      if (storedUser) {
-        setUser(JSON.parse(storedUser))
-      }
-    } catch {}
-  }, [])
+  const [status, setStatus] = useState<AuthStatus>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        return storedUser ? 'authed' : 'loading'
+      } catch {}
+    }
+    return 'loading'
+  })
 
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
@@ -74,9 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
       localStorage.removeItem('crush_usage')
-      try {
-        sessionStorage.removeItem('crush_session_only')
-      } catch {}
     }
   }, [])
 
@@ -93,19 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('guest')
         return
       }
-      // Session-only login (remember unchecked) without the per-tab marker means
-      // the tab that logged in is gone — revoke the session and log out.
-      if (getSessionRemember() === false && typeof window !== 'undefined') {
-        let marker: string | null = null
-        try {
-          marker = sessionStorage.getItem('crush_session_only')
-        } catch {}
-        if (!marker) {
-          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
-          clearAuth()
-          return
-        }
-      }
+
       try {
         const body = await apiFetch<{ user: UserDTO }>('/api/me')
         if (cancelled) return
@@ -132,17 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, rememberMe }),
       })
       applySession(payload)
-      // Per-tab marker for session-only logins: it dies with the tab, so a new
-      // tab without it means the original tab was closed — log the user out.
-      if (typeof window !== 'undefined') {
-        try {
-          if (rememberMe) {
-            sessionStorage.removeItem('crush_session_only')
-          } else {
-            sessionStorage.setItem('crush_session_only', payload.sessionId ?? '1')
-          }
-        } catch {}
-      }
     },
     [applySession]
   )

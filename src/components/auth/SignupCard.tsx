@@ -20,6 +20,15 @@ export function SignupCard() {
         {/* Inputs */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex flex-col gap-[4px]">
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Name</label>
+            <input 
+              type="text" 
+              maxLength={16}
+              placeholder="Enter your name"
+              className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+            />
+          </div>
+          <div className="flex flex-col gap-[4px]">
             <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
             <input 
               type="email" 
@@ -58,7 +67,7 @@ export function SignupCard() {
 
         <div className="flex flex-col gap-[16px]">
           {/* Continue with Google */}
-          <button className="flex items-center justify-center w-full h-[34px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors">
+          <button className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors">
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
             <span className="font-afacad font-medium text-[14px] text-black">Continue with Google</span>
           </button>

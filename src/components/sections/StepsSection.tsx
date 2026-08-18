@@ -22,7 +22,7 @@ export function StepsSection() {
   ];
 
   return (
-    <section id="how-it-works" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[10px]">
+    <section id="how-it-works" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[10px] pt-[60px] md:pt-[120px] scroll-mt-[130px] md:scroll-mt-[216px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
         One File. <span className="text-[#D94A1E]">Three Simple Steps.</span>
