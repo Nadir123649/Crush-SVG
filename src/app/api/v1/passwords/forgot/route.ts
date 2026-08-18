@@ -47,9 +47,11 @@ export async function POST(request: NextRequest) {
   )
 
   const resetUrl = `${getOrigin(request)}/reset-password/${token}`
-  void sendResetPasswordEmail(email, resetUrl).catch((e) => {
+  try {
+    await sendResetPasswordEmail(email, resetUrl)
+  } catch (e) {
     console.error('Reset password email failed to send:', e)
-  })
+  }
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[dev] Password reset link for ${email}: ${resetUrl}`)
   }

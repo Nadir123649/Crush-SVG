@@ -19,7 +19,10 @@ vi.mock('@/lib/sessions', () => ({
   rotateSession: mocks.rotateSession,
   wasSessionRotatedWithin: mocks.sessionRotatedWithin,
 }))
-vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
+vi.mock('@/lib/auth', () => ({
+  REFRESH_COOKIE_NAME: 'crushsvg_refresh',
+  toUserDTO: (user: unknown) => ({ uid: 'uid-1', email: 'a@b.com', displayName: 'Test', name: 'Test', photoURL: null, providers: ['email'], linkedProviders: ['email'], role: 'user', hasPassword: true, isVerified: true, conversionsUsed: 0, createdAt: '', lastLoginAt: '' }),
+}))
 vi.mock('@/lib/db', () => ({
   Session: { findOne: mocks.sessionFindOne, updateOne: vi.fn().mockResolvedValue({ modifiedCount: 1 }) },
   User: { findById: mocks.usersFindById },

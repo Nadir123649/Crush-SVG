@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/ra
 import { rotateSession, wasSessionRotatedWithin } from '@/lib/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth'
+import { toUserDTO } from '@/lib/auth'
 import { Session, User } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
@@ -106,7 +107,12 @@ export async function POST(request: NextRequest) {
     {
       success: true,
       version: '1.0.0',
-      payload: { token: tokenPair, sessionId: decoded.jti, remember: result.remember },
+      payload: {
+        token: tokenPair,
+        sessionId: decoded.jti,
+        remember: result.remember,
+        user: toUserDTO(user),
+      },
       serverTimestamp: new Date().toISOString(),
     },
     { status: 200, headers: rateLimitHeaders(rl) }

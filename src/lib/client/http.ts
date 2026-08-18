@@ -1,3 +1,5 @@
+import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
@@ -48,9 +50,26 @@ export function setAuthExpiredHandler(handler: AuthExpiredHandler | null): void 
 
 const REFRESH_PATH = '/api/v1/auth/refresh'
 
-let refreshInFlight: Promise<boolean> | null = null
+let refreshInFlight: Promise<SessionPayload | null> | null = null
 
-async function doRefresh(): Promise<boolean> {
+export interface SessionPayload {
+  token: TokenPairDTO
+  sessionId?: string
+  remember?: boolean
+  user?: UserDTO
+}
+
+interface RefreshBody {
+  success?: boolean
+  payload?: {
+    token?: TokenPairDTO
+    sessionId?: string
+    remember?: boolean
+    user?: UserDTO
+  }
+}
+
+async function doRefresh(): Promise<SessionPayload | null> {
   try {
     const res = await fetch(REFRESH_PATH, {
       method: 'POST',
@@ -58,28 +77,29 @@ async function doRefresh(): Promise<boolean> {
     })
     if (!res.ok) {
       onAuthExpired?.()
-      return false
+      return null
     }
-    const body = (await res.json().catch(() => null)) as {
-      success?: boolean
-      payload?: { token?: { accessToken?: string }; sessionId?: string; remember?: boolean }
-    } | null
-    const token = body?.success === true ? body.payload?.token?.accessToken : undefined
-    if (!token) {
+    const body = (await res.json().catch(() => null)) as RefreshBody | null
+    if (body?.success !== true || !body.payload) {
       onAuthExpired?.()
-      return false
+      return null
     }
-    setAccessToken(token)
-    activeSessionId = body?.payload?.sessionId ?? null
-    activeRemember = body?.payload?.remember ?? null
-    return true
+    const { token, sessionId, remember, user } = body.payload
+    if (!token?.accessToken) {
+      onAuthExpired?.()
+      return null
+    }
+    setAccessToken(token.accessToken)
+    activeSessionId = sessionId ?? null
+    activeRemember = remember ?? null
+    return { token, sessionId, remember, user }
   } catch {
     onAuthExpired?.()
-    return false
+    return null
   }
 }
 
-export async function refreshSession(): Promise<boolean> {
+export async function refreshSession(): Promise<SessionPayload | null> {
   if (!refreshInFlight) {
     refreshInFlight = doRefresh().finally(() => {
       refreshInFlight = null

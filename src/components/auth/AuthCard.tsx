@@ -45,7 +45,12 @@ export function AuthCard({ type }: AuthCardProps) {
         await login(email, password, rememberMe);
         router.push("/");
       } else {
-        await register(name, email, password);
+        const trimmedName = name.trim();
+        if (trimmedName.length < 3 || trimmedName.length > 16) {
+          setError("Name must be between 3 and 16 characters.");
+          return;
+        }
+        await register(trimmedName, email, password);
         setVerificationSent(true);
       }
     } catch (err) {
@@ -150,11 +155,11 @@ async function handleOAuth(provider: OAuthProvider) {
                 id="auth-name"
                 type="text"
                 required
-                minLength={1}
-                maxLength={20}
+                minLength={3}
+                maxLength={16}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder="Your name (3-16 characters)"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
             </div>
