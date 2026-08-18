@@ -95,9 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     void (async () => {
-      const ok = await refreshSession()
+      const payload = await refreshSession()
       if (cancelled) return
-      if (!ok) {
+      if (!payload) {
         setStatus('guest')
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('crush_auth_status', 'guest')
@@ -105,22 +105,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      try {
-        const body = await apiFetch<{ user: UserDTO }>('/api/me')
-        if (cancelled) return
-        applySession({
-          user: body.user,
-          token: { accessToken: getAccessToken() ?? '' } as TokenPairDTO,
-          sessionId: getSessionId() ?? undefined,
-        })
-      } catch {
-        if (!cancelled) {
-          setStatus('guest')
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem('crush_auth_status', 'guest')
-          }
+      // Session-only login (remember unchecked) without the per-tab marker means
+      // the tab that logged in is gone — revoke the session and log out.
+      if (getSessionRemember() === false && typeof window !== 'undefined') {
+        let marker: string | null = null
+        try {
+          marker = sessionStorage.getItem('crush_session_only')
+        } catch {}
+        if (!marker) {
+          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+          clearAuth()
+          return
         }
       }
+      if (!payload.user) {
+        setStatus('guest')
+        return
+      }
+      applySession({
+        user: payload.user,
+        token: payload.token,
+        sessionId: payload.sessionId ?? undefined,
+        remember: payload.remember ?? undefined,
+      })
     })()
 
     return () => {

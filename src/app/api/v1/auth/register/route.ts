@@ -77,9 +77,11 @@ export async function POST(request: NextRequest) {
   }
 
   const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
-  void sendVerificationEmail(email, verifyUrl).catch((e) => {
+  try {
+    await sendVerificationEmail(email, verifyUrl)
+  } catch (e) {
     console.error('Verification email failed to send:', e)
-  })
+  }
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[dev] Email verification for ${email}: ${verifyUrl}`)
   }
