@@ -272,38 +272,7 @@ async function handleOAuth(provider: OAuthProvider) {
             </span>
           </button>
 
-          {/* Social Icons Row */}
-          <div className="flex items-center justify-center gap-[10px]">
-            <button 
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Facebook login coming soon"
-              className="opacity-40 cursor-not-allowed"
-            >
-              <Image src={IMAGES.facebookLogin} alt="Facebook" width={32} height={32} className="object-contain" />
-            </button>
-            <button 
-              type="button" 
-              onClick={() => handleOAuth("github")}
-              disabled={submitting === "email" || submitting === "github"}
-              className="hover:opacity-80 transition-opacity disabled:opacity-50"
-              aria-label="Continue with GitHub"
-            >
-              <Image src={IMAGES.githubLogin} alt="GitHub" width={32} height={32} className="object-contain" />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth("x")}
-              disabled
-              aria-disabled="true"
-              title="X login coming soon"
-              className="opacity-40 cursor-not-allowed"
-              aria-label="Continue with X (coming soon)"
-            >
-              <Image src={IMAGES.twitterLogin} alt="" width={32} height={32} className="object-contain" />
-            </button>
-          </div>
+
         </div>
 
         {/* Footer Text */}
