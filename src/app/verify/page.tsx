@@ -12,7 +12,7 @@ function VerificationContent() {
   const variant = status === "success" ? "success" : "invalid";
 
   return (
-    <div className="w-full py-[100px] flex items-center justify-center">
+    <div className="w-full py-[40px] md:py-[100px] px-[16px] md:px-0 flex items-center justify-center">
       <VerificationModal
         variant={variant}
         onClose={() => router.push("/")}

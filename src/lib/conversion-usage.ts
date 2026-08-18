@@ -6,9 +6,11 @@ import { auth } from '@/lib/auth-middleware'
 import { User } from '@/lib/db'
 import {
   GUEST_CONVERSION_LIMIT,
+  ensureGuestId,
   getGuestId,
   getGuestUsage,
   incrementGuestUsage,
+  type GuestCookieSpec,
 } from '@/lib/guest-usage'
 
 export { GUEST_CONVERSION_LIMIT }
@@ -20,9 +22,13 @@ export type ConversionUsage = {
   remaining: number | null
   limitReached: boolean
   userId?: string
+  setGuestCookie?: GuestCookieSpec | null
 }
 
-export async function getConversionUsage(request: NextRequest): Promise<ConversionUsage> {
+export async function getConversionUsage(
+  request: NextRequest,
+  explicitGuestId?: string
+): Promise<ConversionUsage> {
   const who = await auth(request)
   if ('user' in who) {
     const user = await User.findById(who.user.id)
@@ -39,7 +45,8 @@ export async function getConversionUsage(request: NextRequest): Promise<Conversi
     }
   }
 
-  const guestId = getGuestId(request)
+  const guest = ensureGuestId(request)
+  const guestId = explicitGuestId ?? guest.guestId
   if (!guestId) {
     return { kind: 'none', count: 0, limit: null, remaining: null, limitReached: false }
   }
@@ -51,10 +58,14 @@ export async function getConversionUsage(request: NextRequest): Promise<Conversi
     limit: GUEST_CONVERSION_LIMIT,
     remaining: Math.max(0, GUEST_CONVERSION_LIMIT - count),
     limitReached: count >= GUEST_CONVERSION_LIMIT,
+    setGuestCookie: guest.setCookie,
   }
 }
 
-export async function incrementConversionUsage(request: NextRequest): Promise<number> {
+export async function incrementConversionUsage(
+  request: NextRequest,
+  explicitGuestId?: string
+): Promise<number> {
   const who = await auth(request)
   if ('user' in who) {
     const user = await User.findByIdAndUpdate(
@@ -65,7 +76,7 @@ export async function incrementConversionUsage(request: NextRequest): Promise<nu
     return user?.conversionsUsed ?? 0
   }
 
-  const guestId = getGuestId(request)
+  const guestId = explicitGuestId ?? getGuestId(request)
   if (!guestId) return 0
   return incrementGuestUsage(guestId)
 }

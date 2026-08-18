@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { randomUUID } from 'crypto'
 
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { registerSchema } from '@/lib/auth-validation'
@@ -32,8 +33,10 @@ export async function POST(request: NextRequest) {
 
   const email = parsed.data.email.toLowerCase().trim()
 
-  const existingUser = await User.findOne({ email })
-  if (existingUser) {
+  // Email+password accounts are unique per email. An OAuth account that shares
+  // the same email (e.g. Google) is a separate account and does NOT block signup.
+  const existingPasswordAccount = await User.findOne({ email, password: { $exists: true } })
+  if (existingPasswordAccount) {
     return errorResponse(
       409,
       'account_already_exists',
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
 
   try {
     await User.create({
-      uid: `email_${email}`,
+      uid: `email_${randomUUID()}`,
       email,
       displayName: parsed.data.name,
       name: parsed.data.name,

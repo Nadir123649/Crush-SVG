@@ -15,8 +15,8 @@ export const svgValidationSchema = z.object({
 })
 
 export const updateProfileSchema = z.object({
-  displayName: z.string().min(1).max(50).optional(),
-  name: z.string().min(1).max(50).optional(),
+  displayName: z.string().min(3).max(16).optional(),
+  name: z.string().min(3).max(16).optional(),
 })
 
 export const conversionHistoryQuerySchema = z.object({

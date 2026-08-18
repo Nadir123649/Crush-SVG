@@ -41,6 +41,11 @@ export function isAllowedOrigin(request: NextRequest): boolean {
     return false
   }
 
+  const host = request.headers.get('host')
+  if (host && parsed.host === host) {
+    return true
+  }
+
   return allowedOrigins().some((allowed) => {
     try {
       const target = new URL(allowed)

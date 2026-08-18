@@ -205,7 +205,7 @@ describe('sendVerificationEmail / sendResetPasswordEmail', () => {
 
   it('sendResetPasswordEmail uses the reset subject and mentions expiry', async () => {
     mocks.sendMail.mockResolvedValue(undefined)
-    await sendResetPasswordEmail('a@b.com', 'https://x/reset/tok', 60)
+    await sendResetPasswordEmail('a@b.com', 'https://x/reset/tok')
     expect(mocks.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({ to: 'a@b.com', subject: 'Reset your CrushSVG password' })
     )

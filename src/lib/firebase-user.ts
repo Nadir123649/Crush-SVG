@@ -28,16 +28,18 @@ function roleFor(email: string | null | undefined): 'user' | 'admin' {
 }
 
 /**
- * Resolves an OAuth identity to a single CrushSVG account.
+ * Resolves an OAuth identity to a CrushSVG account.
  *
- * Guarantees one-account-per-email across all providers:
- *  1. Match by provider `uid` (the provider's canonical identity) and link.
- *  2. Otherwise, when the incoming identity can PROVE ownership of the email
- *     (verified OAuth email), link onto the existing account. The first
- *     established `uid` is preserved — it is never overwritten.
- *  3. Otherwise create a brand-new account.
- *  4. Duplicate-key races are caught and re-resolved so no second account for
- *     the same email/uid is ever created.
+ * Accounts are NOT merged across providers: a Google account and an email
+ * (password) account may share the same email address and operate as two
+ * completely separate accounts.
+ *  1. Match by provider `uid` (the provider's canonical identity) — this is
+ *     the only path that reuses an existing account, so re-logging in with the
+ *     same Google account returns the same account.
+ *  2. Otherwise create a brand-new account, even if a password (or other
+ *     OAuth) account already exists for the same email.
+ *  3. Duplicate-key races are caught and re-resolved so no second account for
+ *     the same provider uid is ever created.
  */
 export async function resolveUserCascade(
   token: DecodedIdToken,
@@ -67,26 +69,6 @@ export async function resolveUserCascade(
     )
   }
 
-  if (email && token.email_verified === true) {
-    const emailMatch = await model.findOne({ email })
-    if (emailMatch) {
-      return (
-        (await model.findOneAndUpdate(
-          { _id: emailMatch._id },
-          {
-            $set: {
-              displayName: token.name ?? emailMatch.displayName,
-              photoURL: token.picture ?? emailMatch.photoURL,
-              lastLoginAt: now,
-            },
-            $addToSet: { providers: provider, linkedProviders: provider },
-          },
-          { new: true }
-        )) ?? emailMatch
-      )
-    }
-  }
-
   try {
     return await model.create({
       uid: token.uid,
@@ -101,9 +83,7 @@ export async function resolveUserCascade(
     })
   } catch (error) {
     if (isDuplicateKeyError(error)) {
-      const existing = await model.findOne({
-        $or: [{ uid: token.uid }, ...(email ? [{ email }] : [])],
-      })
+      const existing = await model.findOne({ uid: token.uid })
       if (existing) return existing
     }
     throw error

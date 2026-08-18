@@ -47,7 +47,7 @@ const userSchema = new Schema(
 )
 
 userSchema.index({ uid: 1 }, { unique: true })
-userSchema.index({ email: 1 }, { unique: true, sparse: true })
+userSchema.index({ email: 1 }, { sparse: true })
 
 declare global {
   var __crushSvgUserModel: Model<UserDoc> | undefined

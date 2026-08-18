@@ -1,8 +1,7 @@
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
-import VerifyEmail from '@/emails/templates/VerifyEmail'
-import PasswordReset from '@/emails/templates/PasswordReset'
-import { renderEmail } from '@/emails/renderEmail'
+import fs from 'fs/promises'
+import path from 'path'
 
 const DEFAULT_FROM = 'CrushSVG <onboarding@resend.dev>'
 
@@ -42,19 +41,30 @@ function smtpTransportOptions(env: NodeJS.ProcessEnv) {
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const env = process.env
   const from = resolveFrom(env)
+  const transport = resolveTransport(env)
 
-  if (env.NODE_ENV === 'development') {
-    console.log(`[email:dev] to=${to} subject="${subject}" transport=${resolveTransport(env)} (no-op)`)
+  if (env.EMAIL_LOG_ONLY === 'true') {
+    console.log(`[email:log-only] to=${to} subject="${subject}" (no transport used)`)
     return
   }
 
-  if (resolveTransport(env) === 'resend') {
+  if (transport === 'none') {
+    if (env.NODE_ENV === 'development') {
+      console.log(`[email:dev] to=${to} subject="${subject}" — no SMTP/Resend configured, skipping`)
+      return
+    }
+    throw new Error(
+      'Email is not configured: set RESEND_API_KEY (preferred) or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS'
+    )
+  }
+
+  if (transport === 'resend') {
     const resend = new Resend(env.RESEND_API_KEY)
     const { error } = await resend.emails.send({ from, to, subject, html })
     if (error) throw new Error(`Resend send failed: ${error.message}`)
     return
   }
-  if (resolveTransport(env) === 'smtp') {
+  if (transport === 'smtp') {
     const transporter = nodemailer.createTransport(smtpTransportOptions(env))
     try {
       await transporter.sendMail({ from, to, subject, html })
@@ -74,13 +84,17 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 }
 
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-  await sendEmail(to, 'Verify your CrushSVG email', await renderEmail(VerifyEmail({ verifyUrl: url })))
+  const filePath = path.join(process.cwd(), 'src/emails/email-verification.html')
+  let html = await fs.readFile(filePath, 'utf-8')
+  html = html.replace(/href="#"/g, `href="${url}"`)
+  html = html.replace(/{{first_name}}/g, 'there')
+  await sendEmail(to, 'Verify your CrushSVG email', html)
 }
 
-export async function sendResetPasswordEmail(to: string, url: string, minutes: number): Promise<void> {
-  await sendEmail(
-    to,
-    'Reset your CrushSVG password',
-    await renderEmail(PasswordReset({ resetUrl: url, expiresInMinutes: minutes }))
-  )
+export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
+  const filePath = path.join(process.cwd(), 'src/emails/reset-password.html')
+  let html = await fs.readFile(filePath, 'utf-8')
+  html = html.replace(/href="#"/g, `href="${url}"`)
+  html = html.replace(/{{first_name}}/g, 'there')
+  await sendEmail(to, 'Reset your CrushSVG password', html)
 }

@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     {
       success: true,
       version: '1.0.0',
-      payload: { token: tokenPair, sessionId: decoded.jti },
+      payload: { token: tokenPair, sessionId: decoded.jti, remember: result.remember },
       serverTimestamp: new Date().toISOString(),
     },
     { status: 200, headers: rateLimitHeaders(rl) }

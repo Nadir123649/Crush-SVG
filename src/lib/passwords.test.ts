@@ -37,6 +37,6 @@ describe('passwords', () => {
 
   it('exposes token lifetime constants', () => {
     expect(VERIFY_TOKEN_MINUTES).toBe(24 * 60)
-    expect(RESET_TOKEN_MINUTES).toBe(60)
+    expect(RESET_TOKEN_MINUTES).toBe(30)
   })
 })

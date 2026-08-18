@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { convertSchema } from '@/lib/convert-validation'
 import { convertSvgQueued } from '@/lib/conversion-queue'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/conversion-usage'
+import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/guest-usage'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'validation_error', first, undefined, request)
   }
 
-  const usage = await getConversionUsage(request)
+  const { guestId, setCookie } = ensureGuestId(request)
+  const usage = await getConversionUsage(request, guestId ?? undefined)
   if (usage.kind === 'guest' && usage.limitReached) {
     return errorResponse(
       429,
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     const base64 = result.buffer.toString('base64')
     const mimeType = `image/${format === 'jpeg' ? 'jpeg' : format}`
 
-    const conversionsUsed = await incrementConversionUsage(request)
+    const conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
     const remaining =
       usage.kind === 'guest' ? Math.max(0, GUEST_CONVERSION_LIMIT - conversionsUsed) : undefined
 
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
       request.nextUrl.searchParams.get('download') === '1'
 
     if (acceptsBinary) {
-      return new NextResponse(new Uint8Array(result.buffer), {
+      const res = new NextResponse(new Uint8Array(result.buffer), {
         status: 200,
         headers: {
           'Content-Type': mimeType,
@@ -64,9 +66,19 @@ export async function POST(request: NextRequest) {
           ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
         },
       })
+      if (setCookie) {
+        res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+          httpOnly: true,
+          secure: setCookie.secure,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: setCookie.maxAge,
+        })
+      }
+      return res
     }
 
-    return successResponse(
+    const res = successResponse(
       {
         data: base64,
         mimeType,
@@ -81,6 +93,16 @@ export async function POST(request: NextRequest) {
       undefined,
       request
     )
+    if (setCookie) {
+      res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+        httpOnly: true,
+        secure: setCookie.secure,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: setCookie.maxAge,
+      })
+    }
+    return res
   } catch (error) {
     console.error('SVG conversion failed:', error)
 

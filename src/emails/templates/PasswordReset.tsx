@@ -7,7 +7,7 @@ interface PasswordResetProps {
   expiresInMinutes?: number;
 }
 
-export default function PasswordReset({ resetUrl, expiresInMinutes = 60 }: PasswordResetProps) {
+export default function PasswordReset({ resetUrl, expiresInMinutes = 30 }: PasswordResetProps) {
   return (
     <EmailLayout preview="Reset your CrushSVG password">
       <Heading style={headingStyle}>Reset your password</Heading>

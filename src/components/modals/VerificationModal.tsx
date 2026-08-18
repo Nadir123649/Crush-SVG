@@ -14,8 +14,9 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
   const isSuccess = variant === "success";
 
   return (
-    <div className="relative w-full max-w-[440px] h-[463px] bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden" style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}>
-      <button
+    <div className="relative w-full max-w-[440px] h-auto min-h-[463px] pb-[30px] md:h-[463px] md:pb-0 px-[16px] md:px-0 bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden" style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}>
+      {/* Close Button */}
+      <button 
         onClick={onClose}
         className="absolute top-[20px] right-[20px] text-[#4B5563] hover:opacity-70 transition-opacity"
         aria-label="Close"
@@ -39,7 +40,8 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         </div>
       </div>
 
-      <h2 className="font-heading font-bold text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[20px]">
+      {/* Heading */}
+      <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[20px] px-[16px]">
         {isSuccess ? "Verification Complete" : "Link Invalid or Expired"}
       </h2>
 
@@ -53,7 +55,8 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         />
       </div>
 
-      <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-[294px] mt-[39px]">
+      {/* Text Body */}
+      <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px] px-[16px] mt-[39px]">
         {isSuccess
           ? "Your email has been verified successfully. Click the button below to continue."
           : "This verification link is invalid or has expired. You can request a new one from the sign-up flow."}

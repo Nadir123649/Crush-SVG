@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   const email = parsed.data.email.toLowerCase().trim()
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email, password: { $exists: true } })
   if (!user || user.isVerified) {
     return successResponse({
       message: 'If the account exists and is unverified, a verification email has been sent.',
