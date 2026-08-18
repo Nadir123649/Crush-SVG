@@ -13,12 +13,12 @@ describe('getGuestId', () => {
     expect(getGuestId(request)).toBe('cookie-id-123')
   })
 
-  it('falls back to the client IP when no cookie exists', () => {
+  it('returns null when no cookie exists (never falls back to the IP)', () => {
     const request = req({ 'x-real-ip': '203.0.113.7' })
-    expect(getGuestId(request)).toBe('203.0.113.7')
+    expect(getGuestId(request)).toBeNull()
   })
 
-  it('returns null when neither IP nor cookie exist', () => {
+  it('returns null when no cookie exists at all', () => {
     expect(getGuestId(req())).toBeNull()
   })
 })
@@ -38,15 +38,9 @@ describe('ensureGuestId', () => {
     expect(result.setCookie).toBeNull()
   })
 
-  it('uses the client IP and does not set a cookie when cookies are unavailable', () => {
+  it('generates a fresh uuid cookie when no cookie exists (ignores the IP)', () => {
     const request = req({ 'x-real-ip': '203.0.113.7' })
     const result = ensureGuestId(request)
-    expect(result.guestId).toBe('203.0.113.7')
-    expect(result.setCookie).toBeNull()
-  })
-
-  it('generates a fresh uuid cookie when nothing else exists', () => {
-    const result = ensureGuestId(req())
     expect(result.guestId).toMatch(/^[0-9a-f-]{36}$/)
     expect(result.setCookie).toEqual({
       name: GUEST_COOKIE_NAME,

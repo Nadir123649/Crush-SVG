@@ -52,8 +52,8 @@ describe('resolveFrom', () => {
 
   it('prefers RESEND_FROM over EMAIL_FROM', () => {
     process.env.EMAIL_FROM = 'Team <team@example.com>'
-    process.env.RESEND_FROM = 'Resend <noreply@crushsvg.com>'
-    expect(resolveFrom()).toBe('Resend <noreply@crushsvg.com>')
+    process.env.RESEND_FROM = 'Resend <noreply@crush-svg.vercel.app>'
+    expect(resolveFrom()).toBe('Resend <noreply@crush-svg.vercel.app>')
   })
 
   it('falls back to EMAIL_FROM when RESEND_FROM is unset', () => {
@@ -170,12 +170,12 @@ describe('sendEmail', () => {
   it('sends via Resend when RESEND_API_KEY is set', async () => {
     mocks.resendSend.mockResolvedValue({ data: { id: 'mail-1' }, error: null })
     process.env.RESEND_API_KEY = 're_test'
-    process.env.RESEND_FROM = 'Resend <noreply@crushsvg.com>'
+    process.env.RESEND_FROM = 'Resend <noreply@crush-svg.vercel.app>'
 
     await sendEmail('a@b.com', 'Subject', '<p>hi</p>')
 
     expect(mocks.resendSend).toHaveBeenCalledWith({
-      from: 'Resend <noreply@crushsvg.com>',
+      from: 'Resend <noreply@crush-svg.vercel.app>',
       to: 'a@b.com',
       subject: 'Subject',
       html: '<p>hi</p>',

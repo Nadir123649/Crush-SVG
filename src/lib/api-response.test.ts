@@ -37,23 +37,38 @@ describe('getOrigin', () => {
     expect(getOrigin(request)).toBe('https://crush-svg.vercel.app')
   })
 
-  it('uses a custom domain listed in APP_ORIGINS', () => {
+  it('uses the deployed host even when unlisted and TRUST_PROXY is unset', () => {
     process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
-    process.env.APP_ORIGINS = 'crushsvg.com'
-    const request = req({ host: 'crushsvg.com' })
-    expect(getOrigin(request)).toBe('https://crushsvg.com')
+    const request = req({
+      'x-forwarded-host': 'crush-svg.vercel.app',
+      'x-forwarded-proto': 'https',
+    })
+    expect(getOrigin(request)).toBe('https://crush-svg.vercel.app')
   })
 
-  it('falls back to the canonical URL for disallowed hosts', () => {
+  it('uses a custom domain listed in APP_ORIGINS', () => {
+    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
+    process.env.APP_ORIGINS = 'crush-svg.vercel.app'
+    const request = req({ host: 'crush-svg.vercel.app' })
+    expect(getOrigin(request)).toBe('https://crush-svg.vercel.app')
+  })
+
+  it('falls back to the canonical URL for IP-literal hosts', () => {
     process.env.NEXT_PUBLIC_APP_URL = 'https://crush-svg.vercel.app'
-    const request = req({ host: 'evil.example' })
+    const request = req({ host: '203.0.113.5' })
     expect(getOrigin(request)).toBe('https://crush-svg.vercel.app')
   })
 
   it('falls back to https on the first allowed host when nothing else matches', () => {
     process.env.NEXT_PUBLIC_APP_URL = ''
-    process.env.APP_ORIGINS = 'crushsvg.com'
-    const request = req({ host: 'evil.example' })
-    expect(getOrigin(request)).toBe('https://crushsvg.com')
+    process.env.APP_ORIGINS = 'crush-svg.vercel.app'
+    const request = req({ host: '203.0.113.5' })
+    expect(getOrigin(request)).toBe('https://crush-svg.vercel.app')
+  })
+
+  it('keeps localhost links in dev when the host is an unlisted local host', () => {
+    process.env.NEXT_PUBLIC_APP_URL = ''
+    const request = req({ host: 'localhost:3000' })
+    expect(getOrigin(request)).toBe('http://localhost:3000')
   })
 })

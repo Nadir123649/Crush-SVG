@@ -5,21 +5,21 @@ import { invalidateSessionCache, isAllowedOrigin, isMethodExempt } from '@/lib/a
 
 describe('auth-middleware', () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_APP_URL = 'https://crushsvg.com'
+    process.env.NEXT_PUBLIC_APP_URL = 'https://crush-svg.vercel.app'
   })
 
   it('allows same-origin POST', () => {
-    const req = new NextRequest('https://crushsvg.com/api/v1/oauth/google', {
+    const req = new NextRequest('https://crush-svg.vercel.app/api/v1/oauth/google', {
       method: 'POST',
-      headers: { origin: 'https://crushsvg.com' },
+      headers: { origin: 'https://crush-svg.vercel.app' },
     })
     expect(isAllowedOrigin(req)).toBe(true)
   })
 
   it('rejects spoofed subdomain lookalike origins', () => {
-    const req = new NextRequest('https://crushsvg.com/api/v1/auth/logout', {
+    const req = new NextRequest('https://crush-svg.vercel.app/api/v1/auth/logout', {
       method: 'POST',
-      headers: { origin: 'https://crushsvg.com.evil.example' },
+      headers: { origin: 'https://crush-svg.vercel.app.evil.example' },
     })
     expect(isAllowedOrigin(req)).toBe(false)
   })
@@ -33,7 +33,7 @@ describe('auth-middleware', () => {
   })
 
   it('rejects cross-origin POST', () => {
-    const req = new NextRequest('https://crushsvg.com/api/v1/auth/logout', {
+    const req = new NextRequest('https://crush-svg.vercel.app/api/v1/auth/logout', {
       method: 'POST',
       headers: { origin: 'https://evil.example' },
     })
@@ -41,7 +41,7 @@ describe('auth-middleware', () => {
   })
 
   it('exempts GET from origin checks', () => {
-    const req = new NextRequest('https://crushsvg.com/api/me', {
+    const req = new NextRequest('https://crush-svg.vercel.app/api/me', {
       method: 'GET',
       headers: { origin: 'https://evil.example' },
     })

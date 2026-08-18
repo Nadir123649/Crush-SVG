@@ -59,14 +59,32 @@ function hostAllowed(host: string): boolean {
   return allowed.some((a) => a.replace(/:\d+$/, '') === normalized)
 }
 
+function isLocalHost(host: string): boolean {
+  const h = host.toLowerCase().split(':')[0]
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1'
+}
+
+function looksLikeIp(host: string): boolean {
+  const h = host.toLowerCase().split(':')[0]
+  return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(h) || /^[0-9a-f:]{2,45}$/.test(h)
+}
+
+function originFromHost(request: NextRequest, host: string): string {
+  const protocol =
+    request.headers.get('x-forwarded-proto') ||
+    (host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https')
+  return `${protocol}://${host}`
+}
+
 /**
  * Resolves the public origin used for links inside emails (verification,
  * password reset) and redirects. The request's own host is preferred so
  * emails always point at the domain the app is actually served from:
  * `http://localhost:3000` in local dev, `https://crush-svg.vercel.app` (or a
- * custom domain) when deployed. Behind a trusted proxy (TRUST_PROXY=true, as
- * on Vercel) the forwarded host is authoritative. Falls back to the
- * configured canonical URL only when no trusted host is available.
+ * custom domain) when deployed — even when NEXT_PUBLIC_APP_URL in the build
+ * still points at localhost. Any real public host is accepted (Vercel sets
+ * x-forwarded-host itself); local hosts and IP literals fall through to the
+ * canonical URL so spoofed host headers can't redirect email links.
  */
 export function getOrigin(request: NextRequest): string {
   const host =
@@ -75,10 +93,11 @@ export function getOrigin(request: NextRequest): string {
     ''
 
   if (host && (hostAllowed(host) || trustProxy())) {
-    const protocol =
-      request.headers.get('x-forwarded-proto') ||
-      (host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https')
-    return `${protocol}://${host}`
+    return originFromHost(request, host)
+  }
+
+  if (host && !isLocalHost(host) && !looksLikeIp(host)) {
+    return originFromHost(request, host)
   }
 
   const canonical = canonicalBase()
