@@ -5,7 +5,6 @@ import {
   createSession,
   getSessionRemember,
   getSessionTokenVersion,
-  listActiveSessions,
   revokeAllSessions,
   revokeSession,
   rotateSession,
@@ -173,15 +172,6 @@ describe('sessions', () => {
     expect(await wasSessionRotatedWithin(doc._id.toString(), 60_000)).toBe(false)
   })
 
-  it('lists only active sessions for a user', async () => {
-    const other = new Types.ObjectId()
-    await createSession({ userId, provider: 'google', remember: true })
-    await createSession({ userId: other, provider: 'google', remember: true })
-    const list = await listActiveSessions(userId)
-    expect(list.docs).toHaveLength(1)
-    expect(list.docs[0].userId.toString()).toBe(userId.toString())
-  })
-
   it('revokeSession flips status to revoked', async () => {
     const doc = await createSession({ userId, provider: 'google', remember: true })
     const ok = await revokeSession(doc._id.toString(), userId)
@@ -194,8 +184,8 @@ describe('sessions', () => {
     await createSession({ userId, provider: 'google', remember: true })
     await createSession({ userId, provider: 'x', remember: true, browser: 'firefox' })
     await revokeAllSessions(userId, 'logged_out')
-    const list = await listActiveSessions(userId)
-    expect(list.docs).toHaveLength(0)
+    const count = await mocks.Session.countDocuments({ userId, status: 'active' })
+    expect(count).toBe(0)
   })
 
   it('reads tokenVersion and remember defaults', async () => {

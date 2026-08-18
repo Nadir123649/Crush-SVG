@@ -31,7 +31,6 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
   logout: () => Promise<void>
-  logoutAll: () => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
 }
@@ -169,21 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuth()
   }, [clearAuth])
 
-  const logoutAll = useCallback(async () => {
-    try {
-      await apiFetch<void>('/api/v1/sessions', { method: 'DELETE' })
-    } catch {
-      // ignore — local state cleared regardless
-    }
-    try {
-      const { signOut: firebaseSignOut } = await import('@/lib/firebase-client')
-      await firebaseSignOut()
-    } catch {
-      // not signed in via Firebase
-    }
-    clearAuth()
-  }, [clearAuth])
-
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {
       await apiFetch<{ message: string }>('/api/v1/auth/change-password', {
@@ -211,11 +195,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       loginWithOAuth,
       logout,
-      logoutAll,
       changePassword,
       resendVerification,
     }),
-    [user, status, sessionId, login, register, loginWithOAuth, logout, logoutAll, changePassword, resendVerification]
+    [user, status, sessionId, login, register, loginWithOAuth, logout, changePassword, resendVerification]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

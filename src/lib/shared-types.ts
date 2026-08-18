@@ -22,20 +22,6 @@ export interface TokenPairDTO {
   refreshTokenExpires: string
 }
 
-export interface SessionDTO {
-  id: string
-  provider: string
-  browser?: string
-  os?: string
-  deviceType?: string
-  ip?: string
-  location?: string
-  remember: boolean
-  createdAt: string
-  lastSeenAt: string
-  status: string
-}
-
 export interface UsageInfo {
   conversionsUsed: number
   remaining: number
