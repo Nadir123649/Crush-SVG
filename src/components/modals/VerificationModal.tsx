@@ -15,16 +15,7 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
 
   return (
     <div className="relative w-full max-w-[440px] h-auto min-h-[463px] pb-[30px] md:h-[463px] md:pb-0 px-[16px] md:px-0 bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden" style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}>
-      {/* Close Button */}
-      <button 
-        onClick={onClose}
-        className="absolute top-[20px] right-[20px] text-[#4B5563] hover:opacity-70 transition-opacity"
-        aria-label="Close"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
+
 
       <div className="flex items-center gap-[4px] mt-[59px]">
         <Image
