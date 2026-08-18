@@ -17,9 +17,7 @@ export function GuestOnly({ children }: GuestOnlyProps) {
     return null;
   }
 
-  if (status === "loading") {
-    return null;
-  }
-
+  // Render children immediately even during "loading" state 
+  // so the login/signup cards don't have a visible delay for guests.
   return <>{children}</>;
 }
