@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 
-import { verifyIdToken } from '@/lib/firebase-admin'
+import { verifyIdToken } from '@/lib/firebase-token'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip'
@@ -119,7 +119,8 @@ export async function POST(
     })
     return res
   } catch (error) {
-    logger.error('oauth_failed', { provider, requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
-    return errorResponse(401, 'invalid_token', 'Invalid or expired token', undefined, request)
+    const message = error instanceof Error ? error.message : 'Invalid or expired token'
+    logger.error('oauth_failed', { provider, requestId: request.headers.get('x-request-id'), error: message })
+    return errorResponse(401, 'invalid_token', message, undefined, request)
   }
 }

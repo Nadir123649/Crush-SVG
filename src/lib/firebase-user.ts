@@ -1,7 +1,8 @@
 import 'server-only'
 
 import type { Model } from 'mongoose'
-import type { DecodedIdToken } from 'firebase-admin/auth'
+
+import type { DecodedIdToken } from '@/lib/firebase-token'
 
 import { User, type UserDoc, isDuplicateKeyError } from '@/lib/db'
 import { isAdminEmail } from '@/lib/roles'
