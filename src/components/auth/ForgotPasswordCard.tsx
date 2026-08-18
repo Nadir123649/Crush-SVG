@@ -93,11 +93,11 @@ export function ForgotPasswordCard() {
         {/* Footer Text */}
         {!sent && (
           <div className="text-center mt-[-4px]">
-            <p className="font-afacad font-normal text-[11px] text-[#4B5563]">
+            <p className="font-afacad font-normal text-[11px] text-[#AEAEAE]">
               Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
             </p>
           </div>
-        )}
+        )} 
       </div>
     </div>
   );

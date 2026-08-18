@@ -41,8 +41,7 @@ export default function AboutUsPage() {
             What We Do
           </h2>
           <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">
-            CrushSVG is a lightning-fast, browser-based converter that transforms your Scalable Vector Graphics into pixel-perfect PNGs. We utilize advanced rendering engines to ensure that everything—from complex CSS filters and inline images to custom fonts—is captured exactly as you designed it. 
-          </p>
+            CrushSVG is a lightning-fast, browser-based converter that transforms your Scalable Vector Graphics into pixel-perfect PNGs. We utilize advanced rendering engines to ensure that everything from complex CSS filters and inline images to custom fonts is captured exactly as you designed it.            </p>
         </div>
 
         {/* Why Choose Us */}
