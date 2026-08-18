@@ -210,14 +210,16 @@ export function ConverterUI() {
             </div>
             
             {/* SVG Code Box */}
-            <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+            <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
               <textarea
                 value={svgCode}
                 onChange={(e) => handleSvgChange(e.target.value)}
                 spellCheck={false}
                 aria-label="SVG code"
-                className="w-full h-full p-[16px] md:p-[24px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto"
+                className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
               />
+              {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
+              <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
             </div>
 
             <input
@@ -248,7 +250,7 @@ export function ConverterUI() {
             </div>
 
             {/* Bottom Source Text */}
-            <p className="font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-[12px] md:mt-[16px] ml-[8px] md:ml-[24px]">
+            <p className="font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-[12px] md:mt-[16px] ">
               {dims.width && dims.height
                 ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
                 : "Source size: unknown — set width/height or viewBox on your SVG"}

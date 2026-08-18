@@ -32,10 +32,11 @@ export function ResetPasswordCard() {
                 placeholder="Enter new password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
-              <button 
-                type="button" 
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black w-[20px] h-[20px] flex items-center justify-center"
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black flex items-center justify-center w-[20px] h-[20px]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {!showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[16px] h-[16px]">
@@ -60,10 +61,11 @@ export function ResetPasswordCard() {
                 placeholder="Re-enter your new password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
-              <button 
-                type="button" 
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black w-[20px] h-[20px] flex items-center justify-center"
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black flex items-center justify-center w-[20px] h-[20px]"
+                aria-label={showConfirm ? "Hide password" : "Show password"}
               >
                 {!showConfirm ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[16px] h-[16px]">

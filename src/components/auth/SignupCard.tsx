@@ -63,18 +63,7 @@ export function SignupCard() {
             <span className="font-afacad font-medium text-[14px] text-black">Continue with Google</span>
           </button>
 
-          {/* Social Icons Row */}
-          <div className="flex items-center justify-center gap-[10px]">
-            <button className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebookLogin} alt="Facebook" width={32} height={32} className="object-contain" />
-            </button>
-            <button className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.githubLogin} alt="GitHub" width={32} height={32} className="object-contain" />
-            </button>
-            <button className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.twitterLogin} alt="Twitter" width={32} height={32} className="object-contain" />
-            </button>
-          </div>
+
         </div>
 
         {/* Footer Text */}
