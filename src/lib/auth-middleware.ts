@@ -15,8 +15,15 @@ export interface AuthUser {
 const SESSION_CACHE_TTL_MS = 5_000
 
 function allowedOrigins(): string[] {
-  const origins = [process.env.NEXT_PUBLIC_APP_URL, 'http://localhost:3000']
-  return [...new Set(origins.filter((o): o is string => !!o))]
+  const list: string[] = []
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (appUrl) list.push(appUrl)
+  for (const o of (process.env.APP_ORIGINS ?? '').split(',')) {
+    const t = o.trim()
+    if (t) list.push(t)
+  }
+  if (process.env.NODE_ENV !== 'production') list.push('http://localhost:3000')
+  return [...new Set(list)]
 }
 
 export function isMethodExempt(request: NextRequest): boolean {
@@ -37,7 +44,7 @@ export function isAllowedOrigin(request: NextRequest): boolean {
   return allowedOrigins().some((allowed) => {
     try {
       const target = new URL(allowed)
-      return parsed.hostname === target.hostname && parsed.port === target.port
+      return parsed.hostname === target.hostname
     } catch {
       return false
     }

@@ -34,6 +34,7 @@ function fakeUsers(): Model<UserDoc> {
         displayName: doc.displayName ?? 'CrushSVG user',
         photoURL: doc.photoURL ?? null,
         providers: doc.providers ?? [],
+        role: doc.role ?? 'user',
         conversionsUsed: doc.conversionsUsed ?? 0,
         createdAt: now,
         updatedAt: now,
@@ -84,7 +85,7 @@ describe('firebase-user', () => {
     expect(user.conversionsUsed).toBe(0)
   })
 
-  it('binds a firebase uid onto an existing email match', async () => {
+  it('links a verified email onto an existing account without overwriting its uid', async () => {
     const users = fakeUsers()
     await resolveUserCascade(
       { uid: 'fb-old', email: 'same@x.com', name: 'A' } as never,
@@ -96,7 +97,7 @@ describe('firebase-user', () => {
       'google' as ProviderName,
       users
     )
-    expect(user.uid).toBe('fb-new')
+    expect(user.uid).toBe('fb-old')
     expect(user.providers).toContain('password')
     expect(user.providers).toContain('google')
   })

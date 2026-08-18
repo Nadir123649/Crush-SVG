@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 import { auth } from '@/lib/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
@@ -28,10 +28,7 @@ export async function GET(request: NextRequest) {
     return errorResponse(400, '', '', undefined, request)
   }
 
-  const { page, limit, sort } = parsed.data
-  const skip = (page - 1) * limit
-  const sortField = sort.startsWith('-') ? sort.slice(1) : sort
-  const sortOrder = sort.startsWith('-') ? -1 : 1
+  const { page, limit } = parsed.data
 
   const user = await User.findById(who.user.id)
 
@@ -39,21 +36,31 @@ export async function GET(request: NextRequest) {
     return errorResponse(404, '', '', undefined, request)
   }
 
+  const pathname = request.nextUrl.pathname
+  const total = 0
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+
   return successResponse({
     data: [],
     meta: {
-      total: 0,
+      total,
       page,
       per_page: limit,
-      total_pages: 0,
-      has_next: false,
+      total_pages: totalPages,
+      has_next: page < totalPages,
       has_prev: page > 1,
     },
     links: {
       self: request.url,
-      first: `${request.nextUrl.pathname}?page=1&limit=${limit}`,
-      last: `${request.nextUrl.pathname}?page=1&limit=${limit}`,
+      first: `${pathname}?page=1&limit=${limit}`,
+      last: `${pathname}?page=${totalPages}&limit=${limit}`,
+      prev: page > 1 ? `${pathname}?page=${page - 1}&limit=${limit}` : null,
+      next: page < totalPages ? `${pathname}?page=${page + 1}&limit=${limit}` : null,
     },
-    message: 'Conversion history feature coming soon. Currently stores only conversion count.'
+    usage: {
+      conversionsUsed: user.conversionsUsed,
+      isUnlimited: true,
+    },
+    message: 'Export history is not stored yet; only the conversion count is tracked.'
   })
 }

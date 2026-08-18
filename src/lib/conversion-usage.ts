@@ -4,9 +4,14 @@ import { NextRequest } from 'next/server'
 
 import { auth } from '@/lib/auth-middleware'
 import { User } from '@/lib/db'
-import { getGuestId, getGuestUsage, incrementGuestUsage } from '@/lib/guest-usage'
+import {
+  GUEST_CONVERSION_LIMIT,
+  getGuestId,
+  getGuestUsage,
+  incrementGuestUsage,
+} from '@/lib/guest-usage'
 
-export const GUEST_CONVERSION_LIMIT = 3
+export { GUEST_CONVERSION_LIMIT }
 
 export type ConversionUsage = {
   kind: 'user' | 'guest' | 'none'

@@ -2,7 +2,6 @@
 
 import React, { Suspense } from "react";
 import { VerificationModal } from "@/components/modals/VerificationModal";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function VerificationContent() {

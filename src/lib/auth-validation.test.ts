@@ -28,9 +28,9 @@ describe('registerSchema', () => {
     expect(() => registerSchema.parse({ name: 'Alex', email: 'not-an-email', password: 'secret123' })).toThrow()
   })
 
-  it('rejects passwords shorter than 6 or longer than 20', () => {
-    expect(() => registerSchema.parse({ name: 'Alex', email: 'a@b.com', password: '12345' })).toThrow()
-    expect(() => registerSchema.parse({ name: 'Alex', email: 'a@b.com', password: 'x'.repeat(21) })).toThrow()
+  it('rejects passwords shorter than 8 or longer than 72', () => {
+    expect(() => registerSchema.parse({ name: 'Alex', email: 'a@b.com', password: '1234567' })).toThrow()
+    expect(() => registerSchema.parse({ name: 'Alex', email: 'a@b.com', password: 'x'.repeat(73) })).toThrow()
   })
 })
 
@@ -60,13 +60,13 @@ describe('forgotPasswordSchema', () => {
 })
 
 describe('resetPasswordSchema', () => {
-  it('accepts a 6-20 char password', () => {
+  it('accepts an 8-72 char password', () => {
     expect(resetPasswordSchema.parse({ password: 'newpass123' })).toEqual({ password: 'newpass123' })
   })
 
   it('rejects passwords out of range', () => {
     expect(() => resetPasswordSchema.parse({ password: 'short' })).toThrow()
-    expect(() => resetPasswordSchema.parse({ password: 'x'.repeat(21) })).toThrow()
+    expect(() => resetPasswordSchema.parse({ password: 'x'.repeat(73) })).toThrow()
   })
 })
 

@@ -5,6 +5,7 @@ import { registerSchema } from '@/lib/auth-validation'
 import { User, isDuplicateKeyError } from '@/lib/db'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/passwords'
 import { sendVerificationEmail } from '@/lib/email'
+import { isAdminEmail } from '@/lib/roles'
 import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
       photoURL: null,
       providers: ['email'],
       linkedProviders: ['email'],
+      role: isAdminEmail(email) ? 'admin' : 'user',
       password,
       isVerified: false,
       emailVerificationToken: hashToken(token),

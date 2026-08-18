@@ -168,7 +168,7 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
     )
     expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
       id: user._id.toString(),
-      role: 'free',
+      role: 'user',
       sessionId: session._id.toString(),
       tokenVersion: session.tokenVersion,
     })

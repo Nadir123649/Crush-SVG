@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
+import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
 import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertResponse } from "@/lib/client/converter";
+import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
 
@@ -38,6 +39,7 @@ export function ConverterUI() {
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,11 +98,11 @@ export function ConverterUI() {
     }
   }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
     void handleFile(e.dataTransfer.files?.[0]);
-  }, []);
+  }
 
   async function handleConvert() {
     setError(null);
@@ -124,6 +126,10 @@ export function ConverterUI() {
         });
       }
     } catch (err) {
+      if (err instanceof ApiError && err.code === "limit_reached") {
+        setShowSignupPrompt(true);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Conversion failed. Please try again.");
     } finally {
       setConverting(false);
@@ -145,6 +151,7 @@ export function ConverterUI() {
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
 
   return (
+    <>
     <section className="w-full max-w-[1280px] mx-auto mt-[48px] mb-[100px]">
       <div className="w-full h-[650.67px] border border-dashed border-[#8F8F8F] rounded-[32px] p-[12px]">
         <div className="w-full h-[626.23px] bg-[#FFFFFF] border border-dashed border-[#8F8F8F] rounded-[24px] flex justify-center px-[40px] pt-[20px] pb-[20px] gap-[30px]">
@@ -318,9 +325,9 @@ export function ConverterUI() {
 
               <div className="flex justify-center mt-[16px] gap-[12px]">
                 {limitReached && status !== "authed" ? (
-                  <Link href="/signup" className="h-[42px] px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity">
+                  <Button className="h-[42px] px-[24px] rounded-[12px]" onClick={() => setShowSignupPrompt(true)}>
                     Sign up for unlimited conversions
-                  </Link>
+                  </Button>
                 ) : (
                   <>
                     <Button className="h-[42px] px-[32px] rounded-[12px] gap-[8px]" onClick={handleConvert} disabled={converting}>
@@ -360,5 +367,7 @@ export function ConverterUI() {
         </div>
       </div>
     </section>
+    {showSignupPrompt && <SignupPromptModal onClose={() => setShowSignupPrompt(false)} />}
+    </>
   );
 }

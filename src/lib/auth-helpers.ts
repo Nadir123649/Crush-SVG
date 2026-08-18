@@ -7,17 +7,17 @@ import { createSession } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { toUserDTO } from '@/lib/auth'
 
-export function authPayload(user: UserDoc, sessionId?: string, tokenVersion?: number) {
+export function authPayload(user: UserDoc, sessionId: string, tokenVersion?: number) {
   const payload: Record<string, unknown> = {
     user: toUserDTO(user),
     token: buildTokenPayload({
       id: user._id.toString(),
-      role: 'free',
+      role: user.role ?? 'user',
       sessionId,
       tokenVersion,
     }),
   }
-  if (sessionId) payload.sessionId = sessionId
+  payload.sessionId = sessionId
   return payload
 }
 

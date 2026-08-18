@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     return successResponse({
       conversionsUsed: user.conversionsUsed,
-      remaining: Math.max(0, GUEST_LIMIT - user.conversionsUsed),
+      remaining: null,
       isUnlimited: true,
     })
   }
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     return successResponse({
       conversionsUsed: user.conversionsUsed,
-      remaining: Math.max(0, GUEST_LIMIT - user.conversionsUsed),
+      remaining: null,
       isUnlimited: true,
     })
   }

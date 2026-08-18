@@ -13,10 +13,25 @@ function makeRequest(headers: Record<string, string> = {}): NextRequest {
   return new NextRequest('http://localhost', { headers })
 }
 
+beforeEach(() => {
+  // These tests model a deployment behind a trusted proxy that sets x-forwarded-for.
+  process.env.TRUST_PROXY = 'true'
+})
+
+afterEach(() => {
+  delete process.env.TRUST_PROXY
+})
+
 describe('getClientIp', () => {
-  it('takes the first segment of x-forwarded-for', () => {
+  it('takes the first segment of x-forwarded-for when behind a trusted proxy', () => {
     const req = makeRequest({ 'x-forwarded-for': '203.0.113.5, 10.0.0.1' })
     expect(getClientIp(req)).toBe('203.0.113.5')
+  })
+
+  it('does not trust x-forwarded-for when TRUST_PROXY is unset', () => {
+    delete process.env.TRUST_PROXY
+    const req = makeRequest({ 'x-forwarded-for': '203.0.113.5, 10.0.0.1' })
+    expect(getClientIp(req)).toBeNull()
   })
 
   it('falls back to x-real-ip when x-forwarded-for is absent', () => {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase-admin'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
@@ -93,7 +93,7 @@ export async function POST(
 
     const tokenPair = buildTokenPayload({
       id: user._id.toString(),
-      role: 'free',
+      role: user.role ?? 'user',
       sessionId: session._id.toString(),
       tokenVersion: session.tokenVersion,
     })

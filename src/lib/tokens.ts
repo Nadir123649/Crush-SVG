@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken'
 export interface TokenPair {
   tokenType: 'Bearer'
   accessToken: string
-  accessTokenExpires: jwt.SignOptions['expiresIn']
+  accessTokenExpires: string
   refreshToken: string
-  refreshTokenExpires: jwt.SignOptions['expiresIn']
+  refreshTokenExpires: string
 }
 
 export interface DecodedAccessToken {
@@ -63,9 +63,12 @@ export function generateRefreshToken(input: {
 export function buildTokenPayload(input: {
   id: string
   role: string
-  sessionId?: string
+  sessionId: string
   tokenVersion?: number
 }): TokenPair {
+  if (!input.sessionId) {
+    throw new Error('buildTokenPayload: sessionId is required')
+  }
   return {
     tokenType: 'Bearer',
     accessToken: generateAccessToken({
@@ -73,13 +76,13 @@ export function buildTokenPayload(input: {
       role: input.role,
       sessionId: input.sessionId,
     }),
-    accessTokenExpires: ACCESS_EXPIRES,
+    accessTokenExpires: ACCESS_EXPIRES as string,
     refreshToken: generateRefreshToken({
       id: input.id,
-      sessionId: input.sessionId ?? '',
+      sessionId: input.sessionId,
       tokenVersion: input.tokenVersion,
     }),
-    refreshTokenExpires: REFRESH_EXPIRES,
+    refreshTokenExpires: REFRESH_EXPIRES as string,
   }
 }
 

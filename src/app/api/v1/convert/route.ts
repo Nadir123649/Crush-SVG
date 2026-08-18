@@ -4,30 +4,27 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { convertSchema } from '@/lib/convert-validation'
 import { convertSvgQueued } from '@/lib/conversion-queue'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/conversion-usage'
-import { errorResponse } from '@/lib/api-response'
+import { successResponse, errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   const rl = await checkRateLimit(request, 'convert:svg', 30, 60_000)
   if (!rl.allowed) {
-    return NextResponse.json(
-      { error: 'Too many conversion requests. Try again later.', retryAfterSeconds: rl.retryAfterSeconds },
-      { status: 429, headers: rateLimitHeaders(rl) }
-    )
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many conversion requests. Try again later.', rateLimitHeaders(rl), request)
   }
 
   let body: unknown
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
   }
 
   const parsed = convertSchema.safeParse(body)
   if (!parsed.success) {
     const first = Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Invalid input'
-    return NextResponse.json({ error: first }, { status: 400 })
+    return errorResponse(400, 'validation_error', first, undefined, request)
   }
 
   const usage = await getConversionUsage(request)
@@ -35,7 +32,9 @@ export async function POST(request: NextRequest) {
     return errorResponse(
       429,
       'limit_reached',
-      "You've used your 3 free conversions. Create a free account to keep converting."
+      "You've used your 3 free conversions. Create a free account to keep converting.",
+      undefined,
+      request
     )
   }
 
@@ -67,46 +66,40 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json(
+    return successResponse(
       {
-        success: true,
-        version: '1.0.0',
-        payload: {
-          data: base64,
-          mimeType,
-          size: result.buffer.length,
-          format,
-          width: result.width,
-          height: result.height,
-          conversionsUsed,
-          remaining,
-        },
-        serverTimestamp: new Date().toISOString(),
+        data: base64,
+        mimeType,
+        size: result.buffer.length,
+        format,
+        width: result.width,
+        height: result.height,
+        conversionsUsed,
+        remaining,
       },
-      { status: 200 }
+      200,
+      undefined,
+      request
     )
   } catch (error) {
     console.error('SVG conversion failed:', error)
 
     if (error instanceof Error) {
       if (error.message.includes('Input buffer contains unsupported image format')) {
-        return NextResponse.json(
-          { error: 'That doesn\'t look like valid SVG — check your code and try again.' },
-          { status: 422 }
+        return errorResponse(
+          422,
+          'invalid_svg',
+          "That doesn't look like valid SVG — check your code and try again.",
+          undefined,
+          request
         )
       }
       if (error.message.includes('limitInputPixels')) {
-        return NextResponse.json(
-          { error: 'SVG dimensions too large. Maximum 8192px.' },
-          { status: 422 }
-        )
+        return errorResponse(422, 'svg_too_large', 'SVG dimensions too large. Maximum 8192px.', undefined, request)
       }
     }
 
-    return NextResponse.json(
-      { error: 'Conversion failed. Please try again.' },
-      { status: 500 }
-    )
+    return errorResponse(500, 'conversion_failed', 'Conversion failed. Please try again.', undefined, request)
   }
 }
 

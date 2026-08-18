@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Worker } from 'bullmq'
 
 import { convertSvg } from '../src/lib/svg-convert'

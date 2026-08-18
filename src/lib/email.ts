@@ -42,6 +42,12 @@ function smtpTransportOptions(env: NodeJS.ProcessEnv) {
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const env = process.env
   const from = resolveFrom(env)
+
+  if (env.NODE_ENV === 'development') {
+    console.log(`[email:dev] to=${to} subject="${subject}" transport=${resolveTransport(env)} (no-op)`)
+    return
+  }
+
   if (resolveTransport(env) === 'resend') {
     const resend = new Resend(env.RESEND_API_KEY)
     const { error } = await resend.emails.send({ from, to, subject, html })
