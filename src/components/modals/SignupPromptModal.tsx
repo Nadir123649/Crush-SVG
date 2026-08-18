@@ -30,7 +30,16 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
         className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] flex flex-col items-center overflow-hidden px-[32px] pb-[32px]"
         style={{ boxShadow: "0px 4px 50px rgba(0, 0, 0, 0.08)" }}
       >
-
+        <button
+          onClick={onClose}
+          className="absolute top-[16px] right-[16px] w-[24px] h-[24px] flex items-center justify-center text-[#64748B] hover:text-[#333333] transition-colors"
+          aria-label="Close"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
 
         <div className="flex items-center gap-[4px] mt-[40px]">
           <Image src={IMAGES.logo} alt="CrushSVG Icon" width={26} height={26} className="object-contain" />
