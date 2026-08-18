@@ -381,7 +381,7 @@ export function ConverterUI() {
                               key={opt}
                               role="option"
                               aria-selected={selectedWidth === opt}
-                              onClick={() => { setSelectedWidth(opt); setSelectedScale("1x"); setOpenDropdown(null); resetConversion(); }}
+                              onClick={() => { setSelectedWidth(opt); setOpenDropdown(null); resetConversion(); }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
                               {opt}
