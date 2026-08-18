@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/sessions", "/verify", "/reset-password"],
       },
     ],
-    sitemap: "https://crushsvg.com/sitemap.xml",
+    sitemap: "https://crush-svg.vercel.app/sitemap.xml",
   };
 }
