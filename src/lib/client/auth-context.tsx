@@ -51,6 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>(() => {
     if (typeof window !== 'undefined') {
       try {
+        const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
+        if (storedStatus === 'authed' || storedStatus === 'guest') {
+          return storedStatus
+        }
         const storedUser = localStorage.getItem('crush_user')
         return storedUser ? 'authed' : 'loading'
       } catch {}
@@ -67,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage')
+      sessionStorage.setItem('crush_auth_status', 'authed')
     }
   }, [])
 
@@ -79,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
       localStorage.removeItem('crush_usage')
+      sessionStorage.setItem('crush_auth_status', 'guest')
     }
   }, [])
 
@@ -93,6 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return
       if (!ok) {
         setStatus('guest')
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('crush_auth_status', 'guest')
+        }
         return
       }
 
@@ -105,7 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionId: getSessionId() ?? undefined,
         })
       } catch {
-        if (!cancelled) setStatus('guest')
+        if (!cancelled) {
+          setStatus('guest')
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('crush_auth_status', 'guest')
+          }
+        }
       }
     })()
 

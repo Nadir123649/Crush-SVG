@@ -183,11 +183,11 @@ export function Footer() {
           </span>
         </div>
         <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">
-          <Link href="/terms" className="hover:text-brand-primary transition-colors">Terms</Link>
+          <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="hover:text-brand-primary transition-colors">Terms</Link>
           <span className="mx-[8px]">•</span>
-          <Link href="/privacy-policy" className="hover:text-brand-primary transition-colors">Privacy</Link>
+          <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="hover:text-brand-primary transition-colors">Privacy</Link>
           <span className="mx-[8px]">•</span>
-          <Link href="/contact-us" className="hover:text-brand-primary transition-colors">Support</Link>
+          <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="hover:text-brand-primary transition-colors">Support</Link>
         </div>
       </div>
     </footer>
