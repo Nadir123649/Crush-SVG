@@ -116,6 +116,12 @@ export async function getSessionRemember(sessionId: string): Promise<boolean> {
   return doc?.remember ?? true
 }
 
+export async function wasSessionRotatedWithin(sessionId: string, ms: number): Promise<boolean> {
+  const doc = await Session.findById(sessionId)
+  if (!doc?.rotatedAt) return false
+  return Date.now() - doc.rotatedAt.getTime() < ms
+}
+
 export async function rotateSession(
   sessionId: string,
   expectedVersion: number,

@@ -106,19 +106,48 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('SVG conversion failed:', error)
 
-    if (error instanceof Error) {
-      if (error.message.includes('Input buffer contains unsupported image format')) {
-        return errorResponse(
-          422,
-          'invalid_svg',
-          "That doesn't look like valid SVG — check your code and try again.",
-          undefined,
-          request
-        )
-      }
-      if (error.message.includes('limitInputPixels')) {
-        return errorResponse(422, 'svg_too_large', 'SVG dimensions too large. Maximum 8192px.', undefined, request)
-      }
+    const message = error instanceof Error ? error.message : ''
+    if (message.includes('Input buffer contains unsupported image format')) {
+      return errorResponse(
+        422,
+        'invalid_svg',
+        "That doesn't look like valid SVG — check your code and try again.",
+        undefined,
+        request
+      )
+    }
+    if (/corrupt header|xml parse error/i.test(message)) {
+      return errorResponse(
+        422,
+        'invalid_svg',
+        "Your SVG markup is malformed — check for unclosed tags or mismatched quotes and try again.",
+        undefined,
+        request
+      )
+    }
+    if (message.includes('limitInputPixels')) {
+      return errorResponse(422, 'svg_too_large', 'SVG dimensions too large. Maximum 8192px.', undefined, request)
+    }
+    if (/unable to load font|fontconfig|no fonts found/i.test(message)) {
+      return errorResponse(
+        422,
+        'svg_font_error',
+        "Your SVG uses a font that isn't available on the server — convert text to paths (outline the font) or use a standard web font.",
+        undefined,
+        request
+      )
+    }
+    if (/out of memory|unable to allocate|enomem/i.test(message)) {
+      return errorResponse(
+        422,
+        'svg_too_complex',
+        'SVG is too complex to render — try a smaller size or simplify the image.',
+        undefined,
+        request
+      )
+    }
+    if (/timed out|timeout/i.test(message)) {
+      return errorResponse(503, 'conversion_timed_out', 'Conversion took too long. Please try again.', undefined, request)
     }
 
     return errorResponse(500, 'conversion_failed', 'Conversion failed. Please try again.', undefined, request)

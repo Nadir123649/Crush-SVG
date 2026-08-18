@@ -104,10 +104,15 @@ export async function convertSvg(
 
   let targetWidth: number | undefined
   let targetHeight: number | undefined
+  let fit: 'contain' | 'inside' = 'inside'
 
   if (options.width && options.height) {
+    // Exact custom size: canvas is always the requested dimensions; the image
+    // fits inside undistorted and any remaining space is padded (transparent
+    // for PNG, white for JPEG/flattened output).
     targetWidth = Math.round(options.width)
     targetHeight = Math.round(options.height)
+    fit = 'contain'
   } else if (options.width) {
     targetWidth = Math.round(options.width)
     if (svgWidth && svgHeight) {
@@ -127,8 +132,9 @@ export async function convertSvg(
     pipeline.resize({
       width: targetWidth,
       height: targetHeight,
-      fit: 'inside',
+      fit,
       withoutEnlargement: false,
+      background: { r: 255, g: 255, b: 255, alpha: options.transparent === false || format === 'jpeg' ? 1 : 0 },
     })
   }
 

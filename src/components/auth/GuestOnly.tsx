@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type ReactNode } from "react";
+import React, { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/client/auth-context";
 
@@ -12,12 +12,13 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   const { status } = useAuth();
   const router = useRouter();
 
-  if (status === "authed") {
-    router.replace("/");
-    return null;
-  }
+  useEffect(() => {
+    if (status === "authed") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
-  if (status === "loading") {
+  if (status === "authed" || status === "loading") {
     return null;
   }
 

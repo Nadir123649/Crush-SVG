@@ -14,6 +14,8 @@ import type { UsageInfo } from "@/lib/shared-types";
 const WIDTH_OPTIONS = ["Original", "120px", "240px", "480px", "720px", "1080px", "1920px", "2560px", "3840px"];
 const SCALE_OPTIONS = ["1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PX_PER_CM = 96 / 2.54;
+const MAX_CUSTOM_PX = 4000;
+const MAX_CUSTOM_CM = MAX_CUSTOM_PX / PX_PER_CM;
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -129,8 +131,8 @@ export function ConverterUI() {
       const toPx = customUnit === "cm" ? (v: number) => v * PX_PER_CM : (v: number) => v;
       const wPx = Math.round(toPx(w));
       const hPx = Math.round(toPx(h));
-      if (wPx < 1 || wPx > 8192 || hPx < 1 || hPx > 8192) {
-        setError("Custom size must be between 1 and 8192 px per side.");
+      if (wPx < 1 || wPx > MAX_CUSTOM_PX || hPx < 1 || hPx > MAX_CUSTOM_PX) {
+        setError(`Custom size must be between 1 and ${MAX_CUSTOM_PX} px per side (max ${MAX_CUSTOM_CM.toFixed(1)} cm).`);
         return;
       }
       options.width = wPx;
@@ -263,7 +265,7 @@ export function ConverterUI() {
             <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[16px] md:p-[24px]">
               {previewUrl ? (
                 <>
-                  <img src={previewUrl} alt="SVG preview" className="max-w-full max-h-full object-contain" />
+                  <img src={previewUrl} alt="SVG preview" className="max-w-full max-h-full w-auto h-auto object-contain" />
                   {previewIsConverted && (
                     <span className="absolute top-[10px] left-[10px] rounded-[6px] bg-green-100 text-green-700 font-body font-medium text-[12px] px-[10px] py-[4px]">
                       Converted PNG
@@ -401,6 +403,7 @@ export function ConverterUI() {
                     <input
                       type="number"
                       min={1}
+                      max={customUnit === "cm" ? MAX_CUSTOM_CM : MAX_CUSTOM_PX}
                       step="any"
                       value={customWidth}
                       onChange={(e) => setCustomWidth(e.target.value)}
@@ -416,6 +419,7 @@ export function ConverterUI() {
                     <input
                       type="number"
                       min={1}
+                      max={customUnit === "cm" ? MAX_CUSTOM_CM : MAX_CUSTOM_PX}
                       step="any"
                       value={customHeight}
                       onChange={(e) => setCustomHeight(e.target.value)}

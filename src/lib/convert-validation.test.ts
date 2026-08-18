@@ -12,8 +12,8 @@ describe('convertSchema', () => {
     }
   })
 
-  it('rejects heights outside 1-8192', () => {
-    const tooBig = convertSchema.safeParse({ svg: '<svg></svg>', width: 400, height: 9000 })
+  it('rejects heights outside 1-4000', () => {
+    const tooBig = convertSchema.safeParse({ svg: '<svg></svg>', width: 400, height: 5000 })
     expect(tooBig.success).toBe(false)
 
     const tooSmall = convertSchema.safeParse({ svg: '<svg></svg>', width: 400, height: 0 })
