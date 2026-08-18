@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
+import { IMAGES } from "@/lib/images";
 
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -54,12 +56,13 @@ export function FAQ() {
                 <h3 className="font-heading font-medium text-[15px] md:text-[18px] text-text-dark">
                   {faq.question}
                 </h3>
-                <svg 
-                  viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg"
-                  className={`w-[12px] h-[9px] md:w-[16px] md:h-[12px] transform transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
-                >
-                  <path d="M8 12L0 0L16 0L8 12Z" fill="#D94A1E"/>
-                </svg>
+                <Image
+                  src={IMAGES.dropdown}
+                  alt="Toggle FAQ"
+                  width={16}
+                  height={12}
+                  className={`w-[12px] h-[9px] md:w-[16px] md:h-[12px] object-contain transform transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+                />
               </div>
               <div 
                 className={`grid transition-all duration-300 ease-in-out ${

@@ -44,7 +44,7 @@ export default function ContactUsPage() {
             <textarea 
               placeholder="How can we help you?"
               rows={5}
-              className="w-full rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent p-[14px] font-afacad text-[14px] outline-none focus:border-brand-primary placeholder:text-[#AEAEAE] transition-colors resize-y"
+              className="w-full rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent p-[14px] font-afacad text-[14px] outline-none focus:border-brand-primary placeholder:text-[#AEAEAE] transition-colors resize-none overflow-y-auto"
             ></textarea>
           </div>
 
@@ -56,7 +56,7 @@ export default function ContactUsPage() {
           </button>
         </form>
 
-        <div className="w-full flex items-center justify-center gap-[8px] mt-[32px] pt-[24px] border-t border-[#F2EDE8]">
+        <div className="w-full flex items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
           <span className="font-afacad text-[16px] text-text-muted">Or email us at:</span>
           <a href="mailto:support@crushsvg.com" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
             support@crushsvg.com
