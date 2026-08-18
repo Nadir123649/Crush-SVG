@@ -1,9 +1,29 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import Link from "next/link";
 
 export function Footer() {
+  const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      e.preventDefault();
+      const element = document.getElementById(hash.replace("#", ""));
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.history.pushState(null, "", `/${hash}`);
+      }
+    }
+  };
+
+  const handlePageClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (typeof window !== "undefined" && window.location.pathname === href) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[40px] lg:px-[80px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
@@ -59,23 +79,23 @@ export function Footer() {
           {/* Column 1 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Explore</h4>
-            <Link href="/#converter" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG to PNG Converter</Link>
-            <Link href="/#features" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Features</Link>
-            <Link href="/#how-it-works" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">How It Works</Link>
+            <Link href="/#converter" onClick={(e) => handleHashClick(e, '#converter')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG to PNG Converter</Link>
+            <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Features</Link>
+            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">How It Works</Link>
           </div>
           {/* Column 2 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Resources</h4>
             <Link href="https://developer.mozilla.org/en-US/docs/Web/SVG/Guides" target="_blank" rel="noopener noreferrer" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG Guides</Link>
-            <Link href="/#faq" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
-            <Link href="/contact-us" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
+            <Link href="/#faq" onClick={(e) => handleHashClick(e, '#faq')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
+            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
           </div>
           {/* Column 3 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Company</h4>
-            <Link href="/about" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">About Us</Link>
-            <Link href="/privacy-policy" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Cookies</Link>
-            <Link href="/terms" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Terms of Service</Link>
+            <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">About Us</Link>
+            <Link href="/cookies" onClick={(e) => handlePageClick(e, '/cookies')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Cookies</Link>
+            <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
 
@@ -144,9 +164,14 @@ export function Footer() {
 
       {/* Bottom Footer */}
       <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
-        <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
-          © 2026 CrushSVG. All rights reserved.
-        </span>
+        <div className="flex flex-col items-center md:items-start gap-[8px]">
+          <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
+            © 2026 CrushSVG. All rights reserved.
+          </span>
+          <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
+            Powered by The Nevon
+          </span>
+        </div>
         <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">
           <Link href="/terms" className="hover:text-brand-primary transition-colors">Terms</Link>
           <span className="mx-[8px]">•</span>
