@@ -68,5 +68,5 @@ export async function convertSvgQueued(
       removeOnFail: { count: 500 },
     }
   )
-  return job.waitUntilFinished(await getQueueEvents())
+  return job.waitUntilFinished(await getQueueEvents(), 120_000)
 }

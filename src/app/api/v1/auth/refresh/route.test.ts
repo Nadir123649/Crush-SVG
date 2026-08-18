@@ -19,7 +19,7 @@ vi.mock('@/lib/sessions', () => ({
 }))
 vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 vi.mock('@/lib/db', () => ({
-  Session: { findOne: mocks.sessionFindOne },
+  Session: { findOne: mocks.sessionFindOne, updateOne: vi.fn().mockResolvedValue({ modifiedCount: 1 }) },
   User: { findById: mocks.usersFindById },
 }))
 
@@ -59,7 +59,7 @@ beforeEach(() => {
   mocks.buildTokenPayload.mockReturnValue(fakeTokenPair())
   mocks.sessionFindOne.mockResolvedValue(null)
   mocks.rotateSession.mockResolvedValue({ rotated: true, currentVersion: 1, remember: true })
-  mocks.usersFindById.mockResolvedValue({ _id: new Types.ObjectId(USER_ID), uid: 'uid-1' })
+  mocks.usersFindById.mockResolvedValue({ _id: new Types.ObjectId(USER_ID), uid: 'uid-1', role: 'user' })
 })
 
 describe('POST /api/v1/auth/refresh', () => {
@@ -93,7 +93,7 @@ describe('POST /api/v1/auth/refresh', () => {
     expect(mocks.rotateSession).toHaveBeenCalledWith(SESSION_ID, 0, USER_ID)
     expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
       id: USER_ID,
-      role: 'free',
+      role: 'user',
       sessionId: SESSION_ID,
       tokenVersion: 1,
     })
@@ -103,7 +103,7 @@ describe('POST /api/v1/auth/refresh', () => {
     expect(cookie?.maxAge).toBe(7 * 24 * 60 * 60)
   })
 
-  it('re-issues at current version when session alive despite stale version', async () => {
+  it('revokes the session and returns 401 when rotation fails on a stale version (token reuse)', async () => {
     mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 2, remember: false })
     mocks.sessionFindOne.mockResolvedValue({
       _id: new Types.ObjectId(SESSION_ID),
@@ -111,16 +111,12 @@ describe('POST /api/v1/auth/refresh', () => {
       status: 'active',
     })
     const res = await post('stale-refresh')
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(401)
     const body = await res.json()
-    expect(body.success).toBe(true)
-    expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
-      id: USER_ID,
-      role: 'free',
-      sessionId: SESSION_ID,
-      tokenVersion: 2,
-    })
-    expect(res.cookies.get('crushsvg_refresh')?.value).toBe('refresh-token')
+    expect(body.success).toBe(false)
+    expect(body.payload.error.code).toBe('session_revoked')
+    expect(res.cookies.get('crushsvg_refresh')?.value).toBe('')
+    expect(mocks.buildTokenPayload).not.toHaveBeenCalled()
   })
 
   it('does not set maxAge when session remember is false', async () => {

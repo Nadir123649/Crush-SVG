@@ -90,6 +90,7 @@ export interface SessionResponse {
     refreshToken: string
     refreshTokenExpires: string
   }
+  sessionId: string
 }
 
 export async function exchangeIdToken(rememberMe = true): Promise<SessionResponse> {

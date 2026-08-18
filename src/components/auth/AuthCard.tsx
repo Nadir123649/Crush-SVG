@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { IMAGES } from "@/lib/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase-client";
+import { ApiError } from "@/lib/client/http";
 
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -32,28 +33,34 @@ export function AuthCard({ type }: AuthCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [verificationSent, setVerificationSent] = useState(false);
   const [resendDone, setResendDone] = useState(false);
+  const [verificationRequired, setVerificationRequired] = useState(false);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setVerificationRequired(false);
     setSubmitting("email");
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
-        addToast("Logged in successfully");
         router.push("/");
       } else {
         await register(name, email, password);
         setVerificationSent(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      if (err instanceof ApiError && err.code === "email_not_verified") {
+        setVerificationRequired(true);
+        setError(err.message);
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      }
     } finally {
       setSubmitting(null);
     }
   }
 
-  async function handleOAuth(provider: OAuthProvider) {
+async function handleOAuth(provider: OAuthProvider) {
     setError(null);
     setSubmitting(provider);
     try {
@@ -61,7 +68,10 @@ export function AuthCard({ type }: AuthCardProps) {
       addToast("Logged in successfully");
       router.push("/");
     } catch (err) {
-      setError(getErrorMessage(err));
+      // Closing the popup is a cancellation, not an error — keep the form clean.
+      if (getErrorMessage(err) !== "Sign-in was cancelled") {
+        setError(getErrorMessage(err));
+      }
     } finally {
       setSubmitting(null);
     }
@@ -169,11 +179,11 @@ export function AuthCard({ type }: AuthCardProps) {
                 id="auth-password"
                 type={showPassword ? "text" : "password"}
                 required
-                minLength={6}
+                minLength={8}
                 maxLength={20}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Enter password (8–20 characters)"
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
@@ -220,12 +230,22 @@ export function AuthCard({ type }: AuthCardProps) {
               className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[13px] leading-[18px] text-red-700"
             >
               {error}
+              {isLogin && verificationRequired && (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendDone}
+                  className="block mt-[6px] font-afacad font-medium text-[13px] text-[#D94A1E] hover:underline disabled:text-[#AEAEAE]"
+                >
+                  {resendDone ? "Verification email sent again" : "Resend verification email"}
+                </button>
+              )}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={submitting !== null}
+            disabled={submitting === "email"}
             className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {submitLabel}
@@ -243,7 +263,7 @@ export function AuthCard({ type }: AuthCardProps) {
           <button 
             type="button" 
             onClick={() => handleOAuth("google")} 
-            disabled={submitting !== null}
+            disabled={submitting === "email" || submitting === "google"}
             className="flex items-center justify-center w-full h-[34px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
@@ -266,20 +286,22 @@ export function AuthCard({ type }: AuthCardProps) {
             <button 
               type="button" 
               onClick={() => handleOAuth("github")}
-              disabled={submitting !== null}
+              disabled={submitting === "email" || submitting === "github"}
               className="hover:opacity-80 transition-opacity disabled:opacity-50"
               aria-label="Continue with GitHub"
             >
               <Image src={IMAGES.githubLogin} alt="GitHub" width={32} height={32} className="object-contain" />
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => handleOAuth("x")}
-              disabled={submitting !== null}
-              className="hover:opacity-80 transition-opacity disabled:opacity-50"
-              aria-label="Continue with X (Twitter)"
+              disabled
+              aria-disabled="true"
+              title="X login coming soon"
+              className="opacity-40 cursor-not-allowed"
+              aria-label="Continue with X (coming soon)"
             >
-              <Image src={IMAGES.twitterLogin} alt="Twitter" width={32} height={32} className="object-contain" />
+              <Image src={IMAGES.twitterLogin} alt="" width={32} height={32} className="object-contain" />
             </button>
           </div>
         </div>

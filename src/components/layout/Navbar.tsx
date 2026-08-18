@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,11 +10,16 @@ import { useAuth } from "@/lib/client/auth-context";
 import { useToast } from "@/components/ui/ToastProvider";
 
 export function Navbar() {
-  const { user, status, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { addToast } = useToast();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -40,11 +45,9 @@ export function Navbar() {
     router.refresh();
   }
 
-  const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };

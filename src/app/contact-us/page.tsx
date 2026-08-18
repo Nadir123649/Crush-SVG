@@ -12,7 +12,7 @@ export default function ContactUsPage() {
           Contact <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Us</span>
         </h1>
         <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5]">
-          Have questions, feedback, or need assistance? We'd love to hear from you. Fill out the form below or reach out to us directly.
+          Have questions, feedback, or need assistance? We&apos;d love to hear from you. Fill out the form below or reach out to us directly.
         </p>
       </div>
 

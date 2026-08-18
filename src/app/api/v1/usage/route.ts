@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { trackUsageSchema } from '@/lib/validation'
 import { User } from '@/lib/db'
-import { getGuestId, getGuestUsage, incrementGuestUsage } from '@/lib/guest-usage'
+import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME } from '@/lib/guest-usage'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'validation_error', first)
   }
 
-  const { guestId, isAuthenticated } = parsed.data
+  const { isAuthenticated } = parsed.data
 
   if (isAuthenticated) {
     const who = await auth(request)
@@ -49,36 +49,34 @@ export async function POST(request: NextRequest) {
 
     return successResponse({
       conversionsUsed: user.conversionsUsed,
-      remaining: Math.max(0, GUEST_LIMIT - user.conversionsUsed),
+      remaining: null,
       isUnlimited: true,
     })
   }
 
+  const { guestId, setCookie } = ensureGuestId(request)
   if (!guestId) {
-    const clientIp = getGuestId(request)
-    if (!clientIp) {
-      return errorResponse(400, '', '', undefined, request)
-    }
-    const usage = await incrementGuestUsage(clientIp)
-    const remaining = Math.max(0, GUEST_LIMIT - usage)
-
-    return successResponse({
-      conversionsUsed: usage,
-      remaining,
-      isUnlimited: false,
-      limitReached: usage >= GUEST_LIMIT,
-    })
+    return errorResponse(400, '', '', undefined, request)
   }
-
-  const usage = await getGuestUsage(guestId)
+  const usage = await incrementGuestUsage(guestId)
   const remaining = Math.max(0, GUEST_LIMIT - usage)
 
-  return successResponse({
+  const res = successResponse({
     conversionsUsed: usage,
     remaining,
     isUnlimited: false,
     limitReached: usage >= GUEST_LIMIT,
   })
+  if (setCookie) {
+    res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+      httpOnly: true,
+      secure: setCookie.secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: setCookie.maxAge,
+    })
+  }
+  return res
 }
 
 export async function GET(request: NextRequest) {
@@ -102,12 +100,12 @@ export async function GET(request: NextRequest) {
 
     return successResponse({
       conversionsUsed: user.conversionsUsed,
-      remaining: Math.max(0, GUEST_LIMIT - user.conversionsUsed),
+      remaining: null,
       isUnlimited: true,
     })
   }
 
-  const guestId = getGuestId(request)
+  const { guestId, setCookie } = ensureGuestId(request)
   if (!guestId) {
     return errorResponse(400, '', '', undefined, request)
   }
@@ -115,10 +113,20 @@ export async function GET(request: NextRequest) {
   const usage = await getGuestUsage(guestId)
   const remaining = Math.max(0, GUEST_LIMIT - usage)
 
-  return successResponse({
+  const res = successResponse({
     conversionsUsed: usage,
     remaining,
     isUnlimited: false,
     limitReached: usage >= GUEST_LIMIT,
   })
+  if (setCookie) {
+    res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+      httpOnly: true,
+      secure: setCookie.secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: setCookie.maxAge,
+    })
+  }
+  return res
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
+import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
 import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertResponse } from "@/lib/client/converter";
+import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
 
@@ -38,13 +39,19 @@ export function ConverterUI() {
   const [usage, setUsage] = useState<UsageInfo | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('crush_usage');
-      if (stored) setUsage(JSON.parse(stored));
-    } catch {}
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const stored = localStorage.getItem('crush_usage');
+        if (stored) setUsage(JSON.parse(stored));
+      } catch {}
+    });
+    return () => { cancelled = true };
   }, []);
   const [dragOver, setDragOver] = useState(false);
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,11 +124,11 @@ export function ConverterUI() {
     }
   }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
     void handleFile(e.dataTransfer.files?.[0]);
-  }, []);
+  }
 
   async function handleConvert() {
     setError(null);
@@ -145,6 +152,10 @@ export function ConverterUI() {
         });
       }
     } catch (err) {
+      if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
+        setShowSignupPrompt(true);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Conversion failed. Please try again.");
     } finally {
       setConverting(false);
@@ -166,6 +177,7 @@ export function ConverterUI() {
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
 
   return (
+    <>
     <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
       {/* Outer Dashed Border Box */}
       <div className="w-full h-auto lg:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
@@ -312,7 +324,7 @@ export function ConverterUI() {
                 {/* Scale Input */}
                 <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
                   <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
                     aria-haspopup="listbox"
@@ -324,7 +336,13 @@ export function ConverterUI() {
                       <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
-                  
+
+                  {selectedWidth !== "Original" && (
+                    <p className="font-body text-[11px] md:text-[12px] text-[#A1A1AA]">
+                      Applies when Width is &quot;Original&quot;
+                    </p>
+                  )}
+
                   {/* Scale Dropdown Menu */}
                   {openDropdown === "scale" && (
                     <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
@@ -368,9 +386,13 @@ export function ConverterUI() {
               {/* Action Buttons Row */}
               <div className="flex justify-center mt-[16px]">
                 {limitReached && status !== "authed" ? (
-                  <Link href="/signup" className="w-full md:w-auto h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={() => setShowSignupPrompt(true)}
+                    className="w-full md:w-auto h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                  >
                     Sign up for unlimited conversions
-                  </Link>
+                  </button>
                 ) : (
                   <Button 
                     className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
@@ -410,5 +432,7 @@ export function ConverterUI() {
         </div>
       </div>
     </section>
+    {showSignupPrompt && status !== "authed" && <SignupPromptModal onClose={() => setShowSignupPrompt(false)} />}
+    </>
   );
 }

@@ -16,6 +16,7 @@ export function toUserDTO(user: UserDoc): UserDTO {
     photoURL: user.photoURL,
     providers: user.providers,
     linkedProviders: user.linkedProviders ?? user.providers,
+    role: user.role ?? 'user',
     hasPassword: !!user.password,
     isVerified: user.isVerified ?? false,
     conversionsUsed: user.conversionsUsed,

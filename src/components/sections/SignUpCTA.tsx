@@ -1,10 +1,19 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import { useAuth } from "@/lib/client/auth-context";
 
 export function SignUpCTA() {
+  const { status } = useAuth();
+
+  // If user is authenticated, they don't need the signup CTA
+  if (status === "authed") {
+    return null;
+  }
   return (
     <section className="w-full flex justify-center mb-[60px] md:mb-[100px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center gap-[40px]">

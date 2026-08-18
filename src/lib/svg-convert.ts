@@ -33,6 +33,7 @@ export function sanitizeSvg(svg: string): string {
   sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
   sanitized = sanitized.replace(/javascript:/gi, '')
   sanitized = sanitized.replace(/vbscript:/gi, '')
+  sanitized = sanitized.replace(/data:/gi, '')
   sanitized = sanitized.replace(/expression\s*\(/gi, '')
 
   // Fix for Figma image patterns (librsvg bug where <use> cannot reference <image> reliably)
@@ -61,8 +62,8 @@ export function sanitizeSvg(svg: string): string {
 }
 
 export function parseSvgForSharp(svg: string): { width?: number; height?: number } {
-  const widthMatch = svg.match(/width\s*=\s*["']?([\d.]+)["']?/i)
-  const heightMatch = svg.match(/height\s*=\s*["']?([\d.]+)["']?/i)
+  const widthMatch = svg.match(/<svg[^>]*\bwidth\s*=\s*["']?([\d.]+)(px)?["']?/i)
+  const heightMatch = svg.match(/<svg[^>]*\bheight\s*=\s*["']?([\d.]+)(px)?["']?/i)
 
   if (widthMatch && heightMatch) {
     return {
@@ -72,12 +73,12 @@ export function parseSvgForSharp(svg: string): { width?: number; height?: number
   }
 
   const viewBoxMatch = svg.match(
-    /viewBox\s*=\s*["']?\s*[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)\s*["']?/i
+    /viewBox\s*=\s*["']?\s*(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)\s*["']?/i
   )
   if (viewBoxMatch) {
     return {
-      width: parseFloat(viewBoxMatch[1]),
-      height: parseFloat(viewBoxMatch[2]),
+      width: parseFloat(viewBoxMatch[3]),
+      height: parseFloat(viewBoxMatch[4]),
     }
   }
 
@@ -100,16 +101,17 @@ export async function convertSvg(
 
   const { width: svgWidth, height: svgHeight } = parseSvgForSharp(sanitizedSvg)
 
-  let targetWidth = options.width
+  let targetWidth: number | undefined
   let targetHeight: number | undefined
 
-  if (targetWidth && svgWidth && svgHeight) {
-    targetHeight = Math.round((targetWidth / svgWidth) * svgHeight)
-  } else if (!targetWidth && svgWidth) {
-    targetWidth = Math.round(svgWidth * scale)
-    if (svgHeight) {
-      targetHeight = Math.round(svgHeight * scale)
+  if (options.width) {
+    targetWidth = Math.round(options.width)
+    if (svgWidth && svgHeight) {
+      targetHeight = Math.round((targetWidth / svgWidth) * svgHeight)
     }
+  } else if (svgWidth && svgHeight) {
+    targetWidth = Math.round(svgWidth * scale)
+    targetHeight = Math.round(svgHeight * scale)
   }
 
   const pipeline = sharp(svgBuffer, {
@@ -126,6 +128,10 @@ export async function convertSvg(
     })
   }
 
+  if (options.transparent === false || format === 'jpeg') {
+    pipeline.flatten({ background: { r: 255, g: 255, b: 255 } })
+  }
+
   if (format === 'png') {
     pipeline.png({
       quality,
@@ -138,9 +144,6 @@ export async function convertSvg(
       progressive: true,
       mozjpeg: true,
     })
-    if (options.transparent === false) {
-      pipeline.flatten({ background: { r: 255, g: 255, b: 255 } })
-    }
   } else if (format === 'webp') {
     pipeline.webp({
       quality,

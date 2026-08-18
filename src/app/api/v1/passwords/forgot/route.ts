@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   const email = parsed.data.email.toLowerCase().trim()
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email, password: { $exists: true } })
   if (!user) return successResponse({ message: GENERIC_MESSAGE })
 
   const token = generateToken()
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   )
 
   const resetUrl = `${getOrigin(request)}/reset-password/${token}`
-  void sendResetPasswordEmail(email, resetUrl, RESET_TOKEN_MINUTES).catch((e) => {
+  void sendResetPasswordEmail(email, resetUrl).catch((e) => {
     console.error('Reset password email failed to send:', e)
   })
   if (process.env.NODE_ENV !== 'production') {

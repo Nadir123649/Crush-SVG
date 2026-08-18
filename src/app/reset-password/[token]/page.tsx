@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { apiFetch } from "@/lib/client/http";
+import { apiFetch, ApiError } from "@/lib/client/http";
+import { GuestOnly } from "@/components/auth/GuestOnly";
 
 type TokenState = "checking" | "valid" | "invalid";
 
@@ -46,6 +47,12 @@ export default function ResetPasswordPage() {
       });
       setDone(true);
     } catch (err) {
+      // Using the current password is a validation error, not an invalid link —
+      // keep the form visible so the message is shown.
+      if (err instanceof ApiError && err.code === "same_password") {
+        setError(err.message);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setTokenState("invalid");
     } finally {
@@ -54,7 +61,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="w-full flex justify-center py-[60px]">
+    <GuestOnly>
+      <div className="w-full flex justify-center py-[60px]">
       <div className="relative w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1" aria-label="Back to login">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +85,12 @@ export default function ResetPasswordPage() {
               <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
                 This password reset link is invalid or has expired. Request a new one.
               </p>
+              <Link
+                href="/login"
+                className="font-afacad text-[13px] text-[#4B5563] hover:text-[#D94A1E] mt-[4px]"
+              >
+                Back to login
+              </Link>
               <Link
                 href="/forgot-password"
                 className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
@@ -106,7 +120,7 @@ export default function ResetPasswordPage() {
               <div className="flex flex-col gap-[4px]">
                 <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Choose a new password</h2>
                 <p className="font-afacad text-[14px] text-[#4B5563]">
-                  Pick a strong password you don&apos;t use elsewhere (6–20 characters).
+                  Pick a strong password you don&apos;t use elsewhere (8–20 characters).
                 </p>
               </div>
 
@@ -118,7 +132,7 @@ export default function ResetPasswordPage() {
                       id="rp-password"
                       type={showPassword ? "text" : "password"}
                       required
-                      minLength={6}
+                      minLength={8}
                       maxLength={20}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -141,16 +155,16 @@ export default function ResetPasswordPage() {
 
                 <div className="flex flex-col gap-[4px]">
                   <label htmlFor="rp-confirm" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm password</label>
-                  <input
-                    id="rp-confirm"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    minLength={6}
-                    maxLength={20}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter new password"
-                    autoComplete="new-password"
+                    <input
+                      id="rp-confirm"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={8}
+                      maxLength={20}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter new password"
+                      autoComplete="new-password"
                     className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                   />
                 </div>
@@ -173,6 +187,7 @@ export default function ResetPasswordPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </GuestOnly>
   );
 }
