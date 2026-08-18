@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { svg, format, width, scale, transparent, quality } = parsed.data
+  const { svg, format, width, height, scale, transparent, quality } = parsed.data
 
   try {
-    const result = await convertSvgQueued(svg, { format, width, scale, transparent, quality })
+    const result = await convertSvgQueued(svg, { format, width, height, scale, transparent, quality })
     const base64 = result.buffer.toString('base64')
     const mimeType = `image/${format === 'jpeg' ? 'jpeg' : format}`
 

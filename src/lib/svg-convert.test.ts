@@ -150,4 +150,18 @@ describe('convertSvg width and scale', () => {
     const result = await convertSvg(svg, { width: 200 })
     expect(result.width).toBe(200)
   })
+
+  it('applies an exact width and height when both are given', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="purple"/></svg>'
+    const result = await convertSvg(svg, { width: 400, height: 200 })
+    expect(result.width).toBe(400)
+    expect(result.height).toBe(200)
+  })
+
+  it('fits inside the box without distortion when the aspect ratio differs', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="orange"/></svg>'
+    const result = await convertSvg(svg, { width: 400, height: 400 })
+    expect(result.width).toBe(400)
+    expect(result.height).toBe(200)
+  })
 })
