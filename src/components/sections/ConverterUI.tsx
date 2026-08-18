@@ -52,7 +52,6 @@ export function ConverterUI() {
   const [usage, setUsage] = useState<UsageInfo | null>(null);
 
   const [dragOver, setDragOver] = useState(false);
-  const [previewIsConverted, setPreviewIsConverted] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
@@ -97,26 +96,19 @@ export function ConverterUI() {
     return trimmed.startsWith("<svg") && trimmed.includes("</svg>") && trimmed.endsWith(">");
   }, [svgCode]);
 
-  const showDemoPreview = svgCode === SAMPLE_SVG && !isFocused;
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
 
-  const previewUrl = previewIsConverted && result?.data
-    ? `data:${result.mimeType};base64,${result.data}`
-    : showDemoPreview || showCustomPreview
-      ? previewSvgUrl
-      : "";
+  const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
   function handleSvgChange(value: string) {
     setSvgCode(value);
     setResult(null);
-    setPreviewIsConverted(false);
     setError(null);
     setPreviewError(false);
   }
 
   function resetConversion() {
-    if (previewIsConverted || result) {
-      setPreviewIsConverted(false);
+    if (result) {
       setResult(null);
     }
   }
@@ -193,7 +185,6 @@ export function ConverterUI() {
     try {
       const res = await convertText(svgCode, options);
       setResult(res);
-      setPreviewIsConverted(true);
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         setUsage({
@@ -311,38 +302,31 @@ export function ConverterUI() {
 
             {/* Right Column (Live Preview) */}
             <div className="w-full lg:w-[536.9px] flex flex-col">
-              <h2 className="font-heading font-semibold text-[16px] mb-[12px]" style={{ color: "#64748B" }}>
-                Live Preview
-              </h2>
-
-              {/* Live Preview Box */}
-              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[16px] md:p-[24px]">
-                {previewUrl && !previewError ? (
-                  <>
-                    <img
-                      src={previewUrl}
-                      alt="SVG preview"
-                      className="max-w-full max-h-full w-auto h-auto object-contain"
-                      onError={() => setPreviewError(true)}
-                    />
-                    {previewIsConverted && (
-                      <span className="absolute top-[10px] left-[10px] rounded-[6px] bg-green-100 text-green-700 font-body font-medium text-[12px] px-[10px] py-[4px]">
-                        Converted PNG
-                      </span>
-                    )}
-                  </>
-                ) : null}
+              <div className="flex items-center justify-between mb-[12px]">
+                <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
+                  Live Preview
+                </h2>
               </div>
 
-              {result?.data && (
-                <button
-                  type="button"
-                  onClick={() => setPreviewIsConverted(!previewIsConverted)}
-                  className="self-start font-body font-normal text-[13px] text-brand-primary hover:underline mt-[6px]"
-                >
-                  {previewIsConverted ? "Show original SVG" : "Show converted PNG"}
-                </button>
-              )}
+              {/* Live Preview Box */}
+              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
+                {previewUrl && !previewError ? (
+                  <img
+                    src={previewUrl}
+                    alt="SVG preview"
+                    className="w-full h-full object-contain drop-shadow-md"
+                    onError={() => setPreviewError(true)}
+                  />
+                ) : (
+                  <img
+                    src="/Upload%20image.svg"
+                    alt="Upload placeholder"
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                  />
+                )}
+              </div>
+
+
 
               {/* Settings & Controls */}
               <div className="w-full mt-[16px] md:mt-[20px]" ref={dropdownRef}>
@@ -499,8 +483,8 @@ export function ConverterUI() {
                 )}
 
                 {/* Action Buttons Row */}
-                <div className="flex justify-center mt-[16px]">
-                  {limitReached && status !== "authed" && (limitDownloadDone || !(result?.data && previewIsConverted)) ? (
+                <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
+                  {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                     <button
                       type="button"
                       onClick={() => setShowSignupPrompt(true)}
@@ -508,7 +492,7 @@ export function ConverterUI() {
                     >
                       Sign up for unlimited conversions
                     </button>
-                  ) : result?.data && previewIsConverted ? (
+                  ) : result?.data ? (
                     <Button
                       className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                       onClick={handleDownload}
@@ -523,7 +507,7 @@ export function ConverterUI() {
                     <Button
                       className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                       onClick={handleConvert}
-                      disabled={converting || svgCode.trim() === ""}
+                      disabled={converting}
                     >
                       {converting ? (
                         <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
@@ -538,14 +522,14 @@ export function ConverterUI() {
                       )}
                     </Button>
                   )}
-                </div>
 
-                {result && result.size !== undefined && (
-                  <p className="text-center font-body font-normal text-[12px] md:text-[13px] text-[#64748B] mt-[10px]">
-                    {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
-                    {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
-                  </p>
-                )}
+                  {result && result.size !== undefined && (
+                    <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                      {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
+                      {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
+                    </p>
+                  )}
+                </div>
               </div>
 
             </div>

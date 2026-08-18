@@ -40,7 +40,7 @@ export function FAQ() {
         Frequently Asked <span className="text-brand-primary">Questions</span>
       </h2>
 
-      <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[36px]">
+      <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[24px]">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
           return (
