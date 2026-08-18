@@ -173,12 +173,13 @@ export function Footer() {
 
       {/* Bottom Footer */}
       <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
-        <div className="flex flex-col items-center md:items-start gap-[8px]">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-[8px] md:gap-[12px]">
           <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
             © 2026 CrushSVG. All rights reserved.
           </span>
+          <span className="hidden md:inline font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">|</span>
           <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
-            Powered by The Nevon
+            Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">The Nevon</a>
           </span>
         </div>
         <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">

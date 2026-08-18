@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { useToast } from "@/components/ui/ToastProvider";
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, status, logout } = useAuth();
   const { addToast } = useToast();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,7 +82,7 @@ export function Navbar() {
         </Link>
 
         {/* Right Side Links & Buttons */}
-        {!mounted ? (
+        {!mounted || status === "loading" ? (
           <div className="w-[120px] h-[32px] md:w-[150px] md:h-[42px]" />
         ) : (
           <div className="flex items-center gap-[14px] md:gap-[24px]">

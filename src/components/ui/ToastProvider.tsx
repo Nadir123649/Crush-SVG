@@ -26,8 +26,12 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const activeMessages = React.useRef<Set<string>>(new Set());
 
   const addToast = useCallback((message: string, variant: AlertProps["variant"] = "success") => {
+    if (activeMessages.current.has(message)) return;
+    
+    activeMessages.current.add(message);
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, variant, isClosing: false }]);
 
@@ -38,6 +42,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       );
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
+        activeMessages.current.delete(message);
       }, 300); // Wait for transition to finish
     }, 3500);
   }, []);
