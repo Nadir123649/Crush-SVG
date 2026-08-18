@@ -49,30 +49,26 @@ export async function downloadConverted(
 }
 
 export function parseSvgDimensions(svg: string): { width?: number; height?: number } {
-  const widthMatch = svg.match(/width\s*=\s*["']?([\d.]+)["']?/i)
-  const heightMatch = svg.match(/height\s*=\s*["']?([\d.]+)["']?/i)
-
-  if (widthMatch && heightMatch) {
-    return {
-      width: parseFloat(widthMatch[1]),
-      height: parseFloat(heightMatch[1]),
-    }
-  }
-
-  const viewBoxMatch = svg.match(
-    /viewBox\s*=\s*["']?\s*[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)\s*["']?/i
-  )
+  // First try to find a viewBox, as it's the most reliable source for the aspect ratio and source size
+  const viewBoxMatch = svg.match(/viewBox\s*=\s*["']?\s*(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)\s*["']?/i);
+  let vbWidth, vbHeight;
   if (viewBoxMatch) {
-    return {
-      width: parseFloat(viewBoxMatch[1]),
-      height: parseFloat(viewBoxMatch[2]),
-    }
+    vbWidth = parseFloat(viewBoxMatch[3]);
+    vbHeight = parseFloat(viewBoxMatch[4]);
   }
 
-  return {
-    width: widthMatch ? parseFloat(widthMatch[1]) : undefined,
-    height: heightMatch ? parseFloat(heightMatch[1]) : undefined,
+  // Then try to find width and height, but ignore percentages
+  const widthMatch = svg.match(/<svg[^>]*\bwidth\s*=\s*["']?([\d.]+)(px)?["']?/i);
+  const heightMatch = svg.match(/<svg[^>]*\bheight\s*=\s*["']?([\d.]+)(px)?["']?/i);
+
+  const w = widthMatch ? parseFloat(widthMatch[1]) : vbWidth;
+  const h = heightMatch ? parseFloat(heightMatch[1]) : vbHeight;
+
+  if (w && h) {
+    return { width: w, height: h };
   }
+
+  return { width: vbWidth, height: vbHeight };
 }
 
 export function svgToObjectUrl(svg: string): string {

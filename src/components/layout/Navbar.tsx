@@ -41,13 +41,19 @@ export function Navbar() {
   }
 
   const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div className="w-full bg-[#FFFCFA] flex justify-center pt-[24px] md:pt-[40px] pb-[10px] px-[16px] md:px-[80px] z-50 relative">
+    <div className={`w-full flex justify-center z-50 px-[16px] md:px-[80px] transition-all duration-300 sticky top-0 ${isScrolled ? "bg-[#FFFCFA]/95 backdrop-blur-md py-[12px] md:py-[16px]" : "bg-[#FFFCFA] pt-[24px] md:pt-[40px] pb-[10px]"}`}>
       <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-[4px] md:gap-[6px]">
@@ -70,8 +76,8 @@ export function Navbar() {
         ) : (
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href="/help"
-              className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body underline decoration-solid underline-offset-4 hover:text-text-dark transition-colors"
+              href="/contact-us"
+              className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body hover:text-text-dark transition-colors"
             >
               Need Help?
             </Link>
