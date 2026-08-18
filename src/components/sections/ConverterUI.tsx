@@ -124,12 +124,16 @@ export function ConverterUI() {
       setResult(res);
       setPreviewIsConverted(true);
       if (res.remaining !== undefined) {
+        const reached = res.remaining === 0;
         setUsage({
           conversionsUsed: res.conversionsUsed,
           remaining: res.remaining,
           isUnlimited: false,
-          limitReached: res.remaining === 0,
+          limitReached: reached,
         });
+        if (reached && status !== "authed") {
+          setShowSignupPrompt(true);
+        }
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
@@ -363,7 +367,18 @@ export function ConverterUI() {
 
               {/* Action Buttons Row */}
               <div className="flex justify-center mt-[16px]">
-                {limitReached && status !== "authed" ? (
+                {result?.data && previewIsConverted ? (
+                  <Button 
+                    className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
+                    onClick={handleDownload} 
+                    disabled={converting}
+                  >
+                    <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                      <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                      Download PNG
+                    </span>
+                  </Button>
+                ) : limitReached && status !== "authed" ? (
                   <button
                     type="button"
                     onClick={() => setShowSignupPrompt(true)}
@@ -374,18 +389,13 @@ export function ConverterUI() {
                 ) : (
                   <Button 
                     className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
-                    onClick={result?.data && previewIsConverted ? handleDownload : handleConvert} 
+                    onClick={handleConvert} 
                     disabled={converting}
                   >
                     {converting ? (
                       <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
                         <span className="w-[14px] h-[14px] md:w-[16px] md:h-[16px] rounded-full border-[2px] border-white/40 border-t-white animate-spin" />
                         Converting...
-                      </span>
-                    ) : result?.data && previewIsConverted ? (
-                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                        <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                        Download PNG
                       </span>
                     ) : (
                       <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
