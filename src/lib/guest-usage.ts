@@ -5,7 +5,6 @@ import { randomUUID } from 'crypto'
 import { NextRequest } from 'next/server'
 
 import { GuestUsage } from '@/lib/db'
-import { getClientIp } from '@/lib/ip'
 
 export const GUEST_CONVERSION_LIMIT = 3
 
@@ -13,7 +12,7 @@ export const GUEST_COOKIE_NAME = 'gid'
 const GUEST_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 
 export function getGuestId(request: NextRequest): string | null {
-  return request.cookies.get(GUEST_COOKIE_NAME)?.value ?? getClientIp(request) ?? null
+  return request.cookies.get(GUEST_COOKIE_NAME)?.value ?? null
 }
 
 export interface GuestCookieSpec {
@@ -28,11 +27,10 @@ export interface GuestCookieSpec {
 
 /**
  * Returns a stable guest identifier for the request. The signed-out `gid`
- * cookie is the primary key so every visitor gets their own 3-free-conversion
+ * cookie is the only key: every visitor gets their own 3-free-conversion
  * budget — even when many visitors share a client IP (local dev, NAT, office
- * networks). Falls back to the client IP only when cookies are unavailable.
- * When no cookie exists yet, `setCookie` is populated so the caller can attach
- * it to the response.
+ * networks). When no cookie exists yet, a fresh uuid bucket is created and
+ * `setCookie` is populated so the caller can attach it to the response.
  */
 export function ensureGuestId(
   request: NextRequest,
@@ -40,9 +38,6 @@ export function ensureGuestId(
 ): { guestId: string | null; setCookie: GuestCookieSpec | null } {
   const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value
   if (existing) return { guestId: existing, setCookie: null }
-
-  const ip = getClientIp(request)
-  if (ip) return { guestId: ip, setCookie: null }
 
   const guestId = randomUUID()
   return {

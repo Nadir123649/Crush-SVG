@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/rate-limit'
-import { rotateSession } from '@/lib/sessions'
+import { rotateSession, wasSessionRotatedWithin } from '@/lib/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth'
 import { Session, User } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
+
+const ROTATION_GRACE_MS = 60_000
 
 function rateLimitedResponse(rl: RateLimitResult) {
   return NextResponse.json(
@@ -62,22 +64,30 @@ export async function POST(request: NextRequest) {
     return errorResponse('token_invalid', 200, rl)
   }
 
-  const result = await rotateSession(decoded.jti, decoded.ver ?? 0, decoded.id)
+  let result = await rotateSession(decoded.jti, decoded.ver ?? 0, decoded.id)
 
   if (!result.rotated) {
-    // Either the session is gone/inactive, or the token version did not match —
-    // the latter indicates the refresh token was reused (potentially stolen).
-    // Treat any failed rotation as invalid and revoke the session.
-    await Session.updateOne(
-      { _id: decoded.jti, userId: decoded.id },
-      { $set: { status: 'revoked' } }
-    ).catch(() => {})
-    logger.warn('refresh_rotation_failed', {
-      sessionId: decoded.jti,
-      userId: decoded.id,
-      requestId: request.headers.get('x-request-id'),
-    })
-    return errorResponse('session_revoked', 401, rl)
+    // Version mismatch: either a stolen/reused token, or a benign race from
+    // overlapping refreshes (rapid page reloads fire several in parallel).
+    // If the session rotated very recently, treat it as a race and reissue
+    // tokens at the CURRENT version without bumping again — both racing
+    // requests succeed and the user stays logged in.
+    const rotatedRecently = await wasSessionRotatedWithin(decoded.jti, ROTATION_GRACE_MS)
+    if (!rotatedRecently) {
+      // The refresh token was reused outside the grace window (potentially
+      // stolen). Treat it as invalid and revoke the session.
+      await Session.updateOne(
+        { _id: decoded.jti, userId: decoded.id },
+        { $set: { status: 'revoked' } }
+      ).catch(() => {})
+      logger.warn('refresh_rotation_failed', {
+        sessionId: decoded.jti,
+        userId: decoded.id,
+        requestId: request.headers.get('x-request-id'),
+      })
+      return errorResponse('session_revoked', 401, rl)
+    }
+    result = { rotated: true, currentVersion: result.currentVersion, remember: result.remember }
   }
 
   const user = await User.findById(decoded.id)

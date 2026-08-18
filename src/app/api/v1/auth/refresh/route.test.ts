@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   buildTokenPayload: vi.fn(),
   sessionFindOne: vi.fn(),
   rotateSession: vi.fn(),
+  sessionRotatedWithin: vi.fn(),
   usersFindById: vi.fn(),
 }))
 
@@ -16,6 +17,7 @@ vi.mock('@/lib/tokens', () => ({
 }))
 vi.mock('@/lib/sessions', () => ({
   rotateSession: mocks.rotateSession,
+  wasSessionRotatedWithin: mocks.sessionRotatedWithin,
 }))
 vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 vi.mock('@/lib/db', () => ({
@@ -59,6 +61,7 @@ beforeEach(() => {
   mocks.buildTokenPayload.mockReturnValue(fakeTokenPair())
   mocks.sessionFindOne.mockResolvedValue(null)
   mocks.rotateSession.mockResolvedValue({ rotated: true, currentVersion: 1, remember: true })
+  mocks.sessionRotatedWithin.mockResolvedValue(false)
   mocks.usersFindById.mockResolvedValue({ _id: new Types.ObjectId(USER_ID), uid: 'uid-1', role: 'user' })
 })
 
@@ -116,6 +119,31 @@ describe('POST /api/v1/auth/refresh', () => {
     expect(body.success).toBe(false)
     expect(body.payload.error.code).toBe('session_revoked')
     expect(res.cookies.get('crushsvg_refresh')?.value).toBe('')
+    expect(mocks.buildTokenPayload).not.toHaveBeenCalled()
+  })
+
+  it('reissues tokens at the current version when the mismatch is a recent race (rapid reload)', async () => {
+    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 2, remember: true })
+    mocks.sessionRotatedWithin.mockResolvedValue(true)
+    const res = await post('racing-refresh')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(mocks.buildTokenPayload).toHaveBeenCalledWith({
+      id: USER_ID,
+      role: 'user',
+      sessionId: SESSION_ID,
+      tokenVersion: 2,
+    })
+    expect(res.cookies.get('crushsvg_refresh')?.value).toBe('refresh-token')
+  })
+
+  it('still revokes when the stale version race is older than the grace window', async () => {
+    mocks.rotateSession.mockResolvedValue({ rotated: false, currentVersion: 2, remember: false })
+    mocks.sessionRotatedWithin.mockResolvedValue(false)
+    const res = await post('stale-refresh')
+    expect(res.status).toBe(401)
+    expect((await res.json()).payload.error.code).toBe('session_revoked')
     expect(mocks.buildTokenPayload).not.toHaveBeenCalled()
   })
 

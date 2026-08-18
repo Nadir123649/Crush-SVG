@@ -6,13 +6,17 @@ import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
-import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertResponse } from "@/lib/client/converter";
+import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
 
 const WIDTH_OPTIONS = ["Original", "120px", "240px", "480px", "720px", "1080px", "1920px", "2560px", "3840px"];
+const HEIGHT_OPTIONS = ["Auto", "120px", "240px", "480px", "720px", "1080px", "1920px", "2560px", "3840px"];
 const SCALE_OPTIONS = ["1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
+const PX_PER_CM = 96 / 2.54;
+const MAX_CUSTOM_PX = 4000;
+const MAX_CUSTOM_CM = MAX_CUSTOM_PX / PX_PER_CM;
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -35,8 +39,9 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 
 export function ConverterUI() {
   const { status } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "scale" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("480px");
+  const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
   const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
@@ -49,6 +54,7 @@ export function ConverterUI() {
   const [dragOver, setDragOver] = useState(false);
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
   const [previewError, setPreviewError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -134,23 +140,60 @@ export function ConverterUI() {
 
   async function handleConvert() {
     setError(null);
+    const options: ConvertRequest = { transparent };
+    
+    if (selectedWidth.trim().toLowerCase() !== "original") {
+      let wStr = selectedWidth.trim().toLowerCase();
+      let wNum = parseFloat(wStr);
+      if (Number.isNaN(wNum) || wNum <= 0) {
+        setError("Invalid width value. Enter a number like 480px or 12.7cm.");
+        return;
+      }
+      if (wStr.endsWith("cm")) {
+        wNum = wNum * PX_PER_CM;
+      }
+      options.width = Math.round(wNum);
+      if (options.width < 1 || options.width > MAX_CUSTOM_PX) {
+        setError(`Width must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX/PX_PER_CM).toFixed(1)} cm).`);
+        return;
+      }
+    } 
+
+    if (selectedHeight.trim().toLowerCase() !== "auto") {
+      let hStr = selectedHeight.trim().toLowerCase();
+      let hNum = parseFloat(hStr);
+      if (Number.isNaN(hNum) || hNum <= 0) {
+        setError("Invalid height value. Enter a number like 480px or 12.7cm.");
+        return;
+      }
+      if (hStr.endsWith("cm")) {
+        hNum = hNum * PX_PER_CM;
+      }
+      options.height = Math.round(hNum);
+      if (options.height < 1 || options.height > MAX_CUSTOM_PX) {
+        setError(`Height must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX/PX_PER_CM).toFixed(1)} cm).`);
+        return;
+      }
+    }
+
+    let sStr = selectedScale.trim().toLowerCase();
+    let sNum = parseFloat(sStr.replace("x", ""));
+    if (!Number.isNaN(sNum) && sNum > 0) {
+      options.scale = sNum;
+    }
+    
     setConverting(true);
     try {
-      const widthNum = selectedWidth === "Original" ? undefined : parseInt(selectedWidth, 10);
-      const scaleNum = widthNum ? undefined : parseFloat(selectedScale.replace("x", ""));
-      const res = await convertText(svgCode, {
-        width: widthNum,
-        scale: scaleNum,
-        transparent,
-      });
+      const res = await convertText(svgCode, options);
       setResult(res);
       setPreviewIsConverted(true);
       if (res.remaining !== undefined) {
+        const reached = res.remaining === 0;
         setUsage({
           conversionsUsed: res.conversionsUsed,
           remaining: res.remaining,
           isUnlimited: false,
-          limitReached: res.remaining === 0,
+          limitReached: reached,
         });
       }
     } catch (err) {
@@ -174,6 +217,10 @@ export function ConverterUI() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    if (limitReached && status !== "authed") {
+      setLimitDownloadDone(true);
+      setShowSignupPrompt(true);
+    }
   }
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
@@ -268,7 +315,7 @@ export function ConverterUI() {
                   <img 
                     src={previewUrl} 
                     alt="SVG preview" 
-                    className="max-w-full max-h-full object-contain" 
+                    className="max-w-full max-h-full w-auto h-auto object-contain" 
                     onError={() => setPreviewError(true)}
                   />
                   {previewIsConverted && (
@@ -297,19 +344,26 @@ export function ConverterUI() {
                 
                 {/* Width Input */}
                 <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
-                  <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width (px)</label>
-                  <button 
-                    type="button"
-                    onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
-                    aria-haspopup="listbox"
-                    aria-expanded={openDropdown === "width"}
-                    className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer bg-transparent md:bg-white"
-                  >
-                    <span className="font-body font-medium text-[16px] md:text-[18px] text-[#353A3E]">{selectedWidth}</span>
-                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "width" ? "rotate-180" : ""}`}>
-                      <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+                  <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width</label>
+                  <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
+                    <input
+                      type="text"
+                      value={selectedWidth}
+                      onChange={(e) => setSelectedWidth(e.target.value)}
+                      onFocus={() => setOpenDropdown("width")}
+                      placeholder="e.g. 480px or 12.7cm"
+                      className="w-full h-full bg-transparent px-[12px] md:px-[16px] font-body font-medium text-[16px] md:text-[18px] text-[#353A3E] outline-none"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
+                      className="px-[16px] h-full flex items-center justify-center cursor-pointer bg-transparent"
+                    >
+                      <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "width" ? "rotate-180" : ""}`}>
+                        <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
                   
                   {/* Width Dropdown Menu */}
                   {openDropdown === "width" && (
@@ -331,27 +385,71 @@ export function ConverterUI() {
                   )}
                 </div>
 
+                {/* Height Input */}
+                <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
+                  <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Height</label>
+                  <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
+                    <input
+                      type="text"
+                      value={selectedHeight}
+                      onChange={(e) => setSelectedHeight(e.target.value)}
+                      onFocus={() => setOpenDropdown("height")}
+                      placeholder="e.g. Auto or 12.7cm"
+                      className="w-full h-full bg-transparent px-[12px] md:px-[16px] font-body font-medium text-[16px] md:text-[18px] text-[#353A3E] outline-none"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
+                      className="px-[16px] h-full flex items-center justify-center cursor-pointer bg-transparent"
+                    >
+                      <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "height" ? "rotate-180" : ""}`}>
+                        <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Height Dropdown Menu */}
+                  {openDropdown === "height" && (
+                    <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                      <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px]">
+                        {HEIGHT_OPTIONS.map((opt) => (
+                          <div 
+                            key={opt}
+                            role="option"
+                            aria-selected={selectedHeight === opt}
+                            onClick={() => { setSelectedHeight(opt); setOpenDropdown(null); }}
+                            className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Scale Input */}
                 <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
                   <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
-                    aria-haspopup="listbox"
-                    aria-expanded={openDropdown === "scale"}
-                    className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer bg-transparent md:bg-white"
-                  >
-                    <span className="font-body font-medium text-[16px] md:text-[18px] text-[#353A3E]">{selectedScale}</span>
-                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "scale" ? "rotate-180" : ""}`}>
-                      <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-
-                  {selectedWidth !== "Original" && (
-                    <p className="font-body text-[11px] md:text-[12px] text-[#A1A1AA]">
-                      Applies when Width is &quot;Original&quot;
-                    </p>
-                  )}
+                  <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors`}>
+                    <input
+                      type="text"
+                      value={selectedScale}
+                      onChange={(e) => setSelectedScale(e.target.value)}
+                      onFocus={() => setOpenDropdown("scale")}
+                      placeholder="e.g. 2x"
+                      className="w-full h-full bg-transparent px-[12px] md:px-[16px] font-body font-medium text-[16px] md:text-[18px] text-[#353A3E] outline-none"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
+                      className="px-[16px] h-full flex items-center justify-center cursor-pointer"
+                    >
+                      <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "scale" ? "rotate-180" : ""}`}>
+                        <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
 
                   {/* Scale Dropdown Menu */}
                   {openDropdown === "scale" && (
@@ -362,7 +460,7 @@ export function ConverterUI() {
                             key={opt}
                             role="option"
                             aria-selected={selectedScale === opt}
-                            onClick={() => { setSelectedScale(opt); setSelectedWidth("Original"); setOpenDropdown(null); }}
+                            onClick={() => { setSelectedScale(opt); setOpenDropdown(null); }}
                             className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                           >
                             {opt}
@@ -395,7 +493,7 @@ export function ConverterUI() {
 
               {/* Action Buttons Row */}
               <div className="flex justify-center mt-[16px]">
-                {limitReached && status !== "authed" ? (
+                {limitReached && status !== "authed" && (limitDownloadDone || !(result?.data && previewIsConverted)) ? (
                   <button
                     type="button"
                     onClick={() => setShowSignupPrompt(true)}
@@ -403,21 +501,27 @@ export function ConverterUI() {
                   >
                     Sign up for unlimited conversions
                   </button>
+                ) : result?.data && previewIsConverted ? (
+                  <Button 
+                    className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
+                    onClick={handleDownload} 
+                    disabled={converting}
+                  >
+                    <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
+                      <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                      Download PNG
+                    </span>
+                  </Button>
                 ) : (
                   <Button 
                     className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]" 
-                    onClick={result?.data && previewIsConverted ? handleDownload : handleConvert} 
+                    onClick={handleConvert} 
                     disabled={converting || svgCode === SAMPLE_SVG || !isValidSvg}
                   >
                     {converting ? (
                       <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
                         <span className="w-[14px] h-[14px] md:w-[16px] md:h-[16px] rounded-full border-[2px] border-white/40 border-t-white animate-spin" />
                         Converting...
-                      </span>
-                    ) : result?.data && previewIsConverted ? (
-                      <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
-                        <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                        Download PNG
                       </span>
                     ) : (
                       <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
