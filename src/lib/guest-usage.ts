@@ -13,7 +13,7 @@ export const GUEST_COOKIE_NAME = 'gid'
 const GUEST_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 
 export function getGuestId(request: NextRequest): string | null {
-  return getClientIp(request) ?? request.cookies.get(GUEST_COOKIE_NAME)?.value ?? null
+  return request.cookies.get(GUEST_COOKIE_NAME)?.value ?? getClientIp(request) ?? null
 }
 
 export interface GuestCookieSpec {
@@ -27,20 +27,22 @@ export interface GuestCookieSpec {
 }
 
 /**
- * Returns a stable guest identifier for the request. Falls back to a signed-out
- * `gid` cookie when no client IP is available (e.g. local dev), so the 3-free-
- * conversion limit works everywhere. When no cookie exists yet, `setCookie` is
- * populated so the caller can attach it to the response.
+ * Returns a stable guest identifier for the request. The signed-out `gid`
+ * cookie is the primary key so every visitor gets their own 3-free-conversion
+ * budget — even when many visitors share a client IP (local dev, NAT, office
+ * networks). Falls back to the client IP only when cookies are unavailable.
+ * When no cookie exists yet, `setCookie` is populated so the caller can attach
+ * it to the response.
  */
 export function ensureGuestId(
   request: NextRequest,
   env: NodeJS.ProcessEnv = process.env
 ): { guestId: string | null; setCookie: GuestCookieSpec | null } {
-  const ip = getClientIp(request)
-  if (ip) return { guestId: ip, setCookie: null }
-
   const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value
   if (existing) return { guestId: existing, setCookie: null }
+
+  const ip = getClientIp(request)
+  if (ip) return { guestId: ip, setCookie: null }
 
   const guestId = randomUUID()
   return {
