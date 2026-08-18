@@ -334,13 +334,13 @@ export function ConverterUI() {
                 ) : null}
               </div>
 
-              {previewIsConverted && (
+              {result?.data && (
                 <button
                   type="button"
-                  onClick={() => setPreviewIsConverted(false)}
+                  onClick={() => setPreviewIsConverted(!previewIsConverted)}
                   className="self-start font-body font-normal text-[13px] text-brand-primary hover:underline mt-[6px]"
                 >
-                  Show original SVG
+                  {previewIsConverted ? "Show original SVG" : "Show converted PNG"}
                 </button>
               )}
 
@@ -523,7 +523,7 @@ export function ConverterUI() {
                     <Button
                       className="w-full md:w-auto h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                       onClick={handleConvert}
-                      disabled={converting || svgCode === SAMPLE_SVG || !isValidSvg}
+                      disabled={converting || svgCode.trim() === ""}
                     >
                       {converting ? (
                         <span className="flex items-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px]">
