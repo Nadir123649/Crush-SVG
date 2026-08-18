@@ -10,6 +10,8 @@ export type { SessionDoc, SessionStatus } from '@/lib/db'
 
 export type SessionUserId = Types.ObjectId | string
 
+export const MAX_ACTIVE_SESSIONS = 20
+
 export async function createSession(input: {
   userId: SessionUserId
   provider: string
@@ -24,49 +26,36 @@ export async function createSession(input: {
   const browser = input.browser ?? parsed.browser
   const os = input.os ?? parsed.os
   const deviceType = input.deviceType ?? parsed.deviceType
+  const now = new Date()
 
-  const fingerprint = {
+  const created = await Session.create({
     userId: input.userId,
+    provider: input.provider,
+    remember: input.remember,
+    tokenVersion: 0,
+    status: 'active',
+    rotatedAt: null,
+    lastSeenAt: now,
     browser,
     os,
     deviceType,
-  }
-  const existing = await Session.findOne({ ...fingerprint, status: 'active' })
-  const now = new Date()
+    ip: input.ip,
+    userAgent: input.userAgent,
+  })
+  const sessionId = created._id
 
-  let sessionId: Types.ObjectId
-
-  if (existing) {
-    await Session.updateOne(
-      { _id: existing._id },
-      {
-        $set: {
-          provider: existing.provider,
-          remember: input.remember,
-          createdAt: now,
-          lastSeenAt: now,
-          ip: input.ip,
-          userAgent: input.userAgent,
-        },
-      }
-    )
-    sessionId = existing._id
-  } else {
-    const created = await Session.create({
-      userId: input.userId,
-      provider: input.provider,
-      remember: input.remember,
-      tokenVersion: 0,
-      status: 'active',
-      rotatedAt: null,
-      lastSeenAt: now,
-      browser,
-      os,
-      deviceType,
-      ip: input.ip,
-      userAgent: input.userAgent,
-    })
-    sessionId = created._id
+  // Each login is its own session so users can sign out individual devices.
+  // Cap concurrent active sessions to prevent unbounded growth.
+  const activeCount = await Session.countDocuments({ userId: input.userId, status: 'active' })
+  if (activeCount > MAX_ACTIVE_SESSIONS) {
+    const oldest = await Session.find({ userId: input.userId, status: 'active' })
+      .sort({ lastSeenAt: 1 })
+      .limit(activeCount - MAX_ACTIVE_SESSIONS)
+      .select('_id')
+    const ids = oldest.map((s) => s._id)
+    if (ids.length > 0) {
+      await Session.updateMany({ _id: { $in: ids } }, { $set: { status: 'revoked' } })
+    }
   }
 
   // Geo lookup is an external network call — never block session creation on it.
@@ -78,7 +67,7 @@ export async function createSession(input: {
     })
   }
 
-  return (await Session.findById(sessionId))!
+  return created
 }
 
 export interface SessionPage {

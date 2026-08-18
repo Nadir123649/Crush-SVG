@@ -20,13 +20,22 @@ export const runtime = 'nodejs'
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml']
 const MAX_SIZE = 10 * 1024 * 1024
 
+function sanitizePublicId(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 120)
+}
+
 export async function POST(request: NextRequest) {
   const rl = await checkRateLimit(request, 'uploads', 30, 60_000)
   if (!rl.allowed) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many upload requests. Try again later.', rateLimitHeaders(rl))
   }
 
-  const formData = await request.formData()
+  let formData: FormData
+  try {
+    formData = await request.formData()
+  } catch {
+    return errorResponse(400, 'invalid_upload', 'Invalid multipart upload.', undefined, request)
+  }
   const file = formData.get('file') as File | null
 
   if (!file) {
@@ -93,7 +102,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
       transparent,
     })
 
-    const idPrefix = usage.userId ?? `guest_${getGuestId(request) ?? 'anon'}`
+    const idPrefix = sanitizePublicId(usage.userId ?? `guest_${getGuestId(request) ?? 'anon'}`)
     const uploaded = (await uploadImage(result.buffer, 'crushsvg/conversions', {
       public_id: `conv_${idPrefix}_${Date.now()}`,
     })) as UploadApiResponse
@@ -140,7 +149,7 @@ async function rawUpload(request: NextRequest, buffer: Buffer) {
 
   try {
     const result = (await uploadImage(buffer, 'crushsvg/uploads', {
-      public_id: `${who.user.id}_${Date.now()}`,
+      public_id: `${sanitizePublicId(who.user.id)}_${Date.now()}`,
     })) as UploadApiResponse
 
     return successResponse(

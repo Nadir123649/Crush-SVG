@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase-admin'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/ip'
 import { createSession } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { oauthSchema } from '@/lib/validation'
@@ -84,7 +85,7 @@ export async function POST(
       userId: user._id,
       provider: providerName,
       remember: parsed.data.rememberMe ?? true,
-      ip: request.headers.get('x-forwarded-for') ?? undefined,
+      ip: getClientIp(request) ?? undefined,
       userAgent: request.headers.get('user-agent') ?? undefined,
       browser: undefined,
       os: undefined,
@@ -93,7 +94,7 @@ export async function POST(
 
     const tokenPair = buildTokenPayload({
       id: user._id.toString(),
-      role: 'free',
+      role: user.role ?? 'user',
       sessionId: session._id.toString(),
       tokenVersion: session.tokenVersion,
     })

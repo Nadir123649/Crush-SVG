@@ -12,6 +12,7 @@ export class ApiError extends Error {
 
 let accessToken: string | null = null
 let activeSessionId: string | null = null
+let activeRemember: boolean | null = null
 
 export function setAccessToken(token: string | null): void {
   accessToken = token
@@ -27,6 +28,14 @@ export function getSessionId(): string | null {
 
 export function setSessionId(sessionId: string | null): void {
   activeSessionId = sessionId
+}
+
+export function getSessionRemember(): boolean | null {
+  return activeRemember
+}
+
+export function setSessionRemember(remember: boolean | null): void {
+  activeRemember = remember
 }
 
 type AuthExpiredHandler = () => void
@@ -53,7 +62,7 @@ async function doRefresh(): Promise<boolean> {
     }
     const body = (await res.json().catch(() => null)) as {
       success?: boolean
-      payload?: { token?: { accessToken?: string }; sessionId?: string }
+      payload?: { token?: { accessToken?: string }; sessionId?: string; remember?: boolean }
     } | null
     const token = body?.success === true ? body.payload?.token?.accessToken : undefined
     if (!token) {
@@ -62,6 +71,7 @@ async function doRefresh(): Promise<boolean> {
     }
     setAccessToken(token)
     activeSessionId = body?.payload?.sessionId ?? null
+    activeRemember = body?.payload?.remember ?? null
     return true
   } catch {
     onAuthExpired?.()

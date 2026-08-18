@@ -34,6 +34,7 @@ function fakeUsers(): Model<UserDoc> {
         displayName: doc.displayName ?? 'CrushSVG user',
         photoURL: doc.photoURL ?? null,
         providers: doc.providers ?? [],
+        role: doc.role ?? 'user',
         conversionsUsed: doc.conversionsUsed ?? 0,
         createdAt: now,
         updatedAt: now,
@@ -84,7 +85,7 @@ describe('firebase-user', () => {
     expect(user.conversionsUsed).toBe(0)
   })
 
-  it('binds a firebase uid onto an existing email match', async () => {
+  it('creates a separate account when a verified OAuth email matches an existing password account', async () => {
     const users = fakeUsers()
     await resolveUserCascade(
       { uid: 'fb-old', email: 'same@x.com', name: 'A' } as never,
@@ -97,8 +98,26 @@ describe('firebase-user', () => {
       users
     )
     expect(user.uid).toBe('fb-new')
-    expect(user.providers).toContain('password')
-    expect(user.providers).toContain('google')
+    expect(user.providers).toEqual(['google'])
+    const emailAccount = await users.findOne({ email: 'same@x.com' })
+    expect(emailAccount?.providers).toEqual(['password'])
+  })
+
+  it('does not verify the password account or the OAuth account when emails match', async () => {
+    const users = fakeUsers()
+    await resolveUserCascade(
+      { uid: 'fb-old', email: 'same@x.com', name: 'A' } as never,
+      'password' as ProviderName,
+      users
+    )
+    const user = await resolveUserCascade(
+      { uid: 'fb-new', email: 'SAME@x.com', name: 'B', email_verified: true } as never,
+      'google' as ProviderName,
+      users
+    )
+    expect(user.isVerified).toBeUndefined()
+    const emailAccount = await users.findOne({ email: 'same@x.com' })
+    expect(emailAccount?.isVerified).toBeUndefined()
   })
 
   it('does not bind an unverified email onto an existing user', async () => {
@@ -118,11 +137,17 @@ describe('firebase-user', () => {
     expect(user.providers).not.toContain('password')
   })
 
-  it('dedupes providers on repeat login', async () => {
+  it('reuses the same account for repeat logins with the same provider uid', async () => {
     const users = fakeUsers()
-    const token = { uid: 'fb-1', email: 'a@b.com', name: 'A' } as never
+    await resolveUserCascade(
+      { uid: 'fb-old', email: 'same@x.com', name: 'A' } as never,
+      'password' as ProviderName,
+      users
+    )
+    const token = { uid: 'fb-1', email: 'same@x.com', name: 'C' } as never
     await resolveUserCascade(token, 'google' as ProviderName, users)
-    const user = await resolveUserCascade(token, 'google' as ProviderName, users)
-    expect(user.providers.filter((p) => p === 'google')).toHaveLength(1)
+    const again = await resolveUserCascade(token, 'google' as ProviderName, users)
+    expect(again.uid).toBe('fb-1')
+    expect(again.providers.filter((p) => p === 'google')).toHaveLength(1)
   })
 })

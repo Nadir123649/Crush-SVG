@@ -76,9 +76,17 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, '', '', undefined, request)
   }
 
-  const { email, displayName, role = 'user' } = body as { email: string; displayName?: string; role?: string }
+  const { email, displayName, role = 'user' } = body as {
+    email: string
+    displayName?: string
+    role?: 'user' | 'admin'
+  }
 
   if (!email || !email.includes('@')) {
+    return errorResponse(400, '', '', undefined, request)
+  }
+
+  if (role !== 'user' && role !== 'admin') {
     return errorResponse(400, '', '', undefined, request)
   }
 
@@ -94,6 +102,7 @@ export async function POST(request: NextRequest) {
       email: email.toLowerCase().trim(),
       displayName: displayName ?? email.split('@')[0],
       photoURL: null,
+      role,
       providers: ['admin'],
       conversionsUsed: 0,
       lastLoginAt: new Date(),

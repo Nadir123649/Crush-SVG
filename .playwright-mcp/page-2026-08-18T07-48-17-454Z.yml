@@ -1,0 +1,203 @@
+- generic [active] [ref=f1e1]:
+  - navigation [ref=f1e4]:
+    - link "CrushSVG Icon Crush SVG" [ref=f1e5] [cursor=pointer]:
+      - /url: /
+      - img "CrushSVG Icon" [ref=f1e6]
+      - generic [ref=f1e7]:
+        - generic [ref=f1e8]: Crush
+        - generic [ref=f1e9]: SVG
+    - generic [ref=f1e10]:
+      - link "Need Help?" [ref=f1e11] [cursor=pointer]:
+        - /url: /contact-us
+      - generic [ref=f1e12]:
+        - link [ref=f1e13] [cursor=pointer]:
+          - /url: /login
+          - button "Log In" [ref=f1e14]
+        - link [ref=f1e16] [cursor=pointer]:
+          - /url: /signup
+          - button "Sign Up" [ref=f1e17]
+  - main [ref=f1e19]:
+    - generic [ref=f1e20]:
+      - generic [ref=f1e21]:
+        - generic [ref=f1e22]: 3 free conversions. Create a free account for unlimited access.
+        - heading "From SVG to PNG, Exactly as Intended" [level=1] [ref=f1e25]
+        - paragraph [ref=f1e26]: Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.
+      - generic [ref=f1e29]:
+        - generic [ref=f1e30]:
+          - generic [ref=f1e31]:
+            - heading "SVG Code" [level=2] [ref=f1e32]
+            - generic [ref=f1e33]: 3 of 3 free conversions used
+          - textbox "SVG code" [ref=f1e35]: <svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"> <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/> <rect x="66.6987" y="47.3262" width="36.5768" height="36.5702" rx="17" fill="#DA582D"/> <path d="M90.9871 63.9144L84.9871 57.6113L78.9871 63.9144M84.9871 57.6113L84.4871 73.6113" stroke="white" stroke-width="2" stroke-linecap="round"/> <defs> <pattern id="pattern0_4824_15804" patternContentUnits="objectBoundingBox" width="1" height="1"> <use xlink:href="#image0_4824_15804" transform="scale(0.0104167 0.0104186)"/> </pattern> <image id="image0_4824_15804" width="96" height="96" preserveAspectRatio="none" xlink:href="data:image/png;base64,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"/> </defs> </svg>
+          - button "Drag and drop or select an SVG file" [ref=f1e36] [cursor=pointer]:
+            - img "Drag Cloud" [ref=f1e37]
+            - generic [ref=f1e38]: Drag & Drop or Select SVG
+          - paragraph [ref=f1e39]: "Source size: 104 x 104 px (aspect ratio 1.000)"
+        - generic [ref=f1e40]:
+          - heading "Live Preview" [level=2] [ref=f1e41]
+          - generic [ref=f1e42]:
+            - img "SVG preview" [ref=f1e43]
+            - generic [ref=f1e301]: Converted PNG
+          - button "Show original SVG" [ref=f1e302]
+          - generic [ref=f1e44]:
+            - generic [ref=f1e45]:
+              - generic [ref=f1e46]:
+                - generic [ref=f1e47]: Width (px)
+                - button "3840px" [ref=f1e295] [cursor=pointer]
+              - generic [ref=f1e52]:
+                - generic [ref=f1e53]: Scale
+                - button "2x" [ref=f1e54] [cursor=pointer]
+            - generic [ref=f1e58] [cursor=pointer]:
+              - generic [ref=f1e59]: Transparent Background
+              - checkbox "Transparent Background" [ref=f1e60]
+            - button "Sign up for unlimited conversions" [ref=f1e303]
+            - paragraph [ref=f1e283]: PNG · 28.2 KB · 3840 x 3840 px
+      - generic [ref=f1e64]:
+        - generic [ref=f1e65]:
+          - heading "Stop juggling design tools and unreliable converters" [level=2] [ref=f1e66]
+          - paragraph [ref=f1e67]: Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds perfect for Gmail, Outlook, Canva, websites, newsletters, and more.
+        - generic [ref=f1e68]:
+          - generic [ref=f1e69]: Free
+          - generic [ref=f1e73]: Multiple export sizes
+          - generic [ref=f1e77]: Transparent background
+          - generic [ref=f1e81]: 3 free conversions, no login required
+      - generic [ref=f1e86]:
+        - generic [ref=f1e87]:
+          - heading "Start free today. No credit card required." [level=2] [ref=f1e88]
+          - paragraph [ref=f1e89]: Enjoy 3 free conversions with no signup required. When you're ready for more, create a free account to unlock unlimited access.
+          - generic [ref=f1e90]:
+            - generic [ref=f1e92]: 3 Free Conversions Left
+            - generic [ref=f1e97]: 2 Free Conversions Left
+            - generic [ref=f1e102]: Last Free Conversion
+            - generic [ref=f1e107]: Sign Up For Free
+        - generic [ref=f1e113]:
+          - img "Profile Icon" [ref=f1e114]
+          - heading "You've used your 3 free conversions" [level=3] [ref=f1e115]: You've used your 3 freeconversions
+          - paragraph [ref=f1e116]: Create a free account to keep converting. No credit card required ever.
+          - generic [ref=f1e117]:
+            - link [ref=f1e118] [cursor=pointer]:
+              - /url: /signup
+              - button "Sign Up" [ref=f1e119]
+            - link [ref=f1e120] [cursor=pointer]:
+              - /url: /login
+              - button "Log In" [ref=f1e121]
+          - paragraph [ref=f1e123]: Your SVG code is safe. It stays in this session until you finish signing up.
+      - generic [ref=f1e124]:
+        - heading "One File. Three Simple Steps." [level=2] [ref=f1e125]
+        - generic [ref=f1e126]:
+          - generic [ref=f1e127]:
+            - img "Paste or Upload" [ref=f1e128]
+            - heading "Paste or Upload" [level=3] [ref=f1e129]
+            - paragraph [ref=f1e130]: Drop your SVG file or paste standard markup directly into the field.
+          - generic [ref=f1e131]:
+            - img "Choose Your Size" [ref=f1e132]
+            - heading "Choose Your Size" [level=3] [ref=f1e133]
+            - paragraph [ref=f1e134]: Adjust width in pixels or simply scale it up for high-resolution output.
+          - generic [ref=f1e135]:
+            - img "Download PNG" [ref=f1e136]
+            - heading "Download PNG" [level=3] [ref=f1e137]
+            - paragraph [ref=f1e138]: Create sharp, transparent PNGs ready for anywhere.
+      - generic [ref=f1e139]:
+        - heading "Made For People Who Ship" [level=2] [ref=f1e140]
+        - generic [ref=f1e141]:
+          - generic [ref=f1e142] [cursor=pointer]:
+            - img "Email Developers" [ref=f1e144]
+            - generic [ref=f1e145]:
+              - heading "Email Developers" [level=3] [ref=f1e146]
+              - paragraph [ref=f1e147]: Convert SVG logos and icons into reliable PNGs that render consistently across Outlook, Gmail.
+          - generic [ref=f1e148] [cursor=pointer]:
+            - img "Marketers" [ref=f1e150]
+            - generic [ref=f1e151]:
+              - heading "Marketers" [level=3] [ref=f1e152]
+              - paragraph [ref=f1e153]: Deliver polished, campaign-ready visuals in seconds with high-quality PNGs built for newsletters, landing pages and more.
+          - generic [ref=f1e154] [cursor=pointer]:
+            - img "Agencies" [ref=f1e156]
+            - generic [ref=f1e157]:
+              - heading "Agencies" [level=3] [ref=f1e158]
+              - paragraph [ref=f1e159]: Deliver client-ready PNG exports in seconds without the hassle of opening Figma, Illustrator, or Photoshop.
+          - generic [ref=f1e160] [cursor=pointer]:
+            - img "UI Designers" [ref=f1e162]
+            - generic [ref=f1e163]:
+              - heading "UI Designers" [level=3] [ref=f1e164]
+              - paragraph [ref=f1e165]: Preview exactly how your icons and graphics will look as PNGs before handing them off to developers.
+      - generic [ref=f1e166]:
+        - heading "Frequently Asked Questions" [level=2] [ref=f1e167]
+        - generic [ref=f1e168]:
+          - generic [ref=f1e169] [cursor=pointer]:
+            - heading "Is CrushSVG really free?" [level=3] [ref=f1e171]
+            - paragraph [ref=f1e174]: Yes. You can convert up to three SVGs without creating an account. After that, a free account lets you continue converting no credit card, subscriptions, or hidden fees.
+          - generic [ref=f1e175] [cursor=pointer]:
+            - heading "What happens after my 3 free conversions?" [level=3] [ref=f1e177]
+            - paragraph [ref=f1e180]: You can create a free account to unlock unlimited conversions. There are no hidden fees or subscriptions required.
+          - generic [ref=f1e181] [cursor=pointer]:
+            - heading "Do I need to install anything?" [level=3] [ref=f1e183]
+            - paragraph [ref=f1e186]: No, CrushSVG is entirely web-based. You don't need to install any software or plugins. Simply paste your SVG code or upload your file directly in your browser.
+          - generic [ref=f1e187] [cursor=pointer]:
+            - heading "Is my SVG code stored or shared?" [level=3] [ref=f1e189]
+            - paragraph [ref=f1e192]: Your privacy is our priority. Your SVG code is processed securely and is never stored, shared, or used for any other purposes.
+          - generic [ref=f1e193] [cursor=pointer]:
+            - heading "Can I choose the output size?" [level=3] [ref=f1e195]
+            - paragraph [ref=f1e198]: Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.
+  - contentinfo [ref=f1e199]:
+    - generic [ref=f1e200]:
+      - generic [ref=f1e201]:
+        - link "CrushSVG Icon Crush SVG" [ref=f1e202] [cursor=pointer]:
+          - /url: /
+          - img "CrushSVG Icon" [ref=f1e203]
+          - generic [ref=f1e204]:
+            - generic [ref=f1e205]: Crush
+            - generic [ref=f1e206]: SVG
+        - paragraph [ref=f1e207]: From SVG to PNG, Exactly as Intended.Convert, optimize, and ship pixel-perfect assets.
+      - generic [ref=f1e208]:
+        - generic [ref=f1e209]:
+          - heading "Explore" [level=4] [ref=f1e210]
+          - link "SVG to PNG Converter" [ref=f1e211] [cursor=pointer]:
+            - /url: /#converter
+          - link "Features" [ref=f1e212] [cursor=pointer]:
+            - /url: /#features
+          - link "How It Works" [ref=f1e213] [cursor=pointer]:
+            - /url: /#how-it-works
+        - generic [ref=f1e214]:
+          - heading "Resources" [level=4] [ref=f1e215]
+          - link "SVG Guides" [ref=f1e216] [cursor=pointer]:
+            - /url: "#"
+          - link "FAQ" [ref=f1e217] [cursor=pointer]:
+            - /url: /#faq
+          - link "Contact" [ref=f1e218] [cursor=pointer]:
+            - /url: /contact-us
+        - generic [ref=f1e219]:
+          - heading "Company" [level=4] [ref=f1e220]
+          - link "About Us" [ref=f1e221] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=f1e222] [cursor=pointer]:
+            - /url: /privacy-policy
+          - link "Terms of Service" [ref=f1e223] [cursor=pointer]:
+            - /url: /terms
+      - generic [ref=f1e224]:
+        - heading "Engineered For Quality" [level=4] [ref=f1e225]
+        - generic [ref=f1e226]:
+          - generic [ref=f1e227]: Browser Based
+          - generic [ref=f1e230]: Transparent PNG
+          - generic [ref=f1e235]: No Install
+        - generic:
+          - link "Facebook":
+            - /url: "#"
+            - img "Facebook"
+          - link "Instagram":
+            - /url: "#"
+            - img "Instagram"
+          - link "Twitter":
+            - /url: "#"
+            - img "Twitter"
+    - generic [ref=f1e240]:
+      - generic [ref=f1e241]: © 2026 CrushSVG. All rights reserved.
+      - generic [ref=f1e242]:
+        - link "Terms" [ref=f1e243] [cursor=pointer]:
+          - /url: /terms
+        - generic [ref=f1e244]: •
+        - link "Privacy" [ref=f1e245] [cursor=pointer]:
+          - /url: /privacy-policy
+        - generic [ref=f1e246]: •
+        - link "Support" [ref=f1e247] [cursor=pointer]:
+          - /url: /contact-us
+  - button "Open Next.js Dev Tools" [ref=f1e253] [cursor=pointer]
+  - alert [ref=f1e257]

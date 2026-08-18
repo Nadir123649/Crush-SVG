@@ -38,19 +38,19 @@ export async function POST(request: NextRequest) {
     return errorResponse(429, 'account_locked', 'Too many failed login attempts. Please wait before trying again.', { 'Retry-After': String(Math.ceil(bf.retryAfter / 1000)) })
   }
 
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email, password: { $exists: true } })
   if (!user) {
     await recordFailure(request, `login:${email}`)
-    return errorResponse(401, '', '', undefined, request)
+    return errorResponse(401, 'invalid_credentials', 'Email or password is incorrect.', undefined, request)
   }
   if (!user.password) {
     await recordFailure(request, `login:${email}`)
-    return errorResponse(401, '', '', undefined, request)
+    return errorResponse(401, 'invalid_credentials', 'Email or password is incorrect.', undefined, request)
   }
   const isMatch = await verifyPassword(parsed.data.password, user.password)
   if (!isMatch) {
     await recordFailure(request, `login:${email}`)
-    return errorResponse(401, '', '', undefined, request)
+    return errorResponse(401, 'invalid_credentials', 'Email or password is incorrect.', undefined, request)
   }
   if (!user.isVerified) {
     return errorResponse(
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   user.linkedProviders = [...(user.linkedProviders ?? []), 'email']
 
   const { payload } = await issueSession(request, user, 'email', rememberMe)
-  const res = successResponse({ ...payload }, 200)
+  const res = successResponse({ ...payload, remember: rememberMe }, 200)
   res.cookies.set(REFRESH_COOKIE_NAME, (payload.token as { refreshToken: string }).refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

@@ -124,7 +124,7 @@ describe('sessions', () => {
     expect(doc.lastSeenAt).toBeInstanceOf(Date)
   })
 
-  it('reuses an active session with the same fingerprint instead of inserting', async () => {
+  it('creates a fresh session per login instead of reusing by fingerprint', async () => {
     const first = await createSession({
       userId,
       provider: 'google',
@@ -141,9 +141,9 @@ describe('sessions', () => {
       os: 'windows',
       deviceType: 'desktop',
     })
-    expect(second._id.toString()).toBe(first._id.toString())
+    expect(second._id.toString()).not.toBe(first._id.toString())
     expect(second.tokenVersion).toBe(0)
-    expect(second.provider).toBe('google')
+    expect(second.provider).toBe('password')
   })
 
   it('rotateSession bumps tokenVersion atomically on match', async () => {

@@ -116,6 +116,7 @@ describe('POST /api/v1/convert', () => {
     const res = await post(SVG_BODY)
     expect(res.status).toBe(422)
     const body = await res.json()
-    expect(body.error).toContain("doesn't look like valid SVG")
+    expect(body.payload.error.code).toBe('invalid_svg')
+    expect(body.payload.error.message).toContain("doesn't look like valid SVG")
   })
 })
