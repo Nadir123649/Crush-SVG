@@ -22,7 +22,7 @@ export const IMAGES = {
   profile: "/profile.svg",
   time: "/time.svg",
   twitterLogin: "/twitter-login.svg",
-  twitter: "/twitter.svg",
+  linkedin: "/linkedin.svg",
   verification: "/verification.svg",
   emailVerification: "/message-filled.svg",
   window: "/window.svg",
