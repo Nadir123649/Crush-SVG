@@ -26,6 +26,13 @@ const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="no
 </defs>
 </svg>`;
 
+const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Paste your SVG code here! -->
+  <rect x="10" y="10" width="80" height="80" rx="15" fill="#DA582D"/>
+  <circle cx="50" cy="50" r="20" fill="#FFFFFF"/>
+  <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
+</svg>`;
+
 export function ConverterUI() {
   const { status } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "scale" | null>(null);
@@ -33,6 +40,7 @@ export function ConverterUI() {
   const [selectedScale, setSelectedScale] = useState("2x");
   const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
+  const [isFocused, setIsFocused] = useState(false);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
@@ -42,6 +50,7 @@ export function ConverterUI() {
   const [previewIsConverted, setPreviewIsConverted] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
+  const [previewError, setPreviewError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,18 +81,31 @@ export function ConverterUI() {
     return () => { cancelled = true }
   }, [status]);
 
-  const previewSvgUrl = useMemo(() => svgToDataUrl(svgCode), [svgCode]);
+  const previewSvgUrl = useMemo(() => {
+    if (!svgCode || svgCode.trim() === "") return "";
+    return svgToDataUrl(svgCode);
+  }, [svgCode]);
 
-  const previewUrl =
-    previewIsConverted && result?.data
-      ? `data:${result.mimeType};base64,${result.data}`
-      : previewSvgUrl;
+  const isValidSvg = useMemo(() => {
+    const trimmed = svgCode.trim().toLowerCase();
+    return trimmed.startsWith("<svg") && trimmed.includes("</svg>") && trimmed.endsWith(">");
+  }, [svgCode]);
+
+  const showDemoPreview = svgCode === SAMPLE_SVG && !isFocused;
+  const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
+
+  const previewUrl = previewIsConverted && result?.data
+    ? `data:${result.mimeType};base64,${result.data}`
+    : showDemoPreview || showCustomPreview
+    ? previewSvgUrl
+    : "";
 
   function handleSvgChange(value: string) {
     setSvgCode(value);
     setResult(null);
     setPreviewIsConverted(false);
     setError(null);
+    setPreviewError(false);
   }
 
   async function handleFile(file: File | undefined | null) {
@@ -158,7 +180,7 @@ export function ConverterUI() {
 
   return (
     <>
-    <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px]">
+    <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
       {/* Outer Dashed Border Box */}
       <div className="w-full h-auto lg:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
         
@@ -183,8 +205,13 @@ export function ConverterUI() {
             {/* SVG Code Box */}
             <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
               <textarea
-                value={svgCode}
+                value={svgCode === SAMPLE_SVG ? (isFocused ? "" : DUMMY_CODE) : svgCode}
                 onChange={(e) => handleSvgChange(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  setIsFocused(false);
+                  if (svgCode.trim() === "") handleSvgChange(SAMPLE_SVG);
+                }}
                 spellCheck={false}
                 aria-label="SVG code"
                 className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
@@ -197,7 +224,7 @@ export function ConverterUI() {
               ref={fileInputRef}
               type="file"
               accept=".svg,image/svg+xml"
-              className="hidden"
+              className="absolute w-0 h-0 opacity-0 overflow-hidden"
               onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
             />
 
@@ -236,18 +263,21 @@ export function ConverterUI() {
             
             {/* Live Preview Box */}
             <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[16px] md:p-[24px]">
-              {previewUrl ? (
+              {previewUrl && !previewError ? (
                 <>
-                  <img src={previewUrl} alt="SVG preview" className="max-w-full max-h-full object-contain" />
+                  <img 
+                    src={previewUrl} 
+                    alt="SVG preview" 
+                    className="max-w-full max-h-full object-contain" 
+                    onError={() => setPreviewError(true)}
+                  />
                   {previewIsConverted && (
                     <span className="absolute top-[10px] left-[10px] rounded-[6px] bg-green-100 text-green-700 font-body font-medium text-[12px] px-[10px] py-[4px]">
                       Converted PNG
                     </span>
                   )}
                 </>
-              ) : (
-                <Image src={IMAGES.uploadImage} alt="Live Preview Placeholder" width={100} height={100} className="object-contain w-[80px] h-[80px] md:w-[100px] md:h-[100px]" />
-              )}
+              ) : null}
             </div>
 
             {previewIsConverted && (

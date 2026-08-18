@@ -25,7 +25,7 @@ export default function ContactUsPage() {
             <label className="font-afacad text-[14px] font-semibold text-brand-primary">Name</label>
             <input 
               type="text" 
-              placeholder="Your full name"
+              placeholder="Enter your name"
               className="w-full h-[40px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent px-[14px] font-afacad text-[14px] outline-none focus:border-brand-primary placeholder:text-[#AEAEAE] transition-colors"
             />
           </div>
@@ -46,11 +46,12 @@ export default function ContactUsPage() {
               rows={5}
               className="w-full rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent p-[14px] font-afacad text-[14px] outline-none focus:border-brand-primary placeholder:text-[#AEAEAE] transition-colors resize-none overflow-y-auto"
             ></textarea>
+            <span className="font-afacad text-[12px] text-[#A1A1AA]">Message must be at least 10 characters</span>
           </div>
 
           <button 
             type="button"
-            className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity"
+            className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity"
           >
             Send Message
           </button>

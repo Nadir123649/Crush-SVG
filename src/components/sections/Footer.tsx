@@ -11,7 +11,16 @@ export function Footer() {
       e.preventDefault();
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        const isMobile = window.innerWidth < 768;
+        const navbarHeight = isMobile ? 66 : 92;
+        const gap = 4;
+        const offset = navbarHeight + gap;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        
+        window.scrollTo({
+          top: elementPosition - offset,
+          behavior: "smooth"
+        });
         window.history.pushState(null, "", `/${hash}`);
       }
     }
