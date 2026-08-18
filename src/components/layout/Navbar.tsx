@@ -53,8 +53,9 @@ export function Navbar() {
   }, []);
 
   return (
-    <div className={`w-full flex justify-center z-50 px-[16px] md:px-[80px] transition-all duration-300 sticky top-0 ${isScrolled ? "bg-[#FFFCFA]/95 backdrop-blur-md py-[12px] md:py-[16px]" : "bg-[#FFFCFA] pt-[24px] md:pt-[40px] pb-[10px]"}`}>
-      <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
+    <div className="w-full h-[66px] md:h-[92px] sticky top-0 z-50">
+      <div className={`w-full flex justify-center px-[16px] md:px-[80px] transition-all duration-300 absolute top-0 ${isScrolled ? "bg-[#FFFCFA]/95 backdrop-blur-md py-[12px] md:py-[16px]" : "bg-[#FFFCFA] pt-[24px] md:pt-[40px] pb-[10px]"}`}>
+        <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-[4px] md:gap-[6px]">
           <Image
@@ -165,6 +166,7 @@ export function Navbar() {
         </div>
         )}
       </nav>
+    </div>
     </div>
   );
 }

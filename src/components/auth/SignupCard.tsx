@@ -42,7 +42,7 @@ export function SignupCard() {
                 </svg>
               </button>
             </div>
-          </div>
+          </div> 
         </div>
 
         {/* CTA Button */}

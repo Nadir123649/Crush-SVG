@@ -189,13 +189,15 @@ export function ConverterUI() {
             </div>
             
             {/* SVG Code Box */}
-            <textarea
-              value={svgCode}
-              onChange={(e) => handleSvgChange(e.target.value)}
-              spellCheck={false}
-              aria-label="SVG code"
-              className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] p-[16px] md:p-[24px] bg-[#FFFFFF] resize-none outline-none focus:border-brand-primary transition-colors font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto"
-            />
+            <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+              <textarea
+                value={svgCode}
+                onChange={(e) => handleSvgChange(e.target.value)}
+                spellCheck={false}
+                aria-label="SVG code"
+                className="w-full h-full p-[16px] md:p-[24px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-[#D2D2D2] whitespace-pre-wrap overflow-auto"
+              />
+            </div>
 
             <input
               ref={fileInputRef}
@@ -287,18 +289,20 @@ export function ConverterUI() {
                   
                   {/* Width Dropdown Menu */}
                   {openDropdown === "width" && (
-                    <div role="listbox" className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] overflow-y-auto bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 py-[8px]">
-                      {WIDTH_OPTIONS.map((opt) => (
-                        <div 
-                          key={opt}
-                          role="option"
-                          aria-selected={selectedWidth === opt}
-                          onClick={() => { setSelectedWidth(opt); setOpenDropdown(null); }}
-                          className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                        >
-                          {opt}
-                        </div>
-                      ))}
+                    <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                      <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px]">
+                        {WIDTH_OPTIONS.map((opt) => (
+                          <div 
+                            key={opt}
+                            role="option"
+                            aria-selected={selectedWidth === opt}
+                            onClick={() => { setSelectedWidth(opt); setOpenDropdown(null); }}
+                            className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -321,18 +325,20 @@ export function ConverterUI() {
                   
                   {/* Scale Dropdown Menu */}
                   {openDropdown === "scale" && (
-                    <div role="listbox" className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] overflow-y-auto bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 py-[8px]">
-                      {SCALE_OPTIONS.map((opt) => (
-                        <div 
-                          key={opt}
-                          role="option"
-                          aria-selected={selectedScale === opt}
-                          onClick={() => { setSelectedScale(opt); setOpenDropdown(null); }}
-                          className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                        >
-                          {opt}
-                        </div>
-                      ))}
+                    <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                      <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px]">
+                        {SCALE_OPTIONS.map((opt) => (
+                          <div 
+                            key={opt}
+                            role="option"
+                            aria-selected={selectedScale === opt}
+                            onClick={() => { setSelectedScale(opt); setOpenDropdown(null); }}
+                            className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

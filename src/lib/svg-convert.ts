@@ -32,9 +32,30 @@ export function sanitizeSvg(svg: string): string {
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
   sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
   sanitized = sanitized.replace(/javascript:/gi, '')
-  sanitized = sanitized.replace(/data:/gi, '')
   sanitized = sanitized.replace(/vbscript:/gi, '')
   sanitized = sanitized.replace(/expression\s*\(/gi, '')
+
+  // Fix for Figma image patterns (librsvg bug where <use> cannot reference <image> reliably)
+  const imageRegex = /<image\s+id=["']([^"']+)["'][^>]*\/>/gi
+  let match
+  const images = new Map<string, string>()
+  while ((match = imageRegex.exec(sanitized)) !== null) {
+    images.set(match[1], match[0])
+  }
+
+  if (images.size > 0) {
+    sanitized = sanitized.replace(
+      /<use\s+xlink:href=["']#([^"']+)["']([^>]*)\/>/gi,
+      (fullMatch, id, rest) => {
+        const imgTag = images.get(id)
+        if (imgTag) {
+          // Inline the image and apply the <use> attributes (like transform)
+          return imgTag.replace(/<image\s+id=["'][^"']+["']/, `<image ${rest}`)
+        }
+        return fullMatch
+      }
+    )
+  }
 
   return sanitized
 }
