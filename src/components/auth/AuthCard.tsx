@@ -155,11 +155,11 @@ async function handleOAuth(provider: OAuthProvider) {
                 id="auth-name"
                 type="text"
                 required
-                minLength={3}
+                minLength={1}
                 maxLength={16}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name (3-16 characters)"
+                placeholder="Enter your name"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
             </div>
@@ -269,7 +269,7 @@ async function handleOAuth(provider: OAuthProvider) {
             type="button" 
             onClick={() => handleOAuth("google")} 
             disabled={submitting === "email" || submitting === "google"}
-            className="flex items-center justify-center w-full h-[34px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
             <span className="font-afacad font-medium text-[14px] text-black">
