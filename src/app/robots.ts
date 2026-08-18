@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/sessions", "/verify", "/reset-password"],
+        disallow: ["/api/", "/verify", "/reset-password"],
       },
     ],
     sitemap: "https://crush-svg.vercel.app/sitemap.xml",

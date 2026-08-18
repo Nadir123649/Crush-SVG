@@ -70,27 +70,6 @@ export async function createSession(input: {
   return created
 }
 
-export interface SessionPage {
-  docs: SessionDoc[]
-  total: number
-}
-
-export async function listActiveSessions(
-  userId: SessionUserId,
-  page = 1,
-  limit = 20
-): Promise<SessionPage> {
-  const skip = (page - 1) * limit
-  const [total, docs] = await Promise.all([
-    Session.countDocuments({ userId, status: 'active' }),
-    Session.find({ userId, status: 'active' })
-      .sort({ lastSeenAt: -1 })
-      .skip(skip)
-      .limit(limit),
-  ])
-  return { docs, total }
-}
-
 export async function revokeSession(sessionId: string, userId: SessionUserId): Promise<boolean> {
   const result = await Session.updateOne(
     { _id: sessionId, userId },

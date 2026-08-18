@@ -133,14 +133,6 @@ export function Navbar() {
                     <p className="font-body font-medium text-[13px] text-text-dark truncate">{user.displayName || "CrushSVG user"}</p>
                     <p className="font-body text-[12px] text-text-muted truncate">{user.email}</p>
                   </div>
-                  <Link
-                    href="/sessions"
-                    onClick={() => setMenuOpen(false)}
-                    role="menuitem"
-                    className="block px-[16px] py-[10px] font-body text-[14px] text-text-body hover:bg-gray-50 hover:text-text-dark transition-colors"
-                  >
-                    Manage sessions
-                  </Link>
                   <button
                     type="button"
                     role="menuitem"

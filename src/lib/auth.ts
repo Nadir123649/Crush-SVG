@@ -5,7 +5,7 @@ import type { UserDTO } from '@/lib/shared-types'
 
 export const REFRESH_COOKIE_NAME = 'crushsvg_refresh'
 
-export type { UserDTO, TokenPairDTO, SessionDTO, UsageInfo } from '@/lib/shared-types'
+export type { UserDTO, TokenPairDTO, UsageInfo } from '@/lib/shared-types'
 
 export function toUserDTO(user: UserDoc): UserDTO {
   return {
