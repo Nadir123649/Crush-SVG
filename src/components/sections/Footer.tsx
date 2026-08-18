@@ -66,14 +66,14 @@ export function Footer() {
           {/* Column 2 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Resources</h4>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG Guides</Link>
+            <Link href="https://developer.mozilla.org/en-US/docs/Web/SVG/Guides" target="_blank" rel="noopener noreferrer" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG Guides</Link>
             <Link href="/#faq" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
             <Link href="/contact-us" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
           </div>
           {/* Column 3 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Company</h4>
-            <Link href="#" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">About Us</Link>
+            <Link href="/about" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">About Us</Link>
             <Link href="/privacy-policy" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Cookies</Link>
             <Link href="/terms" className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
@@ -113,7 +113,7 @@ export function Footer() {
               <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
           </div>
         </div>
@@ -132,7 +132,7 @@ export function Footer() {
               <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.twitter} alt="Twitter" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
             </Link>
           </div>
         </div>
