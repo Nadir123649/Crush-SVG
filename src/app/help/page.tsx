@@ -13,7 +13,7 @@ export default function HelpPage() {
           Help & <span className="text-brand-primary">Support</span>
         </h1>
         <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5]">
-          Need assistance with CrushSVG? We're here to help. Check our frequently asked questions below or reach out to our support team directly.
+          Need assistance with CrushSVG? We&apos;re here to help. Check our frequently asked questions below or reach out to our support team directly.
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function HelpPage() {
           Still have questions?
         </h2>
         <p className="font-afacad text-[16px] md:text-[18px] text-text-muted text-center mb-[24px]">
-          If you couldn't find what you were looking for, our team is always ready to assist you with any issues or feedback.
+          If you couldn&apos;t find what you were looking for, our team is always ready to assist you with any issues or feedback.
         </p>
         <a 
           href="mailto:support@crushsvg.com"

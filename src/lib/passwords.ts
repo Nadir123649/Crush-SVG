@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { randomBytes, createHash } from 'crypto'
 
 export const VERIFY_TOKEN_MINUTES = 24 * 60
-export const RESET_TOKEN_MINUTES = 60
+export const RESET_TOKEN_MINUTES = 30
 
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)

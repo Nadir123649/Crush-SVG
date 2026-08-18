@@ -11,19 +11,21 @@ export async function register() {
     }
 
     const { connectToDatabase } = await import('@/lib/db')
-    void (async () => {
-      for (let attempt = 1; ; attempt++) {
-        try {
-          await connectToDatabase()
-          return
-        } catch (err) {
-          console.error(
-            `[crushsvg] MongoDB connection attempt ${attempt} failed, retrying in 5s:`,
-            err
-          )
-          await new Promise((resolve) => setTimeout(resolve, 5000))
+    const MAX_ATTEMPTS = 3
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        await connectToDatabase()
+        return
+      } catch (err) {
+        console.error(
+          `[crushsvg] MongoDB connection attempt ${attempt}/${MAX_ATTEMPTS} failed:`,
+          err
+        )
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 2000))
         }
       }
-    })()
+    }
+    console.warn('[crushsvg] MongoDB unreachable after retries — continuing startup; requests will fail until reachable.')
   }
 }

@@ -6,6 +6,7 @@ export interface UserDTO {
   photoURL: string | null
   providers: string[]
   linkedProviders: string[]
+  role: 'user' | 'admin'
   hasPassword: boolean
   isVerified: boolean
   conversionsUsed: number

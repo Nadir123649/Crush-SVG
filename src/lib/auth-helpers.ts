@@ -3,21 +3,22 @@ import 'server-only'
 import { NextRequest } from 'next/server'
 
 import type { UserDoc } from '@/lib/db'
+import { getClientIp } from '@/lib/ip'
 import { createSession } from '@/lib/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { toUserDTO } from '@/lib/auth'
 
-export function authPayload(user: UserDoc, sessionId?: string, tokenVersion?: number) {
+export function authPayload(user: UserDoc, sessionId: string, tokenVersion?: number) {
   const payload: Record<string, unknown> = {
     user: toUserDTO(user),
     token: buildTokenPayload({
       id: user._id.toString(),
-      role: 'free',
+      role: user.role ?? 'user',
       sessionId,
       tokenVersion,
     }),
   }
-  if (sessionId) payload.sessionId = sessionId
+  payload.sessionId = sessionId
   return payload
 }
 
@@ -31,7 +32,7 @@ export async function issueSession(
     userId: user._id,
     provider,
     remember,
-    ip: request.headers.get('x-forwarded-for') ?? undefined,
+    ip: getClientIp(request) ?? undefined,
     userAgent: request.headers.get('user-agent') ?? undefined,
   })
   const sessionId = session._id.toString()

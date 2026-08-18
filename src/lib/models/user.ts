@@ -11,6 +11,7 @@ export interface UserDoc {
   photoURL: string | null
   providers: string[]
   linkedProviders?: string[]
+  role: 'user' | 'admin'
   password?: string
   isVerified?: boolean
   emailVerificationToken?: string
@@ -32,6 +33,7 @@ const userSchema = new Schema(
     photoURL: { type: String, default: null },
     providers: { type: [String], default: [] },
     linkedProviders: { type: [String] },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     password: { type: String },
     isVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
@@ -45,7 +47,7 @@ const userSchema = new Schema(
 )
 
 userSchema.index({ uid: 1 }, { unique: true })
-userSchema.index({ email: 1 }, { unique: true, sparse: true })
+userSchema.index({ email: 1 }, { sparse: true })
 
 declare global {
   var __crushSvgUserModel: Model<UserDoc> | undefined

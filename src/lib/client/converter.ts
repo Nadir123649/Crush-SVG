@@ -68,7 +68,7 @@ export function parseSvgDimensions(svg: string): { width?: number; height?: numb
     return { width: w, height: h };
   }
 
-  return { width: vbWidth, height: vbHeight };
+  return { width: widthMatch ? w : vbWidth, height: heightMatch ? h : vbHeight };
 }
 
 export function svgToObjectUrl(svg: string): string {

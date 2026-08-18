@@ -1,15 +1,62 @@
 import 'server-only'
 
+import { randomUUID } from 'crypto'
+
 import { NextRequest } from 'next/server'
 
 import { GuestUsage } from '@/lib/db'
+import { getClientIp } from '@/lib/ip'
+
+export const GUEST_CONVERSION_LIMIT = 3
+
+export const GUEST_COOKIE_NAME = 'gid'
+const GUEST_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 
 export function getGuestId(request: NextRequest): string | null {
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  return request.headers.get('cf-connecting-ip')
+  return request.cookies.get(GUEST_COOKIE_NAME)?.value ?? getClientIp(request) ?? null
+}
+
+export interface GuestCookieSpec {
+  name: string
+  value: string
+  httpOnly: boolean
+  secure: boolean
+  sameSite: 'lax'
+  path: string
+  maxAge: number
+}
+
+/**
+ * Returns a stable guest identifier for the request. The signed-out `gid`
+ * cookie is the primary key so every visitor gets their own 3-free-conversion
+ * budget — even when many visitors share a client IP (local dev, NAT, office
+ * networks). Falls back to the client IP only when cookies are unavailable.
+ * When no cookie exists yet, `setCookie` is populated so the caller can attach
+ * it to the response.
+ */
+export function ensureGuestId(
+  request: NextRequest,
+  env: NodeJS.ProcessEnv = process.env
+): { guestId: string | null; setCookie: GuestCookieSpec | null } {
+  const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value
+  if (existing) return { guestId: existing, setCookie: null }
+
+  const ip = getClientIp(request)
+  if (ip) return { guestId: ip, setCookie: null }
+
+  const guestId = randomUUID()
+  return {
+    guestId,
+    setCookie: {
+      name: GUEST_COOKIE_NAME,
+      value: guestId,
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: GUEST_COOKIE_MAX_AGE,
+    },
+  }
 }
 
 export async function getGuestUsage(guestId: string): Promise<number> {
@@ -17,14 +64,17 @@ export async function getGuestUsage(guestId: string): Promise<number> {
   return record?.conversionsUsed ?? 0
 }
 
+/**
+ * Atomically increments guest usage only while the guest is still under the
+ * limit. Prevents concurrent requests from exceeding the free allowance.
+ * Returns the post-increment count (or the current count when already capped).
+ */
 export async function incrementGuestUsage(guestId: string): Promise<number> {
-  const record = await GuestUsage.findOneAndUpdate(
-    { _id: guestId },
-    {
-      $inc: { conversionsUsed: 1 },
-      $setOnInsert: { _id: guestId },
-    },
+  const updated = await GuestUsage.findOneAndUpdate(
+    { _id: guestId, conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT } },
+    { $inc: { conversionsUsed: 1 }, $setOnInsert: { _id: guestId } },
     { upsert: true, new: true }
   )
-  return record?.conversionsUsed ?? 1
+  if (updated) return updated.conversionsUsed
+  return getGuestUsage(guestId)
 }

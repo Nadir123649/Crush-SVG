@@ -51,7 +51,7 @@ export function ForgotPasswordCard() {
             />
             <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mt-[12px]">
               If an account exists for <span className="font-semibold text-[#353A3E]">{email}</span>,
-              a reset link has been sent. It expires in 60 minutes.
+              a reset link has been sent. It expires in 30 minutes.
             </p>
             <Link href="/login" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline mt-[8px]">
               Back to login
