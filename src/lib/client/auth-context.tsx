@@ -89,9 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     void (async () => {
-      const ok = await refreshSession()
+      const payload = await refreshSession()
       if (cancelled) return
-      if (!ok) {
+      if (!payload) {
         setStatus('guest')
         return
       }
@@ -107,6 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         if (!cancelled) setStatus('guest')
       }
+      applySession({
+        user: payload.user,
+        token: payload.token,
+        sessionId: payload.sessionId ?? undefined,
+        remember: payload.remember ?? undefined,
+      })
     })()
 
     return () => {

@@ -170,13 +170,13 @@ describe('http client', () => {
     expect(await blob.text()).toBe('png-data')
   })
 
-  it('refreshSession returns false without notifying when there is no cookie', async () => {
+  it('refreshSession returns null without notifying when there is no cookie', async () => {
     const handler = vi.fn()
     setAuthExpiredHandler(handler)
     fetchMock.mockResolvedValue(
       jsonResponse(200, { success: false, payload: { error: { code: 'token_missing' } } })
     )
-    await expect(refreshSession()).resolves.toBe(false)
+    await expect(refreshSession()).resolves.toBeNull()
     expect(handler).toHaveBeenCalledTimes(1)
     expect(getAccessToken()).toBeNull()
   })
