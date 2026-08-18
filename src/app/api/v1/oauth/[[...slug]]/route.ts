@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 
-import { verifyIdToken } from '@/lib/firebase-admin'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip'
@@ -61,6 +60,11 @@ export async function POST(
   }
 
   try {
+    // Dynamic import keeps the Firebase Admin SDK out of the route's module
+    // evaluation: if the admin module fails to load in a given environment
+    // (e.g. a broken install on the deploy target), the failure is caught
+    // here and surfaced as a clear 401 instead of an uncaught 500.
+    const { verifyIdToken } = await import('@/lib/firebase-admin')
     const token = await verifyIdToken(parsed.data.firebaseToken)
     const expectedProviderId = PROVIDER_URL_MAP[provider]
     if (token.firebase?.sign_in_provider !== expectedProviderId) {
@@ -119,7 +123,8 @@ export async function POST(
     })
     return res
   } catch (error) {
-    logger.error('oauth_failed', { provider, requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
-    return errorResponse(401, 'invalid_token', 'Invalid or expired token', undefined, request)
+    const message = error instanceof Error ? error.message : 'Invalid or expired token'
+    logger.error('oauth_failed', { provider, requestId: request.headers.get('x-request-id'), error: message })
+    return errorResponse(401, 'invalid_token', message, undefined, request)
   }
 }
