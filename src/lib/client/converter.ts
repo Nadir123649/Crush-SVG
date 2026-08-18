@@ -5,6 +5,7 @@ export type ConvertFormat = 'png' | 'jpeg' | 'webp'
 export interface ConvertRequest {
   format?: ConvertFormat
   width?: number
+  height?: number
   scale?: number
   transparent?: boolean
   quality?: number

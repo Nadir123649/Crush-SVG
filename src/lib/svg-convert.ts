@@ -7,6 +7,7 @@ export type SvgFormat = 'png' | 'jpeg' | 'webp'
 export interface SvgConvertOptions {
   format?: SvgFormat
   width?: number
+  height?: number
   scale?: number
   transparent?: boolean
   quality?: number
@@ -103,8 +104,16 @@ export async function convertSvg(
 
   let targetWidth: number | undefined
   let targetHeight: number | undefined
+  let fit: 'contain' | 'inside' = 'inside'
 
-  if (options.width) {
+  if (options.width && options.height) {
+    // Exact custom size: canvas is always the requested dimensions; the image
+    // fits inside undistorted and any remaining space is padded (transparent
+    // for PNG, white for JPEG/flattened output).
+    targetWidth = Math.round(options.width)
+    targetHeight = Math.round(options.height)
+    fit = 'contain'
+  } else if (options.width) {
     targetWidth = Math.round(options.width)
     if (svgWidth && svgHeight) {
       targetHeight = Math.round((targetWidth / svgWidth) * svgHeight)
@@ -123,8 +132,9 @@ export async function convertSvg(
     pipeline.resize({
       width: targetWidth,
       height: targetHeight,
-      fit: 'inside',
+      fit,
       withoutEnlargement: false,
+      background: { r: 255, g: 255, b: 255, alpha: options.transparent === false || format === 'jpeg' ? 1 : 0 },
     })
   }
 
@@ -153,6 +163,6 @@ export async function convertSvg(
     })
   }
 
-  const buffer = await pipeline.toBuffer()
-  return { buffer, width: targetWidth, height: targetHeight, format }
+  const { data: buffer, info } = await pipeline.toBuffer({ resolveWithObject: true })
+  return { buffer, width: info.width, height: info.height, format }
 }

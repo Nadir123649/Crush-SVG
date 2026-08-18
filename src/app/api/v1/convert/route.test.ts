@@ -119,4 +119,48 @@ describe('POST /api/v1/convert', () => {
     expect(body.payload.error.code).toBe('invalid_svg')
     expect(body.payload.error.message).toContain("doesn't look like valid SVG")
   })
+
+  it('returns 422 with malformed-markup reason for corrupt XML', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('Input buffer has corrupt header: glib: XML parse error'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('invalid_svg')
+    expect(body.payload.error.message).toContain('malformed')
+  })
+
+  it('returns 422 with font reason when the SVG uses an unavailable font', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('VipsError: unable to load font "Comic Sans"'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('svg_font_error')
+    expect(body.payload.error.message).toContain("font that isn't available")
+  })
+
+  it('returns 422 with complexity reason on out-of-memory failures', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('VipsError: out of memory'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('svg_too_complex')
+    expect(body.payload.error.message).toContain('too complex')
+  })
+
+  it('returns 503 when the conversion times out', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('job wait timeout'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(503)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('conversion_timed_out')
+    expect(body.payload.error.message).toContain('took too long')
+  })
+
+  it('returns 500 with a generic message for unknown failures', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('something unexpected'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(500)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('conversion_failed')
+  })
 })

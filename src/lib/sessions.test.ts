@@ -9,6 +9,7 @@ import {
   revokeAllSessions,
   revokeSession,
   rotateSession,
+  wasSessionRotatedWithin,
   type SessionDoc,
 } from '@/lib/sessions'
 
@@ -159,6 +160,17 @@ describe('sessions', () => {
     const result = await rotateSession(doc._id.toString(), 99, userId)
     expect(result.rotated).toBe(false)
     expect(result.currentVersion).toBe(0)
+  })
+
+  it('wasSessionRotatedWithin reports true right after a rotation', async () => {
+    const doc = await createSession({ userId, provider: 'google', remember: true })
+    await rotateSession(doc._id.toString(), doc.tokenVersion, userId)
+    expect(await wasSessionRotatedWithin(doc._id.toString(), 60_000)).toBe(true)
+  })
+
+  it('wasSessionRotatedWithin reports false without a recent rotation', async () => {
+    const doc = await createSession({ userId, provider: 'google', remember: true })
+    expect(await wasSessionRotatedWithin(doc._id.toString(), 60_000)).toBe(false)
   })
 
   it('lists only active sessions for a user', async () => {

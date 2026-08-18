@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type ReactNode } from "react";
+import React, { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/client/auth-context";
 
@@ -12,12 +12,15 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   const { status } = useAuth();
   const router = useRouter();
 
-  if (status === "authed") {
-    router.replace("/");
+  useEffect(() => {
+    if (status === "authed") {
+      router.replace("/");
+    }
+  }, [status, router]);
+
+  if (status === "authed" || status === "loading") {
     return null;
   }
 
-  // Render children immediately even during "loading" state 
-  // so the login/signup cards don't have a visible delay for guests.
   return <>{children}</>;
 }

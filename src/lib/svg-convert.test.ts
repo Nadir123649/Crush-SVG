@@ -150,4 +150,33 @@ describe('convertSvg width and scale', () => {
     const result = await convertSvg(svg, { width: 200 })
     expect(result.width).toBe(200)
   })
+
+  it('applies an exact width and height when both are given', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="purple"/></svg>'
+    const result = await convertSvg(svg, { width: 400, height: 200 })
+    expect(result.width).toBe(400)
+    expect(result.height).toBe(200)
+  })
+
+  it('pads the canvas to the exact requested size when the aspect ratio differs', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="orange"/></svg>'
+    const result = await convertSvg(svg, { width: 400, height: 400 })
+    expect(result.width).toBe(400)
+    expect(result.height).toBe(400)
+    const corner = await pixelAt(result.buffer, 0, 0)
+    expect(corner.a).toBe(0)
+    const center = await pixelAt(result.buffer, 200, 200)
+    expect(center.r).toBeGreaterThan(230)
+    expect(center.g).toBeGreaterThan(100)
+    expect(center.b).toBeLessThan(60)
+  })
+
+  it('pads JPEG canvas white to the exact requested size', async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="orange"/></svg>'
+    const result = await convertSvg(svg, { format: 'jpeg', width: 400, height: 400 })
+    expect(result.width).toBe(400)
+    expect(result.height).toBe(400)
+    const corner = await pixelAt(result.buffer, 0, 0)
+    expect(corner).toEqual({ r: 255, g: 255, b: 255, a: 255 })
+  })
 })
