@@ -28,6 +28,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/contact-us",
+        destination: "/support",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

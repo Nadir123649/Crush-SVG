@@ -1,10 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Cookies Policy | CrushSVG",
   description: "Cookies policy for CrushSVG, explaining how we use cookies and similar technologies.",
-};
+  canonicalPath: "/cookies",
+});
 
 export default function CookiesPolicyPage() {
   return (

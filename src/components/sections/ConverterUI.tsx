@@ -39,6 +39,11 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
+const formatDimensionLabel = (val: string) => {
+  if (val === "Original" || val === "Auto" || val === "Custom") return val;
+  return `${val} px`;
+};
+
 export function ConverterUI() {
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
@@ -501,7 +506,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomWidth ? "Custom" : selectedWidth}
+                        {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth)}
                       </div>
                       <button
                         type="button"
@@ -537,7 +542,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {opt}
+                              {formatDimensionLabel(opt)}
                             </div>
                           ))}
                         </div>
@@ -553,7 +558,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomHeight ? "Custom" : selectedHeight}
+                        {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight)}
                       </div>
                       <button
                         type="button"
@@ -589,7 +594,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {opt}
+                              {formatDimensionLabel(opt)}
                             </div>
                           ))}
                         </div>
