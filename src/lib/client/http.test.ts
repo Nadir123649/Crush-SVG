@@ -130,10 +130,9 @@ describe('http client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('refreshes on 401 without a token when a session was restored', async () => {
+  it('attaches a restored session token before a tokenless authenticated request', async () => {
     setSessionRestored(true)
     fetchMock
-      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
       .mockResolvedValueOnce(
         jsonResponse(200, {
           success: true,
@@ -145,27 +144,161 @@ describe('http client', () => {
       )
       .mockResolvedValueOnce(jsonResponse(200, { success: true, payload: { ok: 1 } }))
 
-    await expect(apiFetch('/api/v1/foo')).resolves.toEqual({ ok: 1 })
+    await expect(apiFetch('/api/v1/convert')).resolves.toEqual({ ok: 1 })
 
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/auth/refresh')
-    expect(fetchMock.mock.calls[2][0]).toBe('/api/v1/foo')
+    // Refresh happens BEFORE the protected request so it can never fall back to
+    // the guest path on the server.
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/auth/refresh',
+      '/api/v1/convert',
+    ])
+    expect(new Headers(fetchMock.mock.calls[1][1].headers).get('authorization')).toBe('Bearer fresh')
     expect(getAccessToken()).toBe('fresh')
+    expect(getSessionId()).toBe('sess-1')
   })
 
-  it('throws session_expired and logs out when a restored session cannot refresh', async () => {
+  it('attaches a restored session token before a tokenless download', async () => {
+    setSessionRestored(true)
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          success: true,
+          payload: { token: { accessToken: 'fresh' } },
+        })
+      )
+      .mockResolvedValueOnce(new Response(new Blob(['png-data']), { status: 200 }))
+
+    const blob = await apiBlob('/api/v1/convert?download=1')
+
+    expect(await blob.text()).toBe('png-data')
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/auth/refresh',
+      '/api/v1/convert?download=1',
+    ])
+    expect(new Headers(fetchMock.mock.calls[1][1].headers).get('authorization')).toBe('Bearer fresh')
+  })
+
+  it('deduplicates the pre-flight refresh across concurrent tokenless requests', async () => {
+    setSessionRestored(true)
+
+    let resolveRefresh: (r: Response) => void = () => {}
+    const counts = new Map<string, number>()
+    fetchMock.mockImplementation((url: string) => {
+      if (url === '/api/v1/auth/refresh') {
+        return new Promise((resolve) => {
+          resolveRefresh = resolve
+        })
+      }
+      const n = counts.get(url) ?? 0
+      counts.set(url, n + 1)
+      return Promise.resolve(jsonResponse(200, { success: true, payload: { ok: 1 } }))
+    })
+
+    const p1 = apiFetch('/api/v1/a')
+    const p2 = apiFetch('/api/v1/b')
+    await new Promise((r) => setTimeout(r, 0))
+    resolveRefresh(
+      jsonResponse(200, { success: true, payload: { token: { accessToken: 'fresh' } } })
+    )
+    await Promise.all([p1, p2])
+
+    const refreshCalls = fetchMock.mock.calls.filter(([url]) => url === '/api/v1/auth/refresh')
+    expect(refreshCalls).toHaveLength(1)
+    const originalCalls = fetchMock.mock.calls.filter(([url]) => url !== '/api/v1/auth/refresh')
+    expect(originalCalls).toHaveLength(2)
+    for (const [, init] of originalCalls) {
+      expect(new Headers(init.headers).get('authorization')).toBe('Bearer fresh')
+    }
+  })
+
+  it('recovers with a fresh refresh when the deduped pre-flight attempt failed', async () => {
+    setSessionRestored(true)
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          success: true,
+          payload: { token: { accessToken: 'fresh' } },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse(200, { success: true, payload: { ok: 1 } }))
+
+    await expect(apiFetch('/api/v1/convert')).resolves.toEqual({ ok: 1 })
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/auth/refresh',
+      '/api/v1/auth/refresh',
+      '/api/v1/convert',
+    ])
+    expect(new Headers(fetchMock.mock.calls[2][1].headers).get('authorization')).toBe('Bearer fresh')
+  })
+
+  it('throws session_expired without downgrading to guest when a restored session cannot refresh', async () => {
     setSessionRestored(true)
     const handler = vi.fn()
     setAuthExpiredHandler(handler)
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
-      .mockResolvedValueOnce(jsonResponse(401, { success: false, payload: { error: { code: 'session_revoked' } } }))
+    fetchMock.mockResolvedValue(jsonResponse(401, { error: 'Unauthorized' }))
 
-    await expect(apiFetch('/api/v1/foo')).rejects.toMatchObject({
+    await expect(apiFetch('/api/v1/convert')).rejects.toMatchObject({
       status: 401,
       code: 'session_expired',
     })
-    expect(handler).toHaveBeenCalledTimes(1)
+
+    // Both pre-flight attempts are silent: a transient failure must not log
+    // the user out, and the protected request is never sent unauthenticated.
+    expect(handler).not.toHaveBeenCalled()
+    const urls = fetchMock.mock.calls.map(([url]) => url)
+    expect(urls).toEqual(['/api/v1/auth/refresh', '/api/v1/auth/refresh'])
+    expect(urls).not.toContain('/api/v1/convert')
+  })
+
+  it('refreshes at most once more after a 401 following a successful pre-flight', async () => {
+    setSessionRestored(true)
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          success: true,
+          payload: { token: { accessToken: 'fresh' } },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          success: true,
+          payload: { token: { accessToken: 'fresher' } },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse(200, { success: true, payload: { ok: 1 } }))
+
+    await expect(apiFetch('/api/v1/convert')).resolves.toEqual({ ok: 1 })
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/auth/refresh',
+      '/api/v1/convert',
+      '/api/v1/auth/refresh',
+      '/api/v1/convert',
+    ])
+    expect(new Headers(fetchMock.mock.calls[3][1].headers).get('authorization')).toBe('Bearer fresher')
+    expect(getAccessToken()).toBe('fresher')
+  })
+
+  it('does not pre-flight refresh for a tokenless guest request', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        success: true,
+        payload: { conversionsUsed: 1, remaining: 2, isUnlimited: false },
+      })
+    )
+
+    await expect(apiFetch('/api/v1/usage')).resolves.toEqual({
+      conversionsUsed: 1,
+      remaining: 2,
+      isUnlimited: false,
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/usage')
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).has('authorization')).toBe(false)
   })
 
   it('deduplicates concurrent refreshes (single flight)', async () => {
@@ -210,7 +343,7 @@ describe('http client', () => {
     expect(await blob.text()).toBe('png-data')
   })
 
-  it('refreshSession returns null without notifying when there is no cookie', async () => {
+  it('notifies the handler when the refresh cookie is missing', async () => {
     const handler = vi.fn()
     setAuthExpiredHandler(handler)
     fetchMock.mockResolvedValue(
@@ -219,6 +352,48 @@ describe('http client', () => {
     await expect(refreshSession()).resolves.toBeNull()
     expect(handler).toHaveBeenCalledTimes(1)
     expect(getAccessToken()).toBeNull()
+  })
+
+  it('does not clear the session when the refresh is rate limited', async () => {
+    setAccessToken('abc')
+    const handler = vi.fn()
+    setAuthExpiredHandler(handler)
+    fetchMock.mockResolvedValue(
+      jsonResponse(429, {
+        success: false,
+        payload: { error: { code: 'rate_limited' } },
+        ...{ retryAfterSeconds: 1 },
+      })
+    )
+
+    await expect(refreshSession()).resolves.toBeNull()
+
+    // 429 is transient: the cookie survives server-side, so clearing the
+    // session here would log out a valid user and poison the stored snapshot.
+    expect(handler).not.toHaveBeenCalled()
+    expect(getAccessToken()).toBe('abc')
+  })
+
+  it('does not clear the session when the refresh request fails on the network', async () => {
+    setAccessToken('abc')
+    const handler = vi.fn()
+    setAuthExpiredHandler(handler)
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
+
+    await expect(refreshSession()).resolves.toBeNull()
+
+    expect(handler).not.toHaveBeenCalled()
+    expect(getAccessToken()).toBe('abc')
+  })
+
+  it('still notifies the handler on an authoritative dead session', async () => {
+    const handler = vi.fn()
+    setAuthExpiredHandler(handler)
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { success: false, payload: { error: { code: 'token_invalid' } } })
+    )
+    await expect(refreshSession()).resolves.toBeNull()
+    expect(handler).toHaveBeenCalledTimes(1)
   })
 
   it('ApiError carries status and code', () => {

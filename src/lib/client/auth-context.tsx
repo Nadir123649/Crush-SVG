@@ -106,13 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // mount refresh (or the first real API call) attaches the access token.
         setStatus('authed')
       } else {
-        try {
-          // Fast path: a previously-resolved guest can go straight to the
-          // guest UI. First-time visitors (no marker) stay 'loading' until the
-          // mount refresh confirms whether a session cookie exists.
-          const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
-          if (storedStatus === 'guest') setStatus('guest')
-        } catch {}
+        // No stored user snapshot: hold the loading state until the mount
+        // refresh settles. The persisted 'guest' marker is NOT authoritative —
+        // clearAuth can leave a still-valid session cookie behind (e.g. a
+        // rate-limited logout), so trusting the marker would flash the guest
+        // UI on refresh for a session that is actually valid. The mount
+        // refresh decides; on its failure, visitors without a stored user
+        // resolve to the guest state immediately.
       }
       // A restored user snapshot means the app is in an authed session even
       // before the access token arrives — API calls may refresh on demand.
