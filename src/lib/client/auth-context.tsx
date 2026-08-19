@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 
-import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
+import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
@@ -99,19 +99,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           restoredUser = true
         }
       } catch {}
-      try {
-        const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
-        if (storedStatus === 'authed') {
-          setStatus('authed')
-        } else if (restoredUser) {
-          // A stored user with a missing/guest marker (e.g. a stale 'guest'
-          // left behind by an older bug) must not flash the guest UI. Hold in
-          // 'loading' until the mount refresh decides.
-          setStatus('loading')
-        } else if (storedStatus === 'guest') {
-          setStatus('guest')
-        }
-      } catch {}
+      if (restoredUser) {
+        // A stored user snapshot means we are authenticated. Adopt the authed
+        // state immediately so the authenticated UI stays stable during a
+        // refresh — a stale 'guest' marker must never flash the guest UI. The
+        // mount refresh (or the first real API call) attaches the access token.
+        setStatus('authed')
+      } else {
+        try {
+          // Fast path: a previously-resolved guest can go straight to the
+          // guest UI. First-time visitors (no marker) stay 'loading' until the
+          // mount refresh confirms whether a session cookie exists.
+          const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
+          if (storedStatus === 'guest') setStatus('guest')
+        } catch {}
+      }
       // A restored user snapshot means the app is in an authed session even
       // before the access token arrives — API calls may refresh on demand.
       setSessionRestored(restoredUser)
@@ -126,9 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Refresh lazily: one attempt on load, then spaced-out backoff retries so a
     // fast refresh streak never floods the refresh endpoint (which trips the
     // per-IP rate limit and previously caused a PERSISTED logout). A failed
-    // refresh here NEVER logs the user out — storage is left untouched so the
-    // next page load restores the authed snapshot and retries. The session is
-    // only declared dead when a real authenticated request fails to refresh.
+    // refresh here NEVER logs a restored user out — storage is left untouched
+    // and the optimistic authed state stays put; the first real API call
+    // retries the refresh and only logs out on a genuine server rejection.
+    // Visitors without a stored user resolve to the guest state immediately so
+    // they are never stuck on the loading screen.
     const REFRESH_BACKOFF_MS = [0, 2000, 6000, 14000]
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
@@ -136,14 +140,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const payload = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
-        if (attempt < REFRESH_BACKOFF_MS.length - 1) {
-          setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
+        if (getSessionRestored()) {
+          // Keep the optimistic authed snapshot and retry to attach the access
+          // token. If it never attaches, the next real API call decides.
+          if (attempt < REFRESH_BACKOFF_MS.length - 1) {
+            setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
+            return
+          }
           return
         }
-        // Exhausted — keep any restored authed snapshot (the next real API
-        // call via authFetch will retry and only log out on a real failure).
-        // If we were holding a stale guest marker in 'loading', release it now.
-        setStatus((current) => (current === 'loading' ? 'guest' : current))
+        // No stored user: no optimistic session to protect. Resolve to the
+        // guest state right away instead of waiting for backoff retries.
+        setStatus('guest')
         return
       }
 
@@ -161,6 +169,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       if (!payload.user) {
+        // A successful refresh should always carry the user; if it somehow
+        // does not, keep the optimistic authed state for a restored user rather
+        // than dropping into the guest UI.
+        if (getSessionRestored()) return
         setStatus('guest')
         return
       }
