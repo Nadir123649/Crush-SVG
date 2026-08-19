@@ -1,95 +1,141 @@
 # CrushSVG
 
-Convert SVG to PNG exactly as intended — paste code, upload a file, or drag-and-drop, and get a high-fidelity PNG at the size you need.
+An ultra-crisp, security-first SVG-to-PNG converter built for modern workflows. Paste raw SVG code, upload files, or drag and drop to instantly generate high-fidelity PNG assets optimized for Outlook, Gmail, newsletters, websites, and print.
 
-Built with Next.js 16 (App Router), sharp (librsvg), MongoDB, and Firebase Auth.
+Built with **Next.js 16 (App Router)**, **sharp** (backed by `librsvg`), **MongoDB**, and **Firebase Authentication**.
 
-## Features
+---
 
-- **SVG → PNG conversion** with configurable width / height (px or cm) and scale (0.1x – 16x)
-- **Transparent background** toggle; white background when disabled
-- **Live preview** and source-size detection (width/height attributes or viewBox)
-- **Free tier**: 3 conversions per guest (tracked with an anonymous `gid` cookie), unlimited for registered users
-- **Email + password auth and OAuth** (Google, GitHub, X) with JWT session rotation
-- **Security-first SVG sanitization** — scripts, event handlers, and script: schemes are stripped before rendering; embedded `data:image/*` payloads are preserved
-- **Optional BullMQ queue** (`ENABLE_CONVERSION_QUEUE=true`) to offload conversion to a worker process
-- **Cloudinary uploads** for converted images and user assets
+## Key Features
 
-## Quick start
+- **High-Fidelity Rendering**: Backed by `sharp` and `librsvg` for accurate, crisp rendering at high resolutions (300 DPI target density).
+- **Flexible Resizing**: Configure outputs using standard width and height options in pixels (`px`) or centimeters (`cm`), or apply direct multipliers (from `0.1x` up to `16x`).
+- **Transparency Controls**: Toggle transparent backgrounds instantly; fallback to flat white when disabled.
+- **Auto-Dimension Parsing**: Automatically extracts dimensions from SVG `width`, `height`, or `viewBox` attributes.
+- **Security-First Sanitization**: Strips scripts, event handlers, and malicious `javascript:` or `script:` schemes to prevent XSS, while safely preserving embedded base64 assets (`data:image/*`).
+- **User & Guest Budget Tiers**:
+  - **Guest Tier**: Includes 3 free conversions tracked securely via an anonymous cookie.
+  - **Registered Tier**: Offers unlimited conversions for authenticated users.
+- **Secure Authentication**: Built-in support for Email + Password credentials and Social OAuth Providers (Google, GitHub, X) with secure, rotating JWT sessions.
+- **Scalable Background Queue**: Optional BullMQ integration (`ENABLE_CONVERSION_QUEUE=true`) to offload resource-intensive conversion jobs to a dedicated worker.
+- **Cloud Storage**: Automatic upload handling via Cloudinary for converted assets and user profiles.
 
-```bash
-npm install
-cp .env.example .env   # fill in the values
-npm run dev
-```
+---
 
-Open http://localhost:3000.
+## Technical Stack
 
-## Scripts
+- **Framework**: Next.js 16 (App Router)
+- **UI & Styling**: React 19, Tailwind CSS v4, Bricolage Grotesque & Afacad Fonts
+- **Rendering Engine**: Sharp (librsvg wrapper)
+- **Database & ORM**: MongoDB with Mongoose
+- **Authentication**: Firebase Client SDK & Firebase Admin SDK
+- **Queueing (Optional)**: BullMQ (Redis-backed)
+- **File Storage**: Cloudinary SDK
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 22.12.0
+- MongoDB instance (Local or Atlas)
+- Firebase Project
+- Cloudinary Account
+- Redis Server (Optional, required for BullMQ queues and Upstash Rate Limiting)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/programmer-Raheem/Crush-SVG.git
+   cd Crush-SVG
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables:**
+   Copy the example environment file and fill in your credentials:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+---
+
+## Scripts & CLI Commands
 
 | Command | Description |
-| --- | --- |
-| `npm run dev` | Next.js dev server |
-| `npm run build` | Production build |
-| `npm start` | Serve the production build |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest unit tests |
-| `npm run worker` | BullMQ conversion worker (`ENABLE_CONVERSION_QUEUE` must be on) |
+| :--- | :--- |
+| `npm run dev` | Starts the Next.js development server. |
+| `npm run build` | Builds the application for production deployment. |
+| `npm start` | Runs the built Next.js application in production mode. |
+| `npm run lint` | Runs ESLint to check for code quality and syntax issues. |
+| `npm test` | Executes unit tests via Vitest. |
+| `npm run worker` | Starts the BullMQ background worker (requires `ENABLE_CONVERSION_QUEUE=true`). |
 
-## Environment variables
+---
 
-See `.env.example` for the full list. The important groups:
+## Configuration & Environment Limits
 
-- **Auth**: Firebase web + admin SDK config, `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` (≥ 32 chars), `APP_ORIGINS`, `ADMIN_EMAILS`
-- **Database**: `MONGODB_URI`, `MONGODB_DB_NAME`
-- **Email**: Resend API key or SMTP credentials
-- **Cloudinary**: `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET`
-- **Rate limiting**: Upstash Redis (`UPSTASH_REDIS_REST_URL` / `TOKEN`) — falls back to in-memory, which resets on restart and is **not safe across multiple instances**
-- **Conversion queue**: `ENABLE_CONVERSION_QUEUE` (default off) + `REDIS_URL`; without it conversions run inline in the request
+The system enforces the following constraints to prevent abuse and resource exhaustion:
 
-## Limits
+| Constraint | Limit Value | Description |
+| :--- | :--- | :--- |
+| **SVG Input Size** | `5 MB` | Maximum file size allowed for uploaded SVG markup. |
+| **Output Dimension** | `4000 × 4000 px` | Hard cap on output resolution. Larger requests are rejected. |
+| **Scale Range** | `0.1x – 16x` | Available rendering scale multipliers. |
+| **Guest Conversions** | `3` | Maximum free conversions per anonymous session. |
+| **Rate Limiter** | `30 / min` | Conversion rate limit per IP address (backed by Upstash). |
+| **Timeout Limits** | `30s` (Server) / `60s` (Client) | Maximum execution duration before connection is aborted. |
 
-| Limit | Value |
-| --- | --- |
-| SVG input size | 5 MB |
-| Output size | 4000 × 4000 px (hard cap — larger requests are rejected) |
-| Scale | 0.1x – 16x |
-| Guest conversions | 3 (per `gid` cookie) |
-| Rate limit | 30 conversions/min per IP |
-| Conversion timeout | 30 s (server), 60 s (client abort) |
+---
 
-## Architecture
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx                    Landing page with the converter UI
+│   ├── page.tsx                     # Landing page & core Converter UI
+│   ├── support/                     # Support & help documentation
+│   ├── contact-us/                  # Help desk request forms
 │   └── api/v1/
-│       ├── convert/route.ts        SVG → PNG endpoint (JSON or binary download)
-│       ├── uploads/route.ts        Multipart upload → Cloudinary
-│       ├── usage/route.ts          Guest/user conversion budget
-│       └── svg/validate/route.ts   SVG sanity validation
-├── components/sections/ConverterUI.tsx   Converter UI
+│       ├── convert/route.ts         # Main SVG → PNG processing endpoint
+│       ├── uploads/route.ts         # Asset upload handler (Cloudinary)
+│       ├── usage/route.ts           # Usage tracker (Budget limits)
+│       └── svg/validate/route.ts    # SVG sanitization & parsing validation
+├── components/
+│   ├── auth/                        # Login, Signup & Password Reset cards
+│   ├── layout/                      # Global Navbar & Mobile Nav overlay
+│   └── sections/                    # Page components (Hero, Features, Footer, FAQ)
 └── lib/
-    ├── svg-sanitize.ts             Attribute-aware sanitizer + currentColor detection
-    ├── svg-dims.ts                 Shared dimension parser + 4000px target math
-    ├── svg-convert.ts              sharp pipeline (PNG only, 30 s timeout)
-    ├── svg-errors.ts               Error classification for the API
-    ├── conversion-queue.ts         BullMQ wrapper with inline fallback
-    └── client/converter.ts         Browser API client
+    ├── svg-sanitize.ts              # Custom attribute-aware SVG sanitizer
+    ├── svg-dims.ts                  # Shared dimension & viewBox parsers
+    ├── svg-convert.ts               # Sharp conversion pipeline
+    ├── svg-errors.ts                # Structured conversion error mapper
+    ├── conversion-queue.ts          # BullMQ queue runner & worker setups
+    └── client/                      # API client scripts & state contexts
 ```
 
-### Conversion pipeline
+---
 
-1. `convertSchema` validates input (SVG ≤ 5 MB, dimensions ≤ 4000 px, scale 0.1–16).
-2. `sanitizeSvg` strips scripts/foreignObject/handlers/script: schemes and inlines Figma-style `<use>` → `<image>` references.
-3. `computeTargetSize` derives the output size; any side over 4000 px is rejected (never silently clamped).
-4. sharp renders with librsvg (`density: 300`, `limitInputPixels: 50M`) and encodes PNG (`compressionLevel: 9`, adaptive filtering).
-5. Failures are mapped to friendly API errors by `classifySvgError`; `currentColor` without a color is reported as a warning on the response.
+## Deployment & Production Notes
 
-## Deployment notes
+- **Rate Limiting**: For multi-instance horizontal deployments, configure Upstash Redis API tokens. The system defaults to in-memory tracking if variables are missing, which is not synchronized across multiple load-balanced instances.
+- **Conversion Workload**: If serving high-traffic environments, toggle `ENABLE_CONVERSION_QUEUE=true` and run the worker script (`npm run worker`) as a separate process or container. This ensures heavy render operations do not block critical HTTP request handlers.
+- **Dependency Restriction**: `sharp` contains native OS binaries and must only be imported or executed in server-side contexts (`server-only`). Do not import this module inside Client Components.
 
-- Single instance: in-memory rate store is fine.
-- Multiple instances: configure Upstash Redis for rate limiting, and consider `ENABLE_CONVERSION_QUEUE` with a worker so conversions don't block request handlers.
-- The conversion worker (`npm run worker`) must be running separately when the queue is enabled, or jobs will wait 120 s and time out.
-- `sharp` must be a server-only dependency (never imported in client components).
+---
+
+## License
+
+Private Repository. All rights reserved.

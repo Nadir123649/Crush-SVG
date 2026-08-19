@@ -41,7 +41,7 @@ export function SignupCard() {
             <div className="relative w-full">
               <input 
                 type="password" 
-                placeholder="Enter password"
+                placeholder="Enter your password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">

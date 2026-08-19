@@ -6,7 +6,7 @@ export function Hero() {
   const { status } = useAuth();
 
   return (
-    <section className="flex flex-col items-center w-full max-w-[361px] md:max-w-[795px] mx-auto mt-[30px] md:mt-[54px] gap-[16px] md:gap-[14px]">
+    <section id="hero" className="flex flex-col items-center w-full max-w-[361px] md:max-w-[795px] mx-auto mt-[30px] md:mt-[54px] gap-[16px] md:gap-[14px]">
       
       {/* Badge */}
       <div 

@@ -193,7 +193,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 maxLength={20}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={isLogin ? "Enter password" : "Pick a strong password for better security, character limit (8-20)"}
+                placeholder="Enter your password"
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />

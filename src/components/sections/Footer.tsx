@@ -28,6 +28,9 @@ export function Footer() {
     if (typeof window !== "undefined" && window.location.pathname === href) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (href === "/") {
+        window.history.pushState(null, "", "/");
+      }
     }
   };
 
@@ -37,7 +40,7 @@ export function Footer() {
 
         {/* Left: Logo & Desc */}
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
-          <Link href="/" className="flex items-center gap-[10px]">
+          <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="flex items-center gap-[10px]">
             <Image
               src={IMAGES.logo}
               alt="CrushSVG Icon"

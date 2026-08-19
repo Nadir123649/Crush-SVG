@@ -56,6 +56,9 @@ export function Navbar() {
     if (typeof window !== "undefined" && window.location.pathname === "/") {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
+      window.history.pushState(null, "", "/");
+    } else {
+      router.push("/");
     }
   };
 

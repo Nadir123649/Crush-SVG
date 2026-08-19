@@ -17,9 +17,6 @@ export function ResetPasswordCard() {
           <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
             Create New Password
           </h2>
-          <p className="font-afacad text-[14px] text-[#4B5563]">
-            Pick a strong password for better security, character limit (8-20)
-          </p>
         </div>
 
         {/* Inputs */}
@@ -29,7 +26,7 @@ export function ResetPasswordCard() {
             <div className="relative w-full">
               <input 
                 type={showPassword ? "text" : "password"} 
-                placeholder="Enter new password"
+                placeholder="Enter your password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
