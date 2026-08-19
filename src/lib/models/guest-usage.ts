@@ -5,6 +5,7 @@ import { Schema, model, type Model } from 'mongoose'
 export interface GuestUsageDoc {
   _id: string
   conversionsUsed: number
+  windowStartAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -13,6 +14,7 @@ const guestUsageSchema = new Schema(
   {
     _id: { type: String, required: true },
     conversionsUsed: { type: Number, default: 0 },
+    windowStartAt: { type: Date, default: null },
   },
   { timestamps: true }
 )
