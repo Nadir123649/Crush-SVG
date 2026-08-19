@@ -1,8 +1,9 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { VerificationModal } from "@/components/modals/VerificationModal";
 import { useRouter, useSearchParams } from "next/navigation";
+import { showToast } from "@/lib/client/toast-bridge";
 
 function VerificationContent() {
   const router = useRouter();
@@ -10,6 +11,12 @@ function VerificationContent() {
   const status = params.get("status");
 
   const variant = status === "success" ? "success" : "invalid";
+
+  useEffect(() => {
+    if (variant === "success") {
+      showToast("success", "Email verified. You can now log in.")
+    }
+  }, [variant])
 
   return (
     <div 

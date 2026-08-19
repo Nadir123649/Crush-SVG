@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/client/http";
 import { PasswordResetErrorAlert, PasswordResetSuccessAlert } from "@/components/ui/Alert";
+import { showToast } from "@/lib/client/toast-bridge";
 
 export function ForgotPasswordCard() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export function ForgotPasswordCard() {
         body: JSON.stringify({ email }),
       });
       setSent(true);
+      showToast("success", "Password reset email sent successfully. Please check your inbox.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

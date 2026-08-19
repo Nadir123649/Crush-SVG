@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { GuestOnly } from "@/components/auth/GuestOnly";
+import { showToast } from "@/lib/client/toast-bridge";
 
 type TokenState = "checking" | "valid" | "invalid";
 
@@ -25,8 +26,14 @@ export default function ResetPasswordPage() {
         const body = await apiFetch<{ valid: boolean }>(`/api/v1/passwords/reset?token=${encodeURIComponent(token)}`)
         if (cancelled) return
         setTokenState(body.valid === true ? "valid" : "invalid")
+        if (body.valid !== true) {
+          showToast("error", "This password reset link is invalid or has expired. Request a new one.")
+        }
       } catch {
-        if (!cancelled) setTokenState("invalid")
+        if (!cancelled) {
+          setTokenState("invalid")
+          showToast("error", "This password reset link is invalid or has expired. Request a new one.")
+        }
       }
     })()
     return () => { cancelled = true }
@@ -46,6 +53,7 @@ export default function ResetPasswordPage() {
         body: JSON.stringify({ token, password }),
       });
       setDone(true);
+      showToast("success", "Password changed. Please log in with your new password.");
     } catch (err) {
       // Using the current password is a validation error, not an invalid link —
       // keep the form visible so the message is shown.

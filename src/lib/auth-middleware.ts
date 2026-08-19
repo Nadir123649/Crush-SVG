@@ -32,7 +32,11 @@ export function isMethodExempt(request: NextRequest): boolean {
 
 export function isAllowedOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin') ?? request.headers.get('referer')
-  if (!origin) return false
+  // No origin/referer at all: cannot be a cross-site browser request. Privacy
+  // browsers, curl and server-to-server clients strip these headers — refusing
+  // them would lock out legitimately logged-in users. CSRF is already covered
+  // by the bearer token requirement and JSON-only bodies.
+  if (!origin) return true
 
   let parsed: URL
   try {
@@ -59,6 +63,10 @@ export function isAllowedOrigin(request: NextRequest): boolean {
 export async function invalidateSessionCache(jti?: string): Promise<void> {
   if (jti) {
     await getRateStore().reset(`sess:${jti}`)
+  } else {
+    // No jti: flush every cached session verdict (logout-all, password change,
+    // account deletion) so revoked sessions stop passing auth immediately.
+    await getRateStore().clearPrefix('sess:')
   }
 }
 

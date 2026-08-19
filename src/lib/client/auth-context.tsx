@@ -11,9 +11,9 @@ import {
   type ReactNode,
 } from 'react'
 
-import { useToast } from '@/components/ui/ToastProvider'
-import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember } from '@/lib/client/http'
+import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
 
@@ -28,10 +28,11 @@ interface AuthContextValue {
   user: UserDTO | null
   status: AuthStatus
   sessionId: string | null
+  sessionVersion: number
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
-  logout: () => Promise<void>
+  logout: () => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
 }
@@ -39,17 +40,22 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { addToast } = useToast()
   const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
+  // Bumped whenever the access token is applied or cleared. Lets consumers
+  // (e.g. usage fetching) react to the token actually being attached, which is
+  // not guaranteed by `status` alone when a session is restored from storage.
+  const [sessionVersion, setSessionVersion] = useState(0)
 
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
+    setSessionRestored(true)
     setSessionId(payload.sessionId ?? null)
     setSessionRemember(payload.remember ?? null)
     setUser(payload.user)
     setStatus('authed')
+    setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage')
@@ -59,13 +65,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearAuth = useCallback(() => {
     setAccessToken(null)
+    setSessionRestored(false)
     setSessionId(null)
     setSessionRemember(null)
     setUser(null)
     setStatus('guest')
+    setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
       localStorage.removeItem('crush_usage')
+      // A logged-out user must not carry the previous user's editor contents
+      // to the next session.
+      localStorage.removeItem('crush_converter_state')
       sessionStorage.setItem('crush_auth_status', 'guest')
     }
   }, [])
@@ -80,32 +91,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // "no synchronous setState in effects" rule.
     queueMicrotask(() => {
       if (cancelled) return
+      let restoredUser = false
       try {
         const storedUser = localStorage.getItem('crush_user')
-        if (storedUser) setUser(JSON.parse(storedUser))
-      } catch {}
-      try {
-        const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
-        if (storedStatus === 'authed' || storedStatus === 'guest') {
-          setStatus(storedStatus)
-        } else if (localStorage.getItem('crush_user')) {
-          setStatus('authed')
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+          restoredUser = true
         }
       } catch {}
+      if (restoredUser) {
+        // A stored user snapshot means we are authenticated. Adopt the authed
+        // state immediately so the authenticated UI stays stable during a
+        // refresh — a stale 'guest' marker must never flash the guest UI. The
+        // mount refresh (or the first real API call) attaches the access token.
+        setStatus('authed')
+      } else {
+        // No stored user snapshot: hold the loading state until the mount
+        // refresh settles. The persisted 'guest' marker is NOT authoritative —
+        // clearAuth can leave a still-valid session cookie behind (e.g. a
+        // rate-limited logout), so trusting the marker would flash the guest
+        // UI on refresh for a session that is actually valid. The mount
+        // refresh decides; on its failure, visitors without a stored user
+        // resolve to the guest state immediately.
+      }
+      // A restored user snapshot means the app is in an authed session even
+      // before the access token arrives — API calls may refresh on demand.
+      setSessionRestored(restoredUser)
     })
 
     setAuthExpiredHandler(() => {
       if (!cancelled) clearAuth()
     })
 
-    void (async () => {
-      const payload = await refreshSession()
+    setToastEmitter(defaultToastEmitter)
+
+    // Refresh lazily: one attempt on load, then spaced-out backoff retries so a
+    // fast refresh streak never floods the refresh endpoint (which trips the
+    // per-IP rate limit and previously caused a PERSISTED logout). A failed
+    // refresh here NEVER logs a restored user out — storage is left untouched
+    // and the optimistic authed state stays put; the first real API call
+    // retries the refresh and only logs out on a genuine server rejection.
+    // Visitors without a stored user resolve to the guest state immediately so
+    // they are never stuck on the loading screen.
+    const REFRESH_BACKOFF_MS = [0, 2000, 6000, 14000]
+
+    const attemptRefresh = async (attempt: number): Promise<void> => {
+      if (cancelled) return
+      const payload = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
-        setStatus('guest')
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('crush_auth_status', 'guest')
+        if (getSessionRestored()) {
+          // Keep the optimistic authed snapshot and retry to attach the access
+          // token. If it never attaches, the next real API call decides.
+          if (attempt < REFRESH_BACKOFF_MS.length - 1) {
+            setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
+            return
+          }
+          return
         }
+        // No stored user: no optimistic session to protect. Resolve to the
+        // guest state right away instead of waiting for backoff retries.
+        setStatus('guest')
         return
       }
 
@@ -123,6 +169,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       if (!payload.user) {
+        // A successful refresh should always carry the user; if it somehow
+        // does not, keep the optimistic authed state for a restored user rather
+        // than dropping into the guest UI.
+        if (getSessionRestored()) return
         setStatus('guest')
         return
       }
@@ -132,11 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionId: payload.sessionId ?? undefined,
         remember: payload.remember ?? undefined,
       })
-    })()
+    }
+
+    void attemptRefresh(0)
 
     return () => {
       cancelled = true
       setAuthExpiredHandler(null)
+      setToastEmitter(null)
     }
   }, [applySession, clearAuth])
 
@@ -147,9 +200,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, rememberMe }),
       })
       applySession(payload)
-      addToast('Logged in successfully')
+      if (rememberMe === false && typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('crush_session_only', '1')
+        } catch {}
+      }
+      showToast('success', 'Logged in successfully')
     },
-    [applySession, addToast]
+    [applySession]
   )
 
   const register = useCallback(async (name: string, email: string, password: string) => {
@@ -175,24 +233,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signIn()
       const session = await exchangeIdToken(rememberMe)
       applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
-      addToast('Logged in successfully')
+      if (rememberMe === false && typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('crush_session_only', '1')
+        } catch {}
+      }
+      showToast('success', 'Logged in successfully')
     },
-    [applySession, addToast]
+    [applySession]
   )
 
-  const logout = useCallback(async () => {
-    try {
-      await apiFetch<void>('/api/v1/auth/logout', { method: 'POST' })
-    } catch {
-      // session already expired — still clear local state
-    }
-    try {
-      const { signOut: firebaseSignOut } = await import('@/lib/firebase-client')
-      await firebaseSignOut()
-    } catch {
-      // not signed in via Firebase
-    }
+  const logout = useCallback(() => {
+    // Log out instantly: clear local state first so the UI flips to guest
+    // immediately, then tell the server in the background (revoke the session
+    // and delete the httpOnly refresh cookie) without blocking the user.
     clearAuth()
+    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+    void import('@/lib/firebase-client')
+      .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
+      .catch(() => {})
   }, [clearAuth])
 
   const changePassword = useCallback(
@@ -201,6 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         body: JSON.stringify({ currentPassword, newPassword }),
       })
+      showToast('success', 'Password changed. Please sign in again.')
       clearAuth()
     },
     [clearAuth]
@@ -218,6 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       status,
       sessionId,
+      sessionVersion,
       login,
       register,
       loginWithOAuth,
@@ -225,7 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       changePassword,
       resendVerification,
     }),
-    [user, status, sessionId, login, register, loginWithOAuth, logout, changePassword, resendVerification]
+    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

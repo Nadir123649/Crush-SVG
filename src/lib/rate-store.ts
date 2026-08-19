@@ -5,6 +5,7 @@ export interface RateStore {
   set(key: string, value: string | number, ttlMs: number): Promise<void>
   increment(key: string, ttlMs: number): Promise<number>
   reset(key: string): Promise<void>
+  clearPrefix(prefix: string): Promise<void>
 }
 
 class MemoryStore implements RateStore {
@@ -40,6 +41,14 @@ class MemoryStore implements RateStore {
 
   async reset(key: string): Promise<void> {
     this.map.delete(key)
+  }
+
+  async clearPrefix(prefix: string): Promise<void> {
+    for (const key of this.map.keys()) {
+      if (key.startsWith(prefix)) {
+        this.map.delete(key)
+      }
+    }
   }
 }
 
@@ -80,6 +89,18 @@ class UpstashStore implements RateStore {
   async reset(key: string): Promise<void> {
     const client = await this.client()
     await client.del(key)
+  }
+
+  async clearPrefix(prefix: string): Promise<void> {
+    const client = await this.client()
+    let cursor = 0
+    do {
+      const [next, keys] = await client.scan(cursor, { match: `${prefix}*`, count: 100 })
+      if (keys.length > 0) {
+        await client.del(...keys)
+      }
+      cursor = Number(next)
+    } while (cursor !== 0)
   }
 }
 
