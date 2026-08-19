@@ -23,7 +23,6 @@ import { POST } from './route'
 
 const SVG_BODY = {
   svg: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="red"/></svg>',
-  format: 'png',
   width: 480,
   scale: 2,
   transparent: true,
@@ -47,6 +46,7 @@ beforeEach(() => {
     width: 480,
     height: 480,
     format: 'png',
+    warnings: [],
   })
   mocks.getConversionUsage.mockResolvedValue({
     kind: 'guest',
@@ -66,14 +66,38 @@ describe('POST /api/v1/convert', () => {
     expect(body.success).toBe(true)
     expect(body.payload.data).toBe(Buffer.from('converted-bytes').toString('base64'))
     expect(body.payload.mimeType).toBe('image/png')
+    expect(body.payload.format).toBe('png')
     expect(body.payload.width).toBe(480)
     expect(body.payload.conversionsUsed).toBe(2)
     expect(body.payload.remaining).toBe(1)
     expect(mocks.convertSvg).toHaveBeenCalledWith(
       SVG_BODY.svg,
-      expect.objectContaining({ format: 'png', width: 480, scale: 2 })
+      expect.objectContaining({ width: 480, scale: 2 })
     )
     expect(mocks.incrementConversionUsage).toHaveBeenCalled()
+  })
+
+  it('passes conversion warnings through to the client', async () => {
+    mocks.convertSvg.mockResolvedValue({
+      buffer: Buffer.from('converted-bytes'),
+      width: 480,
+      height: 480,
+      format: 'png',
+      warnings: ['Conversion produced a non-fatal issue'],
+    })
+    const res = await post(SVG_BODY)
+    const body = await res.json()
+    expect(body.payload.warnings).toHaveLength(1)
+    expect(body.payload.warnings[0]).toBe('Conversion produced a non-fatal issue')
+  })
+
+  it('returns the result even when recording usage fails', async () => {
+    mocks.incrementConversionUsage.mockRejectedValue(new Error('db down'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.payload.conversionsUsed).toBe(0)
+    expect(body.payload.data).toBe(Buffer.from('converted-bytes').toString('base64'))
   })
 
   it('blocks guests who reached the 3-conversion limit', async () => {
@@ -106,7 +130,7 @@ describe('POST /api/v1/convert', () => {
   })
 
   it('returns 400 for invalid SVG input', async () => {
-    const res = await post({ svg: '', format: 'png' })
+    const res = await post({ svg: '' })
     expect(res.status).toBe(400)
     expect(mocks.convertSvg).not.toHaveBeenCalled()
   })
@@ -145,6 +169,15 @@ describe('POST /api/v1/convert', () => {
     const body = await res.json()
     expect(body.payload.error.code).toBe('svg_too_complex')
     expect(body.payload.error.message).toContain('too complex')
+  })
+
+  it('returns 422 svg_too_large for pixel-limit failures', async () => {
+    mocks.convertSvg.mockRejectedValue(new Error('Input image exceeds pixel limit'))
+    const res = await post(SVG_BODY)
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('svg_too_large')
+    expect(body.payload.error.message).toContain('4000×4000px')
   })
 
   it('returns 503 when the conversion times out', async () => {

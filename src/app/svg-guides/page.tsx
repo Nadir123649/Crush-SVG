@@ -146,7 +146,7 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Missing Fonts:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">If a font doesn't load, your design will look broken. Solution: Embed the font as base64, or convert the text layers to vector paths.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">If a font doesn&apos;t load, your design will look broken. Solution: Embed the font as base64, or convert the text layers to vector paths.</span>
               </div>
             </li>
             <li className="flex gap-[12px] items-start">

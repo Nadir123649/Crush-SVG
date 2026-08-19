@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
 import { useToast } from "@/components/ui/ToastProvider";
-import { convertText, parseSvgDimensions, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import { parseSvgDimensions } from "@/lib/svg-dims";
 import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
@@ -17,7 +18,6 @@ const HEIGHT_OPTIONS = ["Auto", "120px", "240px", "480px", "720px", "1080px", "1
 const SCALE_OPTIONS = ["1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PX_PER_CM = 96 / 2.54;
 const MAX_CUSTOM_PX = 4000;
-const MAX_CUSTOM_CM = MAX_CUSTOM_PX / PX_PER_CM;
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -51,12 +51,12 @@ export function ConverterUI() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usageFailed, setUsageFailed] = useState(false);
 
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
-  const [progress, setProgress] = useState(0);
   const [previewError, setPreviewError] = useState(false);
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
@@ -85,18 +85,6 @@ export function ConverterUI() {
   }, [openDropdown]);
 
   useEffect(() => {
-    if (converting) {
-      setProgress(0);
-      const timer = setTimeout(() => {
-        setProgress(100);
-      }, 50);
-      return () => clearTimeout(timer);
-    } else {
-      setProgress(0);
-    }
-  }, [converting]);
-
-  useEffect(() => {
     if (status === 'loading') return;
     let cancelled = false;
     getUsage()
@@ -105,7 +93,14 @@ export function ConverterUI() {
           setUsage(u);
         }
       })
-      .catch(() => { /* guest usage unavailable — hide badge */ })
+      .catch(() => {
+        // Guest usage unavailable — the server still enforces the limit, so
+        // the converter must not get stuck waiting on this request.
+        if (!cancelled) {
+          setUsage(null);
+          setUsageFailed(true);
+        }
+      })
     return () => { cancelled = true }
   }, [status]);
 
@@ -148,7 +143,7 @@ export function ConverterUI() {
     }
     try {
       const text = await file.text();
-      handleSvgChange(text.trim());
+      handleSvgChange(text.trimEnd());
     } catch {
       setError("Could not read that file. Please try again.");
     }
@@ -165,7 +160,7 @@ export function ConverterUI() {
     const options: ConvertRequest = { transparent };
 
     if (selectedWidth.trim().toLowerCase() !== "original") {
-      let wStr = selectedWidth.trim().toLowerCase();
+      const wStr = selectedWidth.trim().toLowerCase();
       let wNum = parseFloat(wStr);
       if (Number.isNaN(wNum) || wNum <= 0) {
         setError("Invalid width value. Enter a number like 480px or 12.7cm.");
@@ -182,7 +177,7 @@ export function ConverterUI() {
     }
 
     if (selectedHeight.trim().toLowerCase() !== "auto") {
-      let hStr = selectedHeight.trim().toLowerCase();
+      const hStr = selectedHeight.trim().toLowerCase();
       let hNum = parseFloat(hStr);
       if (Number.isNaN(hNum) || hNum <= 0) {
         setError("Invalid height value. Enter a number like 480px or 12.7cm.");
@@ -198,18 +193,15 @@ export function ConverterUI() {
       }
     }
 
-    let sStr = selectedScale.trim().toLowerCase();
-    let sNum = parseFloat(sStr.replace("x", ""));
+    const sStr = selectedScale.trim().toLowerCase();
+    const sNum = parseFloat(sStr.replace("x", ""));
     if (!Number.isNaN(sNum) && sNum > 0) {
       options.scale = sNum;
     }
 
     setConverting(true);
     try {
-      const [res] = await Promise.all([
-        convertText(svgCode, options),
-        new Promise((resolve) => setTimeout(resolve, 2000))
-      ]);
+      const res = await convertText(svgCode, options);
       setResult(res);
       addToast("Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
@@ -224,6 +216,10 @@ export function ConverterUI() {
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
         setShowSignupPrompt(true);
+        return;
+      }
+      if (err instanceof DOMException && err.name === "TimeoutError") {
+        setError("Conversion timed out. Please try again.");
         return;
       }
       setError(err instanceof Error ? err.message : "Conversion failed. Please try again.");
@@ -249,7 +245,7 @@ export function ConverterUI() {
   }
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
-  const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null);
+  const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
 
   return (
     <>
@@ -565,6 +561,12 @@ export function ConverterUI() {
                           Convert
                         </span>
                       </Button>
+                    )}
+
+                    {result && result.warnings && result.warnings.length > 0 && (
+                      <div role="alert" className="rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] mt-[12px] font-body text-[13px] leading-[18px] text-amber-800 w-full">
+                        {result.warnings.map((w) => <p key={w}>{w}</p>)}
+                      </div>
                     )}
 
                     {result && result.size !== undefined && (

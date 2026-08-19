@@ -113,6 +113,34 @@ describe('POST /api/v1/uploads', () => {
     expect(mocks.uploadImage).not.toHaveBeenCalled()
   })
 
+  it('routes SVG content disguised as image/png through the conversion pipeline', async () => {
+    const fd = new FormData()
+    fd.append('file', new File([SVG_CONTENT], 'icon.png', { type: 'image/png' }))
+    const res = await post(fd)
+    expect(res.status).toBe(200)
+    expect(mocks.uploadImage).toHaveBeenCalledTimes(1)
+    const [pngBuffer, folder] = mocks.uploadImage.mock.calls[0]
+    expect(folder).toBe('crushsvg/conversions')
+    expect(pngBuffer.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
+  })
+
+  it('routes a fake SVG upload (bad content) to a 422 instead of uploading raw', async () => {
+    const fd = new FormData()
+    fd.append('file', new File(['<svg xmlns="not-a-real-content'], 'fake.svg', { type: 'image/svg+xml' }))
+    const res = await post(fd)
+    expect(res.status).toBe(422)
+    expect(mocks.uploadImage).not.toHaveBeenCalled()
+  })
+
+  it('returns an empty warnings array in the response', async () => {
+    const fd = new FormData()
+    fd.append('file', new File([SVG_CONTENT], 'icon.svg', { type: 'image/svg+xml' }))
+    const res = await post(fd)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.payload.warnings).toEqual([])
+  })
+
   it('keeps raw uploads auth-protected', async () => {
     mocks.auth.mockResolvedValue({
       error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),

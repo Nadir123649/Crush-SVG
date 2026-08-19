@@ -40,29 +40,9 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { addToast } = useToast()
-  const [user, setUser] = useState<UserDTO | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUser = localStorage.getItem('crush_user')
-        return storedUser ? JSON.parse(storedUser) : null
-      } catch {}
-    }
-    return null
-  })
+  const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
-        if (storedStatus === 'authed' || storedStatus === 'guest') {
-          return storedStatus
-        }
-        const storedUser = localStorage.getItem('crush_user')
-        return storedUser ? 'authed' : 'loading'
-      } catch {}
-    }
-    return 'loading'
-  })
+  const [status, setStatus] = useState<AuthStatus>('loading')
 
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
@@ -92,6 +72,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
+
+    // Restore the persisted session snapshot after hydration. Reading storage
+    // during render (useState initializers) would make the client's first
+    // render differ from the server's, causing hydration mismatches. Deferred
+    // to a microtask so it runs before the next paint without violating the
+    // "no synchronous setState in effects" rule.
+    queueMicrotask(() => {
+      if (cancelled) return
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        if (storedUser) setUser(JSON.parse(storedUser))
+      } catch {}
+      try {
+        const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
+        if (storedStatus === 'authed' || storedStatus === 'guest') {
+          setStatus(storedStatus)
+        } else if (localStorage.getItem('crush_user')) {
+          setStatus('authed')
+        }
+      } catch {}
+    })
+
     setAuthExpiredHandler(() => {
       if (!cancelled) clearAuth()
     })

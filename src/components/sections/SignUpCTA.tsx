@@ -9,11 +9,13 @@ import { useAuth } from "@/lib/client/auth-context";
 
 export function SignUpCTA() {
   const { status } = useAuth();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Hydration-safe mount detection: server renders null, client renders content
+  // on the first pass (useSyncExternalStore with a getServerSnapshot of false).
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   // Avoid hydration mismatch by rendering null on server/first pass
   if (!mounted) {

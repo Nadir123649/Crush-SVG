@@ -12,6 +12,7 @@ import {
 } from '@/lib/conversion-usage'
 import { getGuestId } from '@/lib/guest-usage'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { classifySvgError } from '@/lib/svg-errors'
 import { logger } from '@/lib/logger'
 import type { UploadApiResponse } from 'cloudinary'
 
@@ -24,10 +25,21 @@ function sanitizePublicId(value: string): string {
   return value.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 120)
 }
 
+/**
+ * Sniffs the actual content instead of trusting the browser-supplied MIME
+ * type: an SVG payload disguised as image/png still goes through the
+ * conversion pipeline instead of being uploaded raw.
+ */
+function looksLikeSvgContent(buffer: Buffer): boolean {
+  const text = buffer.toString('utf-8').replace(/^\uFEFF/, '').trimStart()
+  const withoutProlog = text.replace(/^<\?xml[\s\S]*?\?>/, '').trimStart()
+  return withoutProlog.startsWith('<svg')
+}
+
 export async function POST(request: NextRequest) {
   const rl = await checkRateLimit(request, 'uploads', 30, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many upload requests. Try again later.', rateLimitHeaders(rl))
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many upload requests. Try again later.', rateLimitHeaders(rl), request)
   }
 
   let formData: FormData
@@ -58,7 +70,7 @@ export async function POST(request: NextRequest) {
 
   const buffer = Buffer.from(await file.arrayBuffer())
 
-  if (file.type === 'image/svg+xml') {
+  if (file.type === 'image/svg+xml' || looksLikeSvgContent(buffer)) {
     return convertSvgUpload(request, formData, buffer)
   }
 
@@ -71,7 +83,9 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
     return errorResponse(
       429,
       'limit_reached',
-      "You've used your 3 free conversions. Create a free account to keep converting."
+      "You've used your 3 free conversions. Create a free account to keep converting.",
+      undefined,
+      request
     )
   }
 
@@ -85,18 +99,16 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
       width: rawWidth ? Number(rawWidth) : undefined,
       scale: rawScale ? Number(rawScale) : undefined,
       transparent: rawTransparent === 'true' || rawTransparent === '1',
-      format: 'png',
     })
   if (!parsed.success) {
     const first = Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Invalid input'
-    return errorResponse(400, 'validation_error', first)
+    return errorResponse(400, 'validation_error', first, undefined, request)
   }
 
   const { width, scale, transparent } = parsed.data
 
   try {
     const result = await convertSvgQueued(buffer.toString('utf-8'), {
-      format: 'png',
       width,
       scale,
       transparent,
@@ -107,9 +119,17 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
       public_id: `conv_${idPrefix}_${Date.now()}`,
     })) as UploadApiResponse
 
-    const conversionsUsed = await incrementConversionUsage(request)
+    let conversionsUsed = 0
+    try {
+      conversionsUsed = await incrementConversionUsage(request)
+    } catch (error) {
+      logger.error('svg_upload_usage_increment_failed', { requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
+    }
+
+    const nextUsed =
+      usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
     const remaining =
-      usage.kind === 'guest' ? Math.max(0, GUEST_CONVERSION_LIMIT - conversionsUsed) : undefined
+      nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
 
     return successResponse({
       url: uploaded.secure_url,
@@ -118,28 +138,15 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
       height: result.height,
       size: result.buffer.length,
       format: 'png',
+      warnings: result.warnings,
       conversionsUsed,
       remaining,
     })
   } catch (error) {
     logger.error('svg_upload_conversion_failed', { requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
 
-    if (error instanceof Error) {
-      if (error.message.includes('Input buffer contains unsupported image format')) {
-        return errorResponse(
-          422,
-          'invalid_svg',
-          "That doesn't look like valid SVG — check your code and try again.",
-          undefined,
-          request
-        )
-      }
-      if (error.message.includes('limitInputPixels')) {
-        return errorResponse(422, 'svg_too_large', 'SVG dimensions too large. Maximum 8192px.', undefined, request)
-      }
-    }
-
-    return errorResponse(500, 'conversion_failed', 'Conversion failed. Please try again.', undefined, request)
+    const info = classifySvgError(error)
+    return errorResponse(info.status, info.code, info.message, undefined, request)
   }
 }
 
