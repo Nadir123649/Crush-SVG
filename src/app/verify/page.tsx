@@ -22,17 +22,16 @@ function VerificationContent() {
   useEffect(() => {
     if (variant !== "success") return;
     const timer = setInterval(() => {
-      setRedirectIn((seconds) => {
-        if (seconds <= 1) {
-          clearInterval(timer);
-          router.push("/");
-          return 0;
-        }
-        return seconds - 1;
-      });
+      setRedirectIn((seconds) => Math.max(0, seconds - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [variant, router]);
+  }, [variant]);
+
+  useEffect(() => {
+    if (variant === "success" && redirectIn === 0) {
+      router.push("/");
+    }
+  }, [variant, redirectIn, router]);
 
   return (
     <div 

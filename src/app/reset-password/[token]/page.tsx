@@ -24,17 +24,16 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     if (!done) return;
     const timer = setInterval(() => {
-      setRedirectIn((seconds) => {
-        if (seconds <= 1) {
-          clearInterval(timer);
-          router.push("/login");
-          return 0;
-        }
-        return seconds - 1;
-      });
+      setRedirectIn((seconds) => Math.max(0, seconds - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [done, router]);
+  }, [done]);
+
+  useEffect(() => {
+    if (done && redirectIn === 0) {
+      router.push("/login");
+    }
+  }, [done, redirectIn, router]);
 
   useEffect(() => {
     let cancelled = false;

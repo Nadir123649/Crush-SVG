@@ -1,0 +1,89 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e4]:
+    - link "CrushSVG Icon Crush SVG" [ref=f2e5] [cursor=pointer]:
+      - /url: /
+      - img "CrushSVG Icon" [ref=f2e6]
+      - generic [ref=f2e7]:
+        - generic [ref=f2e8]: Crush
+        - generic [ref=f2e9]: SVG
+  - main [ref=f2e12]:
+    - generic [ref=f2e14]:
+      - generic [ref=f2e15]:
+        - generic [ref=f2e16]:
+          - img "CrushSVG Icon" [ref=f2e17]
+          - generic [ref=f2e18]:
+            - generic [ref=f2e19]: Crush
+            - generic [ref=f2e20]: SVG
+        - heading "Verification Complete" [level=2] [ref=f2e21]
+        - paragraph [ref=f2e23]: Your email has been verified successfully. Click the button below to continue.
+        - button "Go To CrushSVG" [ref=f2e24] [cursor=pointer]
+      - paragraph [ref=f2e25]: Redirecting you to the home page in 3s…
+  - contentinfo [ref=f2e26]:
+    - generic [ref=f2e27]:
+      - generic [ref=f2e28]:
+        - link "CrushSVG Icon Crush SVG" [ref=f2e29] [cursor=pointer]:
+          - /url: /
+          - img "CrushSVG Icon" [ref=f2e30]
+          - generic [ref=f2e31]:
+            - generic [ref=f2e32]: Crush
+            - generic [ref=f2e33]: SVG
+        - paragraph [ref=f2e34]: From SVG to PNG, Exactly as Intended.Convert, optimize, and ship pixel-perfect assets.
+      - generic [ref=f2e35]:
+        - generic [ref=f2e36]:
+          - heading "Explore" [level=4] [ref=f2e37]
+          - link "SVG to PNG Converter" [ref=f2e38] [cursor=pointer]:
+            - /url: /#converter
+          - link "Features" [ref=f2e39] [cursor=pointer]:
+            - /url: /#features
+          - link "How It Works" [ref=f2e40] [cursor=pointer]:
+            - /url: /#how-it-works
+        - generic [ref=f2e41]:
+          - heading "Resources" [level=4] [ref=f2e42]
+          - link "SVG Guides" [ref=f2e43] [cursor=pointer]:
+            - /url: /svg-guides
+          - link "FAQ" [ref=f2e44] [cursor=pointer]:
+            - /url: /#faq
+          - link "Contact" [ref=f2e45] [cursor=pointer]:
+            - /url: /contact-us
+        - generic [ref=f2e46]:
+          - heading "Company" [level=4] [ref=f2e47]
+          - link "About Us" [ref=f2e48] [cursor=pointer]:
+            - /url: /about
+          - link "Cookies" [ref=f2e49] [cursor=pointer]:
+            - /url: /cookies
+          - link "Terms of Service" [ref=f2e50] [cursor=pointer]:
+            - /url: /terms
+      - generic [ref=f2e51]:
+        - heading "Engineered For Quality" [level=4] [ref=f2e52]
+        - generic [ref=f2e53]:
+          - generic [ref=f2e54]: Browser Based
+          - generic [ref=f2e57]: Transparent PNG
+          - generic [ref=f2e62]: No Install
+        - generic [ref=f2e66]:
+          - link [ref=f2e67] [cursor=pointer]:
+            - /url: "#"
+            - img "Facebook" [ref=f2e68]
+          - link [ref=f2e69] [cursor=pointer]:
+            - /url: "#"
+            - img "Instagram" [ref=f2e70]
+          - link [ref=f2e71] [cursor=pointer]:
+            - /url: "#"
+            - img "LinkedIn" [ref=f2e72]
+    - generic [ref=f2e74]:
+      - generic [ref=f2e75]:
+        - generic [ref=f2e76]: © 2026 CrushSVG. All rights reserved.
+        - generic [ref=f2e77]: "|"
+        - generic [ref=f2e78]:
+          - text: Powered by
+          - link "@The Nevon" [ref=f2e79] [cursor=pointer]:
+            - /url: https://www.thenevon.com/
+      - generic [ref=f2e80]:
+        - link "Terms" [ref=f2e81] [cursor=pointer]:
+          - /url: /terms
+        - generic [ref=f2e82]: •
+        - link "Privacy" [ref=f2e83] [cursor=pointer]:
+          - /url: /privacy-policy
+        - generic [ref=f2e84]: •
+        - link "Support" [ref=f2e85] [cursor=pointer]:
+          - /url: /contact-us
+  - button "Open Next.js Dev Tools" [ref=f2e91] [cursor=pointer]
