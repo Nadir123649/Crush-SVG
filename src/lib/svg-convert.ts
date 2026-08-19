@@ -3,8 +3,36 @@ import 'server-only'
 import sharp from 'sharp'
 
 import { sanitizeSvg } from '@/lib/svg-sanitize'
-import { computeTargetSize, parseSvgDimensions } from '@/lib/svg-dims'
+import { computeTargetSize, parseSvgDimensions, type SvgDimensions, type TargetSize } from '@/lib/svg-dims'
 import { ConversionTimeoutError } from '@/lib/svg-errors'
+
+const BASE_DPI = 72
+const INPUT_PIXEL_BUDGET = 50_000_000
+
+/**
+ * Picks the SVG raster density so librsvg renders close to the final output
+ * resolution. Upscaling renders directly at the target size — crisper
+ * vectors and no costly upscale pass. Downscaling keeps the 300dpi
+ * oversampling for sharp detail. Both are capped so the intermediate raster
+ * never exceeds the sharp input pixel budget: an SVG with 3840px intrinsic
+ * dimensions would otherwise be rasterized at 16000px (256MP) and rejected.
+ */
+function computeSvgDensity(dims: SvgDimensions, target: TargetSize): number {
+  let density = 300
+  if (dims.width && dims.height) {
+    const renderScale = Math.max(
+      target.width && dims.width ? target.width / dims.width : 1,
+      target.height && dims.height ? target.height / dims.height : 1
+    )
+    if (renderScale > 1) {
+      density = BASE_DPI * renderScale
+    }
+    const budgetDensity = BASE_DPI * Math.sqrt(INPUT_PIXEL_BUDGET / (dims.width * dims.height))
+    density = Math.min(density, budgetDensity)
+    density = Math.max(density, BASE_DPI)
+  }
+  return density
+}
 
 export type SvgFormat = 'png'
 
@@ -46,8 +74,6 @@ export async function convertSvg(
   svg: string,
   options: SvgConvertOptions = {}
 ): Promise<SvgConvertResult> {
-  const quality = options.quality ?? 90
-
   const sanitizedSvg = sanitizeSvg(svg)
   const dims = parseSvgDimensions(sanitizedSvg)
   const target = computeTargetSize(dims, options)
@@ -55,8 +81,8 @@ export async function convertSvg(
   const warnings: string[] = []
 
   const pipeline = sharp(Buffer.from(sanitizedSvg, 'utf-8'), {
-    density: 300,
-    limitInputPixels: 50_000_000,
+    density: computeSvgDensity(dims, target),
+    limitInputPixels: INPUT_PIXEL_BUDGET,
   })
 
   if (target.width) {
@@ -79,8 +105,7 @@ export async function convertSvg(
   }
 
   pipeline.png({
-    quality,
-    compressionLevel: 9,
+    compressionLevel: 7,
     adaptiveFiltering: true,
   })
 

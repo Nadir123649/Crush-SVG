@@ -248,7 +248,7 @@ export function ConverterUI() {
         setError(`Invalid width value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm") {
+      if (unit === "cm" && isCustomWidth) {
         wNum = wNum * PX_PER_CM;
       }
       options.width = Math.round(wNum);
@@ -264,7 +264,7 @@ export function ConverterUI() {
         setError(`Invalid height value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm") {
+      if (unit === "cm" && isCustomHeight) {
         hNum = hNum * PX_PER_CM;
       }
       options.height = Math.round(hNum);
@@ -492,6 +492,7 @@ export function ConverterUI() {
                                   setSelectedWidth("");
                                 } else {
                                   setIsCustomWidth(false);
+                                  setUnit("px");
                                   setSelectedWidth(opt);
                                 }
                                 setOpenDropdown(null);
@@ -543,6 +544,7 @@ export function ConverterUI() {
                                   setSelectedHeight("");
                                 } else {
                                   setIsCustomHeight(false);
+                                  setUnit("px");
                                   setSelectedHeight(opt);
                                 }
                                 setOpenDropdown(null);
