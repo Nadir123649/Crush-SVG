@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 
+import { useToast } from '@/components/ui/ToastProvider'
 import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
 
@@ -38,6 +39,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { addToast } = useToast()
   const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
@@ -145,8 +147,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, rememberMe }),
       })
       applySession(payload)
+      addToast('Logged in successfully')
     },
-    [applySession]
+    [applySession, addToast]
   )
 
   const register = useCallback(async (name: string, email: string, password: string) => {
@@ -172,8 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signIn()
       const session = await exchangeIdToken(rememberMe)
       applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
+      addToast('Logged in successfully')
     },
-    [applySession]
+    [applySession, addToast]
   )
 
   const logout = useCallback(async () => {
