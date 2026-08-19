@@ -8,7 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
 import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
-import { ApiError } from "@/lib/client/http";
+import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -41,7 +41,7 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 </svg>`;
 
 export function ConverterUI() {
-  const { status } = useAuth();
+  const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("480px");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
@@ -97,6 +97,11 @@ export function ConverterUI() {
 
   useEffect(() => {
     if (status === 'loading') return;
+    // When authed, wait until the access token is actually attached: a
+    // restored session (page refresh) sets status to 'authed' before
+    // refreshSession resolves, and fetching in that gap would make the server
+    // fall back to the guest quota and flash the wrong "3 of 3" counter.
+    if (status === 'authed' && !getAccessToken()) return;
     let cancelled = false;
     getUsage()
       .then((u) => {
@@ -113,7 +118,7 @@ export function ConverterUI() {
         }
       })
     return () => { cancelled = true }
-  }, [status]);
+  }, [status, sessionVersion]);
 
   useEffect(() => {
     // Restore the saved SVG + conversion result after hydration. Reading

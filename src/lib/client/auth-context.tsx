@@ -28,6 +28,7 @@ interface AuthContextValue {
   user: UserDTO | null
   status: AuthStatus
   sessionId: string | null
+  sessionVersion: number
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
@@ -42,6 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
+  // Bumped whenever the access token is applied or cleared. Lets consumers
+  // (e.g. usage fetching) react to the token actually being attached, which is
+  // not guaranteed by `status` alone when a session is restored from storage.
+  const [sessionVersion, setSessionVersion] = useState(0)
 
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
@@ -49,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionRemember(payload.remember ?? null)
     setUser(payload.user)
     setStatus('authed')
+    setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage')
@@ -62,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionRemember(null)
     setUser(null)
     setStatus('guest')
+    setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
       localStorage.removeItem('crush_usage')
@@ -227,6 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       status,
       sessionId,
+      sessionVersion,
       login,
       register,
       loginWithOAuth,
@@ -234,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       changePassword,
       resendVerification,
     }),
-    [user, status, sessionId, login, register, loginWithOAuth, logout, changePassword, resendVerification]
+    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
