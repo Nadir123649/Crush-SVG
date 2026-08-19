@@ -46,7 +46,12 @@ export function AuthCard({ type }: AuthCardProps) {
         addToast("Logged in successfully");
         router.push("/");
       } else {
-        await register(name, email, password);
+        const trimmedName = name.trim();
+        if (trimmedName.length < 3 || trimmedName.length > 16) {
+          setError("Name must be between 3 and 16 characters.");
+          return;
+        }
+        await register(trimmedName, email, password);
         setVerificationSent(true);
       }
     } catch (err) {

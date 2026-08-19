@@ -42,6 +42,10 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   const env = process.env
   const from = resolveFrom(env)
   const transport = resolveTransport(env)
+  const startedAt = Date.now()
+  const logSend = (event: string, extra = '') => {
+    console.log(`[email] ${event} to=${to} subject="${subject}" transport=${transport} took=${Date.now() - startedAt}ms ${extra}`)
+  }
 
   if (env.EMAIL_LOG_ONLY === 'true') {
     console.log(`[email:log-only] to=${to} subject="${subject}" (no transport used)`)
@@ -59,8 +63,14 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   }
 
   if (transport === 'resend') {
+    if (from.includes('@resend.dev') && process.env.NODE_ENV === 'production') {
+      console.warn(
+        `[email] WARNING: sending from the unverified Resend shared domain "${from}" — delivery will be slow/unreliable. Verify a custom domain in Resend and set RESEND_FROM (e.g. "CrushSVG <no-reply@yourdomain.com>").`
+      )
+    }
     const resend = new Resend(env.RESEND_API_KEY)
     const { error } = await resend.emails.send({ from, to, subject, html })
+    logSend('resend_send', error ? `error=${error.message}` : '')
     if (error) throw new Error(`Resend send failed: ${error.message}`)
     return
   }
@@ -68,11 +78,14 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     const transporter = nodemailer.createTransport(smtpTransportOptions(env))
     try {
       await transporter.sendMail({ from, to, subject, html })
+      logSend('smtp_send')
     } catch (firstErr) {
       await new Promise((resolve) => setTimeout(resolve, 1000))
       try {
         await transporter.sendMail({ from, to, subject, html })
+        logSend('smtp_send_after_retry')
       } catch {
+        logSend('smtp_send_failed')
         throw firstErr
       }
     }
