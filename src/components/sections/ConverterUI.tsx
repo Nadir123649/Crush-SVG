@@ -41,7 +41,7 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 </svg>`;
 
 export function ConverterUI() {
-  const { status } = useAuth();
+  const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("480px");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
@@ -113,7 +113,7 @@ export function ConverterUI() {
         }
       })
     return () => { cancelled = true }
-  }, [status]);
+  }, [status, sessionVersion]);
 
   useEffect(() => {
     // Restore the saved SVG + conversion result after hydration. Reading
