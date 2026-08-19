@@ -329,7 +329,7 @@ export function ConverterUI() {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    showToast("success", "Download started.");
+    showToast("success", "Downloading…");
     if (limitReached && status !== "authed") {
       showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
       setLimitDownloadDone(true);
