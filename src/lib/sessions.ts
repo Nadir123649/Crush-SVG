@@ -108,7 +108,7 @@ export async function rotateSession(
 ): Promise<{ rotated: boolean; currentVersion: number; remember: boolean }> {
   const updated = await Session.findOneAndUpdate(
     { _id: sessionId, userId, tokenVersion: expectedVersion, status: 'active' },
-    { $inc: { tokenVersion: 1 }, $set: { rotatedAt: new Date() } },
+    { $inc: { tokenVersion: 1 }, $set: { rotatedAt: new Date(), lastSeenAt: new Date() } },
     { new: true }
   )
   if (updated) {

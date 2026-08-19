@@ -40,6 +40,14 @@ describe('auth-middleware', () => {
     expect(isAllowedOrigin(req)).toBe(false)
   })
 
+  it('allows POST without origin or referer (privacy browsers, API clients)', () => {
+    const req = new NextRequest('https://crush-svg.vercel.app/api/v1/auth/logout', {
+      method: 'POST',
+      headers: {},
+    })
+    expect(isAllowedOrigin(req)).toBe(true)
+  })
+
   it('exempts GET from origin checks', () => {
     const req = new NextRequest('https://crush-svg.vercel.app/api/me', {
       method: 'GET',

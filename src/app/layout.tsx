@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Afacad } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
-import { ToastProvider } from "@/components/ui/ToastProvider";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -45,18 +45,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${bricolage.variable} ${afacad.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col items-center bg-background" suppressHydrationWarning>
-        <ToastProvider>
-          <AuthProvider>
-            <Navbar />
-            <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
-              <main className="w-full flex-1">
-                {children}
-              </main>
-            </div>
-            <Footer />
-          </AuthProvider>
-        </ToastProvider>
+<body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
+        <AuthProvider>
+          <Navbar />
+          <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
+            <main className="w-full flex-1">
+              {children}
+            </main>
+          </div>
+          <Footer />
+        </AuthProvider>
+        <Toaster
+          position="top-right"
+          gutter={10}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              borderRadius: "12px",
+              background: "#FFFFFF",
+              color: "#1E293B",
+              fontFamily: "var(--font-afacad)",
+              fontSize: "14px",
+              lineHeight: "1.35",
+              padding: "12px 16px",
+              boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.12)",
+            },
+            success: {
+              iconTheme: { primary: "#10B981", secondary: "#FFFFFF" },
+            },
+            error: {
+              iconTheme: { primary: "#D94A1E", secondary: "#FFFFFF" },
+            },
+          }}
+        />
       </body>
     </html>
   );
