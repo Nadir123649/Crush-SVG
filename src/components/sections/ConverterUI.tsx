@@ -79,6 +79,7 @@ export function ConverterUI() {
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef<HTMLDivElement>(null);
+  const unitRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
@@ -127,6 +128,11 @@ export function ConverterUI() {
       }
       if (openDropdown === "scale" && scaleRef.current) {
         if (!scaleRef.current.contains(target) || target === scaleRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "unit" && unitRef.current) {
+        if (!unitRef.current.contains(target) || target === unitRef.current) {
           setOpenDropdown(null);
         }
       }
@@ -632,26 +638,50 @@ export function ConverterUI() {
                     )}
                   </div>
 
-                  {/* Scale Input */}
+                  {/* Unit Dropdown Input */}
                   {isScaleDisabled ? (
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative">
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
                       <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
-                      <div className="flex items-center bg-transparent md:bg-white border border-[#8F8F8F] rounded-[12px] overflow-hidden h-[48px] md:h-[60px] p-[4px] w-full">
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {unit}
+                        </div>
                         <button
                           type="button"
-                          onClick={() => { setUnit("px"); resetConversion(); }}
-                          className={`flex-1 h-full rounded-[8px] font-body text-[14px] md:text-[16px] font-medium transition-colors ${unit === "px" ? "bg-[#D94A1E] text-white shadow-sm" : "text-[#64748B] hover:bg-gray-100"}`}
+                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                         >
-                          px
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setUnit("cm"); resetConversion(); }}
-                          className={`flex-1 h-full rounded-[8px] font-body text-[14px] md:text-[16px] font-medium transition-colors ${unit === "cm" ? "bg-[#D94A1E] text-white shadow-sm" : "text-[#64748B] hover:bg-gray-100"}`}
-                        >
-                          cm
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "unit" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         </button>
                       </div>
+
+                      {/* Unit Dropdown Menu */}
+                      {openDropdown === "unit" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["px", "cm"].map((opt: any) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={unit === opt}
+                                onClick={() => {
+                                  setUnit(opt);
+                                  setOpenDropdown(null);
+                                  resetConversion();
+                                }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
