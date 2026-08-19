@@ -6,7 +6,7 @@ import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import { convertText, isValidSvgContent, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
@@ -183,10 +183,7 @@ export function ConverterUI() {
     return svgToDataUrl(svgCode);
   }, [svgCode]);
 
-  const isValidSvg = useMemo(() => {
-    const trimmed = svgCode.trim().toLowerCase();
-    return trimmed.startsWith("<svg") && trimmed.includes("</svg>") && trimmed.endsWith(">");
-  }, [svgCode]);
+  const isValidSvg = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
 
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
 

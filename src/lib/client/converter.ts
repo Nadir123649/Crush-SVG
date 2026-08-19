@@ -53,3 +53,15 @@ export async function downloadConverted(
 export function svgToDataUrl(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
+
+// Client-side preview gate. Mirrors the server's acceptance of well-formed
+// SVG documents: the root <svg> element may be preceded by an XML declaration
+// and comments (very common in SVGs exported from editors and icon packs),
+// which must not block the live preview even though the converter handles
+// them fine.
+export function isValidSvgContent(svg: string): boolean {
+  let body = svg.trim().toLowerCase()
+  body = body.replace(/^<\?xml[\s\S]*?\?>\s*/, '')
+  body = body.replace(/^(<!--[\s\S]*?-->|\s)+/, '')
+  return body.startsWith('<svg') && body.includes('</svg>') && body.endsWith('>')
+}
