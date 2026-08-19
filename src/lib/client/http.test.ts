@@ -10,6 +10,7 @@ import {
   setAccessToken,
   setAuthExpiredHandler,
   setSessionId,
+  setSessionRestored,
 } from '@/lib/client/http'
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -28,6 +29,7 @@ describe('http client', () => {
     setAccessToken(null)
     setSessionId(null)
     setAuthExpiredHandler(null)
+    setSessionRestored(false)
   })
 
   afterEach(() => {
@@ -120,12 +122,50 @@ describe('http client', () => {
     expect(handler).toHaveBeenCalledTimes(1)
   })
 
-  it('does not attempt refresh when the request had no token', async () => {
+  it('does not attempt refresh when the request had no token and no restored session', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
 
     await expect(apiFetch('/api/v1/foo')).rejects.toMatchObject({ status: 401 })
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('refreshes on 401 without a token when a session was restored', async () => {
+    setSessionRestored(true)
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          success: true,
+          payload: {
+            token: { accessToken: 'fresh' },
+            sessionId: 'sess-1',
+          },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse(200, { success: true, payload: { ok: 1 } }))
+
+    await expect(apiFetch('/api/v1/foo')).resolves.toEqual({ ok: 1 })
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/auth/refresh')
+    expect(fetchMock.mock.calls[2][0]).toBe('/api/v1/foo')
+    expect(getAccessToken()).toBe('fresh')
+  })
+
+  it('throws session_expired and logs out when a restored session cannot refresh', async () => {
+    setSessionRestored(true)
+    const handler = vi.fn()
+    setAuthExpiredHandler(handler)
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(401, { error: 'Unauthorized' }))
+      .mockResolvedValueOnce(jsonResponse(401, { success: false, payload: { error: { code: 'session_revoked' } } }))
+
+    await expect(apiFetch('/api/v1/foo')).rejects.toMatchObject({
+      status: 401,
+      code: 'session_expired',
+    })
+    expect(handler).toHaveBeenCalledTimes(1)
   })
 
   it('deduplicates concurrent refreshes (single flight)', async () => {

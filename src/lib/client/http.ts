@@ -16,9 +16,22 @@ export class ApiError extends Error {
 let accessToken: string | null = null
 let activeSessionId: string | null = null
 let activeRemember: boolean | null = null
+// True when a user snapshot was restored from storage (page load) but the
+// access token may not be attached yet. Lets authFetch attempt a refresh on
+// 401 even without a token, making the first real API call the decisive point
+// for a session instead of a page-load refresh hiccup.
+let sessionRestored = false
 
 export function setAccessToken(token: string | null): void {
   accessToken = token
+}
+
+export function setSessionRestored(restored: boolean): void {
+  sessionRestored = restored
+}
+
+export function getSessionRestored(): boolean {
+  return sessionRestored
 }
 
 export function getAccessToken(): string | null {
@@ -120,7 +133,11 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   const token = attachAuth(headers)
   let res = await fetch(path, { ...init, headers })
 
-  if (res.status === 401 && token) {
+  // Refresh on 401 when we have a token, or when a session was restored from
+  // storage but the token isn't attached yet (e.g. the page-load refresh
+  // failed). A real authenticated request is the decisive test of a session —
+  // a transient failure on load must never log the user out on its own.
+  if (res.status === 401 && (token || sessionRestored)) {
     const refreshed = await refreshSession()
     if (refreshed && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)

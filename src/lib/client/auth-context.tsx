@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 
-import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember } from '@/lib/client/http'
+import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
+    setSessionRestored(true)
     setSessionId(payload.sessionId ?? null)
     setSessionRemember(payload.remember ?? null)
     setUser(payload.user)
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearAuth = useCallback(() => {
     setAccessToken(null)
+    setSessionRestored(false)
     setSessionId(null)
     setSessionRemember(null)
     setUser(null)
@@ -72,6 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
       localStorage.removeItem('crush_usage')
+      // A logged-out user must not carry the previous user's editor contents
+      // to the next session.
+      localStorage.removeItem('crush_converter_state')
       sessionStorage.setItem('crush_auth_status', 'guest')
     }
   }, [])
@@ -86,18 +91,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // "no synchronous setState in effects" rule.
     queueMicrotask(() => {
       if (cancelled) return
+      let restoredUser = false
       try {
         const storedUser = localStorage.getItem('crush_user')
-        if (storedUser) setUser(JSON.parse(storedUser))
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+          restoredUser = true
+        }
       } catch {}
       try {
         const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
         if (storedStatus === 'authed' || storedStatus === 'guest') {
           setStatus(storedStatus)
-        } else if (localStorage.getItem('crush_user')) {
+        } else if (restoredUser) {
           setStatus('authed')
         }
       } catch {}
+      // A restored user snapshot means the app is in an authed session even
+      // before the access token arrives — API calls may refresh on demand.
+      setSessionRestored(restoredUser)
     })
 
     setAuthExpiredHandler(() => {
@@ -106,23 +118,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setToastEmitter(defaultToastEmitter)
 
-    const MAX_REFRESH_ATTEMPTS = 3
-    const REFRESH_RETRY_MS = 700
+    // Refresh lazily: one attempt on load, then spaced-out backoff retries so a
+    // fast refresh streak never floods the refresh endpoint (which trips the
+    // per-IP rate limit and previously caused a PERSISTED logout). A failed
+    // refresh here NEVER logs the user out — storage is left untouched so the
+    // next page load restores the authed snapshot and retries. The session is
+    // only declared dead when a real authenticated request fails to refresh.
+    const REFRESH_BACKOFF_MS = [0, 2000, 6000, 14000]
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
       if (cancelled) return
-      // Silent: a failed refresh here must not trip onAuthExpired (which
-      // clears the session). A fast page refresh can hit a transient failure
-      // (rate limit, DB churn, cookie rotation race) — retry before demoting
-      // to guest so the logged-in UI never flashes the guest counter/buttons.
       const payload = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
-        if (attempt < MAX_REFRESH_ATTEMPTS) {
-          setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_RETRY_MS)
+        if (attempt < REFRESH_BACKOFF_MS.length - 1) {
+          setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
           return
         }
-        clearAuth()
+        // Exhausted — keep the restored authed snapshot. The next real API
+        // call (via authFetch) will retry the refresh and, only if that fails,
+        // trigger a proper logout via onAuthExpired.
         return
       }
 

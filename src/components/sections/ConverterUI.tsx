@@ -5,7 +5,7 @@ import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
-import { useAuth } from "@/lib/client/auth-context";
+import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
@@ -74,6 +74,23 @@ export function ConverterUI() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
   const [storageRestored, setStorageRestored] = useState(false);
+  const prevStatusRef = useRef<AuthStatus | null>(null);
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    // The previous user signed out (or their session ended): wipe the editor
+    // so no private SVG lingers on screen or in memory for the next user.
+    if (prev === "authed" && status !== "authed") {
+      setSvgCode(SAMPLE_SVG);
+      setResult(null);
+      setError(null);
+      setPreviewError(false);
+      setUsage(null);
+      setUsageFailed(false);
+      setShowSignupPrompt(false);
+    }
+  }, [status]);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
 
