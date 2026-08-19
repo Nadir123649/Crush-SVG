@@ -59,7 +59,7 @@ export default function SupportPage() {
       <div className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 gap-[24px] mb-[60px]">
         
         {/* Contact Us Card */}
-        <Link href="/contact-us" className="group w-full flex flex-col bg-white rounded-[16px] p-[32px] border border-[#F2EDE8] hover:border-brand-primary transition-colors cursor-pointer" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <a href="/contact-us?r=1" className="relative z-10 group w-full flex flex-col bg-white rounded-[16px] p-[32px] border border-[#F2EDE8] hover:border-brand-primary transition-colors cursor-pointer" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <div className="w-[48px] h-[48px] rounded-full bg-[#FCF1ED] flex items-center justify-center mb-[20px] group-hover:scale-110 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#D94A1E" className="w-[24px] h-[24px]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -71,10 +71,10 @@ export default function SupportPage() {
           <p className="font-afacad text-[15px] md:text-[16px] text-text-muted leading-[1.6]">
             Can&apos;t find the answer? Reach out to our support team for personalized assistance.
           </p>
-        </Link>
+        </a>
 
         {/* SVG Guides Card */}
-        <Link href="/svg-guides" className="group w-full flex flex-col bg-white rounded-[16px] p-[32px] border border-[#F2EDE8] hover:border-brand-primary transition-colors cursor-pointer" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <a href="/svg-guides" className="relative z-10 group w-full flex flex-col bg-white rounded-[16px] p-[32px] border border-[#F2EDE8] hover:border-brand-primary transition-colors cursor-pointer" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <div className="w-[48px] h-[48px] rounded-full bg-[#FCF1ED] flex items-center justify-center mb-[20px] group-hover:scale-110 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#D94A1E" className="w-[24px] h-[24px]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
@@ -86,7 +86,7 @@ export default function SupportPage() {
           <p className="font-afacad text-[15px] md:text-[16px] text-text-muted leading-[1.6]">
             Learn how to optimize SVGs, fix rendering issues, and get the best results.
           </p>
-        </Link>
+        </a>
 
       </div>
 
@@ -123,12 +123,12 @@ export default function SupportPage() {
         <p className="font-afacad text-[16px] md:text-[18px] text-text-muted mb-[24px]">
           Our support team is always here to help you resolve any issues.
         </p>
-        <Link 
-          href="/contact-us"
-          className="flex items-center justify-center px-[32px] h-[48px] rounded-[12px] bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity"
+        <a 
+          href="/contact-us?r=1"
+          className="relative z-10 flex items-center justify-center px-[32px] h-[48px] rounded-[12px] bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity"
         >
           Send Us a Message
-        </Link>
+        </a>
       </div>
       
     </div>

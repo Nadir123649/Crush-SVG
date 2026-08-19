@@ -403,15 +403,28 @@ export function ConverterUI() {
                   SVG Code
                 </h2>
                 <div className="flex items-center gap-[10px]">
-                  {svgCode !== SAMPLE_SVG && (
-                    <button
-                      type="button"
-                      onClick={handleClearSvg}
-                      className="font-body font-medium text-[12px] md:text-[13px] text-[#D94A1E] hover:underline"
-                    >
+                  <button
+                    type="button"
+                    onClick={handleClearSvg}
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[13px] overflow-hidden transition-opacity duration-300 ${
+                      svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
+                    }`}
+                  >
+                    <div 
+                      className="absolute inset-0 z-0 pointer-events-none" 
+                      style={{
+                        border: "1px solid transparent",
+                        background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+                        borderRadius: "inherit"
+                      }} 
+                    />
+                    <div 
+                      className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" 
+                    />
+                    <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                       Clear
-                    </button>
-                  )}
+                    </span>
+                  </button>
                   {usage && (
                     <span className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
                       {usage.isUnlimited

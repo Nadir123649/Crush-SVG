@@ -158,7 +158,7 @@ export default function ResetPasswordPage() {
               {/* Inputs */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-[12px] mt-[4px]">
                 <div className="flex flex-col gap-[4px]">
-                  <label htmlFor="rp-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">New Password</label>
+                  <label htmlFor="rp-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
                   <div className="relative w-full">
                     <input
                       id="rp-password"
@@ -193,7 +193,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div className="flex flex-col gap-[4px]">
-                  <label htmlFor="rp-confirm" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm Password</label>
+                  <label htmlFor="rp-confirm" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
                     <div className="relative w-full">
                       <input
                         id="rp-confirm"
