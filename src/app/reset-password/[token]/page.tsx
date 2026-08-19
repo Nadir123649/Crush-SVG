@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -18,6 +18,22 @@ export default function ResetPasswordPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [redirectIn, setRedirectIn] = useState(3);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!done) return;
+    const timer = setInterval(() => {
+      setRedirectIn((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [done]);
+
+  useEffect(() => {
+    if (done && redirectIn === 0) {
+      router.push("/login");
+    }
+  }, [done, redirectIn, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +69,7 @@ export default function ResetPasswordPage() {
         body: JSON.stringify({ token, password }),
       });
       setDone(true);
+      setRedirectIn(3);
       showToast("success", "Password changed. Please log in with your new password.");
     } catch (err) {
       // Using the current password is a validation error, not an invalid link —
@@ -114,6 +131,9 @@ export default function ResetPasswordPage() {
               <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
                 Your password has been updated. Sign in with your new password.
               </p>
+              <p className="font-afacad text-[13px] text-[#4B5563] text-center leading-[20px]">
+                Redirecting to login in {redirectIn}s…
+              </p>
               <Link
                 href="/login"
                 className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
@@ -150,7 +170,7 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter new password"
                       autoComplete="new-password"
-                      className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                      className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                     />
                     <button
                       type="button"
@@ -185,7 +205,7 @@ export default function ResetPasswordPage() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Re-enter new password"
                         autoComplete="new-password"
-                        className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                        className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                       />
                       <button
                         type="button"
