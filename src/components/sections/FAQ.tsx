@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/images";
+import { useAuth } from "@/lib/client/auth-context";
 
 export function FAQ() {
+  const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqs = [
@@ -28,7 +30,13 @@ export function FAQ() {
       question: "Can I choose the output size?",
       answer: "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
     },
-  ];
+  ].filter(faq => {
+    // Hide this specific question for logged-in users
+    if (status === "authed" && faq.question === "What happens after my 3 free conversions?") {
+      return false;
+    }
+    return true;
+  });
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
