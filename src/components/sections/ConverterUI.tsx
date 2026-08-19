@@ -439,7 +439,7 @@ export function ConverterUI() {
                     {openDropdown === "width" && (
                       <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                         <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {widthOptions.map((opt) => (
+                          {widthOptions.map((opt: string) => (
                             <div
                               key={opt}
                               role="option"
@@ -508,7 +508,7 @@ export function ConverterUI() {
                     {openDropdown === "height" && (
                       <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                         <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {heightOptions.map((opt) => (
+                          {heightOptions.map((opt: string) => (
                             <div
                               key={opt}
                               role="option"
@@ -564,7 +564,7 @@ export function ConverterUI() {
                     {openDropdown === "scale" && !isScaleDisabled && (
                       <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                         <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {SCALE_OPTIONS.map((opt) => (
+                          {SCALE_OPTIONS.map((opt: string) => (
                             <div
                               key={opt}
                               role="option"
