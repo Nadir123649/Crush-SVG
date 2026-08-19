@@ -21,8 +21,8 @@ export function Alert({
     <div
       className={`flex items-center justify-between min-h-[41px] p-[12px] rounded-[4px] gap-[10px] text-white font-afacad text-[14px] font-normal leading-[130%] transition-all ${
         isError
-          ? "bg-[#D94A1E] w-[433px] max-w-full"
-          : "bg-[#D94A1E] w-[366px] max-w-full"
+          ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] w-[433px] max-w-full"
+          : "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] w-[366px] max-w-full"
       } ${className}`}
       style={width ? { width } : undefined}
     >
