@@ -19,11 +19,8 @@ function VerificationContent() {
   }, [variant])
 
   return (
-    <div 
-      className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center cursor-pointer"
-      onClick={() => router.push("/")}
-    >
-      <div onClick={(e) => e.stopPropagation()} className="cursor-default w-full max-w-[440px]">
+    <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+      <div className="w-full max-w-[440px]">
         <VerificationModal
           variant={variant}
           onClose={() => router.push("/")}
