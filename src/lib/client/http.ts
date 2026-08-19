@@ -70,24 +70,24 @@ interface RefreshBody {
   }
 }
 
-async function doRefresh(): Promise<SessionPayload | null> {
+async function doRefresh(silent = false): Promise<SessionPayload | null> {
   try {
     const res = await fetch(REFRESH_PATH, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
     })
     if (!res.ok) {
-      onAuthExpired?.()
+      if (!silent) onAuthExpired?.()
       return null
     }
     const body = (await res.json().catch(() => null)) as RefreshBody | null
     if (body?.success !== true || !body.payload) {
-      onAuthExpired?.()
+      if (!silent) onAuthExpired?.()
       return null
     }
     const { token, sessionId, remember, user } = body.payload
     if (!token?.accessToken) {
-      onAuthExpired?.()
+      if (!silent) onAuthExpired?.()
       return null
     }
     setAccessToken(token.accessToken)
@@ -100,9 +100,9 @@ async function doRefresh(): Promise<SessionPayload | null> {
   }
 }
 
-export async function refreshSession(): Promise<SessionPayload | null> {
+export async function refreshSession(opts?: { silent?: boolean }): Promise<SessionPayload | null> {
   if (!refreshInFlight) {
-    refreshInFlight = doRefresh().finally(() => {
+    refreshInFlight = doRefresh(opts?.silent).finally(() => {
       refreshInFlight = null
     })
   }

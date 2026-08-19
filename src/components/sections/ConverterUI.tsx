@@ -73,6 +73,7 @@ export function ConverterUI() {
   const scaleRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
+  const [storageRestored, setStorageRestored] = useState(false);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
 
@@ -141,6 +142,7 @@ export function ConverterUI() {
       } catch {}
       finally {
         storageRestoredRef.current = true;
+        setStorageRestored(true);
       }
     });
   }, []);
@@ -407,20 +409,20 @@ export function ConverterUI() {
 
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
-                {previewUrl && !previewError ? (
+                {storageRestored && previewUrl && !previewError ? (
                   <img
                     src={previewUrl}
                     alt="SVG preview"
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={() => setPreviewError(true)}
                   />
-                ) : (
+                ) : storageRestored ? (
                   <img
                     src="/Upload%20image.svg"
                     alt="Upload placeholder"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
-                )}
+                ) : null}
               </div>
 
 

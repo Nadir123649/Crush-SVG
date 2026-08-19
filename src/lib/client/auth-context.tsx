@@ -106,14 +106,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setToastEmitter(defaultToastEmitter)
 
-    void (async () => {
-      const payload = await refreshSession()
+    const MAX_REFRESH_ATTEMPTS = 3
+    const REFRESH_RETRY_MS = 700
+
+    const attemptRefresh = async (attempt: number): Promise<void> => {
+      if (cancelled) return
+      // Silent: a failed refresh here must not trip onAuthExpired (which
+      // clears the session). A fast page refresh can hit a transient failure
+      // (rate limit, DB churn, cookie rotation race) — retry before demoting
+      // to guest so the logged-in UI never flashes the guest counter/buttons.
+      const payload = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
-        setStatus('guest')
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('crush_auth_status', 'guest')
+        if (attempt < MAX_REFRESH_ATTEMPTS) {
+          setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_RETRY_MS)
+          return
         }
+        clearAuth()
         return
       }
 
@@ -140,7 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionId: payload.sessionId ?? undefined,
         remember: payload.remember ?? undefined,
       })
-    })()
+    }
+
+    void attemptRefresh(0)
 
     return () => {
       cancelled = true
