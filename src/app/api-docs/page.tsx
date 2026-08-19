@@ -13,6 +13,9 @@ export const metadata: Metadata = {
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://crush-svg.vercel.app";
 
+const POSTMAN_COLLECTION_URL = `${BASE_URL}/postman/crushsvg-api.postman_collection.json`;
+const POSTMAN_IMPORT_URL = `https://www.postman.com/auto-detect?collection=${encodeURIComponent(POSTMAN_COLLECTION_URL)}`;
+
 export default function ApiDocsPage() {
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
@@ -56,6 +59,27 @@ export default function ApiDocsPage() {
   "width": 512
 }'`}
           />
+          <div className="flex flex-wrap items-center gap-[10px] mt-[16px]">
+            <a
+              href={POSTMAN_IMPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center h-[40px] px-[18px] rounded-[10px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-semibold text-[14px] hover:opacity-90 transition-opacity"
+            >
+              Import into Postman
+            </a>
+            <a
+              href={POSTMAN_COLLECTION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center h-[40px] px-[18px] rounded-[10px] bg-white border border-[#F2EDE8] text-text-dark font-body font-semibold text-[14px] hover:border-brand-primary/40 transition-colors"
+            >
+              Download collection (.json)
+            </a>
+            <span className="font-afacad text-[13px] text-text-muted">
+              Includes all 25 endpoints with pre-configured auth and test scripts.
+            </span>
+          </div>
         </section>
 
         {/* Response envelope */}

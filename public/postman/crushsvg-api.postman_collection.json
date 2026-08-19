@@ -1,0 +1,1101 @@
+{
+  "info": {
+    "name": "CrushSVG API",
+    "_postman_id": "9f2c7e3a-1b4d-4e6f-8a9c-0d1e2f3a4b5c",
+    "description": "# CrushSVG API\n\nConvert SVG to pixel-perfect PNG from any application.\n\n## Quickstart\n\n1. Import this collection and the **CrushSVG API - Production** environment.\n2. Set `email` and `password` in the environment (or use the collection defaults).\n3. Run **Authentication → Register** to create an account (then verify the email from your inbox).\n4. Run **Authentication → Login** — the `accessToken` is stored automatically for all protected requests.\n5. Try **Conversion → Convert to PNG (JSON)** with the sample SVG.\n\n## Notes\n\n- Guests get **3 free conversions per 10 minutes** (no login needed).\n- Signed-in users are unlimited.\n- Access tokens expire after 15 minutes — run **Authentication → Refresh Token** to get a new pair (the refresh cookie must be present in a browser context; from Postman, copy `refreshToken` into the `crushsvg_refresh` cookie manually if needed).\n- Full reference: https://crush-svg.vercel.app/api-docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://crush-svg.vercel.app",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "demo@example.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "super-secret-123",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verifyToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sampleSvg",
+      "value": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"#D94A1E\"/></svg>",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Create an account, sign in, and manage sessions. Protected endpoints use a Bearer access token (set automatically by Login).",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registers a new user and sends a verification email. The account must be verified before login. If the email already belongs to a Google/GitHub-only account, the password is linked to it instead of failing.\n\nRate limit: 3 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Registers successfully', () => {",
+                  "  pm.expect(pm.response.code).to.eql(201);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "});",
+                  "pm.test('Sends verification email', () => {",
+                  "  pm.expect(json.payload.message).to.include('verify');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"rememberMe\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Authenticates and returns a token pair. The access token is saved to the `accessToken` collection variable so all protected requests work automatically.\n\nRate limit: 10 / min per IP. Brute-force protection: 429 `account_locked` after repeated failures."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Logs in successfully', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "});",
+                  "if (json.success && json.payload && json.payload.token) {",
+                  "  pm.collectionVariables.set('accessToken', json.payload.token.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.payload.token.refreshToken);",
+                  "  pm.collectionVariables.set('sessionId', json.payload.sessionId);",
+                  "  pm.test('Tokens stored', () => {",
+                  "    pm.expect(pm.collectionVariables.get('accessToken')).to.not.eql('');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "Revokes the current session and clears the refresh cookie. Returns 200 even without a token, so clients can always treat it as success."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Logs out successfully', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(json.payload.message).to.include('Logged out');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout All Devices",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout-all"]
+            },
+            "description": "Revokes every active session for the current user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Revokes all sessions', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.message).to.include('all devices');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Exchanges the refresh token (crushsvg_refresh cookie) for a fresh pair and stores the new access token. From Postman the cookie is sent by a browser context only — for a full manual flow, copy `refreshToken` from the Login response into the `crushsvg_refresh` cookie (Domain: your host, Path: /).\n\nRate limit: 120 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.payload && json.payload.token) {",
+                  "  pm.collectionVariables.set('accessToken', json.payload.token.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.payload.token.refreshToken);",
+                  "  pm.test('Refreshed token stored', () => {",
+                  "    pm.expect(pm.collectionVariables.get('accessToken')).to.not.eql('');",
+                  "  });",
+                  "} else {",
+                  "  pm.test('Session is dead (token_missing / token_invalid)', () => {",
+                  "    pm.expect(json.success).to.eql(false);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "change-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"even-more-secret-456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Changes the account password and signs the user out of every device. Requires a fresh login afterwards.\n\nRate limit: 5 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Changes password', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.message).to.include('Password changed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "OAuth Sign In (Google)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/oauth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "oauth", "google"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firebaseToken\": \"<firebase-id-token>\",\n  \"rememberMe\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Signs in with a Firebase ID token. The provider path segment must match the token's signing provider: google, github, or x. The access token is saved to the `accessToken` variable automatically.\n\nRate limit: 10 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.payload && json.payload.token) {",
+                  "  pm.collectionVariables.set('accessToken', json.payload.token.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.payload.token.refreshToken);",
+                  "  pm.collectionVariables.set('sessionId', json.payload.sessionId);",
+                  "}",
+                  "pm.test('Responds', () => { pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Passwords & Email Verification",
+      "description": "Account recovery and email verification. Token links expire after 30 minutes (password reset) or 24 hours (email verification).",
+      "item": [
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/passwords/forgot",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "passwords", "forgot"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Sends a reset link if the account exists. The response is identical either way (anti-enumeration). Works for social-only accounts too.\n\nRate limit: 3 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Accepts the request', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate Reset Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/passwords/reset?token={{resetToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "passwords", "reset"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{resetToken}}"
+                }
+              ]
+            },
+            "description": "Checks whether a reset token is still valid without consuming it. Set the `resetToken` variable from the email link."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reports validity', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload).to.have.property('valid');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/passwords/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "passwords", "reset"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"brand-new-password-789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Consumes the reset token, sets the new password, marks the email verified, and revokes all sessions.\n\nRate limit: 5 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Resets the password', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resend Verification Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/verification/email/resend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "verification", "email", "resend"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Re-sends the verification email to an unverified password account. Identical response whether or not the account exists.\n\nRate limit: 3 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Accepts the request', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/verification/email/verify/{{verifyToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "verification", "email", "verify", "{{verifyToken}}"]
+            },
+            "description": "Consumes the verification token from the email link. With Accept: application/json it returns the verified message; with a browser Accept header it redirects and signs the user in."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Verifies or reports invalid token', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Conversion",
+      "description": "Convert SVG to pixel-perfect PNG. Signed-in users are unlimited; guests get 3 conversions per 10 minutes (set-cookie gid). These requests run as guests by default — sign in first and switch the request auth to 'Inherit auth from parent' for user flows.",
+      "item": [
+        {
+          "name": "Convert to PNG (JSON)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "convert"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"svg\": \"{{sampleSvg}}\",\n  \"width\": 512,\n  \"transparent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Converts an SVG string to PNG and returns it as base64 in `payload.data`. Max output 4000×4000 px.\n\nRate limit: 30 / min per IP. Guest budget: 3 / 10 min (429 `limit_reached`)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Converts to PNG', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.payload.format).to.eql('png');",
+                  "  pm.expect(json.payload.data.length).to.be.above(0);",
+                  "});",
+                  "pm.test('Reports usage', () => {",
+                  "  pm.expect(json.payload).to.have.property('conversionsUsed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Convert to PNG (Download)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/convert?download=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "convert"],
+              "query": [
+                {
+                  "key": "download",
+                  "value": "1"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"svg\": \"{{sampleSvg}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Same conversion, but returns the raw PNG binary with a Content-Disposition attachment header. Usage counters come back in X-Conversions-Used / X-Conversions-Remaining response headers.\n\nRate limit: 30 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns a PNG binary', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('image/png');",
+                  "  pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload SVG File",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/uploads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "uploads"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/logo.svg"
+                },
+                {
+                  "key": "width",
+                  "value": "512",
+                  "type": "text"
+                },
+                {
+                  "key": "transparent",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "Uploads an SVG (≤10 MB) and returns a hosted Cloudinary URL of the converted PNG. Optional fields: width, scale, transparent. PNG/JPEG/WebP uploads require a signed-in user.\n\nRate limit: 30 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Uploads and converts', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.payload.format).to.eql('png');",
+                  "  pm.expect(json.payload.url).to.include('http');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conversion History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/conversions?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "conversions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Returns the user's conversion usage and pagination metadata. Individual conversion records are not stored, so `data` is always an empty array.\n\nRate limit: 30 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns usage metadata', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.meta).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validation & Usage",
+      "description": "Validate SVG sources before converting and check remaining quota.",
+      "item": [
+        {
+          "name": "Validate SVG",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/svg/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "svg", "validate"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"svg\": \"{{sampleSvg}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Runs the same security and parse checks used by /api/v1/convert. Rejects scripts, event handlers, javascript:/data: URIs, and malformed markup.\n\nRate limit: 30 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Validates the SVG', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.valid).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Usage",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "usage"]
+            },
+            "description": "Returns current conversion count and quota. With a Bearer token it reports the user's unlimited usage; without one, the guest budget (3 per 10 minutes).\n\nRate limit: 120 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reports usage', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload).to.have.property('conversionsUsed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Track Usage",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "usage"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Increments the conversion counter (user lifetime count when authenticated, 10-minute window for guests).\n\nRate limit: 60 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Tracks usage', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Account & Profile",
+      "description": "Read and manage the signed-in user's profile. Requires the Bearer access token (set by Login).",
+      "item": [
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "me"]
+            },
+            "description": "Lightweight session probe used by the web app. Returns a raw user object (not the standard envelope)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the user', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().user).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "description": "Returns the authenticated user's profile in the standard envelope.\n\nRate limit: 60 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns the profile', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.user.email).to.eql(pm.collectionVariables.get('email'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Jane D.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Updates displayName and/or name (3–16 characters each). At least one field required.\n\nRate limit: 20 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Updates the profile', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.user.displayName).to.eql('Jane D.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Permanently deletes the account. Password required for confirmation. Irreversible!\n\nRate limit: 5 / min per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Deletes the account', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.message).to.include('deleted');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "Health checks and public endpoint metadata.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Reports API and database health. 200 when healthy, 503 when degraded."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('API is healthy', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('healthy');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conversion Metadata",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "convert"]
+            },
+            "description": "Discovery endpoint: supported formats, output limits, and an example payload."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns metadata', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "  pm.expect(pm.response.json().payload.formats).to.include('png');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SVG Validation Metadata",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/svg/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "svg", "validate"]
+            },
+            "description": "Usage hint for the SVG validation endpoint."
+          }
+        }
+      ]
+    }
+  ]
+}
