@@ -4,7 +4,7 @@ import { ScrollToTop } from "@/components/utils/ScrollToTop";
 
 export default function HelpPage() {
   return (
-    <div className="w-full flex flex-col items-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
       <ScrollToTop />
       
       {/* Header Section */}

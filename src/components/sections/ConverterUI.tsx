@@ -148,7 +148,7 @@ export function ConverterUI() {
     }
     try {
       const text = await file.text();
-      handleSvgChange(text);
+      handleSvgChange(text.trim());
     } catch {
       setError("Could not read that file. Please try again.");
     }
@@ -516,7 +516,7 @@ export function ConverterUI() {
                 {/* Action Buttons Row */}
                 {converting ? (
                   <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
-                    <div className="w-full sm:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
+                    <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div 
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] transition-all duration-[2000ms] ease-linear"
                         style={{ width: `${progress}%` }}
@@ -527,7 +527,7 @@ export function ConverterUI() {
                   <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
                     {isCheckingUsage ? (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
                         disabled
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
@@ -539,13 +539,13 @@ export function ConverterUI() {
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-full sm:w-[340px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
                       >
                         Sign up for unlimited conversions
                       </button>
                     ) : result?.data ? (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
                         disabled={converting}
                       >
@@ -556,7 +556,7 @@ export function ConverterUI() {
                       </Button>
                     ) : (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleConvert}
                         disabled={converting}
                       >
@@ -568,7 +568,7 @@ export function ConverterUI() {
                     )}
 
                     {result && result.size !== undefined && (
-                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B] whitespace-nowrap">
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
                       </p>

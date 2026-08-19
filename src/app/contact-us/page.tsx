@@ -3,7 +3,7 @@ import { ScrollToTop } from "@/components/utils/ScrollToTop";
 
 export default function ContactUsPage() {
   return (
-    <div className="w-full flex flex-col items-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
       <ScrollToTop />
       
       {/* Header Section */}
@@ -17,7 +17,7 @@ export default function ContactUsPage() {
       </div>
 
       {/* Contact Form Section */}
-      <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]"
+      <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] p-[20px] md:p-[48px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
         <form className="w-full flex flex-col gap-[20px]">
@@ -57,7 +57,7 @@ export default function ContactUsPage() {
           </button>
         </form>
 
-        <div className="w-full flex items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
+        <div className="w-full flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
           <span className="font-afacad text-[16px] text-text-muted">Or email us at:</span>
           <a href="mailto:support@crushsvg.com" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
             support@crushsvg.com
