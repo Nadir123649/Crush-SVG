@@ -5,8 +5,8 @@ import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
-import { useAuth } from "@/lib/client/auth-context";
-import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
+import { convertText, isValidSvgContent, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
@@ -41,10 +41,14 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 
 export function ConverterUI() {
   const { status, sessionVersion } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
-  const [selectedWidth, setSelectedWidth] = useState("480px");
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState("480");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
+  const [unit, setUnit] = useState<"px" | "cm">("px");
+  const [isCustomWidth, setIsCustomWidth] = useState(false);
+  const [isCustomHeight, setIsCustomHeight] = useState(false);
+  const [isCustomScale, setIsCustomScale] = useState(false);
   const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
@@ -73,6 +77,24 @@ export function ConverterUI() {
   const unitRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
+  const [storageRestored, setStorageRestored] = useState(false);
+  const prevStatusRef = useRef<AuthStatus | null>(null);
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    // The previous user signed out (or their session ended): wipe the editor
+    // so no private SVG lingers on screen or in memory for the next user.
+    if (prev === "authed" && status !== "authed") {
+      setSvgCode(SAMPLE_SVG);
+      setResult(null);
+      setError(null);
+      setPreviewError(false);
+      setUsage(null);
+      setUsageFailed(false);
+      setShowSignupPrompt(false);
+    }
+  }, [status]);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
 
@@ -144,6 +166,7 @@ export function ConverterUI() {
       } catch {}
       finally {
         storageRestoredRef.current = true;
+        setStorageRestored(true);
       }
     });
   }, []);
@@ -167,10 +190,7 @@ export function ConverterUI() {
     return svgToDataUrl(svgCode);
   }, [svgCode]);
 
-  const isValidSvg = useMemo(() => {
-    const trimmed = svgCode.trim().toLowerCase();
-    return trimmed.startsWith("<svg") && trimmed.includes("</svg>") && trimmed.endsWith(">");
-  }, [svgCode]);
+  const isValidSvg = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
 
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
 
@@ -317,6 +337,12 @@ export function ConverterUI() {
     }
   }
 
+  const widthOptions = ["Original", "Custom", ...PRESET_SIZES];
+  const heightOptions = ["Auto", "Custom", ...PRESET_SIZES];
+  // Scale only applies when the SVG is converted at its intrinsic size — the
+  // server ignores it once a width or height is set.
+  const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
+
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
 
@@ -410,20 +436,20 @@ export function ConverterUI() {
 
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
-                {previewUrl && !previewError ? (
+                {storageRestored && previewUrl && !previewError ? (
                   <img
                     src={previewUrl}
                     alt="SVG preview"
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={() => setPreviewError(true)}
                   />
-                ) : (
+                ) : storageRestored ? (
                   <img
                     src="/Upload%20image.svg"
                     alt="Upload placeholder"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
-                )}
+                ) : null}
               </div>
 
 

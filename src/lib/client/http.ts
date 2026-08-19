@@ -16,9 +16,22 @@ export class ApiError extends Error {
 let accessToken: string | null = null
 let activeSessionId: string | null = null
 let activeRemember: boolean | null = null
+// True when a user snapshot was restored from storage (page load) but the
+// access token may not be attached yet. Lets authFetch attempt a refresh on
+// 401 even without a token, making the first real API call the decisive point
+// for a session instead of a page-load refresh hiccup.
+let sessionRestored = false
 
 export function setAccessToken(token: string | null): void {
   accessToken = token
+}
+
+export function setSessionRestored(restored: boolean): void {
+  sessionRestored = restored
+}
+
+export function getSessionRestored(): boolean {
+  return sessionRestored
 }
 
 export function getAccessToken(): string | null {
@@ -70,39 +83,40 @@ interface RefreshBody {
   }
 }
 
-async function doRefresh(): Promise<SessionPayload | null> {
+async function doRefresh(silent = false): Promise<SessionPayload | null> {
+  let res: Response
   try {
-    const res = await fetch(REFRESH_PATH, {
+    res = await fetch(REFRESH_PATH, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
     })
-    if (!res.ok) {
-      onAuthExpired?.()
-      return null
-    }
-    const body = (await res.json().catch(() => null)) as RefreshBody | null
-    if (body?.success !== true || !body.payload) {
-      onAuthExpired?.()
-      return null
-    }
-    const { token, sessionId, remember, user } = body.payload
-    if (!token?.accessToken) {
-      onAuthExpired?.()
-      return null
-    }
-    setAccessToken(token.accessToken)
-    activeSessionId = sessionId ?? null
-    activeRemember = remember ?? null
-    return { token, sessionId, remember, user }
   } catch {
-    onAuthExpired?.()
+    // Network failures are transient — the session is not dead.
     return null
   }
+  const body = (await res.json().catch(() => null)) as RefreshBody | null
+  // The refresh route only reports a dead session authoritatively: 401
+  // (revoked session / deleted user) or 200 with success:false (missing or
+  // invalid token) — in all of those it also deletes the cookie. Rate limits
+  // (429) and server errors are transient; clearing the session there would
+  // log out a perfectly valid user and poison the stored snapshot, flashing
+  // guest UI on the next refresh.
+  const sessionIsDead = res.status === 401 || (res.status === 200 && body?.success !== true)
+  if (res.status !== 200 || body?.success !== true || !body?.payload) {
+    if (!silent && sessionIsDead) onAuthExpired?.()
+    return null
+  }
+  const { token, sessionId, remember, user } = body.payload
+  if (!token?.accessToken) return null
+  setAccessToken(token.accessToken)
+  activeSessionId = sessionId ?? null
+  activeRemember = remember ?? null
+  return { token, sessionId, remember, user }
 }
 
-export async function refreshSession(): Promise<SessionPayload | null> {
+export async function refreshSession(opts?: { silent?: boolean }): Promise<SessionPayload | null> {
   if (!refreshInFlight) {
-    refreshInFlight = doRefresh().finally(() => {
+    refreshInFlight = doRefresh(opts?.silent).finally(() => {
       refreshInFlight = null
     })
   }
@@ -117,10 +131,38 @@ function attachAuth(headers: Headers): string | null {
 
 export async function authFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
-  const token = attachAuth(headers)
+  let token = attachAuth(headers)
+
+  // A restored session (page refresh) may not have its access token attached
+  // yet. Attach it BEFORE sending the request so protected endpoints (convert,
+  // download, ...) can never silently execute through the guest path. The
+  // first attempt deduplicates with an in-flight refresh (e.g. the page-load
+  // refresh); if that one failed, one fresh attempt gets another chance. Both
+  // are silent: a transient failure must never log the user out — storage is
+  // left untouched and the page-load backoff retries keep running. If the
+  // session genuinely cannot be restored, surface session_expired instead of
+  // sending the request unauthenticated.
+  if (!token && sessionRestored) {
+    let refreshed = await refreshSession({ silent: true })
+    if (!refreshed || !accessToken) {
+      refreshed = await refreshSession({ silent: true })
+    }
+    if (refreshed && accessToken) {
+      token = accessToken
+      headers.set('authorization', `Bearer ${token}`)
+    } else {
+      emitToast('error', 'Session expired. Please sign in again.')
+      throw new ApiError(401, 'session_expired', 'Session expired. Please sign in again.')
+    }
+  }
+
   let res = await fetch(path, { ...init, headers })
 
-  if (res.status === 401 && token) {
+  // Refresh on 401 when we have a token, or when a session was restored from
+  // storage but the token isn't attached yet (e.g. the page-load refresh
+  // failed). A real authenticated request is the decisive test of a session —
+  // a transient failure on load must never log the user out on its own.
+  if (res.status === 401 && (token || sessionRestored)) {
     const refreshed = await refreshSession()
     if (refreshed && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)
