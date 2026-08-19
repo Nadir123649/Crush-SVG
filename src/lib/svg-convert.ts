@@ -2,10 +2,13 @@ import 'server-only'
 
 import sharp from 'sharp'
 
-export type SvgFormat = 'png' | 'jpeg' | 'webp'
+import { sanitizeSvg } from '@/lib/svg-sanitize'
+import { computeTargetSize, parseSvgDimensions } from '@/lib/svg-dims'
+import { ConversionTimeoutError } from '@/lib/svg-errors'
+
+export type SvgFormat = 'png'
 
 export interface SvgConvertOptions {
-  format?: SvgFormat
   width?: number
   height?: number
   scale?: number
@@ -18,151 +21,73 @@ export interface SvgConvertResult {
   width?: number
   height?: number
   format: SvgFormat
+  warnings: string[]
 }
 
-export function sanitizeSvg(svg: string): string {
-  let sanitized = svg
+export const CONVERSION_TIMEOUT_MS = 30_000
 
-  if (
-    !sanitized.includes('xmlns="http://www.w3.org/2000/svg"') &&
-    !sanitized.includes("xmlns='http://www.w3.org/2000/svg'")
-  ) {
-    sanitized = sanitized.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"')
-  }
-
-  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
-  sanitized = sanitized.replace(/javascript:/gi, '')
-  sanitized = sanitized.replace(/vbscript:/gi, '')
-  sanitized = sanitized.replace(/data:/gi, '')
-  sanitized = sanitized.replace(/expression\s*\(/gi, '')
-
-  // Fix for Figma image patterns (librsvg bug where <use> cannot reference <image> reliably)
-  const imageRegex = /<image\s+id=["']([^"']+)["'][^>]*\/>/gi
-  let match
-  const images = new Map<string, string>()
-  while ((match = imageRegex.exec(sanitized)) !== null) {
-    images.set(match[1], match[0])
-  }
-
-  if (images.size > 0) {
-    sanitized = sanitized.replace(
-      /<use\s+xlink:href=["']#([^"']+)["']([^>]*)\/>/gi,
-      (fullMatch, id, rest) => {
-        const imgTag = images.get(id)
-        if (imgTag) {
-          // Inline the image and apply the <use> attributes (like transform)
-          return imgTag.replace(/<image\s+id=["'][^"']+["']/, `<image ${rest}`)
-        }
-        return fullMatch
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new ConversionTimeoutError()), ms)
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        clearTimeout(timer)
+        reject(error)
       }
     )
-  }
-
-  return sanitized
-}
-
-export function parseSvgForSharp(svg: string): { width?: number; height?: number } {
-  const widthMatch = svg.match(/<svg[^>]*\bwidth\s*=\s*["']?([\d.]+)(px)?["']?/i)
-  const heightMatch = svg.match(/<svg[^>]*\bheight\s*=\s*["']?([\d.]+)(px)?["']?/i)
-
-  if (widthMatch && heightMatch) {
-    return {
-      width: parseFloat(widthMatch[1]),
-      height: parseFloat(heightMatch[1]),
-    }
-  }
-
-  const viewBoxMatch = svg.match(
-    /viewBox\s*=\s*["']?\s*(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)\s*["']?/i
-  )
-  if (viewBoxMatch) {
-    return {
-      width: parseFloat(viewBoxMatch[3]),
-      height: parseFloat(viewBoxMatch[4]),
-    }
-  }
-
-  return {
-    width: widthMatch ? parseFloat(widthMatch[1]) : undefined,
-    height: heightMatch ? parseFloat(heightMatch[1]) : undefined,
-  }
+  })
 }
 
 export async function convertSvg(
   svg: string,
   options: SvgConvertOptions = {}
 ): Promise<SvgConvertResult> {
-  const format = options.format ?? 'png'
-  const scale = options.scale ?? 2
   const quality = options.quality ?? 90
 
   const sanitizedSvg = sanitizeSvg(svg)
-  const svgBuffer = Buffer.from(sanitizedSvg, 'utf-8')
+  const dims = parseSvgDimensions(sanitizedSvg)
+  const target = computeTargetSize(dims, options)
 
-  const { width: svgWidth, height: svgHeight } = parseSvgForSharp(sanitizedSvg)
+  const warnings: string[] = []
 
-  let targetWidth: number | undefined
-  let targetHeight: number | undefined
-  let fit: 'contain' | 'inside' = 'inside'
-
-  if (options.width && options.height) {
-    // Exact custom size: canvas is always the requested dimensions; the image
-    // fits inside undistorted and any remaining space is padded (transparent
-    // for PNG, white for JPEG/flattened output).
-    targetWidth = Math.round(options.width)
-    targetHeight = Math.round(options.height)
-    fit = 'contain'
-  } else if (options.width) {
-    targetWidth = Math.round(options.width)
-    if (svgWidth && svgHeight) {
-      targetHeight = Math.round((targetWidth / svgWidth) * svgHeight)
-    }
-  } else if (svgWidth && svgHeight) {
-    targetWidth = Math.round(svgWidth * scale)
-    targetHeight = Math.round(svgHeight * scale)
-  }
-
-  const pipeline = sharp(svgBuffer, {
+  const pipeline = sharp(Buffer.from(sanitizedSvg, 'utf-8'), {
     density: 300,
     limitInputPixels: 50_000_000,
   })
 
-  if (targetWidth) {
+  if (target.width) {
     pipeline.resize({
-      width: targetWidth,
-      height: targetHeight,
-      fit,
+      width: target.width,
+      height: target.height,
+      fit: target.fit,
       withoutEnlargement: false,
-      background: { r: 255, g: 255, b: 255, alpha: options.transparent === false || format === 'jpeg' ? 1 : 0 },
+      background: {
+        r: 255,
+        g: 255,
+        b: 255,
+        alpha: options.transparent === false ? 1 : 0,
+      },
     })
   }
 
-  if (options.transparent === false || format === 'jpeg') {
+  if (options.transparent === false) {
     pipeline.flatten({ background: { r: 255, g: 255, b: 255 } })
   }
 
-  if (format === 'png') {
-    pipeline.png({
-      quality,
-      compressionLevel: 9,
-      adaptiveFiltering: true,
-    })
-  } else if (format === 'jpeg') {
-    pipeline.jpeg({
-      quality,
-      progressive: true,
-      mozjpeg: true,
-    })
-  } else if (format === 'webp') {
-    pipeline.webp({
-      quality,
-      lossless: false,
-      nearLossless: false,
-      smartSubsample: true,
-    })
-  }
+  pipeline.png({
+    quality,
+    compressionLevel: 9,
+    adaptiveFiltering: true,
+  })
 
-  const { data: buffer, info } = await pipeline.toBuffer({ resolveWithObject: true })
-  return { buffer, width: info.width, height: info.height, format }
+  const { data: buffer, info } = await withTimeout(
+    pipeline.toBuffer({ resolveWithObject: true }),
+    CONVERSION_TIMEOUT_MS
+  )
+
+  return { buffer, width: info.width, height: info.height, format: 'png', warnings }
 }

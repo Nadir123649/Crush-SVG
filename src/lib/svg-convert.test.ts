@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import sharp from 'sharp'
 
-import { convertSvg, parseSvgForSharp, sanitizeSvg } from '@/lib/svg-convert'
+import { convertSvg } from '@/lib/svg-convert'
+import { parseSvgDimensions, OutputTooLargeError } from '@/lib/svg-dims'
+import { sanitizeSvg } from '@/lib/svg-sanitize'
 
 const SIMPLE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="red"/></svg>'
 
 const TRANSPARENT_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect x="25" y="25" width="50" height="50" fill="red"/></svg>'
+
+const FIXTURES_DIR = path.join(__dirname, 'fixtures', 'svgs')
 
 describe('sanitizeSvg', () => {
   it('adds the SVG namespace when missing', () => {
@@ -25,6 +31,11 @@ describe('sanitizeSvg', () => {
     expect(out).not.toContain('onclick')
   })
 
+  it('strips unquoted event handler attributes', () => {
+    const out = sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg" onload=alert(1)></svg>')
+    expect(out).not.toContain('onload')
+  })
+
   it('strips javascript:, data:, vbscript: and expression() payloads', () => {
     const out = sanitizeSvg(
       '<svg xmlns="http://www.w3.org/2000/svg"><a href="javascript:alert(1)">x</a><a href="data:text/html">y</a></svg>'
@@ -32,22 +43,52 @@ describe('sanitizeSvg', () => {
     expect(out).not.toContain('javascript:')
     expect(out).not.toContain('data:')
   })
+
+  it('preserves embedded base64 images in href attributes', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="/></svg>'
+    const out = sanitizeSvg(svg)
+    expect(out).toContain('data:image/png;base64,')
+  })
+
+  it('leaves text content containing data: untouched', () => {
+    const out = sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg"><text>my data: here</text></svg>')
+    expect(out).toContain('my data: here')
+  })
 })
 
-describe('parseSvgForSharp', () => {
+describe('parseSvgDimensions', () => {
   it('reads width and height attributes', () => {
-    const dims = parseSvgForSharp('<svg width="240" height="160"></svg>')
+    const dims = parseSvgDimensions('<svg width="240" height="160"></svg>')
     expect(dims).toEqual({ width: 240, height: 160 })
   })
 
   it('falls back to viewBox dimensions when attributes are missing', () => {
-    const dims = parseSvgForSharp('<svg viewBox="0 0 120 120"></svg>')
+    const dims = parseSvgDimensions('<svg viewBox="0 0 120 120"></svg>')
     expect(dims).toEqual({ width: 120, height: 120 })
   })
 
   it('uses viewBox size when only one attribute exists', () => {
-    const dims = parseSvgForSharp('<svg width="240" viewBox="0 0 120 120"></svg>')
+    const dims = parseSvgDimensions('<svg width="240" viewBox="0 0 120 120"></svg>')
     expect(dims).toEqual({ width: 120, height: 120 })
+  })
+
+  it('ignores percentage and unit lengths', () => {
+    expect(parseSvgDimensions('<svg width="100%" height="50%" viewBox="0 0 200 100"></svg>')).toEqual({
+      width: 200,
+      height: 100,
+    })
+    expect(parseSvgDimensions('<svg width="10em" height="5em"></svg>')).toEqual({
+      width: undefined,
+      height: undefined,
+    })
+  })
+
+  it('returns undefined for svg without dimensions', () => {
+    expect(parseSvgDimensions('<svg xmlns="http://www.w3.org/2000/svg"></svg>')).toEqual({
+      width: undefined,
+      height: undefined,
+    })
   })
 })
 
@@ -67,22 +108,23 @@ describe('convertSvg', () => {
     expect(result.height).toBe(200)
   })
 
-  it('renders a JPEG buffer when requested', async () => {
-    const result = await convertSvg(SIMPLE_SVG, { format: 'jpeg', width: 100 })
-    expect(result.format).toBe('jpeg')
-    const magic = result.buffer.subarray(0, 2).toString('hex')
-    expect(magic).toBe('ffd8')
-  })
-
-  it('renders a WebP buffer when requested', async () => {
-    const result = await convertSvg(SIMPLE_SVG, { format: 'webp', width: 100 })
-    expect(result.format).toBe('webp')
-    expect(result.buffer.subarray(0, 4).toString('ascii')).toBe('RIFF')
-    expect(result.buffer.subarray(8, 12).toString('ascii')).toBe('WEBP')
-  })
-
   it('rejects content that is not an SVG', async () => {
     await expect(convertSvg('not an svg at all', {})).rejects.toThrow()
+  })
+
+  it('rejects output wider than 4000px', async () => {
+    await expect(convertSvg(SIMPLE_SVG, { width: 5000 })).rejects.toThrow(OutputTooLargeError)
+  })
+
+  it('rejects output taller than 4000px', async () => {
+    const tall = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1000"><rect width="1" height="1000" fill="red"/></svg>'
+    await expect(convertSvg(tall, { width: 4000 })).rejects.toThrow(OutputTooLargeError)
+  })
+
+  it('allows the maximum 4000x4000 output', async () => {
+    const result = await convertSvg(SIMPLE_SVG, { width: 4000, height: 4000 })
+    expect(result.width).toBe(4000)
+    expect(result.height).toBe(4000)
   })
 })
 
@@ -111,27 +153,6 @@ describe('convertSvg transparency', () => {
 
   it('flattens PNG to white when transparent is false', async () => {
     const result = await convertSvg(TRANSPARENT_SVG, { width: 100, transparent: false })
-    const corner = await pixelAt(result.buffer, 0, 0)
-    expect(corner).toEqual({ r: 255, g: 255, b: 255, a: 255 })
-  })
-
-  it('always flattens JPEG to white even when transparent is requested', async () => {
-    const result = await convertSvg(TRANSPARENT_SVG, { format: 'jpeg', width: 100, transparent: true })
-    const corner = await pixelAt(result.buffer, 0, 0)
-    expect(corner.a).toBe(255)
-    expect(corner.r).toBeGreaterThan(250)
-    expect(corner.g).toBeGreaterThan(250)
-    expect(corner.b).toBeGreaterThan(250)
-  })
-
-  it('keeps alpha for WebP when transparent', async () => {
-    const result = await convertSvg(TRANSPARENT_SVG, { format: 'webp', width: 100 })
-    const corner = await pixelAt(result.buffer, 0, 0)
-    expect(corner.a).toBe(0)
-  })
-
-  it('flattens WebP to white when transparent is false', async () => {
-    const result = await convertSvg(TRANSPARENT_SVG, { format: 'webp', width: 100, transparent: false })
     const corner = await pixelAt(result.buffer, 0, 0)
     expect(corner).toEqual({ r: 255, g: 255, b: 255, a: 255 })
   })
@@ -170,13 +191,52 @@ describe('convertSvg width and scale', () => {
     expect(center.g).toBeGreaterThan(100)
     expect(center.b).toBeLessThan(60)
   })
+})
 
-  it('pads JPEG canvas white to the exact requested size', async () => {
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50" fill="orange"/></svg>'
-    const result = await convertSvg(svg, { format: 'jpeg', width: 400, height: 400 })
-    expect(result.width).toBe(400)
-    expect(result.height).toBe(400)
-    const corner = await pixelAt(result.buffer, 0, 0)
-    expect(corner).toEqual({ r: 255, g: 255, b: 255, a: 255 })
+async function opaqueRatio(buffer: Buffer): Promise<number> {
+  const { data, info } = await sharp(buffer).raw().toBuffer({ resolveWithObject: true })
+  const channels = info.channels
+  let opaque = 0
+  for (let i = 3; i < data.length; i += channels) {
+    if (data[i] > 0) opaque++
+  }
+  return opaque / (info.width * info.height)
+}
+
+describe('real-world SVG fixtures', () => {
+  const fixtures = [
+    'bank (1).svg',
+    'cards (1).svg',
+    'check (1).svg',
+    'chevron-right (2).svg',
+    'circle (1).svg',
+    'money (1).svg',
+    'phone (1).svg',
+    'star (1).svg',
+    'tick (1).svg',
+    'white-circle (1).svg',
+  ]
+
+  for (const file of fixtures) {
+    it(`converts ${file} to a non-blank PNG`, async () => {
+      const svg = readFileSync(path.join(FIXTURES_DIR, file), 'utf-8')
+      const result = await convertSvg(svg, { scale: 1 })
+
+      expect(result.format).toBe('png')
+      expect(result.width).toBeGreaterThan(0)
+      expect(result.height).toBeGreaterThan(0)
+
+      const ratio = await opaqueRatio(result.buffer)
+      expect(ratio).toBeGreaterThan(0.01)
+    })
+  }
+
+  it('renders the embedded logo in the Figma pattern SVGs', async () => {
+    for (const file of ['bank (1).svg', 'money (1).svg', 'star (1).svg']) {
+      const svg = readFileSync(path.join(FIXTURES_DIR, file), 'utf-8')
+      const result = await convertSvg(svg, { scale: 1 })
+      const ratio = await opaqueRatio(result.buffer)
+      expect(ratio).toBeGreaterThan(0.05)
+    }
   })
 })
