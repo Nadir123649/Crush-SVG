@@ -417,10 +417,10 @@ export function ConverterUI() {
                         onFocus={() => setOpenDropdown("width")}
                         readOnly={!isCustomWidth}
                         placeholder={isCustomWidth ? "e.g. 500" : "e.g. 480"}
-                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] outline-none text-ellipsis ${!isCustomWidth ? "cursor-default" : ""}`}
+                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomWidth ? "cursor-default" : ""}`}
                       />
                       {isCustomWidth && selectedWidth !== "" && (
-                        <span className="font-body font-medium text-[13px] md:text-[15px] text-[#64748B] pointer-events-none mr-[4px] shrink-0">
+                        <span className="font-body font-medium text-[14px] md:text-[16px] text-[#64748B] pointer-events-none mr-[4px] shrink-0">
                           {unit}
                         </span>
                       )}
@@ -486,10 +486,10 @@ export function ConverterUI() {
                         onFocus={() => setOpenDropdown("height")}
                         readOnly={!isCustomHeight}
                         placeholder={isCustomHeight ? "e.g. 500" : "e.g. Auto"}
-                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] outline-none text-ellipsis ${!isCustomHeight ? "cursor-default" : ""}`}
+                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomHeight ? "cursor-default" : ""}`}
                       />
                       {isCustomHeight && selectedHeight !== "" && (
-                        <span className="font-body font-medium text-[13px] md:text-[15px] text-[#64748B] pointer-events-none mr-[4px] shrink-0">
+                        <span className="font-body font-medium text-[14px] md:text-[16px] text-[#64748B] pointer-events-none mr-[4px] shrink-0">
                           {unit}
                         </span>
                       )}
@@ -545,7 +545,7 @@ export function ConverterUI() {
                         onFocus={() => setOpenDropdown("scale")}
                         readOnly={!isCustomScale}
                         placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
-                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
+                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
                         disabled={isScaleDisabled}
                       />
                       <button
@@ -596,7 +596,7 @@ export function ConverterUI() {
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
                       <div
                         onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
-                        className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
                         {unit}
                       </div>
@@ -656,7 +656,7 @@ export function ConverterUI() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] transition-all duration-[2000ms] ease-linear"
@@ -665,7 +665,7 @@ export function ConverterUI() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
                     {isCheckingUsage ? (
                       <Button
                         className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
@@ -709,13 +709,13 @@ export function ConverterUI() {
                     )}
 
                     {result && result.warnings && result.warnings.length > 0 && (
-                      <div role="alert" className="rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] mt-[12px] font-body text-[13px] leading-[18px] text-amber-800 w-full">
+                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[11px] leading-[14px] text-amber-800 w-full sm:w-[280px] lg:w-[340px] z-10 shadow-sm">
                         {result.warnings.map((w) => <p key={w}>{w}</p>)}
                       </div>
                     )}
 
                     {result && result.size !== undefined && (
-                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B] whitespace-nowrap">
+                      <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[11px] text-[#64748B] whitespace-nowrap">
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
                       </p>
