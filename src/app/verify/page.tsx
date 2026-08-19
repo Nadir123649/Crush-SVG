@@ -4,13 +4,6 @@ import React, { Suspense, useEffect } from "react";
 import { VerificationModal } from "@/components/modals/VerificationModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showToast } from "@/lib/client/toast-bridge";
-import { constructMetadata } from "@/lib/seo";
-
-export const metadata = constructMetadata({
-  title: "Verify Email | CrushSVG",
-  description: "Verify your email address.",
-  noindex: true,
-});
 
 function VerificationContent() {
   const router = useRouter();
