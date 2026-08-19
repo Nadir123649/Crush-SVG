@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
@@ -43,6 +43,12 @@ export function Navbar() {
     router.push("/");
     router.refresh();
   }
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [status, pathname]);
 
   const [isScrolled, setIsScrolled] = useState(false);
 
