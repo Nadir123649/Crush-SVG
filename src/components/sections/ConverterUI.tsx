@@ -56,6 +56,7 @@ export function ConverterUI() {
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const [previewError, setPreviewError] = useState(false);
   const widthRef = useRef<HTMLDivElement>(null);
