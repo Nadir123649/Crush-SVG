@@ -22,7 +22,7 @@ export function Alert({
       className={`flex items-center justify-between min-h-[41px] p-[12px] rounded-[4px] gap-[10px] text-white font-afacad text-[14px] font-normal leading-[130%] transition-all ${
         isError
           ? "bg-[#D94A1E] w-[433px] max-w-full"
-          : "bg-[#10B981] w-[366px] max-w-full"
+          : "bg-[#D94A1E] w-[366px] max-w-full"
       } ${className}`}
       style={width ? { width } : undefined}
     >
@@ -47,7 +47,7 @@ export function Alert({
             </svg>
           </div>
         ) : (
-          <div className="w-[18px] h-[18px] rounded-full bg-[#ACDABD] flex items-center justify-center shrink-0">
+          <div className="w-[18px] h-[18px] rounded-full bg-[#FFE3DA] flex items-center justify-center shrink-0">
             <svg
               width="18"
               height="18"
@@ -55,10 +55,10 @@ export function Alert({
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle cx="9" cy="9" r="9" fill="#ACDABD" />
+              <circle cx="9" cy="9" r="9" fill="#FFE3DA" />
               <path
                 d="M5.5 9L8 11.5L12.5 6.5"
-                stroke="#047857"
+                stroke="#D94A1E"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"

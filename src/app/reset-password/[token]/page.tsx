@@ -70,8 +70,8 @@ export default function ResetPasswordPage() {
 
   return (
     <GuestOnly>
-      <div className="w-full flex justify-center py-[60px]">
-      <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+      <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1" aria-label="Back to login">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -125,16 +125,20 @@ export default function ResetPasswordPage() {
 
           {tokenState === "valid" && !done && (
             <>
-              <div className="flex flex-col gap-[4px]">
-                <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Choose a new password</h2>
+              {/* Header Text */}
+              <div className="flex flex-col gap-[8px] items-center text-center">
+                <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
+                  Create New Password
+                </h2>
                 <p className="font-afacad text-[14px] text-[#4B5563]">
-                  Pick a strong password you don&apos;t use elsewhere (8–20 characters).
+                  Pick a strong password for better security, character limit (8-20)
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-[12px]">
+              {/* Inputs */}
+              <form onSubmit={handleSubmit} className="flex flex-col gap-[12px] mt-[4px]">
                 <div className="flex flex-col gap-[4px]">
-                  <label htmlFor="rp-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">New password</label>
+                  <label htmlFor="rp-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">New Password</label>
                   <div className="relative w-full">
                     <input
                       id="rp-password"
@@ -169,7 +173,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div className="flex flex-col gap-[4px]">
-                  <label htmlFor="rp-confirm" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm password</label>
+                  <label htmlFor="rp-confirm" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm Password</label>
                     <div className="relative w-full">
                       <input
                         id="rp-confirm"
@@ -209,14 +213,22 @@ export default function ResetPasswordPage() {
                   </div>
                 )}
 
+                {/* CTA Button */}
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {submitting ? "Updating…" : "Update password"}
+                  {submitting ? "Updating…" : "Set New Password"}
                 </button>
               </form>
+
+              {/* Footer Text */}
+              <div className="text-center mt-[12px]">
+                <p className="font-afacad font-normal text-[13px] text-[#AEAEAE]">
+                  Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
+                </p>
+              </div>
             </>
           )}
         </div>

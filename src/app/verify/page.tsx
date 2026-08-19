@@ -20,7 +20,7 @@ function VerificationContent() {
 
   return (
     <div 
-      className="w-full min-h-screen py-[40px] md:py-[100px] px-[16px] md:px-0 flex items-center justify-center cursor-pointer"
+      className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center cursor-pointer"
       onClick={() => router.push("/")}
     >
       <div onClick={(e) => e.stopPropagation()} className="cursor-default w-full max-w-[440px]">
@@ -36,7 +36,7 @@ function VerificationContent() {
 
 export default function VerificationPage() {
   return (
-    <Suspense fallback={<div className="w-full py-[100px]" />}>
+    <Suspense fallback={<div className="w-full py-[40px] md:py-[60px] min-h-[75vh]" />}>
       <VerificationContent />
     </Suspense>
   );

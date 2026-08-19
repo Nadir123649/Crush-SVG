@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Afacad } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
@@ -55,29 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <Footer />
         </AuthProvider>
-        <Toaster
-          position="top-right"
-          gutter={10}
-          toastOptions={{
-            duration: 4000,
-            style: {
-              borderRadius: "12px",
-              background: "#FFFFFF",
-              color: "#1E293B",
-              fontFamily: "var(--font-afacad)",
-              fontSize: "14px",
-              lineHeight: "1.35",
-              padding: "12px 16px",
-              boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.12)",
-            },
-            success: {
-              iconTheme: { primary: "#10B981", secondary: "#FFFFFF" },
-            },
-            error: {
-              iconTheme: { primary: "#D94A1E", secondary: "#FFFFFF" },
-            },
-          }}
-        />
+        <ToastProvider />
       </body>
     </html>
   );
