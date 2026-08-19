@@ -22,8 +22,11 @@ export function SignUpCTA() {
     return null;
   }
 
-  // If user is authenticated, they don't need the signup CTA
-  if (status === "authed") {
+  // During the loading window (hydration → session restore) the app does not
+  // yet know if the visitor is logged in. Rendering the guest sign-up banner
+  // here would flash "Sign Up / Log In" and the "3 free conversions" copy on
+  // every page refresh for authenticated users.
+  if (status === "loading" || status === "authed") {
     return null;
   }
   return (

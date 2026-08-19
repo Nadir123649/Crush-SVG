@@ -101,10 +101,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {}
       try {
         const storedStatus = sessionStorage.getItem('crush_auth_status') as AuthStatus | null
-        if (storedStatus === 'authed' || storedStatus === 'guest') {
-          setStatus(storedStatus)
-        } else if (restoredUser) {
+        if (storedStatus === 'authed') {
           setStatus('authed')
+        } else if (restoredUser) {
+          // A stored user with a missing/guest marker (e.g. a stale 'guest'
+          // left behind by an older bug) must not flash the guest UI. Hold in
+          // 'loading' until the mount refresh decides.
+          setStatus('loading')
+        } else if (storedStatus === 'guest') {
+          setStatus('guest')
         }
       } catch {}
       // A restored user snapshot means the app is in an authed session even
@@ -135,9 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
           return
         }
-        // Exhausted — keep the restored authed snapshot. The next real API
-        // call (via authFetch) will retry the refresh and, only if that fails,
-        // trigger a proper logout via onAuthExpired.
+        // Exhausted — keep any restored authed snapshot (the next real API
+        // call via authFetch will retry and only log out on a real failure).
+        // If we were holding a stale guest marker in 'loading', release it now.
+        setStatus((current) => (current === 'loading' ? 'guest' : current))
         return
       }
 
