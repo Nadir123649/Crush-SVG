@@ -14,7 +14,7 @@ export function Footer() {
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
         const computedStyle = window.getComputedStyle(element);
         const scrollMarginTop = parseFloat(computedStyle.scrollMarginTop) || 0;
-        
+
         window.scrollTo({
           top: elementPosition - scrollMarginTop,
           behavior: "smooth"
@@ -34,15 +34,15 @@ export function Footer() {
   return (
     <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[40px] lg:px-[80px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
-        
+
         {/* Left: Logo & Desc */}
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
           <Link href="/" className="flex items-center gap-[10px]">
-            <Image 
-              src={IMAGES.logo} 
-              alt="CrushSVG Icon" 
-              width={42} 
-              height={41.11} 
+            <Image
+              src={IMAGES.logo}
+              alt="CrushSVG Icon"
+              width={42}
+              height={41.11}
               className="object-contain"
               style={{ width: 'auto', height: 'auto' }}
             />
@@ -74,7 +74,7 @@ export function Footer() {
             </div>
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E"/>
+                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
               <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
             </div>
@@ -109,7 +109,7 @@ export function Footer() {
         {/* Right: Engineered For Quality (Desktop only) */}
         <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
           <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E] text-center">Engineered For Quality</h4>
-          
+
           {/* 3 Quality Badges */}
           <div className="flex justify-center gap-[12px]">
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
@@ -125,7 +125,7 @@ export function Footer() {
             </div>
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E"/>
+                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
               <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
             </div>
