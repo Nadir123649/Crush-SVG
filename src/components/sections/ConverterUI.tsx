@@ -39,9 +39,9 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
-const formatDimensionLabel = (val: string) => {
+const formatDimensionLabel = (val: string, currentUnit: string) => {
   if (val === "Original" || val === "Auto" || val === "Custom") return val;
-  return `${val} px`;
+  return `${val} ${currentUnit}`;
 };
 
 export function ConverterUI() {
@@ -107,15 +107,28 @@ export function ConverterUI() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (openDropdown === "width" && widthRef.current && !widthRef.current.contains(target)) {
+      const target = event.target as HTMLElement;
+      
+      // Close dropdown if clicking on any label
+      if (target.tagName?.toLowerCase() === 'label') {
         setOpenDropdown(null);
+        return;
       }
-      if (openDropdown === "height" && heightRef.current && !heightRef.current.contains(target)) {
-        setOpenDropdown(null);
+
+      if (openDropdown === "width" && widthRef.current) {
+        if (!widthRef.current.contains(target) || target === widthRef.current) {
+          setOpenDropdown(null);
+        }
       }
-      if (openDropdown === "scale" && scaleRef.current && !scaleRef.current.contains(target)) {
-        setOpenDropdown(null);
+      if (openDropdown === "height" && heightRef.current) {
+        if (!heightRef.current.contains(target) || target === heightRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "scale" && scaleRef.current) {
+        if (!scaleRef.current.contains(target) || target === scaleRef.current) {
+          setOpenDropdown(null);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -469,7 +482,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth)}
+                        {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
                       </div>
                       <button
                         type="button"
@@ -504,7 +517,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {formatDimensionLabel(opt)}
+                              {formatDimensionLabel(opt, unit)}
                             </div>
                           ))}
                         </div>
@@ -520,7 +533,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight)}
+                        {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
                       </div>
                       <button
                         type="button"
@@ -555,7 +568,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {formatDimensionLabel(opt)}
+                              {formatDimensionLabel(opt, unit)}
                             </div>
                           ))}
                         </div>
