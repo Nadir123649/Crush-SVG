@@ -8,9 +8,6 @@ import { IMAGES } from "@/lib/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase-client";
 import { ApiError } from "@/lib/client/http";
-
-import { useToast } from "@/components/ui/ToastProvider";
-
 interface AuthCardProps {
   type: "login" | "signup";
 }
@@ -22,7 +19,6 @@ export function AuthCard({ type }: AuthCardProps) {
   const isLogin = type === "login";
   const router = useRouter();
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
-  const { addToast } = useToast();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -44,6 +40,7 @@ export function AuthCard({ type }: AuthCardProps) {
       if (isLogin) {
         await login(email, password, rememberMe);
         router.push("/");
+        router.refresh();
       } else {
         const trimmedName = name.trim();
         if (trimmedName.length < 3 || trimmedName.length > 16) {
@@ -70,8 +67,8 @@ async function handleOAuth(provider: OAuthProvider) {
     setSubmitting(provider);
     try {
       await loginWithOAuth(provider, true);
-      addToast("Logged in successfully");
       router.push("/");
+      router.refresh();
     } catch (err) {
       // Closing the popup is a cancellation, not an error — keep the form clean.
       if (getErrorMessage(err) !== "Sign-in was cancelled") {
