@@ -150,9 +150,6 @@ export default function ResetPasswordPage() {
                 <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
                   Create New Password
                 </h2>
-                <p className="font-afacad text-[14px] text-[#4B5563]">
-                  Pick a strong password for better security, character limit (8-20)
-                </p>
               </div>
 
               {/* Inputs */}
@@ -168,7 +165,7 @@ export default function ResetPasswordPage() {
                       maxLength={20}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter new password"
+                      placeholder="Enter your password"
                       autoComplete="new-password"
                       className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                     />
