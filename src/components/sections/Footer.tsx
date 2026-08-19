@@ -11,14 +11,12 @@ export function Footer() {
       e.preventDefault();
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
-        const isMobile = window.innerWidth < 768;
-        const navbarHeight = isMobile ? 66 : 92;
-        const gap = 4;
-        const offset = navbarHeight + gap;
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        const computedStyle = window.getComputedStyle(element);
+        const scrollMarginTop = parseFloat(computedStyle.scrollMarginTop) || 0;
         
         window.scrollTo({
-          top: elementPosition - offset,
+          top: elementPosition - scrollMarginTop,
           behavior: "smooth"
         });
         window.history.pushState(null, "", `/${hash}`);

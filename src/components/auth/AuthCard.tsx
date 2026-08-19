@@ -91,7 +91,7 @@ async function handleOAuth(provider: OAuthProvider) {
 
   if (verificationSent) {
     return (
-      <div className="w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+      <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <div className="flex flex-col items-center gap-[16px] py-[48px]">
           <Image src={IMAGES.emailVerification} alt="" width={72} height={72} className="object-contain" />
           <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1] text-center">
