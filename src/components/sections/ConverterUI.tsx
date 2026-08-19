@@ -5,18 +5,20 @@ import Image from "next/image";
 import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
-import { useAuth } from "@/lib/client/auth-context";
-import { useToast } from "@/components/ui/ToastProvider";
-import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
+import { convertText, isValidSvgContent, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
-import { ApiError } from "@/lib/client/http";
+import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
+import { showToast } from "@/lib/client/toast-bridge";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
 const PX_PER_CM = 96 / 2.54;
 const MAX_CUSTOM_PX = 4000;
+const CONVERTER_STORAGE_KEY = "crush_converter_state";
+const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -38,32 +40,16 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 </svg>`;
 
 export function ConverterUI() {
-  const { status } = useAuth();
-  const { addToast } = useToast();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
-  const [selectedWidth, setSelectedWidth] = useState<string>("Original");
-  const [selectedHeight, setSelectedHeight] = useState<string>("Auto");
-  const [selectedScale, setSelectedScale] = useState<string>("1x");
+  const { status, sessionVersion } = useAuth();
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState("480");
+  const [selectedHeight, setSelectedHeight] = useState("Auto");
+  const [selectedScale, setSelectedScale] = useState("2x");
   const [unit, setUnit] = useState<"px" | "cm">("px");
-  const [transparent, setTransparent] = useState<boolean>(true);
-
-  // Custom states
-  const [isCustomWidth, setIsCustomWidth] = useState<boolean>(false);
-  const [isCustomHeight, setIsCustomHeight] = useState<boolean>(false);
-  const [isCustomScale, setIsCustomScale] = useState<boolean>(false);
-
-  const widthOptions = useMemo(() => ["Custom", "Original", ...PRESET_SIZES.map(s => s + unit)], [unit]);
-  const heightOptions = useMemo(() => ["Custom", "Auto", ...PRESET_SIZES.map(s => s + unit)], [unit]);
-  
-  const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
-  
-  useEffect(() => {
-    if (isScaleDisabled && selectedScale !== "1x") {
-      setSelectedScale("1x");
-      setIsCustomScale(false);
-    }
-  }, [isScaleDisabled, selectedScale]);
-
+  const [isCustomWidth, setIsCustomWidth] = useState(false);
+  const [isCustomHeight, setIsCustomHeight] = useState(false);
+  const [isCustomScale, setIsCustomScale] = useState(false);
+  const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,9 +66,8 @@ export function ConverterUI() {
     if (converting) {
       const timer = setTimeout(() => setProgress(100), 50);
       return () => clearTimeout(timer);
-    } else {
-      setProgress(0);
     }
+    queueMicrotask(() => setProgress(0));
   }, [converting]);
 
   const [previewError, setPreviewError] = useState(false);
@@ -91,6 +76,25 @@ export function ConverterUI() {
   const scaleRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const storageRestoredRef = useRef(false);
+  const [storageRestored, setStorageRestored] = useState(false);
+  const prevStatusRef = useRef<AuthStatus | null>(null);
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    // The previous user signed out (or their session ended): wipe the editor
+    // so no private SVG lingers on screen or in memory for the next user.
+    if (prev === "authed" && status !== "authed") {
+      setSvgCode(SAMPLE_SVG);
+      setResult(null);
+      setError(null);
+      setPreviewError(false);
+      setUsage(null);
+      setUsageFailed(false);
+      setShowSignupPrompt(false);
+    }
+  }, [status]);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
 
@@ -115,6 +119,11 @@ export function ConverterUI() {
 
   useEffect(() => {
     if (status === 'loading') return;
+    // When authed, wait until the access token is actually attached: a
+    // restored session (page refresh) sets status to 'authed' before
+    // refreshSession resolves, and fetching in that gap would make the server
+    // fall back to the guest quota and flash the wrong "3 of 3" counter.
+    if (status === 'authed' && !getAccessToken()) return;
     let cancelled = false;
     getUsage()
       .then((u) => {
@@ -131,19 +140,60 @@ export function ConverterUI() {
         }
       })
     return () => { cancelled = true }
-  }, [status]);
+  }, [status, sessionVersion]);
+
+  useEffect(() => {
+    // Restore the saved SVG + conversion result after hydration. Reading
+    // storage during render (useState initializers) would make the client's
+    // first render differ from the server's. Deferred to a microtask so it
+    // runs before the next paint without violating the "no synchronous
+    // setState in effects" rule.
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem(CONVERTER_STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw) as { svgCode?: unknown; result?: unknown };
+        if (typeof saved.svgCode === "string" && saved.svgCode.trim() !== "") {
+          setSvgCode(saved.svgCode);
+        }
+        const savedResult = saved.result as ConvertResponse | undefined;
+        if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
+          setResult(savedResult);
+        }
+      } catch {}
+      finally {
+        storageRestoredRef.current = true;
+        setStorageRestored(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    // Never save before the first restore: the save effect runs on mount with
+    // the default sample SVG and would otherwise overwrite the persisted
+    // state before the restore microtask gets to read it.
+    if (!storageRestoredRef.current) return;
+    try {
+      // Large PNGs (base64) can exceed localStorage's quota — drop the result
+      // from persistence when it's too big so the SVG itself still survives.
+      const persistableResult =
+        result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
+      localStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
+    } catch {}
+  }, [svgCode, result]);
 
   const previewSvgUrl = useMemo(() => {
     if (!svgCode || svgCode.trim() === "") return "";
     return svgToDataUrl(svgCode);
   }, [svgCode]);
 
-  const isValidSvg = useMemo(() => {
-    const trimmed = svgCode.trim().toLowerCase();
-    return trimmed.startsWith("<svg") && trimmed.includes("</svg>") && trimmed.endsWith(">");
-  }, [svgCode]);
+  const isValidSvg = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
 
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
+
+  // The sample/dummy code is a demo placeholder only — converting or
+  // downloading it is blocked.
+  const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
 
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
@@ -185,6 +235,10 @@ export function ConverterUI() {
   }
 
   async function handleConvert() {
+    if (isPlaceholderCode || svgCode.trim() === "") {
+      showToast("error", "SVG code is empty. Paste your SVG code to convert.");
+      return;
+    }
     setError(null);
     const options: ConvertRequest = { transparent };
 
@@ -236,7 +290,7 @@ export function ConverterUI() {
       ]);
 
       setResult(res);
-      addToast("Conversion successful! Ready to download.");
+      showToast("success", "Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         setUsage({
@@ -248,14 +302,15 @@ export function ConverterUI() {
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
+        showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
         setShowSignupPrompt(true);
         return;
       }
       if (err instanceof DOMException && err.name === "TimeoutError") {
-        setError("Conversion timed out. Please try again.");
+        showToast("error", "Conversion timed out. Please try again.");
         return;
       }
-      setError(err instanceof Error ? err.message : "Conversion failed. Please try again.");
+      showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
     } finally {
       setConverting(false);
     }
@@ -271,11 +326,19 @@ export function ConverterUI() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    showToast("success", "Download started.");
     if (limitReached && status !== "authed") {
+      showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
     }
   }
+
+  const widthOptions = ["Original", "Custom", ...PRESET_SIZES];
+  const heightOptions = ["Auto", "Custom", ...PRESET_SIZES];
+  // Scale only applies when the SVG is converted at its intrinsic size — the
+  // server ignores it once a width or height is set.
+  const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
@@ -370,20 +433,20 @@ export function ConverterUI() {
 
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
-                {previewUrl && !previewError ? (
+                {storageRestored && previewUrl && !previewError ? (
                   <img
                     src={previewUrl}
                     alt="SVG preview"
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={() => setPreviewError(true)}
                   />
-                ) : (
+                ) : storageRestored ? (
                   <img
                     src="/Upload%20image.svg"
                     alt="Upload placeholder"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
-                )}
+                ) : null}
               </div>
 
 
@@ -680,7 +743,7 @@ export function ConverterUI() {
                       <Button
                         className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
-                        disabled={converting}
+                        disabled={converting || isPlaceholderCode}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />

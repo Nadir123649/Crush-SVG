@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
 
   const { guestId, setCookie } = ensureGuestId(request)
   const usage = await getConversionUsage(request, guestId ?? undefined)
+  if (usage.kind === 'auth-error') {
+    return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
+  }
   if (usage.kind === 'guest' && usage.limitReached) {
     return errorResponse(
       429,

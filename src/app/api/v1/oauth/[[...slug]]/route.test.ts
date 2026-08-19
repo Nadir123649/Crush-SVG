@@ -12,6 +12,9 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/firebase-token', () => ({ verifyIdToken: mocks.verifyIdToken }))
+vi.mock('@/lib/db', () => ({
+  User: { updateOne: vi.fn().mockResolvedValue({ modifiedCount: 1 }) },
+}))
 vi.mock('@/lib/firebase-user', () => ({
   providerIdToName: mocks.providerIdToName,
   resolveUserCascade: mocks.resolveUserCascade,
