@@ -35,7 +35,7 @@ export function FAQ() {
   };
 
   return (
-    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px]  scroll-mt-[130px] md:scroll-mt-[216px]">
+    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
         Frequently Asked <span className="text-brand-primary">Questions</span>
       </h2>
@@ -47,7 +47,7 @@ export function FAQ() {
             <div 
               key={index}
               onClick={() => toggleFaq(index)}
-              className="w-full bg-white rounded-[12px] p-[12px] md:p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center min-w-[360px] md:min-w-0"
+              className="w-full bg-white rounded-[12px] p-[12px] md:p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center"
               style={{
                 boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)"
               }}

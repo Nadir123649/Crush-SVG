@@ -57,6 +57,15 @@ export function ConverterUI() {
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (converting) {
+      const timer = setTimeout(() => setProgress(100), 50);
+      return () => clearTimeout(timer);
+    }
+    queueMicrotask(() => setProgress(0));
+  }, [converting]);
 
   const [previewError, setPreviewError] = useState(false);
   const widthRef = useRef<HTMLDivElement>(null);
@@ -250,7 +259,11 @@ export function ConverterUI() {
 
     setConverting(true);
     try {
-      const res = await convertText(svgCode, options);
+      const [res] = await Promise.all([
+        convertText(svgCode, options),
+        new Promise((resolve) => setTimeout(resolve, 2000))
+      ]);
+
       setResult(res);
       showToast("success", "Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
@@ -564,13 +577,18 @@ export function ConverterUI() {
                 {/* Action Buttons Row */}
                 {converting ? (
                   <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
-                    <div className="w-6 h-6 border-2 border-[#D94A1E] border-t-transparent rounded-full animate-spin" role="status" aria-label="Converting" />
+                    <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] transition-all duration-[2000ms] ease-linear"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col md:flex-row items-center justify-center gap-[12px] md:gap-[16px] mt-[16px]">
                     {isCheckingUsage ? (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
                         disabled
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
@@ -582,13 +600,13 @@ export function ConverterUI() {
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-full sm:w-[340px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
                       >
                         Sign up for unlimited conversions
                       </button>
                     ) : result?.data ? (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
                         disabled={converting || isPlaceholderCode}
                       >
@@ -599,7 +617,7 @@ export function ConverterUI() {
                       </Button>
                     ) : (
                       <Button
-                        className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleConvert}
                         disabled={converting}
                       >
@@ -617,7 +635,7 @@ export function ConverterUI() {
                     )}
 
                     {result && result.size !== undefined && (
-                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                      <p className="text-center md:text-left font-body font-normal text-[12px] md:text-[13px] text-[#64748B] whitespace-nowrap">
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
                       </p>

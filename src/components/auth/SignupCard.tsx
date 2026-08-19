@@ -5,9 +5,9 @@ import { IMAGES } from "@/lib/images";
 
 export function SignupCard() {
   return (
-    <div className="w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
+    <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
 
-      <div className="flex flex-col w-[376px] gap-[12px] mx-auto relative mt-[4px]">
+      <div className="flex flex-col w-full max-w-[376px] gap-[12px] mx-auto relative mt-[4px]">
         
         {/* Header Text */}
         <div className="flex flex-col gap-[4px] items-center text-center">

@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
   return (
     <GuestOnly>
       <div className="w-full flex justify-center py-[60px]">
-      <div className="relative w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+      <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1" aria-label="Back to login">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
           </svg>
         </Link>
 
-        <div className="flex flex-col w-[376px] gap-[16px] mx-auto relative mt-[4px]">
+        <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
           {tokenState === "checking" && (
             <div className="flex flex-col items-center gap-[12px] py-[48px]">
               <div className="w-[28px] h-[28px] rounded-full border-[3px] border-[#F2EDE8] border-t-[#D94A1E] animate-spin" />

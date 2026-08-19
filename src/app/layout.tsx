@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${bricolage.variable} ${afacad.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
+<body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
         <AuthProvider>
           <Navbar />
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">

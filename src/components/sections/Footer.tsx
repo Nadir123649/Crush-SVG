@@ -11,14 +11,12 @@ export function Footer() {
       e.preventDefault();
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
-        const isMobile = window.innerWidth < 768;
-        const navbarHeight = isMobile ? 66 : 92;
-        const gap = 4;
-        const offset = navbarHeight + gap;
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        const computedStyle = window.getComputedStyle(element);
+        const scrollMarginTop = parseFloat(computedStyle.scrollMarginTop) || 0;
         
         window.scrollTo({
-          top: elementPosition - offset,
+          top: elementPosition - scrollMarginTop,
           behavior: "smooth"
         });
         window.history.pushState(null, "", `/${hash}`);
@@ -110,10 +108,10 @@ export function Footer() {
 
         {/* Right: Engineered For Quality (Desktop only) */}
         <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
-          <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E]">Engineered For Quality</h4>
+          <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E] text-center">Engineered For Quality</h4>
           
           {/* 3 Quality Badges */}
-          <div className="flex gap-[12px]">
+          <div className="flex justify-center gap-[12px]">
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <div className="w-[6px] h-[6px] rounded-full bg-[#D94A1E]"></div>
               <span className="font-body text-[11px] font-medium text-[#4B5563]">Browser Based</span>
@@ -179,7 +177,7 @@ export function Footer() {
           </span>
           <span className="hidden md:inline font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">|</span>
           <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
-            Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">The Nevon</a>
+            Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">@The Nevon</a>
           </span>
         </div>
         <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">
