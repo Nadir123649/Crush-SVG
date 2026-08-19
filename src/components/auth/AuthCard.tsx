@@ -43,6 +43,7 @@ export function AuthCard({ type }: AuthCardProps) {
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
+        addToast("Logged in successfully");
         router.push("/");
       } else {
         await register(name, email, password);
