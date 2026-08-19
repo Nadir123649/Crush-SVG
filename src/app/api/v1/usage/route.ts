@@ -4,12 +4,11 @@ import { auth } from '@/lib/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { trackUsageSchema } from '@/lib/validation'
 import { User } from '@/lib/db'
-import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME } from '@/lib/guest-usage'
+import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME, GUEST_CONVERSION_LIMIT } from '@/lib/guest-usage'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
-const GUEST_LIMIT = 3
 const RATE_LIMIT_WINDOW = 60_000
 
 export async function POST(request: NextRequest) {
@@ -59,13 +58,13 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, '', '', undefined, request)
   }
   const usage = await incrementGuestUsage(guestId)
-  const remaining = Math.max(0, GUEST_LIMIT - usage)
+  const remaining = Math.max(0, GUEST_CONVERSION_LIMIT - usage)
 
   const res = successResponse({
     conversionsUsed: usage,
     remaining,
     isUnlimited: false,
-    limitReached: usage >= GUEST_LIMIT,
+    limitReached: usage >= GUEST_CONVERSION_LIMIT,
   })
   if (setCookie) {
     res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
@@ -111,13 +110,13 @@ export async function GET(request: NextRequest) {
   }
 
   const usage = await getGuestUsage(guestId)
-  const remaining = Math.max(0, GUEST_LIMIT - usage)
+  const remaining = Math.max(0, GUEST_CONVERSION_LIMIT - usage)
 
   const res = successResponse({
     conversionsUsed: usage,
     remaining,
     isUnlimited: false,
-    limitReached: usage >= GUEST_LIMIT,
+    limitReached: usage >= GUEST_CONVERSION_LIMIT,
   })
   if (setCookie) {
     res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {

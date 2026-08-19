@@ -6,6 +6,7 @@ import { convertSvgQueued } from '@/lib/conversion-queue'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/conversion-usage'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/guest-usage'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { classifySvgError } from '@/lib/svg-errors'
 
 export const runtime = 'nodejs'
 
@@ -40,16 +41,24 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { svg, format, width, height, scale, transparent, quality } = parsed.data
+  const { svg, width, height, scale, transparent, quality } = parsed.data
 
   try {
-    const result = await convertSvgQueued(svg, { format, width, height, scale, transparent, quality })
+    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality })
     const base64 = result.buffer.toString('base64')
-    const mimeType = `image/${format === 'jpeg' ? 'jpeg' : format}`
+    const mimeType = 'image/png'
 
-    const conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
+    let conversionsUsed = 0
+    try {
+      conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
+    } catch (error) {
+      console.error('Failed to record conversion usage:', error)
+    }
+
+    const nextUsed =
+      usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
     const remaining =
-      usage.kind === 'guest' ? Math.max(0, GUEST_CONVERSION_LIMIT - conversionsUsed) : undefined
+      nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
 
     const acceptsBinary =
       request.headers.get('accept')?.includes('application/octet-stream') ||
@@ -60,7 +69,7 @@ export async function POST(request: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': mimeType,
-          'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.${format === 'jpeg' ? 'jpg' : format}"`,
+          'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.png"`,
           'Content-Length': String(result.buffer.length),
           'X-Conversions-Used': String(conversionsUsed),
           ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
@@ -83,9 +92,10 @@ export async function POST(request: NextRequest) {
         data: base64,
         mimeType,
         size: result.buffer.length,
-        format,
+        format: result.format,
         width: result.width,
         height: result.height,
+        warnings: result.warnings,
         conversionsUsed,
         remaining,
       },
@@ -106,51 +116,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('SVG conversion failed:', error)
 
-    const message = error instanceof Error ? error.message : ''
-    if (message.includes('Input buffer contains unsupported image format')) {
-      return errorResponse(
-        422,
-        'invalid_svg',
-        "That doesn't look like valid SVG — check your code and try again.",
-        undefined,
-        request
-      )
-    }
-    if (/corrupt header|xml parse error/i.test(message)) {
-      return errorResponse(
-        422,
-        'invalid_svg',
-        "Your SVG markup is malformed — check for unclosed tags or mismatched quotes and try again.",
-        undefined,
-        request
-      )
-    }
-    if (message.includes('limitInputPixels')) {
-      return errorResponse(422, 'svg_too_large', 'SVG dimensions too large. Maximum 8192px.', undefined, request)
-    }
-    if (/unable to load font|fontconfig|no fonts found/i.test(message)) {
-      return errorResponse(
-        422,
-        'svg_font_error',
-        "Your SVG uses a font that isn't available on the server — convert text to paths (outline the font) or use a standard web font.",
-        undefined,
-        request
-      )
-    }
-    if (/out of memory|unable to allocate|enomem/i.test(message)) {
-      return errorResponse(
-        422,
-        'svg_too_complex',
-        'SVG is too complex to render — try a smaller size or simplify the image.',
-        undefined,
-        request
-      )
-    }
-    if (/timed out|timeout/i.test(message)) {
-      return errorResponse(503, 'conversion_timed_out', 'Conversion took too long. Please try again.', undefined, request)
-    }
-
-    return errorResponse(500, 'conversion_failed', 'Conversion failed. Please try again.', undefined, request)
+    const info = classifySvgError(error)
+    return errorResponse(info.status, info.code, info.message, undefined, request)
   }
 }
 
@@ -160,11 +127,11 @@ export async function GET() {
       success: true,
       version: '1.0.0',
       payload: {
-        message: 'SVG conversion endpoint',
-        formats: ['png', 'jpeg', 'webp'],
+        message: 'SVG to PNG conversion endpoint',
+        formats: ['png'],
+        maxOutputSize: 4000,
         example: {
           svg: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="red"/></svg>',
-          format: 'png',
           width: 480,
           scale: 2,
           transparent: true,
