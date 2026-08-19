@@ -41,10 +41,14 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 
 export function ConverterUI() {
   const { status, sessionVersion } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
-  const [selectedWidth, setSelectedWidth] = useState("480px");
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState("480");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
+  const [unit, setUnit] = useState<"px" | "cm">("px");
+  const [isCustomWidth, setIsCustomWidth] = useState(false);
+  const [isCustomHeight, setIsCustomHeight] = useState(false);
+  const [isCustomScale, setIsCustomScale] = useState(false);
   const [transparent, setTransparent] = useState(true);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
@@ -332,6 +336,12 @@ export function ConverterUI() {
       setShowSignupPrompt(true);
     }
   }
+
+  const widthOptions = ["Original", "Custom", ...PRESET_SIZES];
+  const heightOptions = ["Auto", "Custom", ...PRESET_SIZES];
+  // Scale only applies when the SVG is converted at its intrinsic size — the
+  // server ignores it once a width or height is set.
+  const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);

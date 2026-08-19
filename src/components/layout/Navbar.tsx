@@ -47,7 +47,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    setMenuOpen(false);
+    queueMicrotask(() => setMenuOpen(false));
   }, [status, pathname]);
 
   const [isScrolled, setIsScrolled] = useState(false);
