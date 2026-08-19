@@ -25,7 +25,7 @@ export function ResetPasswordCard() {
         {/* Inputs */}
         <div className="flex flex-col gap-[12px] mt-[4px]">
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">New Password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
             <div className="relative w-full">
               <input 
                 type={showPassword ? "text" : "password"} 
@@ -54,7 +54,7 @@ export function ResetPasswordCard() {
           </div>
 
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm Password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
             <div className="relative w-full">
               <input 
                 type={showConfirm ? "text" : "password"} 

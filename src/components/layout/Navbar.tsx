@@ -92,7 +92,7 @@ export function Navbar() {
         ) : (
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href="/contact-us"
+              href="/contact-us?r=1"
               className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body hover:text-text-dark transition-colors"
             >
               Need Help?
