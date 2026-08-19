@@ -1,4 +1,5 @@
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import { emitToast } from '@/lib/client/toast-bridge'
 
 export class ApiError extends Error {
   readonly status: number
@@ -125,6 +126,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await fetch(path, { ...init, headers })
     } else {
+      emitToast('error', 'Session expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Session expired. Please sign in again.')
     }
   }

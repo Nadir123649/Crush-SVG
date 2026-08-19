@@ -8,6 +8,7 @@ import { IMAGES } from "@/lib/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase-client";
 import { ApiError } from "@/lib/client/http";
+import { showToast } from "@/lib/client/toast-bridge";
 interface AuthCardProps {
   type: "login" | "signup";
 }
@@ -49,6 +50,7 @@ export function AuthCard({ type }: AuthCardProps) {
         }
         await register(trimmedName, email, password);
         setVerificationSent(true);
+        showToast("success", "Account created! Check your email to verify your account.");
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "email_not_verified") {
@@ -84,6 +86,7 @@ async function handleOAuth(provider: OAuthProvider) {
     try {
       await resendVerification(email);
       setResendDone(true);
+      showToast("success", "Verification email sent again.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not resend. Try again.");
     }

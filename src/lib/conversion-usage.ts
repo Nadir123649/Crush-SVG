@@ -15,8 +15,15 @@ import {
 
 export { GUEST_CONVERSION_LIMIT }
 
+export class AuthRequiredError extends Error {
+  constructor() {
+    super('Authentication required')
+    this.name = 'AuthRequiredError'
+  }
+}
+
 export type ConversionUsage = {
-  kind: 'user' | 'guest' | 'none'
+  kind: 'user' | 'guest' | 'none' | 'auth-error'
   count: number
   limit: number | null
   remaining: number | null
@@ -43,6 +50,13 @@ export async function getConversionUsage(
       limitReached: false,
       userId: who.user.id,
     }
+  }
+
+  // A request carrying a bearer token whose session could not be verified
+  // (expired, revoked, invalid) must surface as 401 so the client refreshes and
+  // retries — never silently downgrade a logged-in user to the guest quota.
+  if (request.headers.get('authorization')?.toLowerCase().startsWith('bearer ')) {
+    return { kind: 'auth-error', count: 0, limit: null, remaining: null, limitReached: false }
   }
 
   const guest = ensureGuestId(request)
@@ -74,6 +88,10 @@ export async function incrementConversionUsage(
       { new: true }
     )
     return user?.conversionsUsed ?? 0
+  }
+
+  if (request.headers.get('authorization')?.toLowerCase().startsWith('bearer ')) {
+    throw new AuthRequiredError()
   }
 
   const guestId = explicitGuestId ?? getGuestId(request)

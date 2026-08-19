@@ -6,18 +6,20 @@ import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth } from "@/lib/client/auth-context";
-import { useToast } from "@/components/ui/ToastProvider";
 import { convertText, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg-dims";
 import { ApiError } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared-types";
+import { showToast } from "@/lib/client/toast-bridge";
 
 const WIDTH_OPTIONS = ["Original", "120px", "240px", "480px", "720px", "1080px", "1920px", "2560px", "3840px"];
 const HEIGHT_OPTIONS = ["Auto", "120px", "240px", "480px", "720px", "1080px", "1920px", "2560px", "3840px"];
 const SCALE_OPTIONS = ["1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PX_PER_CM = 96 / 2.54;
 const MAX_CUSTOM_PX = 4000;
+const CONVERTER_STORAGE_KEY = "crush_converter_state";
+const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -40,7 +42,6 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
 
 export function ConverterUI() {
   const { status } = useAuth();
-  const { addToast } = useToast();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("480px");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
@@ -62,6 +63,7 @@ export function ConverterUI() {
   const heightRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const storageRestoredRef = useRef(false);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
 
@@ -104,6 +106,45 @@ export function ConverterUI() {
     return () => { cancelled = true }
   }, [status]);
 
+  useEffect(() => {
+    // Restore the saved SVG + conversion result after hydration. Reading
+    // storage during render (useState initializers) would make the client's
+    // first render differ from the server's. Deferred to a microtask so it
+    // runs before the next paint without violating the "no synchronous
+    // setState in effects" rule.
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem(CONVERTER_STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw) as { svgCode?: unknown; result?: unknown };
+        if (typeof saved.svgCode === "string" && saved.svgCode.trim() !== "") {
+          setSvgCode(saved.svgCode);
+        }
+        const savedResult = saved.result as ConvertResponse | undefined;
+        if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
+          setResult(savedResult);
+        }
+      } catch {}
+      finally {
+        storageRestoredRef.current = true;
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    // Never save before the first restore: the save effect runs on mount with
+    // the default sample SVG and would otherwise overwrite the persisted
+    // state before the restore microtask gets to read it.
+    if (!storageRestoredRef.current) return;
+    try {
+      // Large PNGs (base64) can exceed localStorage's quota — drop the result
+      // from persistence when it's too big so the SVG itself still survives.
+      const persistableResult =
+        result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
+      localStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
+    } catch {}
+  }, [svgCode, result]);
+
   const previewSvgUrl = useMemo(() => {
     if (!svgCode || svgCode.trim() === "") return "";
     return svgToDataUrl(svgCode);
@@ -115,6 +156,10 @@ export function ConverterUI() {
   }, [svgCode]);
 
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
+
+  // The sample/dummy code is a demo placeholder only — converting or
+  // downloading it is blocked.
+  const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
 
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
@@ -156,6 +201,10 @@ export function ConverterUI() {
   }
 
   async function handleConvert() {
+    if (isPlaceholderCode || svgCode.trim() === "") {
+      showToast("error", "SVG code is empty. Paste your SVG code to convert.");
+      return;
+    }
     setError(null);
     const options: ConvertRequest = { transparent };
 
@@ -203,7 +252,7 @@ export function ConverterUI() {
     try {
       const res = await convertText(svgCode, options);
       setResult(res);
-      addToast("Conversion successful! Ready to download.");
+      showToast("success", "Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         setUsage({
@@ -215,14 +264,15 @@ export function ConverterUI() {
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
+        showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
         setShowSignupPrompt(true);
         return;
       }
       if (err instanceof DOMException && err.name === "TimeoutError") {
-        setError("Conversion timed out. Please try again.");
+        showToast("error", "Conversion timed out. Please try again.");
         return;
       }
-      setError(err instanceof Error ? err.message : "Conversion failed. Please try again.");
+      showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
     } finally {
       setConverting(false);
     }
@@ -238,7 +288,9 @@ export function ConverterUI() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    showToast("success", "Download started.");
     if (limitReached && status !== "authed") {
+      showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
     }
@@ -538,7 +590,7 @@ export function ConverterUI() {
                       <Button
                         className="w-full sm:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
-                        disabled={converting}
+                        disabled={converting || isPlaceholderCode}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />

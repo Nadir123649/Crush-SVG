@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase-token'
 import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
+import { User } from '@/lib/db'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip'
 import { createSession } from '@/lib/sessions'
@@ -80,6 +81,16 @@ export async function POST(
 
     const providerName = providerIdToName(token.firebase?.sign_in_provider ?? provider)
     const user = await resolveUserCascade(token, providerName)
+
+    const now = new Date()
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: { lastLoginAt: now },
+        $addToSet: { linkedProviders: providerName },
+      }
+    )
+    user.lastLoginAt = now
 
     const session = await createSession({
       userId: user._id,

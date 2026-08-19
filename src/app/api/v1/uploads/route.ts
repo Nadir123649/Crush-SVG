@@ -79,6 +79,9 @@ export async function POST(request: NextRequest) {
 
 async function convertSvgUpload(request: NextRequest, formData: FormData, buffer: Buffer) {
   const usage = await getConversionUsage(request)
+  if (usage.kind === 'auth-error') {
+    return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
+  }
   if (usage.kind === 'guest' && usage.limitReached) {
     return errorResponse(
       429,

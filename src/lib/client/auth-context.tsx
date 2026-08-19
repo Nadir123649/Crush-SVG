@@ -11,9 +11,9 @@ import {
   type ReactNode,
 } from 'react'
 
-import { useToast } from '@/components/ui/ToastProvider'
 import { apiFetch, getAccessToken, getSessionId, getSessionRemember, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
 
@@ -39,7 +39,6 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { addToast } = useToast()
   const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
@@ -98,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cancelled) clearAuth()
     })
 
+    setToastEmitter(defaultToastEmitter)
+
     void (async () => {
       const payload = await refreshSession()
       if (cancelled) return
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
       setAuthExpiredHandler(null)
+      setToastEmitter(null)
     }
   }, [applySession, clearAuth])
 
@@ -147,9 +149,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, rememberMe }),
       })
       applySession(payload)
-      addToast('Logged in successfully')
+      if (rememberMe === false && typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('crush_session_only', '1')
+        } catch {}
+      }
+      showToast('success', 'Logged in successfully')
     },
-    [applySession, addToast]
+    [applySession]
   )
 
   const register = useCallback(async (name: string, email: string, password: string) => {
@@ -175,9 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signIn()
       const session = await exchangeIdToken(rememberMe)
       applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
-      addToast('Logged in successfully')
+      if (rememberMe === false && typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('crush_session_only', '1')
+        } catch {}
+      }
+      showToast('success', 'Logged in successfully')
     },
-    [applySession, addToast]
+    [applySession]
   )
 
   const logout = useCallback(async () => {
@@ -201,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         body: JSON.stringify({ currentPassword, newPassword }),
       })
+      showToast('success', 'Password changed. Please sign in again.')
       clearAuth()
     },
     [clearAuth]

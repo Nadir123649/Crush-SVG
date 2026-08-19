@@ -129,6 +129,21 @@ describe('POST /api/v1/convert', () => {
     expect(mocks.convertSvg).toHaveBeenCalled()
   })
 
+  it('returns 401 instead of the guest limit when a bearer token fails auth', async () => {
+    mocks.getConversionUsage.mockResolvedValue({
+      kind: 'auth-error',
+      count: 0,
+      limit: null,
+      remaining: null,
+      limitReached: false,
+    })
+    const res = await post(SVG_BODY, { authorization: 'Bearer expired-token' })
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body.payload.error.code).toBe('unauthorized')
+    expect(mocks.convertSvg).not.toHaveBeenCalled()
+  })
+
   it('returns 400 for invalid SVG input', async () => {
     const res = await post({ svg: '' })
     expect(res.status).toBe(400)

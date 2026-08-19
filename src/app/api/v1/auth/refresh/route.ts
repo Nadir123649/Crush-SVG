@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 
-const ROTATION_GRACE_MS = 60_000
+const ROTATION_GRACE_MS = 10_000
 
 function rateLimitedResponse(rl: RateLimitResult) {
   return NextResponse.json(
