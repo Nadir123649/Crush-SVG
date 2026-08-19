@@ -31,7 +31,7 @@ interface AuthContextValue {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
-  logout: () => Promise<void>
+  logout: () => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
 }
@@ -192,19 +192,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession]
   )
 
-  const logout = useCallback(async () => {
-    try {
-      await apiFetch<void>('/api/v1/auth/logout', { method: 'POST' })
-    } catch {
-      // session already expired — still clear local state
-    }
-    try {
-      const { signOut: firebaseSignOut } = await import('@/lib/firebase-client')
-      await firebaseSignOut()
-    } catch {
-      // not signed in via Firebase
-    }
+  const logout = useCallback(() => {
+    // Log out instantly: clear local state first so the UI flips to guest
+    // immediately, then tell the server in the background (revoke the session
+    // and delete the httpOnly refresh cookie) without blocking the user.
     clearAuth()
+    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+    void import('@/lib/firebase-client')
+      .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
+      .catch(() => {})
   }, [clearAuth])
 
   const changePassword = useCallback(

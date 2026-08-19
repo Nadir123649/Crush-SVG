@@ -14,7 +14,7 @@ interface AuthCardProps {
 }
 
 type OAuthProvider = "google" | "github" | "x";
-type SubmittingState = "email" | OAuthProvider | null;
+type SubmittingState = "email" | null;
 
 export function AuthCard({ type }: AuthCardProps) {
   const isLogin = type === "login";
@@ -66,18 +66,23 @@ export function AuthCard({ type }: AuthCardProps) {
 
 async function handleOAuth(provider: OAuthProvider) {
     setError(null);
-    setSubmitting(provider);
+    // OAuth opens a popup — the button stays unchanged instead of showing a
+    // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
       router.push("/");
       router.refresh();
     } catch (err) {
-      // Closing the popup is a cancellation, not an error — keep the form clean.
-      if (getErrorMessage(err) !== "Sign-in was cancelled") {
+      // Closing the popup (or a cancelled popup request) is a cancellation,
+      // not an error — keep the form clean and silent.
+      const code = (err as { code?: string })?.code ?? "";
+      const cancelled =
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request" ||
+        getErrorMessage(err) === "Sign-in was cancelled";
+      if (!cancelled) {
         setError(getErrorMessage(err));
       }
-    } finally {
-      setSubmitting(null);
     }
   }
 
@@ -268,12 +273,11 @@ async function handleOAuth(provider: OAuthProvider) {
           <button 
             type="button" 
             onClick={() => handleOAuth("google")} 
-            disabled={submitting === "email" || submitting === "google"}
             className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
             <span className="font-afacad font-medium text-[14px] text-black">
-              {submitting === "google" ? "Connecting..." : "Continue with Google"}
+              Continue with Google
             </span>
           </button>
 
