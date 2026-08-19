@@ -143,14 +143,16 @@ export function ConverterUI() {
   }, [status, sessionVersion]);
 
   useEffect(() => {
-    // Restore the saved SVG + conversion result after hydration. Reading
-    // storage during render (useState initializers) would make the client's
-    // first render differ from the server's. Deferred to a microtask so it
-    // runs before the next paint without violating the "no synchronous
-    // setState in effects" rule.
+    // Restore the saved SVG + conversion result after hydration. sessionStorage
+    // keeps the work across a refresh of the same tab but is cleared when the
+    // tab (or browser) is closed — an uploaded SVG never lingers for the next
+    // visit. Reading storage during render (useState initializers) would make
+    // the client's first render differ from the server's. Deferred to a
+    // microtask so it runs before the next paint without violating the "no
+    // synchronous setState in effects" rule.
     queueMicrotask(() => {
       try {
-        const raw = localStorage.getItem(CONVERTER_STORAGE_KEY);
+        const raw = sessionStorage.getItem(CONVERTER_STORAGE_KEY);
         if (!raw) return;
         const saved = JSON.parse(raw) as { svgCode?: unknown; result?: unknown };
         if (typeof saved.svgCode === "string" && saved.svgCode.trim() !== "") {
@@ -174,11 +176,11 @@ export function ConverterUI() {
     // state before the restore microtask gets to read it.
     if (!storageRestoredRef.current) return;
     try {
-      // Large PNGs (base64) can exceed localStorage's quota — drop the result
+      // Large PNGs (base64) can exceed storage quota — drop the result
       // from persistence when it's too big so the SVG itself still survives.
       const persistableResult =
         result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
-      localStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
+      sessionStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
     } catch {}
   }, [svgCode, result]);
 
@@ -208,6 +210,16 @@ export function ConverterUI() {
     if (result) {
       setResult(null);
     }
+  }
+
+  function handleClearSvg() {
+    setSvgCode(SAMPLE_SVG);
+    setResult(null);
+    setError(null);
+    setPreviewError(false);
+    try {
+      sessionStorage.removeItem(CONVERTER_STORAGE_KEY);
+    } catch {}
   }
 
   async function handleFile(file: File | undefined | null) {
@@ -343,6 +355,20 @@ export function ConverterUI() {
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
 
+  useEffect(() => {
+    // A guest at their conversion limit is stuck until the 10-minute window
+    // expires — the server then resets the budget (0 of 3). Poll while the
+    // limit is reached so the counter and Convert button recover without a
+    // page reload.
+    if (status !== 'guest' || !limitReached) return;
+    const timer = setInterval(() => {
+      getUsage()
+        .then((u) => setUsage(u))
+        .catch(() => {});
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [status, sessionVersion, limitReached]);
+
   return (
     <>
       <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
@@ -358,13 +384,24 @@ export function ConverterUI() {
                 <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
                   SVG Code
                 </h2>
-                {usage && (
-                  <span className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
-                    {usage.isUnlimited
-                      ? "Unlimited conversions"
-                      : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
-                  </span>
-                )}
+                <div className="flex items-center gap-[10px]">
+                  {svgCode !== SAMPLE_SVG && (
+                    <button
+                      type="button"
+                      onClick={handleClearSvg}
+                      className="font-body font-medium text-[12px] md:text-[13px] text-[#D94A1E] hover:underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  {usage && (
+                    <span className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                      {usage.isUnlimited
+                        ? "Unlimited conversions"
+                        : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* SVG Code Box */}

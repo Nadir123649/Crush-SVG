@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
   }
 
   const email = parsed.data.email.toLowerCase().trim()
-  const user = await User.findOne({ email, password: { $exists: true } })
+  // Any account with this email — including social-only accounts (Google etc.)
+  // that never set a password. For them the reset link acts as "set a
+  // password": the reset route stores the new password without requiring an
+  // existing one, which lets them log in with email+password afterwards.
+  const user = await User.findOne({ email })
   if (!user) return successResponse({ message: GENERIC_MESSAGE })
 
   const token = generateToken()

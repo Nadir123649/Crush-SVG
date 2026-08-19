@@ -40,6 +40,19 @@ export async function POST(request: NextRequest) {
 
   const user = await User.findOne({ email, password: { $exists: true } })
   if (!user) {
+    // The email belongs to a social-only account (Google/GitHub etc., no
+    // password set) — "incorrect password" would send the user in circles.
+    const socialAccount = await User.findOne({ email, password: { $exists: false } })
+    if (socialAccount) {
+      await recordFailure(request, `login:${email}`)
+      return errorResponse(
+        401,
+        'social_login_required',
+        'This email is linked to a social login (e.g. Google). Sign in with that option, or set a password using the "Forgot password?" link.',
+        undefined,
+        request
+      )
+    }
     await recordFailure(request, `login:${email}`)
     return errorResponse(401, 'invalid_credentials', 'Email or password is incorrect.', undefined, request)
   }

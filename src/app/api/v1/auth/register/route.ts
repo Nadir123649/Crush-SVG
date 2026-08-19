@@ -33,10 +33,14 @@ export async function POST(request: NextRequest) {
 
   const email = parsed.data.email.toLowerCase().trim()
 
-  // Email+password accounts are unique per email. An OAuth account that shares
-  // the same email (e.g. Google) is a separate account and does NOT block signup.
-  const existingPasswordAccount = await User.findOne({ email, password: { $exists: true } })
-  if (existingPasswordAccount) {
+  // Email+password accounts are unique per email. An existing password
+  // account blocks signup; an OAuth-only account (created via Google/GitHub
+  // etc., no password set) instead gets the email+password credentials
+  // linked to it — otherwise the unique email index turns the second signup
+  // into a confusing 11000 "already exists" and the user could never log in
+  // with email+password at all.
+  const existingAccount = await User.findOne({ email })
+  if (existingAccount?.password) {
     return errorResponse(
       409,
       'account_already_exists',
@@ -47,6 +51,34 @@ export async function POST(request: NextRequest) {
   const password = await hashPassword(parsed.data.password)
   const token = generateToken()
   const now = Date.now()
+
+  if (existingAccount) {
+    await User.updateOne(
+      { _id: existingAccount._id },
+      {
+        $set: {
+          password,
+          isVerified: false,
+          emailVerificationToken: hashToken(token),
+          emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
+        },
+        $addToSet: { providers: 'email', linkedProviders: 'email' },
+      }
+    )
+
+    const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+    try {
+      await sendVerificationEmail(email, verifyUrl)
+    } catch (e) {
+      console.error('Verification email failed to send:', e)
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[dev] Email verification for ${email}: ${verifyUrl}`)
+    }
+
+    return successResponse(
+      { message: 'Registration successful. Please check your email to verify your account.' }, 201, rateLimitHeaders(rl), request)
+  }
 
   try {
     await User.create({
