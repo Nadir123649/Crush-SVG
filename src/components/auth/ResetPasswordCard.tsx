@@ -30,7 +30,7 @@ export function ResetPasswordCard() {
               <input 
                 type={showPassword ? "text" : "password"} 
                 placeholder="Enter new password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
                 type="button"
@@ -59,7 +59,7 @@ export function ResetPasswordCard() {
               <input 
                 type={showConfirm ? "text" : "password"} 
                 placeholder="Re-enter your new password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
                 type="button"

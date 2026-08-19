@@ -45,7 +45,7 @@ export function SignUpCTA() {
           </p>
 
           {/* Timeline / Points */}
-          <div className="w-full max-w-[273px] lg:max-w-none bg-white lg:bg-transparent rounded-[8px] lg:rounded-none border border-[#E5E5E5] lg:border-none pt-[24px] px-[20px] pb-[24px] lg:p-0 flex flex-col gap-[18px] relative mt-[10px] mx-auto lg:mx-0">
+          <div className="w-full max-w-[320px] lg:max-w-none bg-white lg:bg-transparent rounded-[8px] lg:rounded-none border border-[#E5E5E5] lg:border-none pt-[24px] px-[20px] pb-[24px] lg:p-0 flex flex-col gap-[18px] relative mt-[10px] mx-auto lg:mx-0">
             {/* Vertical Dashed Line */}
             <div className="absolute left-[29px] lg:left-[9px] top-[38px] lg:top-[14px] bottom-[44px] lg:bottom-[20px] w-[1px] border-l border-dashed border-[#D0D0D0] z-0"></div>
 

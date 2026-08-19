@@ -170,7 +170,7 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter new password"
                       autoComplete="new-password"
-                      className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                      className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                     />
                     <button
                       type="button"
@@ -205,7 +205,7 @@ export default function ResetPasswordPage() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Re-enter new password"
                         autoComplete="new-password"
-                        className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                        className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
                       />
                       <button
                         type="button"
