@@ -43,3 +43,5 @@ next-env.d.ts
 
 # debug files
 public/debug.json
+
+# Playwright MCP artifacts.playwright-mcp/
