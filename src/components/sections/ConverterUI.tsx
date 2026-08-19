@@ -58,6 +58,15 @@ export function ConverterUI() {
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  useEffect(() => {
+    if (converting) {
+      const timer = setTimeout(() => setProgress(100), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setProgress(0);
+    }
+  }, [converting]);
+
   const [previewError, setPreviewError] = useState(false);
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
@@ -202,7 +211,11 @@ export function ConverterUI() {
 
     setConverting(true);
     try {
-      const res = await convertText(svgCode, options);
+      const [res] = await Promise.all([
+        convertText(svgCode, options),
+        new Promise((resolve) => setTimeout(resolve, 2000))
+      ]);
+
       setResult(res);
       addToast("Conversion successful! Ready to download.");
       if (res.remaining !== undefined) {
