@@ -1,15 +1,37 @@
 import React from "react";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import type { Metadata } from "next";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "SVG Guides | CrushSVG",
+export const metadata: Metadata = constructMetadata({
+  title: "SVG Guides & Best Practices | CrushSVG",
   description: "Comprehensive guides, tips, and best practices for working with SVG files, optimizing vector graphics, and preparing them for pixel-perfect PNG conversion.",
-};
+  canonicalPath: "/svg-guides",
+});
 
 export default function SvgGuidesPage() {
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: "SVG Guides & Best Practices",
+    description: "Everything you need to know about Scalable Vector Graphics, from basic concepts to advanced optimization.",
+    url: `${SITE_URL}/svg-guides`,
+    publisher: {
+      "@type": "Organization",
+      name: "CrushSVG",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/CrushSVG-logo.svg`,
+      },
+    },
+  };
+
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <ScrollToTop />
       
       {/* Hero Section */}

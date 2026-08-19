@@ -2,6 +2,13 @@ import React from "react";
 import { ForgotPasswordCard } from "@/components/auth/ForgotPasswordCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata = constructMetadata({
+  title: "Forgot Password | CrushSVG",
+  description: "Reset your CrushSVG password.",
+  noindex: true,
+});
 
 export default function ForgotPasswordPage() {
   return (

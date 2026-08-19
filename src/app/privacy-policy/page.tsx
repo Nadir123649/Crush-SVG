@@ -1,10 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Privacy Policy | CrushSVG",
   description: "Privacy policy for CrushSVG, detailing how we collect, use, and protect your information.",
-};
+  canonicalPath: "/privacy-policy",
+});
 
 export default function PrivacyPolicy() {
   return (

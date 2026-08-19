@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { GuestOnly } from "@/components/auth/GuestOnly";
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata = constructMetadata({
+  title: "Reset Password | CrushSVG",
+  description: "Reset your CrushSVG password.",
+  noindex: true,
+});
 import { showToast } from "@/lib/client/toast-bridge";
 
 type TokenState = "checking" | "valid" | "invalid";

@@ -1,11 +1,13 @@
 import React from "react";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import Link from "next/link";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = constructMetadata({
   title: "Support Center | CrushSVG",
   description: "Get help with SVG conversions, billing, or technical issues at the CrushSVG Support Center.",
-};
+  canonicalPath: "/support",
+});
 
 const faqs = [
   {
@@ -27,8 +29,20 @@ const faqs = [
 ];
 
 export default function SupportPage() {
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "Support Center | CrushSVG",
+    url: `${SITE_URL}/support`,
+    description: "Get help with SVG conversions, billing, or technical issues at the CrushSVG Support Center.",
+  };
+
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
+      />
       <ScrollToTop />
       
       {/* Hero Section */}
