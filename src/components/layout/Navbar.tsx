@@ -92,6 +92,12 @@ export function Navbar() {
         ) : (
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
+              href="/api-docs"
+              className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body hover:text-text-dark transition-colors"
+            >
+              API
+            </Link>
+            <Link
               href="/contact-us"
               className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body hover:text-text-dark transition-colors"
             >
