@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase/firebase-client";
 import { ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
+import { trackConversion } from "@/lib/client/analytics";
 interface AuthCardProps {
   type: "login" | "signup";
 }
@@ -64,6 +65,7 @@ export function AuthCard({ type }: AuthCardProps) {
         router.refresh();
       } else {
         await register(name.trim(), email, password);
+        trackConversion("sign_up", { method: "email" });
         setVerificationSent(true);
         showToast("success", "Account created! Check your email to verify your account.");
       }

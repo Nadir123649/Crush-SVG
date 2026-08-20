@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -30,4 +31,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry organization & project (set in your Sentry dashboard)
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Upload source maps to Sentry for readable stack traces in production
+  silent: true,
+
+  webpack: {
+    // Automatically instrument Next.js server functions
+    autoInstrumentServerFunctions: true,
+    // Tree-shake Sentry debug code from client bundles
+    treeshake: { removeDebugLogging: true },
+  },
+
+  // Tunnel Sentry requests through your own domain (avoids ad-blockers)
+  tunnelRoute: "/monitoring",
+});

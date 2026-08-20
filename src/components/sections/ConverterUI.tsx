@@ -12,6 +12,7 @@ import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
+import { trackConversion } from "@/lib/client/analytics";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -384,6 +385,12 @@ export function ConverterUI() {
 
       setResult(res);
       showToast("success", "Conversion successful! Ready to download.");
+      trackConversion("svg_converted", {
+        output_format: res.format ?? "png",
+        width: options.width,
+        height: options.height,
+        scale: options.scale,
+      });
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         setUsage({
@@ -419,6 +426,7 @@ export function ConverterUI() {
     a.click();
     a.remove();
     showToast("success", "Downloading…");
+    trackConversion("png_downloaded", { output_format: ext });
     if (limitReached && status !== "authed") {
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);

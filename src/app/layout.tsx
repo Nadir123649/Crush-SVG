@@ -8,7 +8,11 @@ import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
 import { constructMetadata, getOrganizationSchema, getWebApplicationSchema } from "@/lib/seo";
+import Script from "next/script";
+import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-VCLLSKB082";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -64,6 +68,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider />
         <Analytics />
         <SpeedInsights />
+        {/* GDPR: default consent denied — must run before GA4 config */}
+        <Script id="consent-default" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', {
+              analytics_storage: 'denied',
+              ad_storage: 'denied',
+              wait_for_update: 500
+            });
+          `}
+        </Script>
+        {/* Google Analytics */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+        {/* Cookie consent banner — shown until user accepts/declines */}
+        <CookieConsentBanner />
       </body>
     </html>
   );
