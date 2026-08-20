@@ -465,11 +465,10 @@ export function ConverterUI() {
                     onError={() => setPreviewError(true)}
                   />
                 ) : storageRestored ? (
-                  <Image
-                    src={IMAGES.uploadImage}
+                  // eslint-disable-next-line @next/next/no-img-element -- placeholder renders identically to the original UI
+                  <img
+                    src="/Upload%20image.svg"
                     alt="Upload placeholder"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
                 ) : null}
