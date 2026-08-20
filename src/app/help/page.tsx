@@ -32,7 +32,7 @@ export default function HelpPage() {
           If you couldn&apos;t find what you were looking for, our team is always ready to assist you with any issues or feedback.
         </p>
         <a 
-          href="mailto:support@crushsvg.com"
+          href="mailto:support@crushsvg.net"
           className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-afacad font-semibold text-[18px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity"
         >
           Contact Support
