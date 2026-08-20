@@ -183,7 +183,7 @@ async function handleOAuth(provider: OAuthProvider) {
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Password</label>
+            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your password</label>
             <div className="relative w-full">
               <input
                 id="auth-password"
@@ -193,9 +193,9 @@ async function handleOAuth(provider: OAuthProvider) {
                 maxLength={20}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (8–20 characters)"
+                placeholder="Enter your password"
                 autoComplete={isLogin ? "current-password" : "new-password"}
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
                 type="button"
@@ -287,7 +287,7 @@ async function handleOAuth(provider: OAuthProvider) {
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[11px] leading-[12px] text-[#AEAEAE]">
-            By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-semibold hover:text-[#D94A1E]">Terms of Service</Link> & <Link href="/privacy-policy" className="font-semibold hover:text-[#D94A1E]">Privacy Policy.</Link>
+            By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-bold hover:text-[#D94A1E]">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold hover:text-[#D94A1E]">Privacy Policy.</Link>
           </p>
         </div>
       </div>

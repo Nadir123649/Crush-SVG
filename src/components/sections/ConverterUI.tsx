@@ -39,6 +39,11 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
+const formatDimensionLabel = (val: string, currentUnit: string) => {
+  if (val === "Original" || val === "Auto" || val === "Custom") return val;
+  return `${val} ${currentUnit}`;
+};
+
 export function ConverterUI() {
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
@@ -74,6 +79,7 @@ export function ConverterUI() {
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef<HTMLDivElement>(null);
+  const unitRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
@@ -102,15 +108,33 @@ export function ConverterUI() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (openDropdown === "width" && widthRef.current && !widthRef.current.contains(target)) {
+      const target = event.target as HTMLElement;
+      
+      // Close dropdown if clicking on any label
+      if (target.tagName?.toLowerCase() === 'label') {
         setOpenDropdown(null);
+        return;
       }
-      if (openDropdown === "height" && heightRef.current && !heightRef.current.contains(target)) {
-        setOpenDropdown(null);
+
+      if (openDropdown === "width" && widthRef.current) {
+        if (!widthRef.current.contains(target) || target === widthRef.current) {
+          setOpenDropdown(null);
+        }
       }
-      if (openDropdown === "scale" && scaleRef.current && !scaleRef.current.contains(target)) {
-        setOpenDropdown(null);
+      if (openDropdown === "height" && heightRef.current) {
+        if (!heightRef.current.contains(target) || target === heightRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "scale" && scaleRef.current) {
+        if (!scaleRef.current.contains(target) || target === scaleRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "unit" && unitRef.current) {
+        if (!unitRef.current.contains(target) || target === unitRef.current) {
+          setOpenDropdown(null);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -371,15 +395,28 @@ export function ConverterUI() {
                   SVG Code
                 </h2>
                 <div className="flex items-center gap-[10px]">
-                  {svgCode !== SAMPLE_SVG && (
-                    <button
-                      type="button"
-                      onClick={handleClearSvg}
-                      className="font-body font-medium text-[12px] md:text-[13px] text-[#D94A1E] hover:underline"
-                    >
+                  <button
+                    type="button"
+                    onClick={handleClearSvg}
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[13px] overflow-hidden transition-opacity duration-300 ${
+                      svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
+                    }`}
+                  >
+                    <div 
+                      className="absolute inset-0 z-0 pointer-events-none" 
+                      style={{
+                        border: "1px solid transparent",
+                        background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+                        borderRadius: "inherit"
+                      }} 
+                    />
+                    <div 
+                      className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" 
+                    />
+                    <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                       Clear
-                    </button>
-                  )}
+                    </span>
+                  </button>
                   {usage && (
                     <span className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
                       {usage.isUnlimited
@@ -405,7 +442,7 @@ export function ConverterUI() {
                   }}
                   spellCheck={false}
                   aria-label="SVG code"
-                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-black placeholder:text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
                 />
                 {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
@@ -429,9 +466,9 @@ export function ConverterUI() {
                 tabIndex={0}
                 aria-label="Drag and drop or select an SVG file"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                className={`w-full h-[120px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 transition-colors`}
+                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 transition-colors`}
               >
-                <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[48px] h-[48px] md:w-[64px] md:h-[64px]" />
+                <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[48px] h-[48px] md:w-[64px] md:h-[64px]" style={{ width: "auto", height: "auto" }} />
                 <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                   <span className="font-normal">Drag & Drop or </span>
                   <span className="font-medium text-brand-primary">Select SVG</span>
@@ -455,7 +492,7 @@ export function ConverterUI() {
               </div>
 
               {/* Live Preview Box */}
-              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
+              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
                 {storageRestored && previewUrl && !previewError ? (
                   // eslint-disable-next-line @next/next/no-img-element -- preview is a data: URL (user SVG), which next/image does not support
                   <img
@@ -489,7 +526,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomWidth ? "Custom" : selectedWidth}
+                        {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
                       </div>
                       <button
                         type="button"
@@ -514,7 +551,9 @@ export function ConverterUI() {
                               onClick={() => {
                                 if (opt === "Custom") {
                                   setIsCustomWidth(true);
+                                  setIsCustomHeight(true);
                                   setSelectedWidth("");
+                                  setSelectedHeight("");
                                 } else {
                                   setIsCustomWidth(false);
                                   setUnit("px");
@@ -525,7 +564,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {opt}
+                              {formatDimensionLabel(opt, unit)}
                             </div>
                           ))}
                         </div>
@@ -541,7 +580,7 @@ export function ConverterUI() {
                         onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
                         className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
                       >
-                        {isCustomHeight ? "Custom" : selectedHeight}
+                        {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
                       </div>
                       <button
                         type="button"
@@ -566,7 +605,9 @@ export function ConverterUI() {
                               onClick={() => {
                                 if (opt === "Custom") {
                                   setIsCustomHeight(true);
+                                  setIsCustomWidth(true);
                                   setSelectedHeight("");
+                                  setSelectedWidth("");
                                 } else {
                                   setIsCustomHeight(false);
                                   setUnit("px");
@@ -577,7 +618,7 @@ export function ConverterUI() {
                               }}
                               className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                             >
-                              {opt}
+                              {formatDimensionLabel(opt, unit)}
                             </div>
                           ))}
                         </div>
@@ -585,66 +626,110 @@ export function ConverterUI() {
                     )}
                   </div>
 
-                  {/* Scale Input */}
-                  <div className={`flex flex-col flex-1 gap-[6px] md:gap-[8px] relative ${isScaleDisabled ? "opacity-50 pointer-events-none" : ""}`} ref={scaleRef}>
-                    <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
-                    <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                      <input
-                        type="text"
-                        value={selectedScale}
-                        onChange={(e) => { setSelectedScale(e.target.value); resetConversion(); }}
-                        onFocus={() => setOpenDropdown("scale")}
-                        readOnly={!isCustomScale}
-                        placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
-                        className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
-                        disabled={isScaleDisabled}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
-                        className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
-                        disabled={isScaleDisabled}
-                      >
-                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "scale" ? "rotate-180" : ""}`}>
-                          <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
+                  {/* Unit Dropdown Input */}
+                  {isScaleDisabled ? (
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
+                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {unit}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "unit" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Unit Dropdown Menu */}
+                      {openDropdown === "unit" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["px", "cm"].map((opt: any) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={unit === opt}
+                                onClick={() => {
+                                  setUnit(opt);
+                                  setOpenDropdown(null);
+                                  resetConversion();
+                                }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Scale Dropdown Menu */}
-                    {openDropdown === "scale" && !isScaleDisabled && (
-                      <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                        <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {SCALE_OPTIONS.map((opt: string) => (
-                            <div
-                              key={opt}
-                              role="option"
-                              aria-selected={selectedScale === opt}
-                              onClick={() => {
-                                if (opt === "Custom") {
-                                  setIsCustomScale(true);
-                                  setSelectedScale("");
-                                } else {
-                                  setIsCustomScale(false);
-                                  setSelectedScale(opt);
-                                }
-                                setOpenDropdown(null);
-                                resetConversion();
-                              }}
-                              className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                            >
-                              {opt}
-                            </div>
-                          ))}
-                        </div>
+                  ) : (
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
+                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <input
+                          type="text"
+                          value={selectedScale}
+                          onChange={(e) => { setSelectedScale(e.target.value); resetConversion(); }}
+                          onFocus={() => setOpenDropdown("scale")}
+                          readOnly={!isCustomScale}
+                          placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
+                          className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "scale" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
                       </div>
-                    )}
-                  </div>
+
+                      {/* Scale Dropdown Menu */}
+                      {openDropdown === "scale" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                            {SCALE_OPTIONS.map((opt: string) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={selectedScale === opt}
+                                onClick={() => {
+                                  if (opt === "Custom") {
+                                    setIsCustomScale(true);
+                                    setSelectedScale("");
+                                  } else {
+                                    setIsCustomScale(false);
+                                    setSelectedScale(opt);
+                                  }
+                                  setOpenDropdown(null);
+                                  resetConversion();
+                                }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Custom Edit Row */}
                 {(isCustomWidth || isCustomHeight) && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
                       <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Width</label>
                       <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
@@ -692,26 +777,6 @@ export function ConverterUI() {
                             {unit}
                           </span>
                         )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
-                      <div className="flex items-center bg-transparent md:bg-white border border-[#8F8F8F] rounded-[12px] overflow-hidden h-[48px] md:h-[60px] p-[4px] w-full">
-                        <button
-                          type="button"
-                          onClick={() => { setUnit("px"); resetConversion(); }}
-                          className={`flex-1 h-full rounded-[8px] font-body text-[14px] md:text-[16px] font-medium transition-colors ${unit === "px" ? "bg-[#D94A1E] text-white shadow-sm" : "text-[#64748B] hover:bg-gray-100"}`}
-                        >
-                          px
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setUnit("cm"); resetConversion(); }}
-                          className={`flex-1 h-full rounded-[8px] font-body text-[14px] md:text-[16px] font-medium transition-colors ${unit === "cm" ? "bg-[#D94A1E] text-white shadow-sm" : "text-[#64748B] hover:bg-gray-100"}`}
-                        >
-                          cm
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -783,8 +848,8 @@ export function ConverterUI() {
                         onClick={handleConvert}
                         disabled={converting}
                       >
-                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                        <span className="flex flex-row-reverse md:flex-row items-center justify-center gap-[8px] text-[16px] w-full">
+                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                           Convert
                         </span>
                       </Button>

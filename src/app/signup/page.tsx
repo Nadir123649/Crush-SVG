@@ -2,6 +2,13 @@ import React from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata = constructMetadata({
+  title: "Sign up | CrushSVG",
+  description: "Create a free CrushSVG account to convert SVGs to PNGs without limits.",
+  noindex: true,
+});
 
 export default function SignupPage() {
   return (

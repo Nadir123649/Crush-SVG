@@ -14,7 +14,7 @@ export function Footer() {
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
         const computedStyle = window.getComputedStyle(element);
         const scrollMarginTop = parseFloat(computedStyle.scrollMarginTop) || 0;
-        
+
         window.scrollTo({
           top: elementPosition - scrollMarginTop,
           behavior: "smooth"
@@ -28,23 +28,25 @@ export function Footer() {
     if (typeof window !== "undefined" && window.location.pathname === href) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (href === "/") {
+        window.history.pushState(null, "", "/");
+      }
     }
   };
 
   return (
     <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[40px] lg:px-[80px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
-        
+
         {/* Left: Logo & Desc */}
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
-          <Link href="/" className="flex items-center gap-[10px]">
-            <Image 
-              src={IMAGES.logo} 
-              alt="CrushSVG Icon" 
-              width={42} 
-              height={41.11} 
-              className="object-contain"
-              style={{ width: 'auto', height: 'auto' }}
+          <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="flex items-center gap-[10px]">
+            <Image
+              src={IMAGES.logo}
+              alt="CrushSVG Icon"
+              width={42}
+              height={42}
+              className="w-[42px] h-[42px] object-contain"
             />
             <div className="font-heading font-semibold text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
               <span className="text-text-dark">Crush</span>
@@ -74,7 +76,7 @@ export function Footer() {
             </div>
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E"/>
+                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
               <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
             </div>
@@ -95,7 +97,7 @@ export function Footer() {
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#353A3E] mb-[4px]">Resources</h4>
             <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">SVG Guides</Link>
             <Link href="/#faq" onClick={(e) => handleHashClick(e, '#faq')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">FAQ</Link>
-            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Contact</Link>
+            <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#4B5563] hover:text-brand-primary transition-colors">Support</Link>
           </div>
           {/* Column 3 */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[127px] gap-[12px] md:gap-[16px]">
@@ -109,7 +111,7 @@ export function Footer() {
         {/* Right: Engineered For Quality (Desktop only) */}
         <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
           <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E] text-center">Engineered For Quality</h4>
-          
+
           {/* 3 Quality Badges */}
           <div className="flex justify-center gap-[12px]">
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
@@ -125,7 +127,7 @@ export function Footer() {
             </div>
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E"/>
+                <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
               <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
             </div>
@@ -134,13 +136,13 @@ export function Footer() {
           {/* Social Icons */}
           <div className="flex justify-center gap-[24px] mt-[12px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
           </div>
         </div>
@@ -153,13 +155,13 @@ export function Footer() {
           {/* Social Icons (Mobile) */}
           <div className="flex justify-center gap-[24px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
           </div>
         </div>
@@ -185,7 +187,7 @@ export function Footer() {
           <span className="mx-[8px]">•</span>
           <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="hover:text-brand-primary transition-colors">Privacy</Link>
           <span className="mx-[8px]">•</span>
-          <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="hover:text-brand-primary transition-colors">Support</Link>
+          <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="hover:text-brand-primary transition-colors">Support</Link>
         </div>
       </div>
     </footer>

@@ -8,7 +8,7 @@ export function ResetPasswordCard() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="w-full max-w-[440px] h-auto min-h-[400px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
+    <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
 
       <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
         
@@ -17,20 +17,17 @@ export function ResetPasswordCard() {
           <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
             Create New Password
           </h2>
-          <p className="font-afacad text-[14px] text-[#4B5563]">
-            Your new password must be different from previously used passwords.
-          </p>
         </div>
 
         {/* Inputs */}
         <div className="flex flex-col gap-[12px] mt-[4px]">
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">New Password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
             <div className="relative w-full">
               <input 
                 type={showPassword ? "text" : "password"} 
-                placeholder="Enter new password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                placeholder="Enter your password"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
                 type="button"
@@ -54,12 +51,12 @@ export function ResetPasswordCard() {
           </div>
 
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm Password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
             <div className="relative w-full">
               <input 
                 type={showConfirm ? "text" : "password"} 
                 placeholder="Re-enter your new password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button
                 type="button"

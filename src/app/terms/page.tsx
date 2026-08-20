@@ -1,10 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
   title: "Terms & Conditions | CrushSVG",
   description: "Terms and conditions for using CrushSVG, an SVG to PNG conversion tool.",
-};
+  canonicalPath: "/terms",
+});
 
 export default function TermsAndConditions() {
   return (

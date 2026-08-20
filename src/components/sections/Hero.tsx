@@ -6,7 +6,7 @@ export function Hero() {
   const { status } = useAuth();
 
   return (
-    <section className="flex flex-col items-center w-full max-w-[361px] md:max-w-[795px] mx-auto mt-[30px] md:mt-[54px] gap-[16px] md:gap-[14px]">
+    <section id="hero" className="flex flex-col items-center w-full max-w-[361px] md:max-w-[795px] mx-auto mt-[30px] md:mt-[54px] gap-[16px] md:gap-[14px]">
       
       {/* Badge */}
       <div 
@@ -14,11 +14,13 @@ export function Hero() {
           border: "1px solid transparent",
           background: "linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box"
         }}
-        className={`flex items-center gap-[6px] md:gap-[10px] h-[24px] md:h-[29px] rounded-[30px] px-[12px] md:px-[30px] justify-center max-w-[calc(100vw-32px)] sm:max-w-[340px] md:max-w-none transition-opacity duration-300 ${status === "guest" ? "opacity-100" : "opacity-0"}`}
+        className={`flex items-center gap-[6px] md:gap-[10px] h-[24px] md:h-[29px] rounded-[30px] px-[12px] md:px-[30px] justify-center max-w-[calc(100vw-32px)] sm:max-w-[340px] md:max-w-none transition-opacity duration-300 ${status === "loading" ? "opacity-0" : "opacity-100"}`}
       >
         <div className="w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
         <span className="font-body font-medium text-[11px] sm:text-[12px] md:text-[14px] leading-[14px] md:leading-[18.67px] text-text-dark whitespace-nowrap overflow-hidden text-ellipsis">
-          3 free conversions. Create a free account for unlimited access.
+          {status === "authed" 
+            ? "You have unlimited conversions access." 
+            : "3 free conversions. Create a free account for unlimited access."}
         </span>
       </div>
 

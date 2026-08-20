@@ -37,11 +37,11 @@ export function SignupCard() {
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your password</label>
             <div className="relative w-full">
               <input 
                 type="password" 
-                placeholder="Enter password"
+                placeholder="Enter your password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">
@@ -78,7 +78,7 @@ export function SignupCard() {
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[11px] leading-[12px] text-[#AEAEAE]">
-            By creating an account, you agree to our <Link href="/terms" className="font-semibold hover:text-[#D94A1E]">Terms of Service</Link> & <Link href="/privacy-policy" className="font-semibold hover:text-[#D94A1E]">Privacy Policy.</Link>
+            By creating an account, you agree to our <Link href="/terms" className="font-bold hover:text-[#D94A1E]">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold hover:text-[#D94A1E]">Privacy Policy.</Link>
           </p>
         </div>
       </div>

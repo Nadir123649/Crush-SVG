@@ -1,15 +1,29 @@
 import React from "react";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import Link from "next/link";
+import { constructMetadata, SITE_URL } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = constructMetadata({
   title: "About Us | CrushSVG",
   description: "Learn more about CrushSVG and our mission to provide pixel-perfect SVG to PNG conversions.",
-};
+  canonicalPath: "/about",
+});
 
 export default function AboutUsPage() {
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: "About Us | CrushSVG",
+    url: `${SITE_URL}/about`,
+    description: "Learn more about CrushSVG and our mission to provide pixel-perfect SVG to PNG conversions.",
+  };
+
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
       <ScrollToTop />
       
       {/* Hero Section */}
