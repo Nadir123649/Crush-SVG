@@ -1,13 +1,20 @@
 "use client";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 
-export default function GlobalError({
+export default function ErrorBoundary({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Log exception to Sentry for monitoring in production
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <div className="w-full flex flex-col items-center py-[100px] text-center px-[24px]">
       <h1 className="font-heading font-bold text-[28px] leading-[100%] text-[#353A3E]">Something went wrong</h1>
