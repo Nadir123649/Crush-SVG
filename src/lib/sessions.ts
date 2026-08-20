@@ -109,7 +109,7 @@ export async function rotateSession(
   const updated = await Session.findOneAndUpdate(
     { _id: sessionId, userId, tokenVersion: expectedVersion, status: 'active' },
     { $inc: { tokenVersion: 1 }, $set: { rotatedAt: new Date(), lastSeenAt: new Date() } },
-    { new: true }
+    { returnDocument: 'after' }
   )
   if (updated) {
     return {
