@@ -246,6 +246,63 @@ export function ConverterUI() {
     } catch {}
   }
 
+  useEffect(() => {
+    function handleGlobalPaste(e: ClipboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const text = e.clipboardData?.getData("text");
+      if (text && isValidSvgContent(text)) {
+        e.preventDefault();
+        handleSvgChange(text.trim());
+        showToast("success", "SVG code pasted from clipboard!");
+      }
+    }
+    window.addEventListener("paste", handleGlobalPaste);
+    return () => window.removeEventListener("paste", handleGlobalPaste);
+  }, []);
+
+  function handleFormatSvg() {
+    if (!svgCode || isPlaceholderCode) return;
+    try {
+      let formatted = "";
+      const reg = /(>)(<)(\/*)/g;
+      const xml = svgCode.replace(reg, "$1\r\n$2$3");
+      let pad = 0;
+      xml.split("\r\n").forEach((line) => {
+        let indent = 0;
+        if (line.match(/.+<\/\w[^>]*>$/)) {
+          indent = 0;
+        } else if (line.match(/^<\/\w/)) {
+          if (pad !== 0) pad -= 1;
+        } else if (line.match(/^<\w[^>]*[^\/]>$/)) {
+          indent = 1;
+        } else {
+          indent = 0;
+        }
+        formatted += "  ".repeat(pad) + line.trim() + "\n";
+        pad += indent;
+      });
+      setSvgCode(formatted.trim());
+      showToast("success", "SVG code formatted!");
+    } catch {
+      showToast("error", "Could not format SVG code.");
+    }
+  }
+
+  async function handleCopyImage() {
+    if (!result || !result.data) return;
+    try {
+      const response = await fetch(result.data);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob })
+      ]);
+      showToast("success", "PNG image copied to clipboard!");
+    } catch {
+      showToast("error", "Could not copy image to clipboard. Try downloading instead.");
+    }
+  }
+
   async function handleFile(file: File | undefined | null) {
     if (!file) return;
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
@@ -409,10 +466,20 @@ export function ConverterUI() {
                   SVG Code
                 </h2>
                 <div className="flex items-center gap-[10px]">
+                  {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
+                    <button
+                      type="button"
+                      onClick={handleFormatSvg}
+                      className="rounded-[6px] border border-[#8F8F8F] px-[8px] py-[4px] font-body font-medium text-[12px] text-[#64748B] hover:text-brand-primary hover:border-brand-primary transition-colors"
+                      title="Format SVG Code"
+                    >
+                      Format Code
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleClearSvg}
-                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[13px] overflow-hidden transition-opacity duration-300 ${
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
                       svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
                   >
@@ -495,6 +562,12 @@ export function ConverterUI() {
                   ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
                   : "Source size: unknown — set width/height or viewBox on your SVG"}
               </p>
+
+                <p className="mt-[0px] font-body text-[12px] md:text-[12px] text-[#64748B] flex items-center justify-start gap-[4px] mt-[6px]">
+                      <span>🔒</span>
+                      <span>100% Private &amp; Secure — Files and SVG code are never shared or stored publicly.</span>
+                    </p>
+
             </div>
 
             {/* Right Column (Live Preview) */}
