@@ -8,7 +8,10 @@ const DEFAULT_FROM = "CrushSVG <onboarding@resend.dev>";
 export type EmailTransport = "resend" | "smtp" | "none";
 
 export function resolveFrom(env: NodeJS.ProcessEnv = process.env): string {
-  return env.RESEND_FROM || env.EMAIL_FROM || DEFAULT_FROM;
+  if (env.RESEND_FROM) return env.RESEND_FROM;
+  if (env.EMAIL_FROM) return env.EMAIL_FROM;
+  if (env.SMTP_USER) return `CrushSVG <${env.SMTP_USER}>`;
+  return DEFAULT_FROM;
 }
 
 export function resolveTransport(env: NodeJS.ProcessEnv = process.env): EmailTransport {
@@ -96,17 +99,17 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   );
 }
 
+import { EMAIL_VERIFICATION_HTML, RESET_PASSWORD_HTML } from "@/emails/html-templates";
+
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-  const filePath = path.join(process.cwd(), "src/emails/html/email-verification.html");
-  let html = await fs.readFile(filePath, "utf-8");
+  let html = EMAIL_VERIFICATION_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
   await sendEmail(to, "Verify your CrushSVG email", html);
 }
 
 export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
-  const filePath = path.join(process.cwd(), "src/emails/html/reset-password.html");
-  let html = await fs.readFile(filePath, "utf-8");
+  let html = RESET_PASSWORD_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
   await sendEmail(to, "Reset your CrushSVG password", html);
