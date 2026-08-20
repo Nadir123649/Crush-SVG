@@ -41,7 +41,6 @@ export async function createSession(input: {
     ip: input.ip,
     userAgent: input.userAgent,
   })
-  const sessionId = created._id
 
   // Each login is its own session so users can sign out individual devices.
   // Cap concurrent active sessions to prevent unbounded growth.
