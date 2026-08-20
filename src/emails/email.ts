@@ -1,18 +1,16 @@
-import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
 import fs from 'fs/promises'
 import path from 'path'
 
-const DEFAULT_FROM = 'CrushSVG <onboarding@resend.dev>'
+const DEFAULT_FROM = 'CrushSVG <no-reply@crushsvg.net>'
 
-export type EmailTransport = 'resend' | 'smtp' | 'none'
+export type EmailTransport = 'smtp' | 'none'
 
 export function resolveFrom(env: NodeJS.ProcessEnv = process.env): string {
-  return env.RESEND_FROM || env.EMAIL_FROM || DEFAULT_FROM
+  return env.EMAIL_FROM || DEFAULT_FROM
 }
 
 export function resolveTransport(env: NodeJS.ProcessEnv = process.env): EmailTransport {
-  if (env.RESEND_API_KEY) return 'resend'
   if (env.SMTP_HOST) return 'smtp'
   return 'none'
 }
@@ -54,26 +52,14 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 
   if (transport === 'none') {
     if (env.NODE_ENV === 'development') {
-      console.log(`[email:dev] to=${to} subject="${subject}" — no SMTP/Resend configured, skipping`)
+      console.log(`[email:dev] to=${to} subject="${subject}" — no SMTP configured, skipping`)
       return
     }
     throw new Error(
-      'Email is not configured: set RESEND_API_KEY (preferred) or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS'
+      'Email is not configured: set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS'
     )
   }
 
-  if (transport === 'resend') {
-    if (from.includes('@resend.dev') && process.env.NODE_ENV === 'production') {
-      console.warn(
-        `[email] WARNING: sending from the unverified Resend shared domain "${from}" — delivery will be slow/unreliable. Verify a custom domain in Resend and set RESEND_FROM (e.g. "CrushSVG <no-reply@yourdomain.com>").`
-      )
-    }
-    const resend = new Resend(env.RESEND_API_KEY)
-    const { error } = await resend.emails.send({ from, to, subject, html })
-    logSend('resend_send', error ? `error=${error.message}` : '')
-    if (error) throw new Error(`Resend send failed: ${error.message}`)
-    return
-  }
   if (transport === 'smtp') {
     const transporter = nodemailer.createTransport(smtpTransportOptions(env))
     try {
@@ -92,7 +78,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     return
   }
   throw new Error(
-    'Email is not configured: set RESEND_API_KEY (preferred) or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS'
+    'Email is not configured: set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS'
   )
 }
 
