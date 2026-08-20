@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { svgValidationSchema } from '@/lib/validation'
-import { successResponse, errorResponse } from '@/lib/api-response'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { svgValidationSchema } from '@/lib/shared/validation'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 

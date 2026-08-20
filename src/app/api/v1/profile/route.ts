@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
 
-import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { updateProfileSchema } from '@/lib/validation'
-import { User } from '@/lib/db'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { toUserDTO } from '@/lib/auth'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { updateProfileSchema } from '@/lib/shared/validation'
+import { User } from '@/lib/database/db'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { toUserDTO } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 
@@ -95,7 +95,7 @@ export async function DELETE(request: NextRequest) {
     return errorResponse(400, '', '', undefined, request)
   }
 
-  const { verifyPassword } = await import('@/lib/passwords')
+  const { verifyPassword } = await import('@/lib/auth/passwords')
   const isMatch = await verifyPassword(password, user.password)
   if (!isMatch) {
     return errorResponse(401, '', '', undefined, request)
@@ -103,14 +103,14 @@ export async function DELETE(request: NextRequest) {
 
   await User.deleteOne({ _id: user._id })
 
-  const { revokeAllSessions } = await import('@/lib/sessions')
-  const { invalidateSessionCache } = await import('@/lib/auth-middleware')
+  const { revokeAllSessions } = await import('@/lib/auth/sessions')
+  const { invalidateSessionCache } = await import('@/lib/middleware/auth-middleware')
 
   await revokeAllSessions(user._id, 'revoked')
   await invalidateSessionCache()
 
   const res = successResponse({ message: 'Account deleted successfully' })
-  const { REFRESH_COOKIE_NAME } = await import('@/lib/auth')
+  const { REFRESH_COOKIE_NAME } = await import('@/lib/auth/auth')
   res.cookies.delete(REFRESH_COOKIE_NAME)
   return res
 }

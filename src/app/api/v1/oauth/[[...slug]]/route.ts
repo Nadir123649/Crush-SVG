@@ -1,23 +1,21 @@
 import { NextRequest } from 'next/server'
 
-import { verifyIdToken } from '@/lib/firebase-token'
-import { providerIdToName, resolveUserCascade } from '@/lib/firebase-user'
-import { User } from '@/lib/db'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { getClientIp } from '@/lib/ip'
-import { createSession } from '@/lib/sessions'
-import { buildTokenPayload } from '@/lib/tokens'
-import { oauthSchema } from '@/lib/validation'
-import { REFRESH_COOKIE_NAME, toUserDTO } from '@/lib/auth'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { logger } from '@/lib/logger'
+import { verifyIdToken } from '@/lib/firebase/firebase-token'
+import { providerIdToName, resolveUserCascade } from '@/lib/firebase/firebase-user'
+import { User } from '@/lib/database/db'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/ip'
+import { createSession } from '@/lib/auth/sessions'
+import { buildTokenPayload } from '@/lib/auth/tokens'
+import { oauthSchema } from '@/lib/shared/validation'
+import { REFRESH_COOKIE_NAME, toUserDTO } from '@/lib/auth/auth'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { logger } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
 
 const PROVIDER_URL_MAP: Record<string, string> = {
   google: 'google.com',
-  github: 'github.com',
-  x: 'twitter.com',
 }
 
 export async function POST(

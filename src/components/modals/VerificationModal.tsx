@@ -1,16 +1,15 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 
 interface VerificationModalProps {
   variant?: "success" | "invalid";
-  onClose?: () => void;
   onContinue?: () => void;
 }
 
-export function VerificationModal({ variant = "success", onClose, onContinue }: VerificationModalProps) {
+export function VerificationModal({ variant = "success", onContinue }: VerificationModalProps) {
   const isSuccess = variant === "success";
 
   return (

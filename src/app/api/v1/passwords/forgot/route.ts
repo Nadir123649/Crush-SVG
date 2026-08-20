@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { forgotPasswordSchema } from '@/lib/auth-validation'
-import { User } from '@/lib/db'
-import { generateToken, hashToken, RESET_TOKEN_MINUTES } from '@/lib/passwords'
-import { sendResetPasswordEmail } from '@/lib/email'
-import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { forgotPasswordSchema } from '@/lib/auth/auth-validation'
+import { User } from '@/lib/database/db'
+import { generateToken, hashToken, RESET_TOKEN_MINUTES } from '@/lib/auth/passwords'
+import { sendResetPasswordEmail } from '@/emails/email'
+import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 

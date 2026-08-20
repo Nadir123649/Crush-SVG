@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq'
 
-import { convertSvg } from '../src/lib/svg-convert'
+import { convertSvg } from '../src/lib/svg/svg-convert'
 
 try {
   process.loadEnvFile('.env.local')

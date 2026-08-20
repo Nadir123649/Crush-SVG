@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
   toUserDTO: vi.fn(),
 }))
 
-vi.mock('@/lib/auth-middleware', () => ({ auth: mocks.auth }))
-vi.mock('@/lib/db', () => ({ User: { findById: mocks.userFindById } }))
-vi.mock('@/lib/auth', () => ({ toUserDTO: mocks.toUserDTO }))
+vi.mock('@/lib/middleware/auth-middleware', () => ({ auth: mocks.auth }))
+vi.mock('@/lib/database/db', () => ({ User: { findById: mocks.userFindById } }))
+vi.mock('@/lib/auth/auth', () => ({ toUserDTO: mocks.toUserDTO }))
 
 import { GET } from './route'
 

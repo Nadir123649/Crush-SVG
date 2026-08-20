@@ -8,18 +8,18 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
 }))
 
-vi.mock('@/lib/cloudinary', () => ({
+vi.mock('@/lib/integrations/cloudinary', () => ({
   uploadImage: mocks.uploadImage,
 }))
-vi.mock('@/lib/conversion-usage', () => ({
+vi.mock('@/lib/usage/conversion-usage', () => ({
   getConversionUsage: mocks.getConversionUsage,
   incrementConversionUsage: mocks.incrementConversionUsage,
   GUEST_CONVERSION_LIMIT: 3,
 }))
-vi.mock('@/lib/auth-middleware', () => ({
+vi.mock('@/lib/middleware/auth-middleware', () => ({
   auth: mocks.auth,
 }))
-vi.mock('@/lib/rate-limit', () => ({
+vi.mock('@/lib/security/rate-limit', () => ({
   checkRateLimit: () => ({ allowed: true, retryAfterSeconds: 0 }),
 }))
 

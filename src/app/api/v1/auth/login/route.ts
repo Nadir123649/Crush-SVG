@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { loginSchema } from '@/lib/auth-validation'
-import { User } from '@/lib/db'
-import { verifyPassword } from '@/lib/passwords'
-import { checkBruteForce, recordFailure, resetBruteForce } from '@/lib/brute-force'
-import { issueSession } from '@/lib/auth-helpers'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { loginSchema } from '@/lib/auth/auth-validation'
+import { User } from '@/lib/database/db'
+import { verifyPassword } from '@/lib/auth/passwords'
+import { checkBruteForce, recordFailure, resetBruteForce } from '@/lib/security/brute-force'
+import { issueSession } from '@/lib/auth/auth-helpers'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 

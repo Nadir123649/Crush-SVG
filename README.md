@@ -9,8 +9,8 @@ Built with Next.js 16 (App Router), sharp (librsvg), MongoDB, and Firebase Auth.
 - **SVG → PNG conversion** with configurable width / height (px or cm) and scale (0.1x – 16x)
 - **Transparent background** toggle; white background when disabled
 - **Live preview** and source-size detection (width/height attributes or viewBox)
-- **Free tier**: 3 conversions per guest (tracked with an anonymous `gid` cookie), unlimited for registered users
-- **Email + password auth and OAuth** (Google, GitHub, X) with JWT session rotation
+- **Free tier**: 3 conversions per guest per 24 hours (tracked with an anonymous `gid` cookie), unlimited for registered users
+- **Email + password auth and Google OAuth** with JWT session rotation
 - **Security-first SVG sanitization** — scripts, event handlers, and script: schemes are stripped before rendering; embedded `data:image/*` payloads are preserved
 - **Optional BullMQ queue** (`ENABLE_CONVERSION_QUEUE=true`) to offload conversion to a worker process
 - **Cloudinary uploads** for converted images and user assets
@@ -54,7 +54,7 @@ See `.env.example` for the full list. The important groups:
 | SVG input size | 5 MB |
 | Output size | 4000 × 4000 px (hard cap — larger requests are rejected) |
 | Scale | 0.1x – 16x |
-| Guest conversions | 3 (per `gid` cookie) |
+| Guest conversions | 3 per 24 hours (per `gid` cookie) |
 | Rate limit | 30 conversions/min per IP |
 | Conversion timeout | 30 s (server), 60 s (client abort) |
 

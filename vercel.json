@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "crushsvg.net" }],
+      "destination": "https://www.crushsvg.net/:path*",
+      "permanent": true
+    }
+  ]
+}

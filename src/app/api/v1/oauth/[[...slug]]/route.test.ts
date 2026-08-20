@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ObjectId } from 'mongodb'
 import { NextRequest } from 'next/server'
 
+import { resetRateStore } from '@/lib/security/rate-store'
+
 const mocks = vi.hoisted(() => ({
   verifyIdToken: vi.fn(),
   providerIdToName: vi.fn(),
@@ -11,17 +13,17 @@ const mocks = vi.hoisted(() => ({
   toUserDTO: vi.fn(),
 }))
 
-vi.mock('@/lib/firebase-token', () => ({ verifyIdToken: mocks.verifyIdToken }))
-vi.mock('@/lib/db', () => ({
+vi.mock('@/lib/firebase/firebase-token', () => ({ verifyIdToken: mocks.verifyIdToken }))
+vi.mock('@/lib/database/db', () => ({
   User: { updateOne: vi.fn().mockResolvedValue({ modifiedCount: 1 }) },
 }))
-vi.mock('@/lib/firebase-user', () => ({
+vi.mock('@/lib/firebase/firebase-user', () => ({
   providerIdToName: mocks.providerIdToName,
   resolveUserCascade: mocks.resolveUserCascade,
 }))
-vi.mock('@/lib/sessions', () => ({ createSession: mocks.createSession }))
-vi.mock('@/lib/tokens', () => ({ buildTokenPayload: mocks.buildTokenPayload }))
-vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh', toUserDTO: mocks.toUserDTO }))
+vi.mock('@/lib/auth/sessions', () => ({ createSession: mocks.createSession }))
+vi.mock('@/lib/auth/tokens', () => ({ buildTokenPayload: mocks.buildTokenPayload }))
+vi.mock('@/lib/auth/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh', toUserDTO: mocks.toUserDTO }))
 
 import { POST } from './route'
 
@@ -86,12 +88,11 @@ function googleToken() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  resetRateStore()
   mocks.verifyIdToken.mockResolvedValue(googleToken())
   mocks.providerIdToName.mockImplementation((id: string) => {
     switch (id) {
       case 'google.com': return 'google'
-      case 'github.com': return 'github'
-      case 'twitter.com': return 'x'
       case 'password': return 'password'
       default: return id
     }
@@ -134,7 +135,13 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
   })
 
   it('returns 400 when token provider does not match route provider', async () => {
-    const res = await post('x', { firebaseToken: 't' })
+    mocks.verifyIdToken.mockResolvedValue({
+      uid: 'uid-1',
+      email: 't@t.com',
+      email_verified: true,
+      firebase: { sign_in_provider: 'password' },
+    })
+    const res = await post('google', { firebaseToken: 't' })
     expect(res.status).toBe(400)
     expect((await errorPayload(res)).code).toBe('provider_mismatch')
   })
@@ -190,10 +197,10 @@ describe('POST /api/v1/oauth/[[...slug]]', () => {
 
   it('returns 429 after 10 requests within the window', async () => {
     for (let i = 0; i < 10; i++) {
-      const res = await post('github', { firebaseToken: 't' })
+      const res = await post('google', {})
       expect(res.status).toBe(400)
     }
-    const res = await post('github', { firebaseToken: 't' })
+    const res = await post('google', {})
     expect(res.status).toBe(429)
     expect((await errorPayload(res)).code).toBe('rate_limit_exceeded')
     expect(Number(res.headers.get('Retry-After'))).toBeGreaterThan(0)

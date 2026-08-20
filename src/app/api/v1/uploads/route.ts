@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { auth } from '@/lib/auth-middleware'
-import { uploadImage } from '@/lib/cloudinary'
-import { convertSvgQueued } from '@/lib/conversion-queue'
-import { convertSchema } from '@/lib/convert-validation'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { uploadImage } from '@/lib/integrations/cloudinary'
+import { convertSvgQueued } from '@/lib/svg/conversion-queue'
+import { convertSchema } from '@/lib/svg/convert-validation'
 import {
   getConversionUsage,
   incrementConversionUsage,
   GUEST_CONVERSION_LIMIT,
-} from '@/lib/conversion-usage'
-import { getGuestId } from '@/lib/guest-usage'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { classifySvgError } from '@/lib/svg-errors'
-import { logger } from '@/lib/logger'
+} from '@/lib/usage/conversion-usage'
+import { getGuestId, ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { classifySvgError } from '@/lib/svg/svg-errors'
+import { logger } from '@/lib/shared/logger'
 import type { UploadApiResponse } from 'cloudinary'
 
 export const runtime = 'nodejs'
@@ -78,7 +78,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function convertSvgUpload(request: NextRequest, formData: FormData, buffer: Buffer) {
-  const usage = await getConversionUsage(request)
+  const { guestId, setCookie } = ensureGuestId(request)
+  const usage = await getConversionUsage(request, guestId ?? undefined)
   if (usage.kind === 'auth-error') {
     return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
   }
@@ -124,7 +125,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
 
     let conversionsUsed = 0
     try {
-      conversionsUsed = await incrementConversionUsage(request)
+      conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
     } catch (error) {
       logger.error('svg_upload_usage_increment_failed', { requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
     }
@@ -134,7 +135,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
     const remaining =
       nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
 
-    return successResponse({
+    const res = successResponse({
       url: uploaded.secure_url,
       publicId: uploaded.public_id,
       width: result.width,
@@ -145,6 +146,16 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
       conversionsUsed,
       remaining,
     })
+    if (setCookie) {
+      res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+        httpOnly: true,
+        secure: setCookie.secure,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: setCookie.maxAge,
+      })
+    }
+    return res
   } catch (error) {
     logger.error('svg_upload_conversion_failed', { requestId: request.headers.get('x-request-id'), error: error instanceof Error ? error.message : String(error) })
 

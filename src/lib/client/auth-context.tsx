@@ -5,14 +5,13 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react'
 
-import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
-import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import { apiFetch, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
+import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
@@ -31,7 +30,7 @@ interface AuthContextValue {
   sessionVersion: number
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
-  loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
+  loginWithOAuth: (provider: 'google', rememberMe?: boolean) => Promise<void>
   logout: () => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
@@ -218,19 +217,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loginWithOAuth = useCallback(
-    async (provider: 'google' | 'github' | 'x', rememberMe = true) => {
-      const {
-        exchangeIdToken,
-        signInWithGitHub,
-        signInWithGoogle,
-        signInWithX,
-      } = await import('@/lib/firebase-client')
-      const signIn = {
-        google: signInWithGoogle,
-        github: signInWithGitHub,
-        x: signInWithX,
-      }[provider]
-      await signIn()
+    async (provider: 'google', rememberMe = true) => {
+      const { exchangeIdToken, signInWithGoogle } = await import('@/lib/firebase/firebase-client')
+      await signInWithGoogle()
       const session = await exchangeIdToken(rememberMe)
       applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
       if (rememberMe === false && typeof window !== 'undefined') {
@@ -249,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // and delete the httpOnly refresh cookie) without blocking the user.
     clearAuth()
     void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
-    void import('@/lib/firebase-client')
+    void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
       .catch(() => {})
   }, [clearAuth])

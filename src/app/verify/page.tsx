@@ -41,7 +41,6 @@ function VerificationContent() {
       <div onClick={(e) => e.stopPropagation()} className="cursor-default w-full max-w-[440px]">
         <VerificationModal
           variant={variant}
-          onClose={() => router.push("/")}
           onContinue={() => router.push("/")}
         />
         {variant === "success" && redirectIn > 0 && (

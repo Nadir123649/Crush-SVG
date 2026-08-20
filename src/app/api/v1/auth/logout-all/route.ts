@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { auth, invalidateSessionCache } from '@/lib/auth-middleware'
-import { revokeAllSessions } from '@/lib/sessions'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth'
+import { auth, invalidateSessionCache } from '@/lib/middleware/auth-middleware'
+import { revokeAllSessions } from '@/lib/auth/sessions'
+import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 

@@ -7,14 +7,14 @@ const mocks = vi.hoisted(() => ({
   revokeSession: vi.fn(),
 }))
 
-vi.mock('@/lib/auth-middleware', () => ({
+vi.mock('@/lib/middleware/auth-middleware', () => ({
   auth: mocks.auth,
   invalidateSessionCache: mocks.invalidateSessionCache,
 }))
-vi.mock('@/lib/sessions', () => ({
+vi.mock('@/lib/auth/sessions', () => ({
   revokeSession: mocks.revokeSession,
 }))
-vi.mock('@/lib/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
+vi.mock('@/lib/auth/auth', () => ({ REFRESH_COOKIE_NAME: 'crushsvg_refresh' }))
 
 import { POST } from './route'
 

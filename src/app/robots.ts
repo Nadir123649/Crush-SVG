@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://crush-svg.vercel.app";
   return {
     rules: [
       {
@@ -11,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/verify", "/reset-password"],
       },
     ],
-    sitemap: "https://crush-svg.vercel.app/sitemap.xml",
+    sitemap: `${base}/sitemap.xml`,
   };
 }

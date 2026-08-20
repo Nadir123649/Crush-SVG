@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { auth } from '@/lib/auth-middleware'
-import { User } from '@/lib/db'
-import { toUserDTO } from '@/lib/auth'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { User } from '@/lib/database/db'
+import { toUserDTO } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 

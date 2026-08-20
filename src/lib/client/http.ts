@@ -1,4 +1,4 @@
-import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { emitToast } from '@/lib/client/toast-bridge'
 
 export class ApiError extends Error {

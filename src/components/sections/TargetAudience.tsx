@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 
 export function TargetAudience() {
   const cards = [

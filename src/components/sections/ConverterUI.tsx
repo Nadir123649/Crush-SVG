@@ -2,15 +2,15 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { convertText, isValidSvgContent, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
-import { parseSvgDimensions } from "@/lib/svg-dims";
+import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
-import type { UsageInfo } from "@/lib/shared-types";
+import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
@@ -355,20 +355,6 @@ export function ConverterUI() {
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
 
-  useEffect(() => {
-    // A guest at their conversion limit is stuck until the 10-minute window
-    // expires — the server then resets the budget (0 of 3). Poll while the
-    // limit is reached so the counter and Convert button recover without a
-    // page reload.
-    if (status !== 'guest' || !limitReached) return;
-    const timer = setInterval(() => {
-      getUsage()
-        .then((u) => setUsage(u))
-        .catch(() => {});
-    }, 30_000);
-    return () => clearInterval(timer);
-  }, [status, sessionVersion, limitReached]);
-
   return (
     <>
       <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
@@ -471,6 +457,7 @@ export function ConverterUI() {
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[32px] md:p-[80px]">
                 {storageRestored && previewUrl && !previewError ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- preview is a data: URL (user SVG), which next/image does not support
                   <img
                     src={previewUrl}
                     alt="SVG preview"
@@ -478,9 +465,11 @@ export function ConverterUI() {
                     onError={() => setPreviewError(true)}
                   />
                 ) : storageRestored ? (
-                  <img
-                    src="/Upload%20image.svg"
+                  <Image
+                    src={IMAGES.uploadImage}
                     alt="Upload placeholder"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />
                 ) : null}

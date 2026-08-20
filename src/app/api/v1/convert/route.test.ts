@@ -7,15 +7,15 @@ const mocks = vi.hoisted(() => ({
   incrementConversionUsage: vi.fn(),
 }))
 
-vi.mock('@/lib/svg-convert', () => ({
+vi.mock('@/lib/svg/svg-convert', () => ({
   convertSvg: mocks.convertSvg,
 }))
-vi.mock('@/lib/conversion-usage', () => ({
+vi.mock('@/lib/usage/conversion-usage', () => ({
   getConversionUsage: mocks.getConversionUsage,
   incrementConversionUsage: mocks.incrementConversionUsage,
   GUEST_CONVERSION_LIMIT: 3,
 }))
-vi.mock('@/lib/rate-limit', () => ({
+vi.mock('@/lib/security/rate-limit', () => ({
   checkRateLimit: () => ({ allowed: true, retryAfterSeconds: 0 }),
 }))
 
