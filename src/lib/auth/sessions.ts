@@ -4,7 +4,6 @@ import type { Types } from 'mongoose'
 
 import { Session, type SessionDoc } from '@/lib/database/db'
 import { parseUserAgent } from '@/lib/shared/user-agent'
-import { geoLocate } from '@/lib/shared/geo'
 
 export type { SessionDoc, SessionStatus } from '@/lib/database/db'
 
@@ -56,15 +55,6 @@ export async function createSession(input: {
     if (ids.length > 0) {
       await Session.updateMany({ _id: { $in: ids } }, { $set: { status: 'revoked' } })
     }
-  }
-
-  // Geo lookup is an external network call — never block session creation on it.
-  // Fire-and-forget: fill in the location once the provider responds.
-  if (input.ip) {
-    void geoLocate(input.ip).then((location) => {
-      if (location === 'Unknown Location') return
-      void Session.updateOne({ _id: sessionId }, { $set: { location } }).catch(() => {})
-    })
   }
 
   return created
