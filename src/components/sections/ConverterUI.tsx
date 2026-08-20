@@ -917,26 +917,16 @@ export function ConverterUI() {
                         Sign up for unlimited conversions
                       </button>
                     ) : result?.data ? (
-                      <div >
-                        <Button
-                          className="flex-1 sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[20px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
-                          onClick={handleDownload}
-                          disabled={converting || isPlaceholderCode}
-                        >
-                          <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[15px] w-full">
-                            <Image src={IMAGES.downloadImage} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                            Download PNG
-                          </span>
-                        </Button>
-                        {/* <button
-                          type="button"
-                          onClick={handleCopyImage}
-                          className="w-full sm:w-auto h-[42px] px-[16px] rounded-[8px] md:rounded-[12px] border border-[#D94A1E] text-[#D94A1E] font-body font-medium text-[14px] md:text-[15px] flex items-center justify-center hover:bg-orange-50 transition-colors"
-                          title="Copy PNG Image to Clipboard"
-                        >
-                          Copy Image
-                        </button> */}
-                      </div>
+                      <Button
+                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        onClick={handleDownload}
+                        disabled={converting || isPlaceholderCode}
+                      >
+                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
+                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                          Download PNG
+                        </span>
+                      </Button>
                     ) : (
                       <Button
                         className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"

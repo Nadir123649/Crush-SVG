@@ -1,7 +1,6 @@
 import React from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
-
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata = constructMetadata({

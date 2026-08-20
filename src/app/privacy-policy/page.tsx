@@ -1,6 +1,5 @@
 import React from "react";
 import type { Metadata } from "next";
-
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
