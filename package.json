@@ -10,8 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "worker": "tsx scripts/conversion-worker.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

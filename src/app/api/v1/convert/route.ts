@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
-import { convertSvgQueued } from '@/lib/svg/conversion-queue'
+import { convertSvg } from '@/lib/svg/svg-convert'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/usage/conversion-usage'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   const { svg, width, height, scale, transparent, quality } = parsed.data
 
   try {
-    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality })
+    const result = await convertSvg(svg, { width, height, scale, transparent, quality })
     const base64 = result.buffer.toString('base64')
     const mimeType = 'image/png'
 

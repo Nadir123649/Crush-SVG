@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { auth } from '@/lib/middleware/auth-middleware'
 import { uploadImage } from '@/lib/integrations/cloudinary'
-import { convertSvgQueued } from '@/lib/svg/conversion-queue'
+import { convertSvg } from '@/lib/svg/svg-convert'
 import { convertSchema } from '@/lib/svg/convert-validation'
 import {
   getConversionUsage,
@@ -112,7 +112,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
   const { width, scale, transparent } = parsed.data
 
   try {
-    const result = await convertSvgQueued(buffer.toString('utf-8'), {
+    const result = await convertSvg(buffer.toString('utf-8'), {
       width,
       scale,
       transparent,
