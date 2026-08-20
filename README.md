@@ -1,16 +1,26 @@
-# CrushSVG
+<div align="center">
+  <img src="./public/CrushSVG-logo.svg" width="120" alt="CrushSVG Logo" />
 
-An ultra-crisp, security-first SVG-to-PNG converter built for modern workflows. Paste raw SVG code, upload files, or drag and drop to instantly generate high-fidelity PNG assets optimized for Outlook, Gmail, newsletters, websites, and print.
+  # CrushSVG
 
-Built with **Next.js 16 (App Router)**, **sharp** (backed by `librsvg`), **MongoDB**, and **Firebase Authentication**.
+  **An ultra-crisp, security-first SVG-to-PNG converter built for modern web, design, and marketing workflows.**
+
+  [![Next.js Version](https://img.shields.io/badge/Next.js-16.3--App--Router-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+  [![React Version](https://img.shields.io/badge/React-19.2-blue?style=flat-square&logo=react)](https://react.dev/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4.0-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
+  [![License](https://img.shields.io/badge/License-Private-red?style=flat-square)](https://github.com/)
+
+  *Paste raw SVG code, upload files, or drag & drop to instantly generate high-fidelity PNG assets optimized for Outlook, Gmail, newsletters, websites, and print.*
+</div>
 
 ---
 
-## Key Features
+## 🚀 Core Capabilities
 
 - **High-Fidelity Rendering**: Backed by `sharp` and `librsvg` for accurate, crisp rendering at high resolutions (300 DPI target density).
-- **Flexible Resizing**: Configure outputs using standard width and height options in pixels (`px`) or centimeters (`cm`), or apply direct multipliers (from `0.1x` up to `16x`).
-- **Transparency Controls**: Toggle transparent backgrounds instantly; fallback to flat white when disabled.
+- **Flexible Dimensions**: Configure outputs using standard width and height options in pixels (`px`) or centimeters (`cm`), or apply direct multipliers (from `0.1x` up to `16x`).
+- **Transparency Controls**: Toggle transparent backgrounds instantly; falls back to flat white when disabled.
 - **Auto-Dimension Parsing**: Automatically extracts dimensions from SVG `width`, `height`, or `viewBox` attributes.
 - **Security-First Sanitization**: Strips scripts, event handlers, and malicious `javascript:` or `script:` schemes to prevent XSS, while safely preserving embedded base64 assets (`data:image/*`).
 - **User & Guest Budget Tiers**:
@@ -22,7 +32,7 @@ Built with **Next.js 16 (App Router)**, **sharp** (backed by `librsvg`), **Mongo
 
 ---
 
-## Technical Stack
+## 🛠️ Tech Stack & Key Libraries
 
 - **Framework**: Next.js 16 (App Router)
 - **UI & Styling**: React 19, Tailwind CSS v4, Bricolage Grotesque & Afacad Fonts
@@ -34,7 +44,7 @@ Built with **Next.js 16 (App Router)**, **sharp** (backed by `librsvg`), **Mongo
 
 ---
 
-## Getting Started
+## ⚙️ Installation & Local Setup
 
 ### Prerequisites
 
@@ -42,7 +52,7 @@ Built with **Next.js 16 (App Router)**, **sharp** (backed by `librsvg`), **Mongo
 - MongoDB instance (Local or Atlas)
 - Firebase Project
 - Cloudinary Account
-- Redis Server (Optional, required for BullMQ queues and Upstash Rate Limiting)
+- Redis Server *(Optional, required for BullMQ queues and Upstash Rate Limiting)*
 
 ### Installation
 
@@ -72,7 +82,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 
 ---
 
-## Scripts & CLI Commands
+## 🧪 Scripts & CLI Commands
 
 | Command | Description |
 | :--- | :--- |
@@ -85,7 +95,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 
 ---
 
-## Configuration & Environment Limits
+## 📊 Platform Constraints & Performance Limits
 
 The system enforces the following constraints to prevent abuse and resource exhaustion:
 
@@ -100,7 +110,7 @@ The system enforces the following constraints to prevent abuse and resource exha
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 src/
@@ -128,7 +138,7 @@ src/
 
 ---
 
-## Deployment & Production Notes
+## 🌐 Deployment & Multi-Instance Production Notes
 
 - **Rate Limiting**: For multi-instance horizontal deployments, configure Upstash Redis API tokens. The system defaults to in-memory tracking if variables are missing, which is not synchronized across multiple load-balanced instances.
 - **Conversion Workload**: If serving high-traffic environments, toggle `ENABLE_CONVERSION_QUEUE=true` and run the worker script (`npm run worker`) as a separate process or container. This ensures heavy render operations do not block critical HTTP request handlers.
@@ -136,6 +146,6 @@ src/
 
 ---
 
-## License
+## 📄 License
 
 Private Repository. All rights reserved.

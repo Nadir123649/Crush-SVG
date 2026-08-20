@@ -29,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${bricolage.variable} ${afacad.variable} h-full antialiased`}
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
     >
 <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
         <script

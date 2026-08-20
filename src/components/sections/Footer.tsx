@@ -45,9 +45,8 @@ export function Footer() {
               src={IMAGES.logo}
               alt="CrushSVG Icon"
               width={42}
-              height={41.11}
-              className="object-contain"
-              style={{ width: 'auto', height: 'auto' }}
+              height={42}
+              className="w-[42px] h-[42px] object-contain"
             />
             <div className="font-heading font-semibold text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
               <span className="text-text-dark">Crush</span>
@@ -137,13 +136,13 @@ export function Footer() {
           {/* Social Icons */}
           <div className="flex justify-center gap-[24px] mt-[12px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
           </div>
         </div>
@@ -156,13 +155,13 @@ export function Footer() {
           {/* Social Icons (Mobile) */}
           <div className="flex justify-center gap-[24px]">
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.facebook} alt="Facebook" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.instagram} alt="Instagram" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
             <Link href="#" className="hover:opacity-80 transition-opacity">
-              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="h-[16px] w-auto object-contain" style={{ width: 'auto', height: 'auto' }} />
+              <Image src={IMAGES.linkedin} alt="LinkedIn" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </Link>
           </div>
         </div>

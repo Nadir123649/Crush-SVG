@@ -65,7 +65,7 @@ export async function resolveUserCascade(
           },
           $addToSet: { providers: provider, linkedProviders: provider },
         },
-        { new: true }
+        { returnDocument: 'after' }
       )) ?? byUid
     )
   }

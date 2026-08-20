@@ -95,7 +95,7 @@ export async function incrementGuestUsage(guestId: string): Promise<number> {
       conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT },
     },
     { $inc: { conversionsUsed: 1 }, $setOnInsert: { _id: guestId, windowStartAt: now } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   )
   if (updated) return updated.conversionsUsed
 
@@ -107,7 +107,7 @@ export async function incrementGuestUsage(guestId: string): Promise<number> {
   const reset = await GuestUsage.findOneAndUpdate(
     { _id: guestId },
     { $set: { conversionsUsed: 1, windowStartAt: now } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   )
   return reset?.conversionsUsed ?? 1
 }
