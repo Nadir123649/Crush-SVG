@@ -9,18 +9,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "vitest run"
+    "lint": "eslint"
   },
   "dependencies": {
-    "@react-email/components": "^1.0.12",
     "@types/sharp": "^0.31.1",
-    "@upstash/redis": "^1.38.2",
     "bcryptjs": "^3.0.3",
-    "bullmq": "^6.1.0",
     "cloudinary": "^2.10.0",
     "firebase": "^12.17.1",
-    "firebase-admin": "^14.2.0",
     "jose": "^6.2.8",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
@@ -30,7 +25,6 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hot-toast": "^2.6.0",
-    "resend": "^6.19.0",
     "sharp": "^0.35.3",
     "zod": "^4.4.3"
   },
@@ -46,8 +40,6 @@
     "eslint-config-next": "16.3.0",
     "server-only": "^0.0.1",
     "tailwindcss": "^4",
-    "tsx": "^4.23.12",
-    "typescript": "^5",
-    "vitest": "^4.1.10"
+    "typescript": "^5"
   }
 }
