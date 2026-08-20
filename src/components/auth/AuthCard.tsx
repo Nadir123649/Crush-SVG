@@ -31,10 +31,30 @@ export function AuthCard({ type }: AuthCardProps) {
   const [verificationSent, setVerificationSent] = useState(false);
   const [resendDone, setResendDone] = useState(false);
   const [verificationRequired, setVerificationRequired] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setHasSubmitted(true);
     setError(null);
+
+    // Manual Validation
+    if (!isLogin) {
+      const trimmedName = name.trim();
+      if (!trimmedName || trimmedName.length < 3 || trimmedName.length > 16) {
+        return;
+      }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      return;
+    }
+
     setVerificationRequired(false);
     setSubmitting("email");
     try {
@@ -43,12 +63,7 @@ export function AuthCard({ type }: AuthCardProps) {
         router.push("/");
         router.refresh();
       } else {
-        const trimmedName = name.trim();
-        if (trimmedName.length < 3 || trimmedName.length > 16) {
-          setError("Name must be between 3 and 16 characters.");
-          return;
-        }
-        await register(trimmedName, email, password);
+        await register(name.trim(), email, password);
         setVerificationSent(true);
         showToast("success", "Account created! Check your email to verify your account.");
       }
@@ -132,6 +147,10 @@ async function handleOAuth(provider: OAuthProvider) {
 
   const submitLabel = submitting === "email" ? (isLogin ? "Logging in..." : "Creating account...") : isLogin ? "Log In" : "Create Account";
 
+  const isNameInvalid = hasSubmitted && !isLogin && (!name.trim() || name.trim().length < 3 || name.trim().length > 16);
+  const isEmailInvalid = hasSubmitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isPasswordInvalid = hasSubmitted && password.length < 6;
+
   return (
     <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
 
@@ -152,50 +171,53 @@ async function handleOAuth(provider: OAuthProvider) {
         </div>
 
         {/* Inputs */}
-        <form onSubmit={handleEmailSubmit} className="flex flex-col gap-[12px] mt-[8px]">
+        <form onSubmit={handleEmailSubmit} noValidate className="flex flex-col gap-[12px] mt-[8px]">
           {!isLogin && (
             <div className="flex flex-col gap-[4px]">
               <label htmlFor="auth-name" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Name</label>
               <input
                 id="auth-name"
                 type="text"
-                required
-                minLength={1}
-                maxLength={16}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isNameInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
+              {isNameInvalid && (
+                <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                  Name must be at least 3 characters
+                </span>
+              )}
             </div>
           )}
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="auth-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
+            <label htmlFor="auth-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email address</label>
             <input
               id="auth-email"
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               autoComplete="email"
-              className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+              className={`w-full h-[32px] rounded-[4px] border-[1px] ${isEmailInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
             />
+            {isEmailInvalid && (
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                Invalid email format
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your password</label>
+            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Password</label>
             <div className="relative w-full">
               <input
                 id="auth-password"
                 type={showPassword ? "text" : "password"}
-                required
-                minLength={8}
-                maxLength={20}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 autoComplete={isLogin ? "current-password" : "new-password"}
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
               <button
                 type="button"
@@ -215,6 +237,11 @@ async function handleOAuth(provider: OAuthProvider) {
                 )}
               </button>
             </div>
+            {isPasswordInvalid && (
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                Password must be at least 6 characters
+              </span>
+            )}
           </div>
 
           {isLogin && (
