@@ -881,17 +881,7 @@ export function ConverterUI() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
-                    {isCheckingUsage ? (
-                      <Button
-                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
-                        disabled
-                      >
-                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          Loading...
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
-                        </span>
-                      </Button>
-                    ) : limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                    {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}

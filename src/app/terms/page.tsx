@@ -81,7 +81,7 @@ export default function TermsAndConditions() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Contact Information</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            If you have any questions or concerns about these Terms & Conditions, please contact us at support@crushsvg.com.
+            If you have any questions or concerns about these Terms & Conditions, please contact us at support@crushsvg.net.
           </p>
         </section>
 
