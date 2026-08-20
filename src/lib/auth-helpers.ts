@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 
 import type { UserDoc } from '@/lib/db'
 import { getClientIp } from '@/lib/ip'
-import { createSession } from '@/lib/sessions'
+import { createSession } from '@/lib/auth/sessions'
 import { buildTokenPayload } from '@/lib/tokens'
 import { toUserDTO } from '@/lib/auth'
 
