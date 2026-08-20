@@ -75,17 +75,17 @@ function rewriteSiteLinks(html: string, url: string): string {
         return html;
     return html.split("https://crush-svg.vercel.app").join(origin);
 }
+import { EMAIL_VERIFICATION_HTML, RESET_PASSWORD_HTML } from "@/emails/html-templates";
+
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-    const filePath = path.join(process.cwd(), "src/emails/email-verification.html");
-    let html = await fs.readFile(filePath, "utf-8");
+    let html = EMAIL_VERIFICATION_HTML;
     html = html.replace(/href="#"/g, `href="${url}"`);
     html = html.replace(/{{first_name}}/g, "there");
     html = rewriteSiteLinks(html, url);
     await sendEmail(to, "Verify your CrushSVG email", html);
 }
 export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
-    const filePath = path.join(process.cwd(), "src/emails/reset-password.html");
-    let html = await fs.readFile(filePath, "utf-8");
+    let html = RESET_PASSWORD_HTML;
     html = html.replace(/href="#"/g, `href="${url}"`);
     html = html.replace(/{{first_name}}/g, "there");
     html = rewriteSiteLinks(html, url);
