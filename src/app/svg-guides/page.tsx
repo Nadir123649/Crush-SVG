@@ -1,5 +1,4 @@
 import React from "react";
-
 import type { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 

@@ -1,7 +1,6 @@
 import React from "react";
 import { FAQ } from "@/components/sections/FAQ";
 
-
 export default function HelpPage() {
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">

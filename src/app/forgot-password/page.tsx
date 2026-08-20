@@ -1,7 +1,6 @@
 import React from "react";
 import { ForgotPasswordCard } from "@/components/auth/ForgotPasswordCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
-
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata = constructMetadata({
