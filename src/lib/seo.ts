@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crush-svg.vercel.app";
+export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
 
 interface SEOProps {
   title: string;

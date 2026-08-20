@@ -7,7 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ children, className = "", variant = "solid", ...props }: ButtonProps) {
-  const baseTextStyles = "font-body font-medium text-[16px] leading-[18.67px] tracking-[0%] flex items-center justify-center";
+  const baseTextStyles = "font-body font-medium text-[16px] leading-[18.67px] tracking-[0%] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2";
   
   if (variant === "outline") {
     return (
