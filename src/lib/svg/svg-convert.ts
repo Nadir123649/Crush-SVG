@@ -1,5 +1,6 @@
 import "server-only";
 import sharp from "sharp";
+import { ensureFontConfig } from "@/lib/svg/font-config";
 import { sanitizeSvg } from "@/lib/svg/svg-sanitize";
 import { computeTargetSize, parseSvgDimensions, type SvgDimensions, type TargetSize } from "@/lib/svg/svg-dims";
 import { ConversionTimeoutError } from "@/lib/svg/svg-errors";
@@ -47,6 +48,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     });
 }
 export async function convertSvg(svg: string, options: SvgConvertOptions = {}): Promise<SvgConvertResult> {
+    ensureFontConfig();
     const sanitizedSvg = sanitizeSvg(svg);
     const dims = parseSvgDimensions(sanitizedSvg);
     const target = computeTargetSize(dims, options);
