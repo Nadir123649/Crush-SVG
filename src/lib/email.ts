@@ -97,7 +97,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 }
 
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
-  const filePath = path.join(process.cwd(), 'src/emails/email-verification.html')
+  const filePath = path.join(process.cwd(), 'src/emails/html/email-verification.html')
   let html = await fs.readFile(filePath, 'utf-8')
   html = html.replace(/href="#"/g, `href="${url}"`)
   html = html.replace(/{{first_name}}/g, 'there')
@@ -105,7 +105,7 @@ export async function sendVerificationEmail(to: string, url: string): Promise<vo
 }
 
 export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
-  const filePath = path.join(process.cwd(), 'src/emails/reset-password.html')
+  const filePath = path.join(process.cwd(), 'src/emails/html/reset-password.html')
   let html = await fs.readFile(filePath, 'utf-8')
   html = html.replace(/href="#"/g, `href="${url}"`)
   html = html.replace(/{{first_name}}/g, 'there')

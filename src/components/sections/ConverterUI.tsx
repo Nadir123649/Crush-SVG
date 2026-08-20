@@ -516,7 +516,7 @@ export function ConverterUI() {
                   />
                 ) : storageRestored ? (
                   <img
-                    src="/Upload%20image.svg"
+                    src={IMAGES.uploadImage}
                     alt="Upload placeholder"
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                   />

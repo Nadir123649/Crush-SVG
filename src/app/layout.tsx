@@ -3,7 +3,8 @@ import { Bricolage_Grotesque, Afacad } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/ToastProvider";
-import { Navbar } from "@/components/layout/Navbar";
+import { Header } from "@/components/layout/Header";
+import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
 import { constructMetadata, getOrganizationSchema, getWebApplicationSchema } from "@/lib/seo";
@@ -43,7 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getWebApplicationSchema()) }}
         />
         <AuthProvider>
-          <Navbar />
+          <Header />
+          <ScrollToTop />
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
             <main className="w-full flex-1">
               {children}

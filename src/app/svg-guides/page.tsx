@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollToTop } from "@/components/utils/ScrollToTop";
+
 import type { Metadata } from "next";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
@@ -32,7 +32,7 @@ export default function SvgGuidesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
-      <ScrollToTop />
+
       
       {/* Hero Section */}
       <div className="flex flex-col items-center text-center max-w-[800px] mb-[40px] md:mb-[60px]">

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { ScrollToTop } from "@/components/utils/ScrollToTop";
+
 import { showToast } from "@/lib/client/toast-bridge";
 
 export default function ContactUsPage() {
@@ -18,7 +18,7 @@ export default function ContactUsPage() {
   };
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
-      <ScrollToTop />
+
       
       {/* Header Section */}
       <div className="flex flex-col items-center text-center max-w-[800px] mb-[40px]">
