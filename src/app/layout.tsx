@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Afacad } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -19,6 +19,12 @@ const afacad = Afacad({
   variable: "--font-afacad",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  themeColor: "#D94A1E",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = constructMetadata({
   title: "CrushSVG | Convert SVG to PNG Exactly as Intended",

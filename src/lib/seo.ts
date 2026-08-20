@@ -46,6 +46,15 @@ export function constructMetadata({
       images: [image],
       creator: "@CrushSVG",
     },
+    icons: {
+      icon: [
+        { url: "/CrushSVG-logo.svg", type: "image/svg+xml" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
+      apple: [
+        { url: "/CrushSVG-logo.svg", sizes: "180x180", type: "image/svg+xml" },
+      ],
+    },
   };
 
   if (noindex) {
