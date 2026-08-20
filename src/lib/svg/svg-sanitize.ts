@@ -19,7 +19,7 @@ const URL_ATTRIBUTES = new Set([
     "longdesc",
     "usemap",
 ]);
-const DATA_IMAGE_WHITELIST = /^data:image\/(?:png|jpe?g|gif|webp|svg\+xml);base64,/i;
+const DATA_URI_WHITELIST = /^data:(?:image\/(?:png|jpe?g|gif|webp|svg\+xml)|font\/(?:woff2?|truetype|opentype|otf|ttf)|application\/(?:font-woff2?|x-font-ttf|x-font-truetype|x-font-opentype));base64,/i;
 interface ParsedTag {
     name: string;
     attrs: Array<{
@@ -58,7 +58,7 @@ function sanitizeAttrValue(name: string, value: string): string {
     let cleaned = stripScheme(value);
     if (URL_ATTRIBUTES.has(name.toLowerCase())) {
         const trimmed = cleaned.trim();
-        if (/^data:/i.test(trimmed) && !DATA_IMAGE_WHITELIST.test(trimmed)) {
+        if (/^data:/i.test(trimmed) && !DATA_URI_WHITELIST.test(trimmed)) {
             cleaned = cleaned.replace(/data:/gi, "");
         }
     }
