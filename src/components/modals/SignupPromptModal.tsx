@@ -41,9 +41,9 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
           </svg>
         </button>
 
-        <div className="flex items-center gap-[4px] mt-[40px]">
-          <Image src={IMAGES.logo} alt="CrushSVG Icon" width={26} height={26} className="object-contain" />
-          <div className="font-heading font-semibold text-[16px] leading-[100%] flex items-center">
+        <div className="flex items-center gap-[6px] mt-[40px]">
+          <Image src={IMAGES.logo} alt="CrushSVG Icon" width={36} height={36} className="object-contain" />
+          <div className="font-heading font-semibold text-[22px] leading-[100%] flex items-center">
             <span className="text-text-dark">Crush</span>
             <span className="text-[#D94A1E]">SVG</span>
           </div>

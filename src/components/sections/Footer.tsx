@@ -110,7 +110,7 @@ export function Footer() {
 
         {/* Right: Engineered For Quality (Desktop only) */}
         <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
-          <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E] text-center">Engineered For Quality</h4>
+          <h4 className="font-heading font-bold text-[12px] md:text-[14px] leading-[120%] text-[#353A3E] text-center">Engineered For Quality</h4>
 
           {/* 3 Quality Badges */}
           <div className="flex justify-center gap-[12px]">

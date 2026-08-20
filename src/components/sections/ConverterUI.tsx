@@ -341,7 +341,7 @@ export function ConverterUI() {
         setError(`Invalid width value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm" && isCustomWidth) {
+      if (unit === "cm") {
         wNum = wNum * PX_PER_CM;
       }
       options.width = Math.round(wNum);
@@ -357,7 +357,7 @@ export function ConverterUI() {
         setError(`Invalid height value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm" && isCustomHeight) {
+      if (unit === "cm") {
         hNum = hNum * PX_PER_CM;
       }
       options.height = Math.round(hNum);
@@ -425,8 +425,9 @@ export function ConverterUI() {
     }
   }
 
-  const widthOptions = ["Original", "Custom", ...PRESET_SIZES];
-  const heightOptions = ["Auto", "Custom", ...PRESET_SIZES];
+  const cmPresets = ["5", "10", "15", "20", "30", "50", "75", "100"];
+  const widthOptions = ["Original", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
+  const heightOptions = ["Auto", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
   // Scale only applies when the SVG is converted at its intrinsic size — the
   // server ignores it once a width or height is set.
   const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
@@ -438,14 +439,14 @@ export function ConverterUI() {
     <>
       <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto lg:h-[650.67px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
+        <div className="w-full h-auto lg:h-[650px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
 
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto lg:h-[626.23px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col lg:flex-row justify-center px-0 md:px-[40px] py-0 md:py-[20px] gap-[24px] md:gap-[30px]">
+          <div className="w-full h-auto lg:h-[626px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col lg:flex-row justify-center px-0 md:px-[40px] py-0 md:py-[20px] gap-[24px] md:gap-[30px]">
 
             {/* Left Column (SVG Code) */}
-            <div className="w-full lg:w-[536.9px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px]">
+            <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
                   SVG Code
                 </h2>
@@ -547,16 +548,16 @@ export function ConverterUI() {
                   : "Source size: unknown — set width/height or viewBox on your SVG"}
               </p>
 
-                <p className="mt-[0px] font-body text-[12px] md:text-[12px] text-[#64748B] flex items-center justify-start gap-[4px] mt-[6px]">
-                      <span>🔒</span>
+                <p className="mt-[0px] font-body text-[12px] md:text-[14px] text-[#64748B] flex items-center justify-start gap-[6px] mt-[6px]">
+                      <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="w-[12px] h-[12px] object-contain" />
                       <span>100% Private &amp; Secure — Files and SVG code are never shared or stored publicly.</span>
                     </p>
 
             </div>
 
             {/* Right Column (Live Preview) */}
-            <div className="w-full lg:w-[536.9px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px]">
+            <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
                   Live Preview
                 </h2>
@@ -620,12 +621,9 @@ export function ConverterUI() {
                               onClick={() => {
                                 if (opt === "Custom") {
                                   setIsCustomWidth(true);
-                                  setIsCustomHeight(true);
                                   setSelectedWidth("");
-                                  setSelectedHeight("");
                                 } else {
                                   setIsCustomWidth(false);
-                                  setUnit("px");
                                   setSelectedWidth(opt);
                                 }
                                 setOpenDropdown(null);
@@ -674,12 +672,9 @@ export function ConverterUI() {
                               onClick={() => {
                                 if (opt === "Custom") {
                                   setIsCustomHeight(true);
-                                  setIsCustomWidth(true);
                                   setSelectedHeight("");
-                                  setSelectedWidth("");
                                 } else {
                                   setIsCustomHeight(false);
-                                  setUnit("px");
                                   setSelectedHeight(opt);
                                 }
                                 setOpenDropdown(null);
@@ -728,6 +723,10 @@ export function ConverterUI() {
                                 aria-selected={unit === opt}
                                 onClick={() => {
                                   setUnit(opt);
+                                  setSelectedWidth("Original");
+                                  setSelectedHeight("Auto");
+                                  setIsCustomWidth(false);
+                                  setIsCustomHeight(false);
                                   setOpenDropdown(null);
                                   resetConversion();
                                 }}
@@ -884,48 +883,48 @@ export function ConverterUI() {
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
                     {isCheckingUsage ? (
                       <Button
-                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
+                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px] opacity-70"
                         disabled
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                           Loading...
+                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                         </span>
                       </Button>
                     ) : limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                        className="w-[300px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
                       >
                         Sign up for unlimited conversions
                       </button>
                     ) : result?.data ? (
                       <Button
-                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
                         disabled={converting || isPlaceholderCode}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                           Download PNG
+                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                         </span>
                       </Button>
                     ) : (
                       <Button
-                        className="w-full sm:w-[280px] lg:w-[340px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleConvert}
                         disabled={converting}
                       >
-                        <span className="flex flex-row-reverse md:flex-row items-center justify-center gap-[8px] text-[16px] w-full">
-                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
+                        <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert
+                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} className="brightness-0 invert md:w-[18px] md:h-[18px]" />
                         </span>
                       </Button>
                     )}
 
                     {result && result.warnings && result.warnings.length > 0 && (
-                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[11px] leading-[14px] text-amber-800 w-full sm:w-[280px] lg:w-[340px] z-10 shadow-sm">
+                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[11px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm">
                         {result.warnings.map((w) => <p key={w}>{w}</p>)}
                       </div>
                     )}

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/client/http";
-import { PasswordResetErrorAlert, PasswordResetSuccessAlert } from "@/components/ui/Alert";
+import { PasswordResetSuccessAlert } from "@/components/ui/Alert";
 import { showToast } from "@/lib/client/toast-bridge";
 
 export function ForgotPasswordCard() {
@@ -11,10 +11,18 @@ export function ForgotPasswordCard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setHasSubmitted(true);
     setError(null);
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return;
+    }
+
     setSubmitting(true);
     try {
       await apiFetch<{ message: string }>("/api/v1/passwords/forgot", {
@@ -60,27 +68,31 @@ export function ForgotPasswordCard() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-[12px]">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-[12px]">
             <div className="flex flex-col gap-[4px]">
               <label htmlFor="fp-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
               <input 
                 id="fp-email"
                 type="email" 
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
                 placeholder="Enter your email"
                 autoComplete="email"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${(hasSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) || error ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
+              {(hasSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) ? (
+                <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                  Invalid email format
+                </span>
+              ) : error ? (
+                <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                  {error}
+                </span>
+              ) : null}
             </div>
-
-            {error && (
-              <PasswordResetErrorAlert 
-                message={error} 
-                onClose={() => setError(null)} 
-              />
-            )}
 
             <button 
               type="submit"
