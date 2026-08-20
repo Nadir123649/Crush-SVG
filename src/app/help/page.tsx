@@ -1,11 +1,11 @@
 import React from "react";
 import { FAQ } from "@/components/sections/FAQ";
-import { ScrollToTop } from "@/components/utils/ScrollToTop";
+
 
 export default function HelpPage() {
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
-      <ScrollToTop />
+
       
       {/* Header Section */}
       <div className="flex flex-col items-center text-center max-w-[800px] mb-[40px] md:mb-[60px]">

@@ -46,9 +46,6 @@ export function constructMetadata({
       images: [image],
       creator: "@CrushSVG",
     },
-    icons: {
-      icon: "/CrushSVG-logo.svg",
-    },
   };
 
   if (noindex) {

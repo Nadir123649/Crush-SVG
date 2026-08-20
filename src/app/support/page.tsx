@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollToTop } from "@/components/utils/ScrollToTop";
+
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
@@ -43,7 +43,7 @@ export default function SupportPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
       />
-      <ScrollToTop />
+
       
       {/* Hero Section */}
       <div className="flex flex-col items-center text-center max-w-[800px] mb-[40px] md:mb-[60px]">
