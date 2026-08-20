@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getRequestId } from '@/lib/logger'
+import { getRequestId } from '@/lib/shared/logger'
 
 export function proxy(request: NextRequest): NextResponse {
   const requestId = getRequestId(request)

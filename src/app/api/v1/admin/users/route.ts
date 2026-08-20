@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { User, isDuplicateKeyError } from '@/lib/db'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { toUserDTO } from '@/lib/auth'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { User, isDuplicateKeyError } from '@/lib/database/db'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { toUserDTO } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 

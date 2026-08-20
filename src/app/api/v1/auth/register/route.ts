@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server'
 import { randomUUID } from 'crypto'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { registerSchema } from '@/lib/auth-validation'
-import { User, isDuplicateKeyError } from '@/lib/db'
-import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/passwords'
-import { sendVerificationEmail } from '@/lib/email'
-import { isAdminEmail } from '@/lib/roles'
-import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { registerSchema } from '@/lib/auth/auth-validation'
+import { User, isDuplicateKeyError } from '@/lib/database/db'
+import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
+import { sendVerificationEmail } from '@/lib/integrations/email'
+import { isAdminEmail } from '@/lib/auth/roles'
+import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 

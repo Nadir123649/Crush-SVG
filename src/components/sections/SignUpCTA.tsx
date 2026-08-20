@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { User } from '@/lib/db'
-import { hashToken } from '@/lib/passwords'
-import { createSession } from '@/lib/sessions'
-import { buildTokenPayload } from '@/lib/tokens'
-import { getClientIp } from '@/lib/ip'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth'
-import { successResponse, errorResponse, getOrigin } from '@/lib/api-response'
+import { User } from '@/lib/database/db'
+import { hashToken } from '@/lib/auth/passwords'
+import { createSession } from '@/lib/auth/sessions'
+import { buildTokenPayload } from '@/lib/auth/tokens'
+import { getClientIp } from '@/lib/security/ip'
+import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 

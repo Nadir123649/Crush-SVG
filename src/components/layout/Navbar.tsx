@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";

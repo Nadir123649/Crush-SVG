@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
-import { getErrorMessage } from "@/lib/firebase-client";
+import { getErrorMessage } from "@/lib/firebase/firebase-client";
 import { ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 interface AuthCardProps {

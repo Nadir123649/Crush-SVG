@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { convertSchema } from '@/lib/convert-validation'
-import { convertSvgQueued } from '@/lib/conversion-queue'
-import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/conversion-usage'
-import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/guest-usage'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { classifySvgError } from '@/lib/svg-errors'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { convertSchema } from '@/lib/svg/convert-validation'
+import { convertSvgQueued } from '@/lib/svg/conversion-queue'
+import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/usage/conversion-usage'
+import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { classifySvgError } from '@/lib/svg/svg-errors'
 
 export const runtime = 'nodejs'
 
