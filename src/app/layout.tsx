@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Afacad } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -31,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-<body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getOrganizationSchema()) }}
@@ -50,6 +52,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </AuthProvider>
         <ToastProvider />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

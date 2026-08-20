@@ -17,6 +17,8 @@
     "@react-email/components": "^1.0.12",
     "@types/sharp": "^0.31.1",
     "@upstash/redis": "^1.38.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.1.0",
     "cloudinary": "^2.10.0",
