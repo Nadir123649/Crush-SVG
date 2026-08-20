@@ -6,6 +6,25 @@ import Link from "next/link";
 export function ResetPasswordCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setHasSubmitted(true);
+    setError(null);
+    
+    if (password.length < 6 || confirmPassword !== password) {
+      return;
+    }
+    
+    // Add real submit logic here when hooked up to backend
+  }
+
+  const isPasswordInvalid = hasSubmitted && password.length < 6;
+  const isConfirmInvalid = hasSubmitted && (confirmPassword.length < 6 || confirmPassword !== password);
 
   return (
     <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
@@ -20,14 +39,16 @@ export function ResetPasswordCard() {
         </div>
 
         {/* Inputs */}
-        <div className="flex flex-col gap-[12px] mt-[4px]">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-[12px] mt-[4px]">
           <div className="flex flex-col gap-[4px]">
             <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
             <div className="relative w-full">
               <input 
                 type={showPassword ? "text" : "password"} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
               <button
                 type="button"
@@ -47,7 +68,11 @@ export function ResetPasswordCard() {
                 )}
               </button>
             </div>
-            <p className="font-afacad text-[12px] text-[#A1A1AA] mt-[4px]">Must be at least 8 characters.</p>
+            {isPasswordInvalid && (
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
+                Password must be at least 6 characters
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-[4px]">
@@ -55,8 +80,13 @@ export function ResetPasswordCard() {
             <div className="relative w-full">
               <input 
                 type={showConfirm ? "text" : "password"} 
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError(null);
+                }}
                 placeholder="Re-enter your new password"
-                className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isConfirmInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
               <button
                 type="button"
@@ -76,14 +106,22 @@ export function ResetPasswordCard() {
                 )}
               </button>
             </div>
-            <p className="font-afacad text-[12px] text-[#A1A1AA] mt-[4px]">Must be at least 8 characters.</p>
+            {isConfirmInvalid ? (
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
+                Passwords do not match
+              </span>
+            ) : error ? (
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
+                {error}
+              </span>
+            ) : null}
           </div>
-        </div>
-
+        
         {/* CTA Button */}
-        <button className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
+        <button type="submit" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
           Set New Password
         </button>
+        </form>
 
         {/* Footer Text */}
         <div className="text-center mt-[12px]">

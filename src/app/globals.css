@@ -22,6 +22,16 @@ body {
   @apply font-body text-text-body bg-background;
 }
 
+/* Prevent iOS auto-zoom on inputs */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   @apply font-heading text-text-dark;
 }

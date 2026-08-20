@@ -13,10 +13,10 @@ export default function TermsAndConditions() {
     <div className="w-full flex justify-center py-[40px] md:py-[80px]">
       <article className="w-full max-w-[800px] flex flex-col gap-[24px]">
         
-        {/* Header */}
-        <div className="flex flex-col items-center text-center gap-[8px] mb-[16px]">
-          <h1 className="font-heading font-semibold text-[32px] md:text-[48px] text-[#D94A1E] leading-[120%] tracking-[0%]">
-            Terms & Conditions
+        {/* Hero Section */}
+        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[60px] mx-auto">
+          <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
+            Terms of <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Service</span>
           </h1>
         </div>
 

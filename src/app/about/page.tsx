@@ -26,8 +26,8 @@ export default function AboutUsPage() {
 
       
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[40px] md:mb-[60px]">
-        <h1 className="font-heading font-semibold text-[32px] leading-[40px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[16px]">
+      <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[60px]">
+        <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
           About <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Us</span>
         </h1>
         <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[600px]">
