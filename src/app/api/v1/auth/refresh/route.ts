@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/rate-limit'
-import { rotateSession, wasSessionRotatedWithin } from '@/lib/sessions'
-import { buildTokenPayload, verifyRefreshToken } from '@/lib/tokens'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth'
-import { toUserDTO } from '@/lib/auth'
-import { Session, User } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
+import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
+import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
+import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { toUserDTO } from '@/lib/auth/auth'
+import { Session, User } from '@/lib/database/db'
+import { logger } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
 

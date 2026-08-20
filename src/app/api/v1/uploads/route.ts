@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { auth } from '@/lib/auth-middleware'
-import { uploadImage } from '@/lib/cloudinary'
-import { convertSvgQueued } from '@/lib/conversion-queue'
-import { convertSchema } from '@/lib/convert-validation'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { uploadImage } from '@/lib/integrations/cloudinary'
+import { convertSvgQueued } from '@/lib/svg/conversion-queue'
+import { convertSchema } from '@/lib/svg/convert-validation'
 import {
   getConversionUsage,
   incrementConversionUsage,
   GUEST_CONVERSION_LIMIT,
-} from '@/lib/conversion-usage'
-import { getGuestId } from '@/lib/guest-usage'
-import { successResponse, errorResponse } from '@/lib/api-response'
-import { classifySvgError } from '@/lib/svg-errors'
-import { logger } from '@/lib/logger'
+} from '@/lib/usage/conversion-usage'
+import { getGuestId } from '@/lib/usage/guest-usage'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { classifySvgError } from '@/lib/svg/svg-errors'
+import { logger } from '@/lib/shared/logger'
 import type { UploadApiResponse } from 'cloudinary'
 
 export const runtime = 'nodejs'

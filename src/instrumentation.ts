@@ -1,6 +1,6 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { validateEnv } = await import('@/lib/env')
+    const { validateEnv } = await import('@/lib/shared/env')
     validateEnv()
 
     const dnsServers = process.env.DNS_SERVERS
@@ -10,7 +10,7 @@ export async function register() {
       console.log(`[crushsvg] DNS servers overridden: ${dnsServers}`)
     }
 
-    const { connectToDatabase } = await import('@/lib/db')
+    const { connectToDatabase } = await import('@/lib/database/db')
     const MAX_ATTEMPTS = 3
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {

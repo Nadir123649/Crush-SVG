@@ -12,7 +12,7 @@ import {
 } from 'react'
 
 import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
-import type { TokenPairDTO, UserDTO } from '@/lib/shared-types'
+import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
@@ -224,7 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithGitHub,
         signInWithGoogle,
         signInWithX,
-      } = await import('@/lib/firebase-client')
+      } = await import('@/lib/firebase/firebase-client')
       const signIn = {
         google: signInWithGoogle,
         github: signInWithGitHub,
@@ -249,7 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // and delete the httpOnly refresh cookie) without blocking the user.
     clearAuth()
     void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
-    void import('@/lib/firebase-client')
+    void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
       .catch(() => {})
   }, [clearAuth])

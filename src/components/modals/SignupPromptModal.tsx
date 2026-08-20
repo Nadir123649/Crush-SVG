@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { IMAGES } from "@/lib/images";
+import { IMAGES } from "@/lib/shared/images";
 
 interface SignupPromptModalProps {
   onClose: () => void;

@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server'
 
-import { auth } from '@/lib/auth-middleware'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
-import { conversionHistoryQuerySchema } from '@/lib/validation'
-import { User } from '@/lib/db'
-import { successResponse, errorResponse } from '@/lib/api-response'
+import { auth } from '@/lib/middleware/auth-middleware'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { conversionHistoryQuerySchema } from '@/lib/shared/validation'
+import { User } from '@/lib/database/db'
+import { successResponse, errorResponse } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 
