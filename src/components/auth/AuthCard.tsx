@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase/firebase-client";
 import { ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
+import { trackConversion } from "@/lib/client/analytics";
 interface AuthCardProps {
   type: "login" | "signup";
 }
@@ -64,6 +65,7 @@ export function AuthCard({ type }: AuthCardProps) {
         router.refresh();
       } else {
         await register(name.trim(), email, password);
+        trackConversion("sign_up", { method: "email" });
         setVerificationSent(true);
         showToast("success", "Account created! Check your email to verify your account.");
       }
@@ -181,10 +183,13 @@ async function handleOAuth(provider: OAuthProvider) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
+                autoComplete="name"
+                aria-invalid={isNameInvalid ? "true" : undefined}
+                aria-describedby={isNameInvalid ? "auth-name-error" : undefined}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isNameInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
               {isNameInvalid && (
-                <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+                <span id="auth-name-error" role="alert" className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
                   Name must be at least 3 characters
                 </span>
               )}
@@ -199,10 +204,12 @@ async function handleOAuth(provider: OAuthProvider) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               autoComplete="email"
+              aria-invalid={isEmailInvalid ? "true" : undefined}
+              aria-describedby={isEmailInvalid ? "auth-email-error" : undefined}
               className={`w-full h-[32px] rounded-[4px] border-[1px] ${isEmailInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
             />
             {isEmailInvalid && (
-              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
+              <span id="auth-email-error" role="alert" className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
                 Invalid email format
               </span>
             )}
@@ -217,6 +224,8 @@ async function handleOAuth(provider: OAuthProvider) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 autoComplete={isLogin ? "current-password" : "new-password"}
+                aria-invalid={isPasswordInvalid ? "true" : undefined}
+                aria-describedby={isPasswordInvalid ? "auth-password-error" : undefined}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
               />
               <button

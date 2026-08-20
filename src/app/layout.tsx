@@ -8,24 +8,28 @@ import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
 import { constructMetadata, getOrganizationSchema, getWebApplicationSchema } from "@/lib/seo";
+import Script from "next/script";
+import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-VCLLSKB082";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const afacad = Afacad({
   variable: "--font-afacad",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
   themeColor: "#D94A1E",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export const metadata: Metadata = constructMetadata({
@@ -43,6 +47,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none font-body font-medium transition-all"
+        >
+          Skip to main content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getOrganizationSchema()) }}
@@ -55,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <ScrollToTop />
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
-            <main className="w-full flex-1">
+            <main id="main-content" className="w-full flex-1">
               {children}
             </main>
           </div>
@@ -64,6 +74,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider />
         <Analytics />
         <SpeedInsights />
+        {/* GDPR: default consent denied — must run before GA4 config */}
+        <Script id="consent-default" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', {
+              analytics_storage: 'denied',
+              ad_storage: 'denied',
+              wait_for_update: 500
+            });
+          `}
+        </Script>
+        {/* Google Analytics */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+        {/* Cookie consent banner — shown until user accepts/declines */}
+        <CookieConsentBanner />
       </body>
     </html>
   );
