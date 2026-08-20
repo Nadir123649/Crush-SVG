@@ -1,123 +1,94 @@
-import { NextRequest } from 'next/server'
-import { randomUUID } from 'crypto'
-
-import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
-import { registerSchema } from '@/lib/auth/auth-validation'
-import { User, isDuplicateKeyError } from '@/lib/database/db'
-import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
-import { sendVerificationEmail } from '@/emails/email'
-import { isAdminEmail } from '@/lib/auth/roles'
-import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
-
-export const runtime = 'nodejs'
-
+import { NextRequest } from "next/server";
+import { randomUUID } from "crypto";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/security/rate-limit";
+import { registerSchema } from "@/lib/auth/auth-validation";
+import { User, isDuplicateKeyError } from "@/lib/database/db";
+import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from "@/lib/auth/passwords";
+import { sendVerificationEmail } from "@/emails/email";
+import { isAdminEmail } from "@/lib/auth/roles";
+import { successResponse, errorResponse, getOrigin } from "@/lib/http/api-response";
+export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
-  const rl = await checkRateLimit(request, 'auth:register', 3, 60_000)
-  if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
-  }
-
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return errorResponse(400, '', '', undefined, request)
-  }
-
-  const parsed = registerSchema.safeParse(body)
-  if (!parsed.success) {
-    const first = parsed.error.flatten().fieldErrors
-    const message = Object.values(first).flat()[0] ?? 'Invalid input'
-    return errorResponse(400, 'validation_error', message)
-  }
-
-  const email = parsed.data.email.toLowerCase().trim()
-
-  // Email+password accounts are unique per email. An existing password
-  // account blocks signup; an OAuth-only account (created via Google/GitHub
-  // etc., no password set) instead gets the email+password credentials
-  // linked to it — otherwise the unique email index turns the second signup
-  // into a confusing 11000 "already exists" and the user could never log in
-  // with email+password at all.
-  const existingAccount = await User.findOne({ email })
-  if (existingAccount?.password) {
-    return errorResponse(
-      409,
-      'account_already_exists',
-      'An account with this email already exists. Please log in instead.'
-    )
-  }
-
-  const password = await hashPassword(parsed.data.password)
-  const token = generateToken()
-  const now = Date.now()
-
-  if (existingAccount) {
-    await User.updateOne(
-      { _id: existingAccount._id },
-      {
-        $set: {
-          password,
-          isVerified: false,
-          emailVerificationToken: hashToken(token),
-          emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
-        },
-        $addToSet: { providers: 'email', linkedProviders: 'email' },
-      }
-    )
-
-    const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+    const rl = await checkRateLimit(request, "auth:register", 3, 60000);
+    if (!rl.allowed) {
+        return errorResponse(429, "rate_limit_exceeded", "Too many requests.", rateLimitHeaders(rl), request);
+    }
+    let body: unknown;
     try {
-      await sendVerificationEmail(email, verifyUrl)
-    } catch (e) {
-      console.error('Verification email failed to send:', e)
+        body = await request.json();
     }
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[dev] Email verification for ${email}: ${verifyUrl}`)
+    catch {
+        return errorResponse(400, "", "", undefined, request);
     }
-
-    return successResponse(
-      { message: 'Registration successful. Please check your email to verify your account.' }, 201, rateLimitHeaders(rl), request)
-  }
-
-  try {
-    await User.create({
-      uid: `email_${randomUUID()}`,
-      email,
-      displayName: parsed.data.name,
-      name: parsed.data.name,
-      photoURL: null,
-      providers: ['email'],
-      linkedProviders: ['email'],
-      role: isAdminEmail(email) ? 'admin' : 'user',
-      password,
-      isVerified: false,
-      emailVerificationToken: hashToken(token),
-      emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
-      conversionsUsed: 0,
-      lastLoginAt: new Date(now),
-    })
-  } catch (error) {
-    if (isDuplicateKeyError(error)) {
-      return errorResponse(
-        409,
-        'account_already_exists',
-        'An account with this email already exists. Please log in instead.'
-      )
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+        const first = parsed.error.flatten().fieldErrors;
+        const message = Object.values(first).flat()[0] ?? "Invalid input";
+        return errorResponse(400, "validation_error", message);
     }
-    throw error
-  }
-
-  const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
-  try {
-    await sendVerificationEmail(email, verifyUrl)
-  } catch (e) {
-    console.error('Verification email failed to send:', e)
-  }
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[dev] Email verification for ${email}: ${verifyUrl}`)
-  }
-
-  return successResponse(
-    { message: 'Registration successful. Please check your email to verify your account.' }, 201, rateLimitHeaders(rl), request)
+    const email = parsed.data.email.toLowerCase().trim();
+    const existingAccount = await User.findOne({ email });
+    if (existingAccount?.password) {
+        return errorResponse(409, "account_already_exists", "An account with this email already exists. Please log in instead.");
+    }
+    const password = await hashPassword(parsed.data.password);
+    const token = generateToken();
+    const now = Date.now();
+    if (existingAccount) {
+        await User.updateOne({ _id: existingAccount._id }, {
+            $set: {
+                password,
+                isVerified: false,
+                emailVerificationToken: hashToken(token),
+                emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
+            },
+            $addToSet: { providers: "email", linkedProviders: "email" },
+        });
+        const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`;
+        try {
+            await sendVerificationEmail(email, verifyUrl);
+        }
+        catch (e) {
+            console.error("Verification email failed to send:", e);
+        }
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`[dev] Email verification for ${email}: ${verifyUrl}`);
+        }
+        return successResponse({ message: "Registration successful. Please check your email to verify your account." }, 201, rateLimitHeaders(rl), request);
+    }
+    try {
+        await User.create({
+            uid: `email_${randomUUID()}`,
+            email,
+            displayName: parsed.data.name,
+            name: parsed.data.name,
+            photoURL: null,
+            providers: ["email"],
+            linkedProviders: ["email"],
+            role: isAdminEmail(email) ? "admin" : "user",
+            password,
+            isVerified: false,
+            emailVerificationToken: hashToken(token),
+            emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
+            conversionsUsed: 0,
+            lastLoginAt: new Date(now),
+        });
+    }
+    catch (error) {
+        if (isDuplicateKeyError(error)) {
+            return errorResponse(409, "account_already_exists", "An account with this email already exists. Please log in instead.");
+        }
+        throw error;
+    }
+    const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`;
+    try {
+        await sendVerificationEmail(email, verifyUrl);
+    }
+    catch (e) {
+        console.error("Verification email failed to send:", e);
+    }
+    if (process.env.NODE_ENV !== "production") {
+        console.log(`[dev] Email verification for ${email}: ${verifyUrl}`);
+    }
+    return successResponse({ message: "Registration successful. Please check your email to verify your account." }, 201, rateLimitHeaders(rl), request);
 }

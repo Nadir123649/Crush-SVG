@@ -1,31 +1,27 @@
-import 'server-only'
-
-import { Schema, model, type Model, type Types } from 'mongoose'
-
+import "server-only";
+import { Schema, model, type Model, type Types } from "mongoose";
 export interface UserDoc {
-  _id: Types.ObjectId
-  uid: string
-  email: string | null
-  displayName: string
-  name?: string | null
-  photoURL: string | null
-  providers: string[]
-  linkedProviders?: string[]
-  role: 'user' | 'admin'
-  password?: string
-  isVerified?: boolean
-  emailVerificationToken?: string
-  emailVerificationTokenExpire?: number
-  resetPasswordToken?: string
-  resetPasswordTokenExpire?: number
-  conversionsUsed: number
-  createdAt: Date
-  updatedAt: Date
-  lastLoginAt: Date
+    _id: Types.ObjectId;
+    uid: string;
+    email: string | null;
+    displayName: string;
+    name?: string | null;
+    photoURL: string | null;
+    providers: string[];
+    linkedProviders?: string[];
+    role: "user" | "admin";
+    password?: string;
+    isVerified?: boolean;
+    emailVerificationToken?: string;
+    emailVerificationTokenExpire?: number;
+    resetPasswordToken?: string;
+    resetPasswordTokenExpire?: number;
+    conversionsUsed: number;
+    createdAt: Date;
+    updatedAt: Date;
+    lastLoginAt: Date;
 }
-
-const userSchema = new Schema(
-  {
+const userSchema = new Schema({
     uid: { type: String, required: true },
     email: { type: String, default: null },
     displayName: { type: String, required: true },
@@ -33,7 +29,7 @@ const userSchema = new Schema(
     photoURL: { type: String, default: null },
     providers: { type: [String], default: [] },
     linkedProviders: { type: [String] },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
     password: { type: String },
     isVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
@@ -42,15 +38,10 @@ const userSchema = new Schema(
     resetPasswordTokenExpire: { type: Number },
     conversionsUsed: { type: Number, default: 0 },
     lastLoginAt: { type: Date, required: true },
-  },
-  { timestamps: true }
-)
-
-userSchema.index({ uid: 1 }, { unique: true })
-userSchema.index({ email: 1 }, { sparse: true })
-
+}, { timestamps: true });
+userSchema.index({ uid: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { sparse: true });
 declare global {
-  var __crushSvgUserModel: Model<UserDoc> | undefined
+    var __crushSvgUserModel: Model<UserDoc> | undefined;
 }
-
-export const User = (globalThis.__crushSvgUserModel ??= model<UserDoc>('User', userSchema))
+export const User = (globalThis.__crushSvgUserModel ??= model<UserDoc>("User", userSchema));
