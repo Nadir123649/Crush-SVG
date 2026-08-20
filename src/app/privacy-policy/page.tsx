@@ -61,7 +61,6 @@ export default function PrivacyPolicy() {
           </p>
           <ul className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%] list-disc pl-[24px] flex flex-col gap-[8px]">
             <li><strong>Database & Hosting Providers:</strong> To securely store user accounts and session data.</li>
-            <li><strong>Cloud Storage Providers:</strong> To temporarily hold and process file conversions.</li>
             <li><strong>Email Providers:</strong> To deliver transactional emails.</li>
           </ul>
         </section>
@@ -72,7 +71,7 @@ export default function PrivacyPolicy() {
             We implement industry-standard security measures to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure. 
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            <strong>File Retention:</strong> SVGs you upload and the resulting PNGs are processed temporarily. We do not permanently store your converted files on our servers. They are automatically purged from our systems shortly after your session ends or the conversion is downloaded.
+            <strong>File Retention:</strong> All SVG to PNG conversions happen entirely in your browser using our client-side processing. Your files are never uploaded to, processed by, or stored on our servers.
           </p>
         </section>
 
@@ -100,7 +99,7 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">9. Contact Us</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            If you have any questions or concerns about this Privacy Policy, please contact us at privacy@crushsvg.com.
+            If you have any questions or concerns about this Privacy Policy, please contact us at privacy@crushsvg.net.
           </p>
         </section>
 

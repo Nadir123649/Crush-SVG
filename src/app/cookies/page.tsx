@@ -67,7 +67,7 @@ export default function CookiesPolicyPage() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">6. Contact Us</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            If you have any questions about our use of cookies or other technologies, please email us at privacy@crushsvg.com.
+            If you have any questions about our use of cookies or other technologies, please email us at privacy@crushsvg.net.
           </p>
         </section>
 

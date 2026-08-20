@@ -3,11 +3,9 @@
   "cleanUrls": true,
   "functions": {
     "src/app/api/v1/convert/route.ts": {
-      "memory": 2048,
       "maxDuration": 30
     },
     "src/app/api/v1/uploads/route.ts": {
-      "memory": 2048,
       "maxDuration": 30
     }
   },

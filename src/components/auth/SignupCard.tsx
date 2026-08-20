@@ -78,7 +78,7 @@ export function SignupCard() {
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[11px] leading-[12px] text-[#AEAEAE]">
-            By creating an account, you agree to our <Link href="/terms" className="font-bold hover:text-[#D94A1E]">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold hover:text-[#D94A1E]">Privacy Policy.</Link>
+            By creating an account, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] hover:underline">Privacy Policy.</Link>
           </p>
         </div>
       </div>
