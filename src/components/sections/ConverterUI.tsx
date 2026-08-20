@@ -395,7 +395,6 @@ export function ConverterUI() {
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
-        showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
         setShowSignupPrompt(true);
         return;
       }
@@ -421,7 +420,6 @@ export function ConverterUI() {
     a.remove();
     showToast("success", "Downloading…");
     if (limitReached && status !== "authed") {
-      showToast("info", "You've reached your free conversion limit. Sign up for unlimited conversions.");
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
     }
@@ -436,20 +434,6 @@ export function ConverterUI() {
 
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
-
-  useEffect(() => {
-    // A guest at their conversion limit is stuck until the 10-minute window
-    // expires — the server then resets the budget (0 of 3). Poll while the
-    // limit is reached so the counter and Convert button recover without a
-    // page reload.
-    if (status !== 'guest' || !limitReached) return;
-    const timer = setInterval(() => {
-      getUsage()
-        .then((u) => setUsage(u))
-        .catch(() => {});
-    }, 30_000);
-    return () => clearInterval(timer);
-  }, [status, sessionVersion, limitReached]);
 
   return (
     <>

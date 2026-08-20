@@ -1,0 +1,821 @@
+import "server-only";
+
+export const EMAIL_VERIFICATION_HTML = `<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Confirm Your Email Address</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <style>
+        table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+        body, .cta-strong { mso-line-height-rule: exactly; }
+    </style>
+    <![endif]-->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap');
+
+        html,
+        body {
+            margin: 0 auto !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            background-color: #F3F2F0;
+            font-family: 'Afacad', sans-serif;
+        }
+
+        * {
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        table {
+            border-spacing: 0 !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+            margin: 0 auto !important;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+            display: block;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .gradient-bg {
+            background-color: #FCE7D2;
+            background: linear-gradient(90deg, #F4BE91 0%, #FCE7D2 100%);
+        }
+
+        .cta-strong {
+            display: block;
+            background-color: #D94A1E;
+            background: linear-gradient(90deg, #D94A1E 0%, #FF9A3D 100%);
+            border-radius: 12px;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 18px;
+            line-height: 42px;
+            height: 42px;
+            text-align: center;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        @media screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+
+            .mobile-padding {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+
+            .features-stack {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+                margin-bottom: 15px !important;
+            }
+
+            .divider-hide {
+                display: none !important;
+            }
+
+            .h1-mobile {
+                font-size: 28px !important;
+            }
+
+            .subtitle-mobile {
+                font-size: 14px !important;
+            }
+
+            .h2-mobile {
+                font-size: 20px !important;
+            }
+
+            .mobile-center-td {
+                text-align: center !important;
+            }
+
+            .mobile-logo-center {
+                float: none !important;
+                margin: 0 auto !important;
+            }
+
+            .cta-strong {
+                max-width: 100% !important;
+                margin: 0 auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0 !important; background-color: #F3F2F0; width: 100% !important;">
+    <center style="width: 100%; background-color: #F3F2F0; padding: 40px 0px;">
+
+        <div style="max-width: 600px; margin: 0 auto; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 50px rgba(0,0,0,0.08); background-color: #ffffff;"
+            class="email-container">
+            <!--[if mso]>
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="border-radius: 12px;">
+            <tr>
+            <td style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+            <![endif]-->
+
+            <!-- Header Section with Background Image -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                    <td background="https://res.cloudinary.com/df80crgrw/image/upload/v1787030374/Group_1948755078_3_a0sdtu.png" bgcolor="#ffffff" valign="top" style="background-image: url('https://res.cloudinary.com/df80crgrw/image/upload/v1787030374/Group_1948755078_3_a0sdtu.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; text-align: center;">
+                        <!--[if gte mso 9]>
+                        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:350px;">
+                            <v:fill type="frame" src="https://res.cloudinary.com/df80crgrw/image/upload/v1787030374/Group_1948755078_3_a0sdtu.png" color="#ffffff" />
+                            <v:textbox inset="0,0,0,0">
+                        <![endif]-->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td style="padding: 40px 40px 60px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr>
+                                            <td align="left" class="mobile-center-td" style="text-align: left;">
+                                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mobile-logo-center" style="display: inline-block; vertical-align: middle;">
+                                                    <tr>
+                                                        <td valign="middle" style="padding-right: 6px;">
+                                                            <a href="https://crush-svg.vercel.app/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="26" height="26" alt="CrushSVG" border="0" style="display: block;"></a>
+                                                        </td>
+                                                        <td valign="middle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; color: #353A3E; line-height: 1;">
+                                                            <a href="https://crush-svg.vercel.app/" target="_blank" style="color: #353A3E; text-decoration: none;">Crush<span style="color: #D94A1E;">SVG</span></a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" style="padding-top: 40px;">
+                                                <h1 class="h1-mobile" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; line-height: 120%; color: #D94A1E; font-weight: 700;">
+                                                    Confirm Your Email Address</h1>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" class="subtitle-mobile" style="padding-top: 16px;">
+                                                <div style="max-width: 492px; margin: 0 auto; font-family: 'Afacad', sans-serif; font-weight: 400; font-size: 16px; line-height: 150%; letter-spacing: 0%; color: #4B5563; text-align: center;">
+                                                    You're almost there! Please verify your email address to complete your CrushSVG account setup.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="60" style="font-size: 60px; line-height: 60px;">&nbsp;</td>
+                            </tr>
+                        </table>
+                        <!--[if gte mso 9]>
+                            </v:textbox>
+                        </v:rect>
+                        <![endif]-->
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Body Section -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td align="center" style="padding: 15px 40px 40px 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td align="center" class="h2-mobile"
+                                    style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; color: #353A3E; font-weight: 700;">
+                                    Secure Your Account
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-top: 15px;">
+                                    <div
+                                        style="max-width: 402px; margin: 0 auto; font-family: 'Afacad', sans-serif; font-size: 16px; color: #5A524C; line-height: 150%;">
+                                        Hi {{first_name}},<br><br>
+                                        Verify your email address to activate your account and start converting SVGs
+                                        with ease.
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-top: 35px;">
+                                    <!-- CTA Button -->
+                                    <!--[if mso]>
+                                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="#" style="height:42px;v-text-anchor:middle;width:520px;" arcsize="29%" stroke="f" fillcolor="#D94A1E">
+                                        <w:anchorlock/>
+                                        <center style="color:#ffffff !important;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:bold;line-height:42px;height:42px;">Verify Your Email</center>
+                                    </v:roundrect>
+                                    <![endif]-->
+                                    <!--[if !mso]><!-->
+                                    <a href="#"
+                                        style="display: block; text-decoration: none; width: 100%; max-width: 520px;">
+                                        <strong class="cta-strong">Verify Your Email</strong>
+                                    </a>
+                                    <!--<![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Features Row -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td style="padding: 0 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                            style="max-width: 401px; border-top: 1px solid #F0EBE5; border-bottom: 1px solid #F0EBE5; margin: 0 auto;">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <!--[if mso]>
+                                    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%">
+                                     <tr>
+                                    <td width="30%" align="center" valign="middle">
+                                    <![endif]-->
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px; color: #10B981; font-size: 16px;">✔</td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    Secure verification</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="5%" align="center" valign="middle"><div style="border-left:1px solid #F0EBE5;height:16px;"></div></td><td width="30%" align="center" valign="middle">
+                                    <![endif]-->
+                                    <div class="divider-hide"
+                                        style="display: inline-block; width: 1px; height: 16px; background-color: #F0EBE5; margin: 0 13px; vertical-align: middle;">
+                                    </div>
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px;"><img
+                                                        src="https://res.cloudinary.com/df80crgrw/image/upload/v1787119162/Group_1948755076_knryqj.png"
+                                                        width="12" height="12" alt="Time" border="0"
+                                                        style="display: block;"></td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    Expires in 30 min</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="5%" align="center" valign="middle"><div style="border-left:1px solid #F0EBE5;height:16px;"></div></td><td width="30%" align="center" valign="middle">
+                                    <![endif]-->
+                                    <div class="divider-hide"
+                                        style="display: inline-block; width: 1px; height: 16px; background-color: #F0EBE5; margin: 0 13px; vertical-align: middle;">
+                                    </div>
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px;"><img
+                                                        src="https://res.cloudinary.com/df80crgrw/image/upload/v1787119162/Group_1948755077_usqwvw.png"
+                                                        width="10" height="12" alt="Lock" border="0"
+                                                        style="display: block;"></td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    One-time use</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td></tr></table>
+                                    <![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center"
+                        style="padding: 35px 40px 40px 40px; font-family: 'Afacad', sans-serif; font-size: 14px; color: #64748B; line-height: 150%;"
+                        class="mobile-padding">
+                        If you didn't ask to verify your email, your account is safe and you can ignore this email.
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Footer Section -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td style="padding: 0 40px 40px 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                            style="border-top: 1px solid #F4F4F4;">
+                            <tr>
+                                <td align="center" style="padding-top: 30px;">
+                                    <a href="https://crush-svg.vercel.app/" target="_blank"
+                                        style="text-decoration: none;">
+                                        <span
+                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #D94A1E;">Crush<span
+                                                style="color: #353A3E;">SVG</span></span>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center"
+                                    style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
+                                    © 2026 CrushSVG. All rights reserved.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center"
+                                    style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
+                                    <a href="https://crush-svg.vercel.app/privacy" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Privacy</a> &bull;
+                                    <a href="https://crush-svg.vercel.app/terms" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Terms</a> &bull;
+                                    <a href="https://crush-svg.vercel.app/support" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Support</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </div>
+    </center>
+</body>
+
+</html>`;
+
+export const RESET_PASSWORD_HTML = `<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Reset Your Password</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <style>
+        table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+        body, .cta-strong { mso-line-height-rule: exactly; }
+    </style>
+    <![endif]-->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap');
+
+        html,
+        body {
+            margin: 0 auto !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            background-color: #F3F2F0;
+            font-family: 'Afacad', sans-serif;
+        }
+
+        * {
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%; 
+        }
+
+        table {
+            border-spacing: 0 !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+            margin: 0 auto !important;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+            display: block;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .gradient-bg {
+            background-color: #FCE7D2;
+            background: linear-gradient(90deg, #F4BE91 0%, #FCE7D2 100%);
+        }
+
+        .cta-strong {
+            display: block;
+            background-color: #D94A1E;
+            background: linear-gradient(90deg, #D94A1E 0%, #FF9A3D 100%);
+            border-radius: 12px;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 18px;
+            line-height: 42px;
+            height: 42px;
+            text-align: center;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        @media screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+
+            .mobile-padding {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+
+            .features-stack {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+                margin-bottom: 15px !important;
+            }
+
+            .divider-hide {
+                display: none !important;
+            }
+
+            .h1-mobile {
+                font-size: 28px !important;
+            }
+
+            .subtitle-mobile {
+                font-size: 14px !important;
+            }
+
+            .h2-mobile {
+                font-size: 20px !important;
+            }
+
+            .mobile-center-td {
+                text-align: center !important;
+            }
+
+            .mobile-logo-center {
+                float: none !important;
+                margin: 0 auto !important;
+            }
+
+            .subtitle-margin {
+                margin-bottom: 60px !important;
+            }
+                                    
+            .cta-strong {
+                max-width: 100% !important;
+                margin: 0 auto !important;
+            }
+        }
+
+        /* Ultra-narrow screens (e.g. 215px) where text wraps heavily */
+        @media screen and (max-width: 300px) {
+            .subtitle-margin {
+                margin-bottom: 120px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0 !important; background-color: #F3F2F0; width: 100% !important;">
+    <center style="width: 100%; background-color: #F3F2F0; padding: 40px 0px;">
+
+        <div style="max-width: 600px; margin: 0 auto; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 50px rgba(0,0,0,0.08); background-color: #ffffff;"
+            class="email-container">
+            <!--[if mso]>
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="border-radius: 12px;">
+            <tr>
+            <td style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+            <![endif]-->
+
+            <!-- Header Section with Background Image -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                    <td background="https://res.cloudinary.com/df80crgrw/image/upload/v1787030351/Group_1948755079_w3vrsx.png" bgcolor="#ffffff" valign="top" style="background-image: url('https://res.cloudinary.com/df80crgrw/image/upload/v1787030351/Group_1948755079_w3vrsx.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; text-align: center;">
+                        <!--[if gte mso 9]>
+                        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:360px;">
+                            <v:fill type="frame" src="https://res.cloudinary.com/df80crgrw/image/upload/v1787030351/Group_1948755079_w3vrsx.png" color="#ffffff" />
+                            <v:textbox inset="0,0,0,0">
+                        <![endif]-->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td style="padding: 40px 40px 60px 40px;" class="mobile-padding">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr>
+                                            <td align="left" class="mobile-center-td" style="text-align: left;">
+                                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mobile-logo-center" style="display: inline-block; vertical-align: middle;">
+                                                    <tr>
+                                                        <td valign="middle" style="padding-right: 6px;">
+                                                            <a href="https://crush-svg.vercel.app/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="26" height="26" alt="CrushSVG" border="0" style="display: block;"></a>
+                                                        </td>
+                                                        <td valign="middle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; color: #353A3E; line-height: 1;">
+                                                            <a href="https://crush-svg.vercel.app/" target="_blank" style="color: #353A3E; text-decoration: none;">Crush<span style="color: #D94A1E;">SVG</span></a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" style="padding-top: 40px;">
+                                                <h1 class="h1-mobile" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; line-height: 120%; color: #D94A1E; font-weight: 700;">
+                                                    Let's Get You Back In, Securely</h1>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center" class="subtitle-mobile" style="padding-top: 16px;">
+                                                <div class="subtitle-margin" style="max-width: 492px; margin: 0 auto; margin-bottom: 20px; font-family: 'Afacad', sans-serif; font-weight: 400; font-size: 16px; line-height: 150%; letter-spacing: 0%; color: #5A524C; text-align: center;">
+                                                    We received a request to reset the password on your<br>CrushSVG account.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="60" style="font-size: 60px; line-height: 60px;">&nbsp;</td>
+                            </tr>
+                        </table>
+                        <!--[if gte mso 9]>
+                            </v:textbox>
+                        </v:rect>
+                        <![endif]-->
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Body Section -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td align="center" style="padding: 15px 40px 40px 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td align="center" class="h2-mobile"
+                                    style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; color: #353A3E; font-weight: 700;">
+                                    Complete Your Password Reset
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-top: 15px;">
+                                    <div
+                                        style="max-width: 402px; margin: 0 auto; font-family: 'Afacad', sans-serif; font-size: 16px; color: #5A524C; line-height: 150%;">
+                                        Hi {{first_name}},<br><br>
+                                        Click the button below to choose a new password and get back into your account
+                                        in seconds.
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding-top: 35px;">
+                                    <!-- CTA Button -->
+                                    <!--[if mso]>
+                                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="#" style="height:42px;v-text-anchor:middle;width:520px;" arcsize="29%" stroke="f" fillcolor="#D94A1E">
+                                        <w:anchorlock/>
+                                        <center style="color:#ffffff !important;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:bold;line-height:42px;height:42px;">Reset Password</center>
+                                    </v:roundrect>
+                                    <![endif]-->
+                                    <!--[if !mso]><!-->
+                                    <a href="#"
+                                        style="display: block; text-decoration: none; width: 100%; max-width: 520px;">
+                                        <strong class="cta-strong">Reset Password</strong>
+                                    </a>
+                                    <!--<![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Features Row -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td style="padding: 0 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                            style="max-width: 401px; border-top: 1px solid #F0EBE5; border-bottom: 1px solid #F0EBE5; margin: 0 auto;">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <!--[if mso]>
+                                    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%">
+                                        <tr>
+                                        <td width="30%" align="center" valign="middle">
+                                        <![endif]-->
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px; color: #10B981; font-size: 16px;">✔</td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    Encrypted link</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="5%" align="center" valign="middle"><div style="border-left:1px solid #F0EBE5;height:16px;"></div></td><td width="30%" align="center" valign="middle">
+                                    <![endif]-->
+                                    <div class="divider-hide"
+                                        style="display: inline-block; width: 1px; height: 16px; background-color: #F0EBE5; margin: 0 13px; vertical-align: middle;">
+                                    </div>
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px;"><img
+                                                        src="https://res.cloudinary.com/df80crgrw/image/upload/v1787119162/Group_1948755076_knryqj.png"
+                                                        width="12" height="12" alt="Time" border="0"
+                                                        style="display: block;"></td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    Expires in 30 min</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="5%" align="center" valign="middle"><div style="border-left:1px solid #F0EBE5;height:16px;"></div></td><td width="30%" align="center" valign="middle">
+                                    <![endif]-->
+                                    <div class="divider-hide"
+                                        style="display: inline-block; width: 1px; height: 16px; background-color: #F0EBE5; margin: 0 13px; vertical-align: middle;">
+                                    </div>
+                                    <div class="features-stack" style="display: inline-block; vertical-align: middle;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 8px;"><img
+                                                        src="https://res.cloudinary.com/df80crgrw/image/upload/v1787119162/Group_1948755077_usqwvw.png"
+                                                        width="10" height="12" alt="Lock" border="0"
+                                                        style="display: block;"></td>
+                                                <td
+                                                    style="font-family: 'Afacad', sans-serif; font-size: 12px; color: #7A7067;">
+                                                    One-time use</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td></tr></table>
+                                    <![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- What Happens Next Section -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td align="center" style="padding: 30px 40px 20px 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                            style="max-width: 429px; margin: 0 auto;">
+                            <tr>
+                                <td align="center"
+                                    style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 14px; color: #8A7E75; font-weight: 700; letter-spacing: 1px; padding-bottom: 25px; text-transform: uppercase;">
+                                    WHAT HAPPENS NEXT
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center">
+                                    <!--[if mso]>
+                                    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%">
+                                        <tr>
+                                        <td width="33%" align="center" valign="top">
+                                        <![endif]-->
+                                    <div class="features-stack"
+                                        style="display: inline-block; width: 32%; vertical-align: top; text-align: center;">
+                                        <div
+                                            style="width: 28px; height: 28px; background-color: #F4F4F4; border-radius: 70px; margin: 0 auto 10px auto; display: table; padding: 8px;">
+                                            <div
+                                                style="display: table-cell; vertical-align: middle; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: #8A7E75;">
+                                                1</div>
+                                        </div>
+                                        <div
+                                            style="font-family: 'Afacad', sans-serif; font-size: 14px; line-height: 150%;">
+                                            <strong style="color: #353A3E; font-weight: 700;">Tap Reset</strong><br>
+                                            <span style="color: #8C827A;">Password above</span>
+                                        </div>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="33%" align="center" valign="top">
+                                    <![endif]-->
+                                    <div class="features-stack"
+                                        style="display: inline-block; width: 32%; vertical-align: top; text-align: center;">
+                                        <div
+                                            style="width: 28px; height: 28px; background-color: #F4F4F4; border-radius: 70px; margin: 0 auto 10px auto; display: table; padding: 8px;">
+                                            <div
+                                                style="display: table-cell; vertical-align: middle; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: #8A7E75;">
+                                                2</div>
+                                        </div>
+                                        <div
+                                            style="font-family: 'Afacad', sans-serif; font-size: 14px; line-height: 150%;">
+                                            <strong style="color: #353A3E; font-weight: 700;">Choose a new,</strong><br>
+                                            <span style="color: #8C827A;">strong password</span>
+                                        </div>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td><td width="33%" align="center" valign="top">
+                                    <![endif]-->
+                                    <div class="features-stack"
+                                        style="display: inline-block; width: 32%; vertical-align: top; text-align: center;">
+                                        <div
+                                            style="width: 28px; height: 28px; background-color: #F4F4F4; border-radius: 70px; margin: 0 auto 10px auto; display: table; padding: 8px;">
+                                            <div
+                                                style="display: table-cell; vertical-align: middle; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: #8A7E75;">
+                                                3</div>
+                                        </div>
+                                        <div
+                                            style="font-family: 'Afacad', sans-serif; font-size: 14px; line-height: 150%;">
+                                            <strong style="color: #353A3E; font-weight: 700;">You're back
+                                                in,</strong><br>
+                                            <span style="color: #8C827A;">instantly</span>
+                                        </div>
+                                    </div>
+                                    <!--[if mso]>
+                                    </td></tr></table>
+                                    <![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center"
+                        style="padding: 15px 20px 30px 20px; font-family: 'Afacad', sans-serif; font-size: 14px; color: #64748B; line-height: 150%;"
+                        class="mobile-padding">
+                        <div style="max-width: 440px; margin: 0 auto;">
+                            If you didn't ask for a reset, your account is safe and you can ignore this email.
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Footer Section -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="background-color: #ffffff;">
+                <tr>
+                    <td style="padding: 0 40px 40px 40px;" class="mobile-padding">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                            style="border-top: 1px solid #F4F4F4;">
+                            <tr>
+                                <td align="center" style="padding-top: 30px;">
+                                    <a href="https://crush-svg.vercel.app/" target="_blank"
+                                        style="text-decoration: none;">
+                                        <span
+                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #D94A1E;">Crush<span
+                                                style="color: #353A3E;">SVG</span></span>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center"
+                                    style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
+                                    © 2026 CrushSVG. All rights reserved.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center"
+                                    style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
+                                    <a href="https://crush-svg.vercel.app/privacy" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Privacy</a> &bull;
+                                    <a href="https://crush-svg.vercel.app/terms" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Terms</a> &bull;
+                                    <a href="https://crush-svg.vercel.app/support" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Support</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </div>
+    </center>
+</body>
+
+</html>`;
