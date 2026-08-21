@@ -9,9 +9,10 @@ import { TargetAudience } from "@/components/sections/TargetAudience";
 import { FAQ } from "@/components/sections/FAQ";
 
 export const metadata: Metadata = constructMetadata({
-  title: "CrushSVG | Free SVG to PNG Converter Online (Fast & High-Res)",
-  description: "Convert SVG code or files to crisp, high-resolution PNG images in seconds. Free browser-based SVG to PNG converter with transparent background support.",
+  title: "CrushSVG – Free SVG to PNG Converter Online",
+  description: "Convert SVG to crisp PNG in seconds. Free, browser-based, transparent background support. No install needed.",
   canonicalPath: "/",
+  image: "/opengraph-image",
   keywords: [
     "crush svg",
     "crushsvg",

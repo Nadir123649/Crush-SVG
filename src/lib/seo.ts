@@ -35,7 +35,7 @@ export function constructMetadata({
   title,
   description,
   canonicalPath,
-  image = "/CrushSVG-logo.svg",
+  image = "/opengraph-image",
   keywords = DEFAULT_KEYWORDS,
   noindex = false,
 }: SEOProps): Metadata {
