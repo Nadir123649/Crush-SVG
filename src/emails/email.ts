@@ -73,7 +73,9 @@ function rewriteSiteLinks(html: string, url: string): string {
     const origin = /^https?:\/\/[^/]+/.exec(url)?.[0];
     if (!origin)
         return html;
-    return html.split("https://crush-svg.vercel.app").join(origin);
+    return html
+        .split("https://crush-svg.vercel.app").join(origin)
+        .split("https://crushsvg.net").join(origin);
 }
 import { EMAIL_VERIFICATION_HTML, RESET_PASSWORD_HTML } from "@/emails/html-templates";
 
