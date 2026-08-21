@@ -6,6 +6,7 @@ export const metadata = constructMetadata({
   title: "Support Center | CrushSVG",
   description: "Get help with SVG conversions, billing, or technical issues at the CrushSVG Support Center.",
   canonicalPath: "/support",
+  keywords: ["crush svg support", "crushsvg help desk", "svg converter assistance", "crushsvg customer service"],
 });
 
 const faqs = [

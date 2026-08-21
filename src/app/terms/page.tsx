@@ -6,6 +6,7 @@ export const metadata: Metadata = constructMetadata({
   title: "Terms & Conditions | CrushSVG",
   description: "Terms and conditions for using CrushSVG, an SVG to PNG conversion tool.",
   canonicalPath: "/terms",
+  keywords: ["crush svg terms", "crushsvg terms of service", "crush svg user agreement"],
 });
 
 export default function TermsAndConditions() {

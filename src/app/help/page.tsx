@@ -1,5 +1,14 @@
 import React from "react";
+import type { Metadata } from "next";
 import { FAQ } from "@/components/sections/FAQ";
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = constructMetadata({
+  title: "Help & FAQ | CrushSVG",
+  description: "Get answers to frequently asked questions about converting SVG to PNG, transparency, resolution, and troubleshooting.",
+  canonicalPath: "/help",
+  keywords: ["crush svg help", "svg to png faq", "svg conversion troubleshooting", "crushsvg support"],
+});
 
 export default function HelpPage() {
   return (
