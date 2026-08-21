@@ -54,7 +54,7 @@ export function ConverterUI() {
   const [isCustomWidth, setIsCustomWidth] = useState(false);
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
-  const [transparent, setTransparent] = useState(true);
+  const [transparent, setTransparent] = useState(false);
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
