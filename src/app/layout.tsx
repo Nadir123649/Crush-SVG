@@ -10,6 +10,7 @@ import { AuthProvider } from "@/lib/client/auth-context";
 import { constructMetadata, getOrganizationSchema, getWebApplicationSchema, getWebSiteSchema } from "@/lib/seo";
 import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
+import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-VCLLSKB082";
@@ -112,6 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         {/* Cookie consent banner — shown until user accepts/declines */}
         <CookieConsentBanner />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );
