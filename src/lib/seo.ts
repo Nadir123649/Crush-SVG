@@ -135,7 +135,7 @@ export function constructMetadata({
           },
         },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "4g9Z_Bp03i6CKz3fw8qNFHYNDOfQM-Pgk9V4iGpX-cg",
       other: {
         "msvalidate.01": ["68434D213B77FA63AE8FFAA76729DCEE"],
       },
