@@ -33,8 +33,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = constructMetadata({
-  title: "CrushSVG | Convert SVG to PNG Exactly as Intended",
-  description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.",
+  title: "CrushSVG – Free SVG to PNG Converter Online",
+  description: "Paste SVG code or upload a file. Get crisp, high-res PNGs in seconds. Free, browser-based, transparent background support.",
   canonicalPath: "/",
 });
 
