@@ -6,6 +6,7 @@ export const metadata: Metadata = constructMetadata({
   title: "Privacy Policy | CrushSVG",
   description: "Privacy policy for CrushSVG, detailing how we collect, use, and protect your information.",
   canonicalPath: "/privacy-policy",
+  keywords: ["crush svg privacy", "crushsvg privacy policy", "svg converter data protection"],
 });
 
 export default function PrivacyPolicy() {

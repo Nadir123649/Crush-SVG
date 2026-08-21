@@ -6,6 +6,13 @@ export const metadata = constructMetadata({
   title: "About Us | CrushSVG",
   description: "Learn more about CrushSVG and our mission to provide pixel-perfect SVG to PNG conversions.",
   canonicalPath: "/about",
+  keywords: [
+    "about crush svg",
+    "crushsvg team",
+    "who made crush svg",
+    "svg converter mission",
+    "The Nevon CrushSVG",
+  ],
 });
 
 export default function AboutUsPage() {

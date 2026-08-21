@@ -2,11 +2,32 @@ import type { Metadata } from "next";
 
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
 
+export const DEFAULT_KEYWORDS = [
+  "crush svg",
+  "crushsvg",
+  "crush svg converter",
+  "svg to png",
+  "convert svg to png",
+  "svg to png converter",
+  "svg converter",
+  "svg to image",
+  "svg to high res png",
+  "free svg converter",
+  "online svg converter",
+  "vector to png",
+  "export svg to png",
+  "svg optimizer",
+  "svg rasterizer",
+  "svg to png transparent",
+  "The Nevon",
+];
+
 interface SEOProps {
   title: string;
   description: string;
   canonicalPath?: string;
   image?: string;
+  keywords?: string[];
   noindex?: boolean;
 }
 
@@ -15,20 +36,31 @@ export function constructMetadata({
   description,
   canonicalPath,
   image = "/CrushSVG-logo.svg",
+  keywords = DEFAULT_KEYWORDS,
   noindex = false,
 }: SEOProps): Metadata {
+  const url = canonicalPath ? `${SITE_URL}${canonicalPath}` : SITE_URL;
+
   const metadata: Metadata = {
     title,
     description,
+    keywords,
+    applicationName: "CrushSVG",
+    authors: [{ name: "CrushSVG Team", url: SITE_URL }],
+    creator: "CrushSVG",
+    publisher: "CrushSVG",
+    category: "Developer & Designer Tools",
     metadataBase: new URL(SITE_URL),
     alternates: {
-      canonical: canonicalPath ? `${SITE_URL}${canonicalPath}` : undefined,
+      canonical: url,
     },
     openGraph: {
       title,
       description,
       type: "website",
-      url: canonicalPath ? `${SITE_URL}${canonicalPath}` : SITE_URL,
+      url,
+      siteName: "CrushSVG",
+      locale: "en_US",
       images: [
         {
           url: image,
@@ -37,7 +69,6 @@ export function constructMetadata({
           alt: title,
         },
       ],
-      siteName: "CrushSVG",
     },
     twitter: {
       card: "summary_large_image",
@@ -45,6 +76,19 @@ export function constructMetadata({
       description,
       images: [image],
       creator: "@CrushSVG",
+      site: "@CrushSVG",
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "CrushSVG",
+    },
+    formatDetection: {
+      telephone: false,
+      date: false,
+      address: false,
+      email: false,
+      url: false,
     },
     icons: {
       icon: [
@@ -54,28 +98,61 @@ export function constructMetadata({
       apple: [
         { url: "/CrushSVG-logo.svg", sizes: "180x180", type: "image/svg+xml" },
       ],
+      other: [
+        {
+          rel: "mask-icon",
+          url: "/CrushSVG-logo.svg",
+          color: "#D94A1E",
+        },
+      ],
+    },
+    manifest: "/manifest.webmanifest",
+    robots: noindex
+      ? {
+          index: false,
+          follow: false,
+          nocache: true,
+          googleBot: {
+            index: false,
+            follow: false,
+            noimageindex: true,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+          nocache: false,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
     },
   };
-
-  if (noindex) {
-    metadata.robots = {
-      index: false,
-      follow: false,
-      nocache: true,
-      googleBot: {
-        index: false,
-        follow: false,
-        noimageindex: true,
-      },
-    };
-  }
 
   return metadata;
 }
 
 /**
- * Common Structured Data Components
+ * Common Structured Data Components (JSON-LD)
  */
+
+export function getWebSiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "CrushSVG",
+    alternateName: ["Crush SVG", "CrushSVG - SVG to PNG Converter"],
+    url: SITE_URL,
+    description: "Convert SVG to PNG exactly as intended with high resolution and crisp output.",
+    inLanguage: "en-US",
+  };
+}
 
 export function getOrganizationSchema() {
   return {
@@ -85,7 +162,19 @@ export function getOrganizationSchema() {
     url: SITE_URL,
     logo: `${SITE_URL}/CrushSVG-logo.svg`,
     description: "Lightning-fast, precise SVG to PNG converter.",
-    sameAs: [],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "support@crushsvg.net",
+      contactType: "customer support",
+    },
+    parentOrganization: {
+      "@type": "Organization",
+      name: "The Nevon",
+      url: "https://www.thenevon.com",
+    },
+    sameAs: [
+      "https://www.thenevon.com",
+    ],
   };
 }
 
@@ -94,10 +183,12 @@ export function getWebApplicationSchema() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "CrushSVG",
+    alternateName: "Crush SVG Converter",
     url: SITE_URL,
     description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds.",
     applicationCategory: "DesignApplication",
     operatingSystem: "All",
+    browserRequirements: "Requires JavaScript. Requires HTML5.",
     offers: {
       "@type": "Offer",
       price: "0",

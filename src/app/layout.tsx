@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
-import { constructMetadata, getOrganizationSchema, getWebApplicationSchema } from "@/lib/seo";
+import { constructMetadata, getOrganizationSchema, getWebApplicationSchema, getWebSiteSchema } from "@/lib/seo";
 import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import "./globals.css";
@@ -46,6 +46,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body className="min-h-full flex flex-col items-center bg-background overflow-x-hidden" suppressHydrationWarning>
         <a
           href="#main-content"
@@ -53,6 +58,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(getWebSiteSchema()) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getOrganizationSchema()) }}

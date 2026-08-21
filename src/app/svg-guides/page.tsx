@@ -6,6 +6,15 @@ export const metadata: Metadata = constructMetadata({
   title: "SVG Guides & Best Practices | CrushSVG",
   description: "Comprehensive guides, tips, and best practices for working with SVG files, optimizing vector graphics, and preparing them for pixel-perfect PNG conversion.",
   canonicalPath: "/svg-guides",
+  keywords: [
+    "svg guides",
+    "svg best practices",
+    "how to optimize svg",
+    "convert svg to png tutorial",
+    "svg vector tips",
+    "crush svg guide",
+    "svg troubleshooting",
+  ],
 });
 
 export default function SvgGuidesPage() {

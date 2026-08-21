@@ -1,9 +1,7 @@
 import type { MetadataRoute } from "next";
-
-export const dynamic = "force-static";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
   return {
     rules: [
       {
@@ -11,15 +9,22 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          "/login",
-          "/signup",
-          "/forgot-password",
-          "/reset-password",
-          "/verify",
-          "/email-verification",
+          "/reset-password/",
+          "/verify/",
+          "/email-verification/",
+        ],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: [
+          "/api/",
+          "/reset-password/",
+          "/verify/",
+          "/email-verification/",
         ],
       },
     ],
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
