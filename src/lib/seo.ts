@@ -153,11 +153,26 @@ export function getWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
     name: "CrushSVG",
     alternateName: ["Crush SVG", "CrushSVG - SVG to PNG Converter"],
     url: SITE_URL,
     description: "Convert SVG to PNG exactly as intended with high resolution and crisp output.",
     inLanguage: "en-US",
+    publisher: {
+      "@id": `${SITE_URL}/#organization`,
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+    isPartOf: {
+      "@id": `${SITE_URL}/#organization`,
+    },
   };
 }
 
@@ -165,10 +180,22 @@ export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
     name: "CrushSVG",
     url: SITE_URL,
-    logo: `${SITE_URL}/CrushSVG-logo.svg`,
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/CrushSVG-logo.svg`,
+      width: 512,
+      height: 512,
+    },
+    image: `${SITE_URL}/CrushSVG-logo.svg`,
     description: "Lightning-fast, precise SVG to PNG converter.",
+    brand: {
+      "@type": "Brand",
+      name: "CrushSVG",
+      logo: `${SITE_URL}/CrushSVG-logo.svg`,
+    },
     contactPoint: {
       "@type": "ContactPoint",
       email: "support@crushsvg.net",
