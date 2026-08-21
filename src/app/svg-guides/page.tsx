@@ -196,6 +196,105 @@ export default function SvgGuidesPage() {
           </ul>
         </section>
 
+        {/* 7. How to Convert SVG to PNG for Outlook & Gmail Emails */}
+        <section id="svg-to-png-email" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+          <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
+            7. How to Convert SVG to PNG for Outlook & Gmail Emails
+          </h2>
+          <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6] mb-[16px]">
+            Email clients like <strong>Outlook, Gmail, Apple Mail, and Yahoo Mail</strong> have very limited SVG support. Most of them either block SVGs entirely or render them incorrectly — showing broken images, missing fonts, or invisible graphics. The only reliable solution is to <strong>convert your SVG to a PNG before embedding it in an email</strong>.
+          </p>
+          <ul className="flex flex-col gap-[16px]">
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Why Outlook blocks SVGs:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Outlook uses Microsoft Word&apos;s rendering engine, which does not support the SVG format. Any SVG will show as a broken image or be completely invisible.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Gmail&apos;s SVG restriction:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Gmail strips SVG tags for security reasons. Your icon or illustration will simply disappear in the inbox.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The fix — Use CrushSVG:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Paste or upload your SVG on CrushSVG. Set a high resolution (e.g. 2x scale for retina displays), click Convert, and download the PNG. Then embed it in your email template using a standard <code className="bg-[#F5F5F5] px-[4px] rounded text-[14px]">{`<img>`}</code> tag with a descriptive alt attribute.</span>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        {/* 8. How to Export SVG from Figma as a Transparent PNG */}
+        <section id="figma-svg-to-transparent-png" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+          <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
+            8. How to Export SVG from Figma as Transparent PNG
+          </h2>
+          <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6] mb-[16px]">
+            Figma is the go-to design tool for most teams today, but exporting a Figma SVG as a <strong>high-resolution transparent PNG</strong> with all styles preserved requires a few careful steps.
+          </p>
+          <ul className="flex flex-col gap-[16px]">
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 1 — Export as SVG from Figma:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Select your frame or component in Figma. Go to the right panel → Export → choose <strong>SVG</strong> format. Make sure &quot;Include id attribute&quot; is unchecked to keep the file clean.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 2 — Convert on CrushSVG:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Upload your exported SVG file to CrushSVG. The transparent background is preserved automatically — no extra steps needed. Set your desired width, height, or scale factor for retina-ready output.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 3 — Download your PNG:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Download the crisp transparent PNG. It will retain all gradients, shadows, masks, and effects exactly as designed in Figma — ready for presentations, websites, or email templates.</span>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        {/* 9. Why SVG Does Not Display in Gmail or HTML Emails */}
+        <section id="why-svg-not-showing-gmail" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+          <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
+            9. Why SVG Does Not Display in Gmail or HTML Emails
+          </h2>
+          <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6] mb-[16px]">
+            You carefully designed a beautiful SVG logo or icon, but when you send the email — it&apos;s just blank or broken. Here&apos;s exactly why this happens and how to permanently fix it.
+          </p>
+          <ul className="flex flex-col gap-[16px]">
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Root Cause — Email Security Policies:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">SVG files are XML-based and can embed scripts, animations, and external links. Gmail, Outlook, and many other clients block SVGs entirely to prevent XSS (Cross-Site Scripting) attacks and phishing exploits.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Which clients block SVGs:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Gmail (all platforms), Outlook 2007–2021, Windows Mail, Yahoo Mail, and most mobile email apps do not render SVGs. Only Apple Mail on newer macOS versions has partial support.</span>
+              </div>
+            </li>
+            <li className="flex gap-[12px] items-start">
+              <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
+              <div>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The permanent solution:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Always <strong>convert your SVG to PNG</strong> before using it in any email campaign. Use CrushSVG to generate a pixel-perfect, high-resolution PNG that works in 100% of email clients — including the most strict ones.</span>
+              </div>
+            </li>
+          </ul>
+        </section>
+
       </div>
     </div>
   );
