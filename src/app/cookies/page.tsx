@@ -6,6 +6,7 @@ export const metadata: Metadata = constructMetadata({
   title: "Cookies Policy | CrushSVG",
   description: "Cookies policy for CrushSVG, explaining how we use cookies and similar technologies.",
   canonicalPath: "/cookies",
+  keywords: ["crush svg cookies", "crushsvg cookie policy"],
 });
 
 export default function CookiesPolicyPage() {
