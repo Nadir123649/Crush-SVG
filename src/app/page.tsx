@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { constructMetadata } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
 import { ConverterUI } from "@/components/sections/ConverterUI";
+import { AdBanner } from "@/components/ui/AdBanner";
 import { Features } from "@/components/sections/Features";
 import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
@@ -37,6 +38,7 @@ export default function Home() {
 
       <Hero />
       <ConverterUI />
+      <AdBanner />
       <Features />
       <SignUpCTA />
       <StepsSection />
