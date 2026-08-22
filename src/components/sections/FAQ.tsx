@@ -92,6 +92,24 @@ export function FAQ() {
           );
         })}
       </div>
+
+      {/* Helpful FAQ Footer Links */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-center">
+        <span className="font-afacad text-sm md:text-base text-text-muted">Have a more specific question?</span>
+        <div className="flex items-center gap-3">
+          <a href="/help" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            View All FAQs &rarr;
+          </a>
+          <span className="text-text-muted/40">&bull;</span>
+          <a href="/svg-guides" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            SVG Guides
+          </a>
+          <span className="text-text-muted/40">&bull;</span>
+          <a href="/contact-us" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            Contact Us
+          </a>
+        </div>
+      </div>
     </section>
   );
 }

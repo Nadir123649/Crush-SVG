@@ -67,10 +67,13 @@ CrushSVG supports CSS styles, inline fonts, embedded images (base64 and linked),
 |---|---|---|
 | Home / Converter | ${BASE_URL} | Main SVG to PNG conversion tool |
 | SVG Guides | ${BASE_URL}/svg-guides | Tutorials and guides on working with SVGs |
-| About | ${BASE_URL}/about | About CrushSVG, our mission and approach |
+| About | ${BASE_URL}/about | About CrushSVG, our mission and parent company The Nevon |
+| Meet the Team | ${BASE_URL}/team | Engineering and product leadership behind CrushSVG |
+| Changelog | ${BASE_URL}/changelog | Release notes, updates, and feature history |
 | Help & FAQ | ${BASE_URL}/help | Frequently asked questions and help center |
-| Contact / Support | ${BASE_URL}/contact-us | Support contact form and email |
-| Sign Up | ${BASE_URL}/signup | Create a free account |
+| Support Hub | ${BASE_URL}/support | Technical troubleshooting and vector support |
+| Contact Us | ${BASE_URL}/contact-us | Direct feedback and support contact form |
+| Sign Up | ${BASE_URL}/signup | Create a free account for unlimited conversions |
 | Log In | ${BASE_URL}/login | Sign in to an existing account |
 | Privacy Policy | ${BASE_URL}/privacy-policy | How user data is collected and used |
 | Terms of Service | ${BASE_URL}/terms | Terms and conditions of use |

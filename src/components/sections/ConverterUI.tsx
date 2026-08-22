@@ -110,7 +110,7 @@ export function ConverterUI() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
-      
+
       // Close dropdown if clicking on any label
       if (target.tagName?.toLowerCase() === 'label') {
         setOpenDropdown(null);
@@ -187,7 +187,7 @@ export function ConverterUI() {
         if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
           setResult(savedResult);
         }
-      } catch {}
+      } catch { }
       finally {
         storageRestoredRef.current = true;
         setStorageRestored(true);
@@ -206,7 +206,7 @@ export function ConverterUI() {
       const persistableResult =
         result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
       sessionStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
-    } catch {}
+    } catch { }
   }, [svgCode, result]);
 
   const previewSvgUrl = useMemo(() => {
@@ -244,7 +244,7 @@ export function ConverterUI() {
     setPreviewError(false);
     try {
       sessionStorage.removeItem(CONVERTER_STORAGE_KEY);
-    } catch {}
+    } catch { }
   }
 
   useEffect(() => {
@@ -455,7 +455,7 @@ export function ConverterUI() {
             {/* Left Column (SVG Code) */}
             <div className="w-full lg:w-[537px] flex flex-col">
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
+                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   SVG Code
                 </h2>
                 <div className="flex items-center gap-[10px]">
@@ -463,7 +463,8 @@ export function ConverterUI() {
                     <button
                       type="button"
                       onClick={handleFormatSvg}
-                      className="rounded-[6px] border border-[#8F8F8F] px-[8px] py-[4px] font-body font-medium text-[12px] text-[#64748B] hover:text-brand-primary hover:border-brand-primary transition-colors"
+                      aria-label="Format SVG code"
+                      className="rounded-[6px] border border-[#8F8F8F] px-[8px] py-[4px] font-body font-medium text-[12px] text-[#475569] hover:text-brand-primary hover:border-brand-primary transition-colors"
                       title="Format SVG Code"
                     >
                       Format Code
@@ -472,27 +473,27 @@ export function ConverterUI() {
                   <button
                     type="button"
                     onClick={handleClearSvg}
-                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
-                      svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
-                    }`}
+                    aria-label="Clear SVG editor"
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
+                      }`}
                   >
-                    <div 
-                      className="absolute inset-0 z-0 pointer-events-none" 
+                    <div
+                      className="absolute inset-0 z-0 pointer-events-none"
                       style={{
                         border: "1px solid transparent",
                         background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
                         borderRadius: "inherit"
-                      }} 
+                      }}
                     />
-                    <div 
-                      className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" 
+                    <div
+                      className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]"
                     />
                     <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                       Clear
                     </span>
                   </button>
                   {usage && (
-                    <span className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B]">
+                    <span className="font-body font-normal text-[12px] md:text-[13px] text-[#475569]">
                       {usage.isUnlimited
                         ? "Unlimited conversions"
                         : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
@@ -504,6 +505,7 @@ export function ConverterUI() {
               {/* SVG Code Box */}
               <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                 <textarea
+                  id="svg-code-textarea"
                   value={svgCode === SAMPLE_SVG ? "" : svgCode}
                   placeholder={DUMMY_CODE}
                   onChange={(e) => {
@@ -515,8 +517,8 @@ export function ConverterUI() {
                     }
                   }}
                   spellCheck={false}
-                  aria-label="SVG code"
-                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#D2D2D2] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                  aria-label="SVG code editor"
+                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
                 />
                 {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
@@ -524,7 +526,9 @@ export function ConverterUI() {
 
               <input
                 ref={fileInputRef}
+                id="svg-file-upload"
                 type="file"
+                aria-label="Upload SVG file"
                 accept=".svg,image/svg+xml"
                 className="absolute w-0 h-0 opacity-0 overflow-hidden"
                 onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
@@ -550,23 +554,23 @@ export function ConverterUI() {
               </div>
 
               {/* Bottom Source Text */}
-              <p className="font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-[12px] md:mt-[10px] ">
+              <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px] ">
                 {dims.width && dims.height
                   ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
                   : "Source size: unknown — set width/height or viewBox on your SVG"}
               </p>
 
-                <p className="mt-[0px] font-body text-[12px] md:text-[14px] text-[#64748B] flex items-center justify-start gap-[6px] mt-[6px]">
-                      <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="w-[12px] h-[12px] object-contain" />
-                      <span>100% Private &amp; Secure — Files and SVG code are never shared or stored publicly.</span>
-                    </p>
+              <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[6px]">
+                <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="w-[12px] h-[12px] object-contain" />
+                <span>100% Private &amp; Secure — Files and SVG code are never shared or stored publicly.</span>
+              </p>
 
             </div>
 
             {/* Right Column (Live Preview) */}
             <div className="w-full lg:w-[537px] flex flex-col">
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                <h2 className="font-heading font-semibold text-[16px]" style={{ color: "#64748B" }}>
+                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   Live Preview
                 </h2>
               </div>
@@ -589,8 +593,6 @@ export function ConverterUI() {
                 ) : null}
               </div>
 
-
-
               {/* Settings & Controls */}
               <div className="w-full mt-[16px] md:mt-[20px]">
                 {/* Dropdowns Row */}
@@ -598,7 +600,7 @@ export function ConverterUI() {
 
                   {/* Width Input */}
                   <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
-                    <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width</label>
+                    <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width</label>
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
                       <div
                         onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
@@ -608,11 +610,28 @@ export function ConverterUI() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
+                        aria-label="Toggle width dropdown"
+                        onClick={() =>
+                          setOpenDropdown(openDropdown === "width" ? null : "width")
+                        }
                         className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                       >
-                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "width" ? "rotate-180" : ""}`}>
-                          <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          width="12"
+                          height="8"
+                          viewBox="0 0 12 8"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`transition-transform duration-200 ${openDropdown === "width" ? "rotate-180" : ""
+                            }`}
+                        >
+                          <path
+                            d="M1 1.5L6 6.5L11 1.5"
+                            stroke="#353A3E"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -649,7 +668,7 @@ export function ConverterUI() {
 
                   {/* Height Input */}
                   <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
-                    <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Height</label>
+                    <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Height</label>
                     <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
                       <div
                         onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
@@ -659,6 +678,7 @@ export function ConverterUI() {
                       </div>
                       <button
                         type="button"
+                        aria-label="Toggle height dropdown"
                         onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
                         className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                       >
@@ -701,7 +721,7 @@ export function ConverterUI() {
                   {/* Unit Dropdown Input */}
                   {isScaleDisabled ? (
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
-                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
+                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
                       <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
                         <div
                           onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
@@ -711,6 +731,7 @@ export function ConverterUI() {
                         </div>
                         <button
                           type="button"
+                          aria-label="Toggle unit dropdown"
                           onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
                           className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                         >
@@ -749,19 +770,22 @@ export function ConverterUI() {
                     </div>
                   ) : (
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
-                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
+                      <label htmlFor="scale-multiplier-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
                       <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
                         <input
+                          id="scale-multiplier-input"
                           type="text"
                           value={selectedScale}
                           onChange={(e) => { setSelectedScale(e.target.value); resetConversion(); }}
                           onFocus={() => setOpenDropdown("scale")}
                           readOnly={!isCustomScale}
+                          aria-label="Scale multiplier factor"
                           placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
                           className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
                         />
                         <button
                           type="button"
+                          aria-label="Toggle scale dropdown"
                           onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
                           className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
                         >
@@ -807,9 +831,10 @@ export function ConverterUI() {
                 {(isCustomWidth || isCustomHeight) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Width</label>
+                      <label htmlFor="custom-width-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Width</label>
                       <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
                         <input
+                          id="custom-width-input"
                           type="text"
                           value={isCustomWidth ? selectedWidth : (selectedWidth === "Original" ? "" : selectedWidth.replace(/[^0-9.]/g, ''))}
                           onChange={(e) => {
@@ -821,20 +846,22 @@ export function ConverterUI() {
                             resetConversion();
                           }}
                           placeholder="e.g. 500"
+                          aria-label="Custom width in pixels or centimeters"
                           className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
                         />
                         {selectedWidth !== "Original" && selectedWidth !== "" && (
-                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#64748B] ml-[4px] pointer-events-none select-none">
+                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
                             {unit}
                           </span>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                      <label className="text-[#64748B] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Height</label>
+                      <label htmlFor="custom-height-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Height</label>
                       <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
                         <input
+                          id="custom-height-input"
                           type="text"
                           value={isCustomHeight ? selectedHeight : (selectedHeight === "Auto" ? "" : selectedHeight.replace(/[^0-9.]/g, ''))}
                           onChange={(e) => {
@@ -846,10 +873,11 @@ export function ConverterUI() {
                             resetConversion();
                           }}
                           placeholder="e.g. 500"
+                          aria-label="Custom height in pixels or centimeters"
                           className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
                         />
                         {selectedHeight !== "Auto" && selectedHeight !== "" && (
-                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#64748B] ml-[4px] pointer-events-none select-none">
+                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
                             {unit}
                           </span>
                         )}
@@ -859,13 +887,15 @@ export function ConverterUI() {
                 )}
 
                 {/* Transparent Background Box */}
-                <label className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors">
+                <label htmlFor="transparent-bg-toggle" className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors">
                   <span className="font-body font-normal text-[15px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
                     Transparent Background
                   </span>
                   <input
+                    id="transparent-bg-toggle"
                     type="checkbox"
                     checked={transparent}
+                    aria-label="Enable transparent background for PNG output"
                     onChange={(e) => { setTransparent(e.target.checked); resetConversion(); }}
                     className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded border-[#8F8F8F] accent-brand-primary cursor-pointer"
                   />
