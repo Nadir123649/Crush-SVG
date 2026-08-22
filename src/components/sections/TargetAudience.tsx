@@ -48,6 +48,7 @@ export function TargetAudience() {
           <Link
             href={card.href}
             key={index} 
+            aria-label={card.linkText}
             className="flex flex-row md:flex-col w-full bg-white rounded-[12px] md:rounded-[24px] border border-[#F4F4F4] p-[10px] md:p-[24px] gap-[12px] md:gap-0 transition-all duration-300 hover:shadow-[0_10px_40px_-10px_rgba(217,74,30,0.2)] hover:-translate-y-2 cursor-pointer items-center md:items-stretch group"
           >
             {/* Image Box */}
@@ -67,7 +68,7 @@ export function TargetAudience() {
               <h3 className="font-heading font-semibold text-[18px] md:text-[20px] leading-[22px] md:leading-[26px] tracking-[0.04em] text-text-dark mt-0 md:mt-[20px] group-hover:text-brand-primary transition-colors">
                 {card.title}
               </h3>
-              <p className="font-body font-normal text-[14px] md:text-[14px] leading-[18.67px] md:leading-[20px] text-[#8F9094]">
+              <p className="font-body font-normal text-[14px] md:text-[14px] leading-[18.67px] md:leading-[20px] text-text-muted">
                 {card.description}
               </p>
               <span className="text-xs font-semibold text-brand-primary mt-1 hidden md:inline-flex items-center gap-1 group-hover:underline">

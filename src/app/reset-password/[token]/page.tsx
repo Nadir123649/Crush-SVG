@@ -241,7 +241,7 @@ export default function ResetPasswordPage() {
 
               {/* Footer Text */}
               <div className="text-center mt-[12px]">
-                <p className="font-afacad font-normal text-[13px] text-[#AEAEAE]">
+                <p className="font-afacad font-normal text-[13px] text-[#57534E]">
                   Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
                 </p>
               </div>

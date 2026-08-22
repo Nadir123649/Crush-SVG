@@ -99,15 +99,11 @@ export function SignUpCTA() {
             </p>
 
             <div className="flex flex-col w-full gap-[10px]">
-              <Link href="/signup" className="w-full">
-                <Button className="w-full h-[32px] rounded-[8px] px-[10px]">Sign Up</Button>
-              </Link>
-              <Link href="/login" className="w-full">
-                <Button variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">Log In</Button>
-              </Link>
+              <Button href="/signup" className="w-full h-[32px] rounded-[8px] px-[10px]">Sign Up</Button>
+              <Button href="/login" variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">Log In</Button>
             </div>
 
-            <p className="font-body font-normal text-[11px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-[#A1A1AA] mt-[16px] lg:mt-[26px]">
+            <p className="font-body font-normal text-[11px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-text-muted mt-[16px] lg:mt-[26px]">
               Your SVG code is safe. It stays in this session until you finish<br className="hidden lg:inline" /> signing up.
             </p>
           </div>

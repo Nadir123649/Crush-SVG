@@ -98,6 +98,7 @@ export function Header() {
           <Link
             href="/"
             onClick={handleLogoClick}
+            aria-label="CrushSVG homepage"
             className="flex items-center gap-[4px] md:gap-[6px]"
           >
             <Image
@@ -211,23 +212,21 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center gap-[14px] md:gap-[16px]">
-                <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
-                  >
-                    Log In
-                  </Button>
-                </Link>
+                <Button
+                  href="/login"
+                  variant="outline"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
+                >
+                  Log In
+                </Button>
 
-                <Link href="/signup">
-                  <Button
-                    variant="solid"
-                    className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
-                  >
-                    Sign Up
-                  </Button>
-                </Link>
+                <Button
+                  href="/signup"
+                  variant="solid"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
+                >
+                  Sign Up
+                </Button>
               </div>
             )}
           </div>
