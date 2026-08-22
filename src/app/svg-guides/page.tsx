@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
@@ -14,6 +15,8 @@ export const metadata: Metadata = constructMetadata({
     "svg vector tips",
     "crush svg guide",
     "svg troubleshooting",
+    "figma to png",
+    "svg in email",
   ],
 });
 
@@ -34,6 +37,18 @@ export default function SvgGuidesPage() {
     },
   };
 
+  const tableOfContents = [
+    { id: "what-is-svg", label: "1. What is an SVG?" },
+    { id: "svg-vs-png", label: "2. SVG vs PNG: When to use which?" },
+    { id: "optimize-svg", label: "3. How to Optimize SVG Files" },
+    { id: "use-on-web", label: "4. Using SVGs on Websites" },
+    { id: "best-practices", label: "5. SVG Best Practices" },
+    { id: "common-problems", label: "6. Common Problems & Solutions" },
+    { id: "svg-to-png-email", label: "7. How to Convert SVG to PNG for Outlook & Gmail" },
+    { id: "figma-svg-to-transparent-png", label: "8. Exporting Figma SVGs as Transparent PNG" },
+    { id: "why-svg-not-showing-gmail", label: "9. Why SVGs Fail in Email Clients" },
+  ];
+
   return (
     <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
       <script
@@ -41,22 +56,43 @@ export default function SvgGuidesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
-      
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[60px]">
+      <div className="flex flex-col items-center text-center max-w-[800px] mb-[24px] md:mb-[40px]">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
+          <span>Developer & Designer Documentation</span>
+        </div>
         <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
           SVG <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Guides</span>
         </h1>
         <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[600px]">
-          Everything you need to know about Scalable Vector Graphics, from basic concepts to advanced optimization and perfect conversions.
+          Everything you need to know about Scalable Vector Graphics, from fundamental optimization to flawless raster conversions with <Link href="/" className="text-brand-primary hover:underline font-medium">CrushSVG</Link>.
         </p>
+      </div>
+
+      {/* Table of Contents Quick Nav */}
+      <div className="w-full max-w-[800px] bg-white rounded-[16px] p-6 md:p-8 border border-[#F2EDE8] mb-8" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <h2 className="font-heading font-semibold text-lg md:text-xl text-text-dark mb-4 flex items-center gap-2">
+          <span>Table of Contents</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {tableOfContents.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className="text-sm font-afacad text-text-muted hover:text-brand-primary hover:underline transition-colors py-1 flex items-center gap-2"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" />
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </div>
       </div>
 
       {/* Content Sections */}
       <div className="w-full max-w-[800px] flex flex-col gap-[32px] md:gap-[48px]">
         
         {/* 1. What is an SVG? */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="what-is-svg" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             1. What is an SVG?
           </h2>
@@ -66,7 +102,7 @@ export default function SvgGuidesPage() {
         </section>
 
         {/* 2. SVG vs PNG */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="svg-vs-png" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             2. SVG vs PNG: When to use which?
           </h2>
@@ -82,14 +118,14 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Use PNG for:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Complex images, photographs, detailed artwork with millions of colors, or when you need strict rendering compatibility across email clients and older systems.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Complex images, photographs, detailed artwork with millions of colors, or when you need strict rendering compatibility across email clients and older systems. When you need a reliable fallback, use our <Link href="/" className="text-brand-primary hover:underline font-semibold">SVG to PNG converter</Link>.</span>
               </div>
             </li>
           </ul>
         </section>
 
         {/* 3. How to optimize SVG files */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="optimize-svg" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             3. How to Optimize SVG Files
           </h2>
@@ -113,7 +149,7 @@ export default function SvgGuidesPage() {
         </section>
 
         {/* 4. How to use SVG on websites */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="use-on-web" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             4. Using SVGs on Websites
           </h2>
@@ -143,7 +179,7 @@ export default function SvgGuidesPage() {
         </section>
 
         {/* 5. SVG Best Practices */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="best-practices" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             5. SVG Best Practices
           </h2>
@@ -164,7 +200,7 @@ export default function SvgGuidesPage() {
         </section>
 
         {/* 6. Common Problems & Solutions */}
-        <section className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="common-problems" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             6. Common Problems & Solutions
           </h2>
@@ -190,14 +226,28 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The Ultimate Fix: Convert to PNG</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">If your environment strictly rejects SVGs or breaks their rendering, the safest fallback is converting it to a high-quality raster image. Use our <strong>CrushSVG Converter</strong> on the homepage to generate a pixel-perfect PNG exactly as intended.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">If your environment strictly rejects SVGs or breaks their rendering, the safest fallback is converting it to a high-quality raster image. Use our <Link href="/" className="text-brand-primary font-semibold hover:underline">CrushSVG Converter</Link> on the homepage to generate a pixel-perfect PNG exactly as intended.</span>
               </div>
             </li>
           </ul>
+
+          {/* Quick Tool Callout Banner */}
+          <div className="mt-8 p-6 rounded-2xl bg-[#FCF1ED] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="font-heading font-semibold text-text-dark text-base">Have an SVG causing conversion issues?</p>
+              <p className="font-afacad text-sm text-text-muted">Test it directly in our client-side sandbox converter with custom scale factors.</p>
+            </div>
+            <Link
+              href="/"
+              className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+            >
+              Open Converter &rarr;
+            </Link>
+          </div>
         </section>
 
         {/* 7. How to Convert SVG to PNG for Outlook & Gmail Emails */}
-        <section id="svg-to-png-email" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="svg-to-png-email" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             7. How to Convert SVG to PNG for Outlook & Gmail Emails
           </h2>
@@ -223,14 +273,14 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The fix — Use CrushSVG:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Paste or upload your SVG on CrushSVG. Set a high resolution (e.g. 2x scale for retina displays), click Convert, and download the PNG. Then embed it in your email template using a standard <code className="bg-[#F5F5F5] px-[4px] rounded text-[14px]">{`<img>`}</code> tag with a descriptive alt attribute.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Paste or upload your SVG on <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link>. Set a high resolution (e.g. 2x scale for retina displays), click Convert, and download the PNG. Then embed it in your email template using a standard <code className="bg-[#F5F5F5] px-[4px] rounded text-[14px]">{`<img>`}</code> tag with a descriptive alt attribute.</span>
               </div>
             </li>
           </ul>
         </section>
 
         {/* 8. How to Export SVG from Figma as a Transparent PNG */}
-        <section id="figma-svg-to-transparent-png" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="figma-svg-to-transparent-png" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             8. How to Export SVG from Figma as Transparent PNG
           </h2>
@@ -249,21 +299,21 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 2 — Convert on CrushSVG:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Upload your exported SVG file to CrushSVG. The transparent background is preserved automatically — no extra steps needed. Set your desired width, height, or scale factor for retina-ready output.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Upload your exported SVG file to <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link>. The transparent background is preserved automatically — no extra steps needed. Set your desired width, height, or scale factor for retina-ready output.</span>
               </div>
             </li>
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 3 — Download your PNG:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Download the crisp transparent PNG. It will retain all gradients, shadows, masks, and effects exactly as designed in Figma — ready for presentations, websites, or email templates.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Download the crisp transparent PNG. It will retain all gradients, shadows, masks, and effects exactly as designed in Figma — ready for presentations, websites, or email templates. Need assistance? Visit our <Link href="/support" className="text-brand-primary hover:underline">Support Center</Link>.</span>
               </div>
             </li>
           </ul>
         </section>
 
         {/* 9. Why SVG Does Not Display in Gmail or HTML Emails */}
-        <section id="why-svg-not-showing-gmail" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <section id="why-svg-not-showing-gmail" className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8] scroll-mt-24" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
             9. Why SVG Does Not Display in Gmail or HTML Emails
           </h2>
@@ -289,12 +339,34 @@ export default function SvgGuidesPage() {
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
                 <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The permanent solution:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Always <strong>convert your SVG to PNG</strong> before using it in any email campaign. Use CrushSVG to generate a pixel-perfect, high-resolution PNG that works in 100% of email clients — including the most strict ones.</span>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Always <strong>convert your SVG to PNG</strong> before using it in any email campaign. Use <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link> to generate a pixel-perfect, high-resolution PNG that works in 100% of email clients — including the most strict ones.</span>
               </div>
             </li>
           </ul>
         </section>
 
+      </div>
+
+      {/* Bottom Footer Help Banner */}
+      <div className="w-full max-w-[800px] mt-12 p-8 bg-[#FCF1ED] rounded-[24px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+        <div>
+          <h3 className="font-heading font-semibold text-xl text-text-dark mb-1">Still experiencing vector rendering issues?</h3>
+          <p className="font-afacad text-sm text-text-muted">Browse our FAQ or reach out to our engineering team for personalized support.</p>
+        </div>
+        <div className="flex gap-3 shrink-0">
+          <Link
+            href="/help"
+            className="px-5 py-2.5 rounded-xl bg-white border border-[#E5DFDA] text-text-dark text-sm font-semibold hover:bg-gray-50 transition-colors"
+          >
+            Help & FAQ
+          </Link>
+          <Link
+            href="/contact-us"
+            className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Contact Support
+          </Link>
+        </div>
       </div>
     </div>
   );

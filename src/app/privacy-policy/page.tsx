@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
@@ -15,17 +16,20 @@ export default function PrivacyPolicy() {
       <article className="w-full max-w-[800px] flex flex-col gap-[24px]">
         
         {/* Hero Section */}
-        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[60px] mx-auto">
+        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[40px] mx-auto">
           <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
             Privacy <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Policy</span>
           </h1>
+          <p className="font-afacad text-sm md:text-base text-text-muted">
+            Last updated: August 2026 &bull; Maintained by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link>
+          </p>
         </div>
 
         {/* Content */}
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">1. Introduction</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            At CrushSVG, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our SVG to PNG conversion service. Please read this policy carefully.
+            At CrushSVG, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our <Link href="/" className="text-brand-primary hover:underline font-medium">SVG to PNG conversion service</Link>. Please read this policy carefully alongside our <Link href="/terms" className="text-brand-primary hover:underline font-medium">Terms of Service</Link>.
           </p>
         </section>
 
@@ -79,7 +83,7 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">6. Cookies and Similar Technologies</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            We use cookies and similar tracking technologies to track activity on our service and hold certain information, primarily to keep you logged in securely and to understand how the site is used. You can instruct your browser to refuse all cookies, but doing so may limit your ability to use certain features.
+            We use cookies and similar tracking technologies to track activity on our service and hold certain information, primarily to keep you logged in securely and to understand how the site is used. For detailed cookie information, visit our <Link href="/cookies" className="text-brand-primary hover:underline font-medium">Cookies Policy</Link>.
           </p>
         </section>
 
@@ -93,14 +97,14 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Changes to This Privacy Policy</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
+            We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the version history in our <Link href="/changelog" className="text-brand-primary hover:underline font-medium">Changelog</Link>.
           </p>
         </section>
 
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">9. Contact Us</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            If you have any questions or concerns about this Privacy Policy, please contact us at privacy@crushsvg.net.
+            If you have any questions or concerns about this Privacy Policy, please contact our team via the <Link href="/contact-us" className="text-brand-primary hover:underline font-medium">Contact Form</Link> or email us at <a href="mailto:privacy@crushsvg.net" className="text-brand-primary hover:underline">privacy@crushsvg.net</a>.
           </p>
         </section>
 

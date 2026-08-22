@@ -41,14 +41,15 @@ export function ResetPasswordCard() {
         {/* Inputs */}
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-[12px] mt-[4px]">
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
+            <label htmlFor="new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
             <div className="relative w-full">
               <input 
+                id="new-password"
                 type={showPassword ? "text" : "password"} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
               />
               <button
                 type="button"
@@ -76,9 +77,10 @@ export function ResetPasswordCard() {
           </div>
 
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
+            <label htmlFor="confirm-new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
             <div className="relative w-full">
               <input 
+                id="confirm-new-password"
                 type={showConfirm ? "text" : "password"} 
                 value={confirmPassword}
                 onChange={(e) => {
@@ -86,7 +88,7 @@ export function ResetPasswordCard() {
                   setError(null);
                 }}
                 placeholder="Re-enter your new password"
-                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isConfirmInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
+                className={`w-full h-[32px] rounded-[4px] border-[1px] ${isConfirmInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
               />
               <button
                 type="button"
@@ -118,14 +120,14 @@ export function ResetPasswordCard() {
           </div>
         
         {/* CTA Button */}
-        <button type="submit" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
+        <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
           Set New Password
         </button>
         </form>
 
         {/* Footer Text */}
         <div className="text-center mt-[12px]">
-          <p className="font-afacad font-normal text-[13px] text-[#AEAEAE]">
+          <p className="font-afacad font-normal text-[13px] text-[#475569]">
             Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
           </p>
         </div>
