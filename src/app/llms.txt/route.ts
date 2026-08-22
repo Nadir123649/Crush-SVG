@@ -24,9 +24,11 @@ CrushSVG was built to solve the frustration of broken or inaccurate SVG conversi
 - [Home / Converter](${BASE_URL}): Main SVG to PNG conversion tool
 - [SVG Guides](${BASE_URL}/svg-guides): Tutorials and guides on working with SVG files
 - [About](${BASE_URL}/about): About CrushSVG and its mission
+- [Team](${BASE_URL}/team): Meet the creators and engineers at The Nevon
+- [Changelog](${BASE_URL}/changelog): Recent updates, releases, and feature improvements
 - [Help](${BASE_URL}/help): Help center and frequently asked questions
-- [Support](${BASE_URL}/contact-us): Contact and support
-- [Pricing](${BASE_URL}/signup): Free tier and account plans
+- [Support Hub](${BASE_URL}/support): Technical support and common solutions
+- [Contact Us](${BASE_URL}/contact-us): Contact and support form
 - [Privacy Policy](${BASE_URL}/privacy-policy): How user data is handled
 - [Terms of Service](${BASE_URL}/terms): Terms of use
 - [Cookies Policy](${BASE_URL}/cookies): Cookie usage information

@@ -66,13 +66,15 @@ export function CookieConsentBanner() {
           <button
             type="button"
             onClick={handleDecline}
-            className="flex-1 md:flex-none rounded-[10px] border border-[#D1D5DB] px-[16px] py-[9px] font-body font-medium text-[14px] text-[#5A524C] hover:border-[#9CA3AF] transition-colors"
+            aria-label="Decline non-essential cookies"
+            className="flex-1 md:flex-none rounded-[10px] border border-[#D1D5DB] px-[16px] py-[9px] font-body font-medium text-[14px] text-[#374151] hover:border-[#9CA3AF] transition-colors"
           >
             Decline
           </button>
           <button
             type="button"
             onClick={handleAccept}
+            aria-label="Accept all cookies"
             className="flex-1 md:flex-none rounded-[10px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white px-[16px] py-[9px] font-body font-medium text-[14px] hover:opacity-90 transition-opacity active:scale-[0.98]"
           >
             Accept

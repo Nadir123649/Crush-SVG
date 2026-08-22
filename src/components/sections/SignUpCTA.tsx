@@ -9,24 +9,8 @@ import { useAuth } from "@/lib/client/auth-context";
 
 export function SignUpCTA() {
   const { status } = useAuth();
-  // Hydration-safe mount detection: server renders null, client renders content
-  // on the first pass (useSyncExternalStore with a getServerSnapshot of false).
-  const mounted = React.useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
 
-  // Avoid hydration mismatch by rendering null on server/first pass
-  if (!mounted) {
-    return null;
-  }
-
-  // During the loading window (hydration → session restore) the app does not
-  // yet know if the visitor is logged in. Rendering the guest sign-up banner
-  // here would flash "Sign Up / Log In" and the "3 free conversions" copy on
-  // every page refresh for authenticated users.
-  if (status === "loading" || status === "authed") {
+  if (status === "authed") {
     return null;
   }
   return (

@@ -97,6 +97,7 @@ export function ForgotPasswordCard() {
             <button 
               type="submit"
               disabled={submitting}
+              aria-label="Send password reset link"
               className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed mt-[4px]"
             >
               {submitting ? "Sending..." : "Send Reset Link"}
@@ -107,7 +108,7 @@ export function ForgotPasswordCard() {
         {/* Footer Text */}
         {!sent && (
           <div className="text-center mt-[-4px]">
-            <p className="font-afacad font-normal text-[11px] text-[#AEAEAE]">
+            <p className="font-afacad font-normal text-[11px] text-[#475569]">
               Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
             </p>
           </div>

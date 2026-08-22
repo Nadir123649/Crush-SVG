@@ -309,6 +309,7 @@ async function handleOAuth(provider: OAuthProvider) {
           <button 
             type="button" 
             onClick={() => handleOAuth("google")} 
+            aria-label="Continue with Google authentication"
             className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
@@ -316,13 +317,11 @@ async function handleOAuth(provider: OAuthProvider) {
               Continue with Google
             </span>
           </button>
-
-
         </div>
 
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
-          <p className="font-afacad font-normal text-[11px] leading-[12px] text-[#AEAEAE]">
+          <p className="font-afacad font-normal text-[11px] leading-[14px] text-[#475569]">
             By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] hover:underline">Privacy Policy.</Link>
           </p>
         </div>

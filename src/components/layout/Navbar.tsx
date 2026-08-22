@@ -90,26 +90,32 @@ export function Navbar() {
           </Link>
 
           {/* Right Side Links & Buttons */}
-          {!mounted || status === "loading" ? (
-            <div className="w-[120px] h-[32px] md:w-[150px] md:h-[42px]" />
-          ) : (
-            <div className="flex items-center gap-[14px] md:gap-[24px]">
-              <Link
-                href="/contact-us?r=1"
-                className="hidden md:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.06em] text-text-body hover:text-text-dark transition-colors"
-              >
-                Need Help?
-              </Link>
+          <div className="flex items-center gap-[14px] md:gap-[24px]">
+            <Link
+              href="/svg-guides"
+              className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+            >
+              Guides
+            </Link>
+            <Link
+              href="/contact-us?r=1"
+              className="hidden md:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+            >
+              Need Help?
+            </Link>
 
-              {user ? (
-                <div className="relative" ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    aria-haspopup="menu"
-                    aria-expanded={menuOpen}
-                    className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
-                  >
+            {!mounted || status === "loading" ? (
+              <div className="w-[174px] h-[32px] md:w-[294px] md:h-[42px] flex items-center justify-end" />
+            ) : user ? (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  aria-label="User account menu"
+                  className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+                >
                     {user.photoURL ? (
                       <Image
                         src={user.photoURL}

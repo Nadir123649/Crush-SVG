@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
@@ -15,17 +16,20 @@ export default function TermsAndConditions() {
       <article className="w-full max-w-[800px] flex flex-col gap-[24px]">
         
         {/* Hero Section */}
-        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[60px] mx-auto">
+        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[40px] mx-auto">
           <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
             Terms of <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Service</span>
           </h1>
+          <p className="font-afacad text-sm md:text-base text-text-muted">
+            Last updated: August 2026 &bull; Provided by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link>
+          </p>
         </div>
 
         {/* Content */}
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">1. Introduction & Acceptance</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            Welcome to CrushSVG. By accessing or using our website and services, you agree to comply with and be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our service. CrushSVG provides an online utility to convert SVG images into PNG formats.
+            Welcome to CrushSVG. By accessing or using our website and services, you agree to comply with and be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our service. CrushSVG provides an online utility to convert SVG images into PNG formats. Please also review our <Link href="/privacy-policy" className="text-brand-primary hover:underline font-medium">Privacy Policy</Link> and <Link href="/cookies" className="text-brand-primary hover:underline font-medium">Cookies Policy</Link>.
           </p>
         </section>
 
@@ -39,7 +43,7 @@ export default function TermsAndConditions() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">3. Use of the Service</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            CrushSVG grants you a limited, non-exclusive, non-transferable, and revocable license to use our service for converting SVGs into PNGs. You agree to use the service only for lawful purposes and in accordance with these Terms.
+            CrushSVG grants you a limited, non-exclusive, non-transferable, and revocable license to use our <Link href="/" className="text-brand-primary hover:underline font-medium">conversion engine</Link> for converting SVGs into PNGs. You agree to use the service only for lawful purposes and in accordance with these Terms.
           </p>
           <ul className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%] list-disc pl-[24px] flex flex-col gap-[8px]">
             <li>You may not use the service to process files containing malware, viruses, or other malicious code.</li>
@@ -65,10 +69,10 @@ export default function TermsAndConditions() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">6. Disclaimers & Limitation of Liability</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            The service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis, without warranties of any kind, either express or implied. CrushSVG does not guarantee that conversions will always be flawless, uninterrupted, or perfectly accurate to your original SVG depending on file complexity.
+            The service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis, without warranties of any kind, either express or implied. CrushSVG does not guarantee that conversions will always be flawless, uninterrupted, or perfectly accurate to your original SVG depending on file complexity. For rendering guidance, see our <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">SVG Guides</Link>.
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            In no event shall CrushSVG or its creators be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data, arising out of your use of or inability to use the service.
+            In no event shall CrushSVG or its creators at The Nevon be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data, arising out of your use of or inability to use the service.
           </p>
         </section>
 
@@ -82,7 +86,7 @@ export default function TermsAndConditions() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Contact Information</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            If you have any questions or concerns about these Terms & Conditions, please contact us at support@crushsvg.net.
+            If you have any questions or concerns about these Terms & Conditions, please contact us via our <Link href="/contact-us" className="text-brand-primary hover:underline font-medium">Contact Form</Link> or email <a href="mailto:support@crushsvg.net" className="text-brand-primary hover:underline">support@crushsvg.net</a>.
           </p>
         </section>
 
