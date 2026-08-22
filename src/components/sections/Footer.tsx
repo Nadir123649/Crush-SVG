@@ -40,7 +40,7 @@ export function Footer() {
 
         {/* Left: Logo & Desc */}
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
-          <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="flex items-center gap-[10px]">
+          <Link href="/" onClick={(e) => handlePageClick(e, '/')} aria-label="CrushSVG homepage" className="flex items-center gap-[10px]">
             <Image
               src={IMAGES.logo}
               alt="CrushSVG Icon"
@@ -182,7 +182,7 @@ export function Footer() {
           </span>
           <span className="hidden md:inline font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">|</span>
           <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
-            Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">@The Nevon</a>
+            Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit The Nevon website" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">@The Nevon</a>
           </span>
         </div>
         <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">

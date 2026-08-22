@@ -153,26 +153,9 @@ export function getWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
-    name: "CrushSVG",
-    alternateName: ["Crush SVG", "CrushSVG - SVG to PNG Converter"],
-    url: SITE_URL,
-    description: "Convert SVG to PNG exactly as intended with high resolution and crisp output.",
-    inLanguage: "en-US",
-    publisher: {
-      "@id": `${SITE_URL}/#organization`,
-    },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${SITE_URL}/?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-    isPartOf: {
-      "@id": `${SITE_URL}/#organization`,
-    },
+    "name": "Crush SVG",
+    "alternateName": "Crush SVG Converter",
+    "url": "https://crushsvg.net/",
   };
 }
 
