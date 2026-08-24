@@ -23,13 +23,19 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
     const email = token.email ? token.email.toLowerCase().trim() : null;
     const byUid = await model.findOne({ uid: token.uid });
     if (byUid) {
+        const expectedRole = roleFor(email);
+        const updateData: any = {
+            email: email ?? byUid.email,
+            displayName: token.name ?? byUid.displayName,
+            photoURL: token.picture ?? byUid.photoURL,
+            lastLoginAt: now,
+        };
+        if (expectedRole === "admin" && byUid.role !== "admin") {
+            updateData.role = "admin";
+        }
+
         return ((await model.findOneAndUpdate({ uid: token.uid }, {
-            $set: {
-                email: email ?? byUid.email,
-                displayName: token.name ?? byUid.displayName,
-                photoURL: token.picture ?? byUid.photoURL,
-                lastLoginAt: now,
-            },
+            $set: updateData,
             $addToSet: { providers: provider, linkedProviders: provider },
         }, { new: true })) ?? byUid);
     }

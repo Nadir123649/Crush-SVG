@@ -118,6 +118,13 @@ export function Header() {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
+              href="/png-to-svg"
+              className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+            >
+              PNG to SVG
+            </Link>
+
+            <Link
               href="/svg-guides"
               className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >

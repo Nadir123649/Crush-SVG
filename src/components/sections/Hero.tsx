@@ -2,7 +2,12 @@
 import React from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
-export function Hero() {
+interface HeroProps {
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+}
+
+export function Hero({ title, subtitle }: HeroProps) {
   const { status } = useAuth();
 
   return (
@@ -26,12 +31,16 @@ export function Hero() {
 
       {/* Main Heading */}
       <h1 className="font-heading font-semibold text-[32px] leading-[34px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark">
-        From <span className="text-brand-primary">SVG to PNG,</span> Exactly<br className="hidden md:inline" /> as Intended
+        {title ? title : (
+          <>
+            From <span className="text-brand-primary">SVG to PNG,</span> Exactly<br className="hidden md:inline" /> as Intended
+          </>
+        )}
       </h1>
 
       {/* Description */}
       <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] tracking-[0%] text-center text-text-muted max-w-[361px] md:max-w-[500px]">
-        Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.
+        {subtitle ? subtitle : "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more."}
       </p>
       
     </section>

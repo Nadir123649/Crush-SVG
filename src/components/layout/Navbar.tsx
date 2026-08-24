@@ -127,6 +127,13 @@ export function Navbar() {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
+              href="/png-to-svg"
+              className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+            >
+              PNG to SVG
+            </Link>
+
+            <Link 
               href="/svg-guides"
               className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
@@ -220,23 +227,21 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-[14px] md:gap-[16px]">
-                <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
-                  >
-                    Log In
-                  </Button>
-                </Link>
+                <Button
+                  href="/login"
+                  variant="outline"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
+                >
+                  Log In
+                </Button>
 
-                <Link href="/signup">
-                  <Button
-                    variant="solid"
-                    className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
-                  >
-                    Sign Up
-                  </Button>
-                </Link>
+                <Button
+                  href="/signup"
+                  variant="solid"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
+                >
+                  Sign Up
+                </Button>
               </div>
             )}
           </div>
