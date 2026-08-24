@@ -58,7 +58,7 @@ export function TargetAudience() {
                 alt={card.title} 
                 width={32} 
                 height={32} 
-                className="object-contain"
+                className="object-contain w-[32px] h-[32px]"
               />
             </div>
 
