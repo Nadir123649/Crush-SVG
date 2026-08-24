@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
 import { convertSvgQueued } from '@/lib/svg/conversion-queue'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/usage/conversion-usage'
+import { logConversion } from '@/lib/usage/conversion-logger'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { classifySvgError } from '@/lib/svg/svg-errors'
@@ -54,6 +55,13 @@ export async function POST(request: NextRequest) {
     let conversionsUsed = 0
     try {
       conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
+      await logConversion({
+        userId: usage.userId,
+        guestId: usage.kind === 'guest' ? guestId : undefined,
+        inputFormat: 'svg',
+        outputFormat: 'png',
+        success: true,
+      })
     } catch (error) {
       console.error('Failed to record conversion usage:', error)
     }
@@ -120,6 +128,16 @@ export async function POST(request: NextRequest) {
     console.error('SVG conversion failed:', error)
 
     const info = classifySvgError(error)
+    
+    await logConversion({
+      userId: usage.userId,
+      guestId: usage.kind === 'guest' ? guestId : undefined,
+      inputFormat: 'svg',
+      outputFormat: 'png',
+      success: false,
+      errorReason: info.code
+    })
+
     return errorResponse(info.status, info.code, info.message, undefined, request)
   }
 }

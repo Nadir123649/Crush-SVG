@@ -8,6 +8,7 @@ import { checkBruteForce, recordFailure, resetBruteForce } from '@/lib/security/
 import { issueSession } from '@/lib/auth/auth-helpers'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { isAdminEmail } from '@/lib/auth/roles'
 
 export const runtime = 'nodejs'
 
@@ -75,10 +76,21 @@ export async function POST(request: NextRequest) {
 
   await resetBruteForce(request, `login:${email}`)
   const now = new Date()
+  
+  const expectedRole = isAdminEmail(email) ? 'admin' : 'user'
+  
+  const updateData: any = {
+      lastLoginAt: now,
+  }
+  if (expectedRole === 'admin' && user.role !== 'admin') {
+      updateData.role = 'admin'
+      user.role = 'admin'
+  }
+
   await User.updateOne(
     { _id: user._id },
     {
-      $set: { lastLoginAt: now },
+      $set: updateData,
       $addToSet: { linkedProviders: 'email' },
     }
   )

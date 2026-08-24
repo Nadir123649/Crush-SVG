@@ -4,10 +4,14 @@ import { connect, type Connection } from "mongoose";
 import { User } from "@/lib/database/models/user";
 import { Session } from "@/lib/database/models/session";
 import { GuestUsage } from "@/lib/database/models/guest-usage";
-export { User, Session, GuestUsage };
+import { ConversionLog } from "@/lib/database/models/conversion-log";
+import { AuditLog } from "@/lib/database/models/audit-log";
+export { User, Session, GuestUsage, ConversionLog, AuditLog };
 export type { UserDoc } from "@/lib/database/models/user";
 export type { SessionDoc, SessionStatus } from "@/lib/database/models/session";
 export type { GuestUsageDoc } from "@/lib/database/models/guest-usage";
+export type { ConversionLogDoc } from "@/lib/database/models/conversion-log";
+export type { AuditLogDoc } from "@/lib/database/models/audit-log";
 declare global {
     var __crushSvgMongoose: Promise<Connection> | undefined;
 }
