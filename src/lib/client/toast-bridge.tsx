@@ -21,6 +21,16 @@ export function emitToast(kind: ToastKind, message: string) {
   }
 }
 
+function InfoIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="#475569" strokeWidth="2" />
+      <path d="M12 11.25v5" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="7.75" r="1.25" fill="#475569" />
+    </svg>
+  );
+}
+
 // Rate-limited toast: only one toast is visible at a time (the previous one is
 // dismissed before showing the next) and identical messages fired within the
 // dedupe window are swallowed to avoid spam.
@@ -37,7 +47,7 @@ export function showToast(kind: ToastKind, message: string) {
       ? toast.success(message)
       : kind === "error"
         ? toast.error(message)
-        : toast(message, { icon: "ℹ️" })
+        : toast(message, { icon: <InfoIcon /> })
 
   activeToastId = id
   lastMessage = message

@@ -42,12 +42,12 @@ export default function ResetPasswordPage() {
         if (cancelled) return
         setTokenState(body.valid === true ? "valid" : "invalid")
         if (body.valid !== true) {
-          showToast("error", "This password reset link is invalid or has expired. Request a new one.")
+          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
         }
       } catch {
         if (!cancelled) {
           setTokenState("invalid")
-          showToast("error", "This password reset link is invalid or has expired. Request a new one.")
+          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
         }
       }
     })()
@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
       });
       setDone(true);
       setRedirectIn(3);
-      showToast("success", "Password changed. Please log in with your new password.");
+      showToast("success", "Password updated. You can now log in with your new password.");
     } catch (err) {
       // Using the current password is a validation error, not an invalid link —
       // keep the form visible so the message is shown.

@@ -52,7 +52,7 @@ export function Header() {
 
   async function handleLogout() {
     await logout();
-    showToast("success", "Logged out successfully");
+    showToast("success", "You've been signed out");
     router.push("/");
     router.refresh();
   }

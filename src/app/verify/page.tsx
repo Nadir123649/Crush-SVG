@@ -15,7 +15,7 @@ function VerificationContent() {
 
   useEffect(() => {
     if (variant === "success") {
-      showToast("success", "Email verified. You can now log in.")
+      showToast("success", "Your email has been verified. You can now log in.")
     }
   }, [variant])
 
