@@ -21,5 +21,4 @@ export const IMAGES = {
     linkedin: "/linkedin.webp",
     verification: "/verification.webp",
     emailVerification: "/message-filled.webp",
-    
 } as const;
