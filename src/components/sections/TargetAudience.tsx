@@ -58,8 +58,7 @@ export function TargetAudience() {
                 alt={card.title} 
                 width={32} 
                 height={32} 
-                className="object-contain"
-                style={{ width: "auto", height: "auto" }}
+                className="object-contain w-[32px] h-[32px]"
               />
             </div>
 
