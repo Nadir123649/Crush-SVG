@@ -95,12 +95,15 @@ export default function HelpPage() {
           >
             Contact Support Team
           </Link>
-          <a
-            href="mailto:support@crushsvg.net"
-            className="font-afacad font-medium text-text-muted hover:text-brand-primary hover:underline text-sm"
-          >
-            or email support@crushsvg.net
-          </a>
+          <span className="font-afacad font-medium text-text-muted text-sm">
+            or email{" "}
+            <a
+              href="mailto:support@crushsvg.net"
+              className="text-brand-primary hover:underline"
+            >
+              support@crushsvg.net
+            </a>
+          </span>
         </div>
       </div>
     </div>
