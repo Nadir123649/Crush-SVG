@@ -11,14 +11,7 @@ export function Footer() {
       e.preventDefault();
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        const computedStyle = window.getComputedStyle(element);
-        const scrollMarginTop = parseFloat(computedStyle.scrollMarginTop) || 0;
-
-        window.scrollTo({
-          top: elementPosition - scrollMarginTop,
-          behavior: "smooth"
-        });
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
         window.history.pushState(null, "", `/${hash}`);
       }
     }

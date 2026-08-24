@@ -58,20 +58,19 @@ export function TargetAudience() {
                 alt={card.title} 
                 width={32} 
                 height={32} 
-                className="object-contain"
-                style={{ width: "auto", height: "auto" }}
+                className="object-contain w-[32px] h-[32px]"
               />
             </div>
 
             {/* Text Content */}
-            <div className="flex flex-col justify-center gap-[8px] w-full min-w-0">
+            <div className="flex flex-col justify-center md:justify-start gap-[8px] w-full min-w-0 flex-1">
               <h3 className="font-heading font-semibold text-[18px] md:text-[20px] leading-[22px] md:leading-[26px] tracking-[0.04em] text-text-dark mt-0 md:mt-[20px] group-hover:text-brand-primary transition-colors">
                 {card.title}
               </h3>
               <p className="font-body font-normal text-[14px] md:text-[14px] leading-[18.67px] md:leading-[20px] text-text-muted">
                 {card.description}
               </p>
-              <span className="text-xs font-semibold text-brand-primary mt-1 hidden md:inline-flex items-center gap-1 group-hover:underline">
+              <span className="text-xs font-semibold text-brand-primary mt-1 md:mt-auto hidden md:inline-flex items-center gap-1 group-hover:underline">
                 {card.linkText} &rarr;
               </span>
             </div>
