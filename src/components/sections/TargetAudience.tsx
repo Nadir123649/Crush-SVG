@@ -53,7 +53,7 @@ export function TargetAudience() {
           >
             {/* Image Box */}
             <div className="w-[155px] h-[140px] md:w-full md:h-[120px] rounded-[12px] bg-[#FCF1ED] flex items-center justify-center shrink-0">
-              <img 
+              <Image 
                 src={card.icon} 
                 alt={card.title} 
                 width={32} 

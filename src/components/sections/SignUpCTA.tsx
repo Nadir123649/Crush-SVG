@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -104,7 +105,7 @@ export function SignUpCTA() {
           <div className="w-full max-w-[331px] lg:max-w-[380px] h-auto lg:h-[406px] p-[24px] lg:pt-[40px] lg:px-[24px] lg:pb-[24px] bg-[#FFFFFF] rounded-[12px] border-none flex flex-col items-center">
 
             {/* User Icon */}
-            <img src={IMAGES.profile} alt="Profile Icon" width={24} height={24} className="mb-[12px] lg:mb-[16px]" />
+            <Image src={IMAGES.profile} alt="Profile Icon" width={24} height={24} className="mb-[12px] lg:mb-[16px]" />
 
             <h3 className="font-heading font-semibold text-[16px] lg:text-[18px] leading-[22px] lg:leading-[24px] tracking-[0.04em] text-center text-text-dark mb-[10px]">
               {remaining === 0 ? (
