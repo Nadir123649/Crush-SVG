@@ -67,7 +67,7 @@ export function AuthCard({ type }: AuthCardProps) {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
         setVerificationSent(true);
-        showToast("success", "Account created! Check your email to verify your account.");
+        showToast("success", "Account created. Check your inbox to verify your email address.");
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "email_not_verified") {
@@ -108,7 +108,7 @@ async function handleOAuth(provider: OAuthProvider) {
     try {
       await resendVerification(email);
       setResendDone(true);
-      showToast("success", "Verification email sent again.");
+      showToast("success", "A new verification link has been sent to your email.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not resend. Try again.");
     }
