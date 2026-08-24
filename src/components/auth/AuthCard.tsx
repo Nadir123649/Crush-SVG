@@ -277,7 +277,7 @@ async function handleOAuth(provider: OAuthProvider) {
             >
               {error && error.includes("already exists") ? (
                 <span>
-                  An account with this email already exists. Please <a href="/login" style={{ color: "#0000EE", fontWeight: 600, textDecoration: "underline" }}>log in</a> instead.
+                  An account with this email already exists. Please <a href="/login" style={{ color: "#3b82f6", fontWeight: 600, textDecoration: "underline" }}>log in</a> instead.
                 </span>
               ) : (
                 error

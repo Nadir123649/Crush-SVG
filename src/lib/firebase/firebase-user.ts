@@ -21,17 +21,38 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
     const model = users ?? User;
     const now = new Date();
     const email = token.email ? token.email.toLowerCase().trim() : null;
-    const byUid = await model.findOne({ uid: token.uid });
-    if (byUid) {
-        return ((await model.findOneAndUpdate({ uid: token.uid }, {
-            $set: {
-                email: email ?? byUid.email,
-                displayName: token.name ?? byUid.displayName,
-                photoURL: token.picture ?? byUid.photoURL,
-                lastLoginAt: now,
-            },
+    let user = await model.findOne({ uid: token.uid });
+    
+    // If not found by UID, but email exists, link the accounts
+    if (!user && email) {
+        user = await model.findOne({ email });
+        if (user) {
+            // Link the new UID if the existing user didn't have one (or had a different one)
+            // But usually we don't overwrite UIDs if they have a password-only account,
+            // we just add the provider. Actually, we should set the UID to the Google UID 
+            // if it was empty, or just let them keep their old one.
+            if (!user.uid || user.uid.length === 0) {
+                await model.updateOne({ _id: user._id }, { $set: { uid: token.uid } });
+            }
+        }
+    }
+
+    if (user) {
+        const expectedRole = roleFor(email);
+        const updateData: any = {
+            email: email ?? user.email,
+            displayName: token.name ?? user.displayName,
+            photoURL: token.picture ?? user.photoURL,
+            lastLoginAt: now,
+        };
+        if (expectedRole === "admin" && user.role !== "admin") {
+            updateData.role = "admin";
+        }
+
+        return ((await model.findOneAndUpdate({ _id: user._id }, {
+            $set: updateData,
             $addToSet: { providers: provider, linkedProviders: provider },
-        }, { new: true })) ?? byUid);
+        }, { new: true })) ?? user);
     }
     try {
         return await model.create({

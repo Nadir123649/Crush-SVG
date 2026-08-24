@@ -5,5 +5,6 @@ export function isAdminEmail(email: string | null | undefined): boolean {
         .split(",")
         .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
-    return admins.includes(email.toLowerCase().trim());
+    const normalized = email.toLowerCase().trim();
+    return admins.includes(normalized);
 }

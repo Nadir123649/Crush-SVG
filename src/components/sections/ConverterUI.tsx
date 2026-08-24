@@ -46,7 +46,7 @@ const formatDimensionLabel = (val: string, currentUnit: string) => {
   return `${val} ${currentUnit}`;
 };
 
-export function ConverterUI() {
+export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("Original");
@@ -68,6 +68,10 @@ export function ConverterUI() {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  const [rasterFile, setRasterFile] = useState<File | null>(null);
+  const [rasterDataUrl, setRasterDataUrl] = useState<string | null>(null);
+  const storageKey = mode === "raster-to-svg" ? "crush_vectorizer_state" : CONVERTER_STORAGE_KEY;
 
   useEffect(() => {
     if (converting) {
@@ -178,15 +182,27 @@ export function ConverterUI() {
     // synchronous setState in effects" rule.
     queueMicrotask(() => {
       try {
-        const raw = sessionStorage.getItem(CONVERTER_STORAGE_KEY);
+        const raw = sessionStorage.getItem(storageKey);
         if (!raw) return;
-        const saved = JSON.parse(raw) as { svgCode?: unknown; result?: unknown };
-        if (typeof saved.svgCode === "string" && saved.svgCode.trim() !== "") {
-          setSvgCode(saved.svgCode);
-        }
-        const savedResult = saved.result as ConvertResponse | undefined;
-        if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
-          setResult(savedResult);
+        const saved = JSON.parse(raw);
+        if (mode === "raster-to-svg") {
+          const r = saved as { rasterDataUrl?: unknown; result?: unknown };
+          if (typeof r.rasterDataUrl === "string") {
+            setRasterDataUrl(r.rasterDataUrl);
+          }
+          const savedResult = r.result as ConvertResponse | undefined;
+          if (savedResult && typeof savedResult.data === "string") {
+            setResult(savedResult);
+          }
+        } else {
+          const savedSvg = saved as { svgCode?: unknown; result?: unknown };
+          if (typeof savedSvg.svgCode === "string" && savedSvg.svgCode.trim() !== "") {
+            setSvgCode(savedSvg.svgCode);
+          }
+          const savedResult = savedSvg.result as ConvertResponse | undefined;
+          if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
+            setResult(savedResult);
+          }
         }
       } catch { }
       finally {
@@ -206,9 +222,9 @@ export function ConverterUI() {
       // from persistence when it's too big so the SVG itself still survives.
       const persistableResult =
         result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
-      sessionStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
+      sessionStorage.setItem(storageKey, JSON.stringify(mode === "raster-to-svg" ? { rasterDataUrl, result: persistableResult } : { svgCode, result: persistableResult }));
     } catch { }
-  }, [svgCode, result]);
+  }, [svgCode, rasterDataUrl, result, mode, storageKey]);
 
   const previewSvgUrl = useMemo(() => {
     if (!svgCode || svgCode.trim() === "") return "";
@@ -239,12 +255,18 @@ export function ConverterUI() {
   }
 
   function handleClearSvg() {
-    setSvgCode(SAMPLE_SVG);
+    if (mode === "raster-to-svg") {
+      setRasterFile(null);
+      setRasterDataUrl(null);
+      setSvgCode(DUMMY_CODE);
+    } else {
+      setSvgCode(SAMPLE_SVG);
+    }
     setResult(null);
     setError(null);
     setPreviewError(false);
     try {
-      sessionStorage.removeItem(CONVERTER_STORAGE_KEY);
+      sessionStorage.removeItem(storageKey);
     } catch { }
   }
 
@@ -284,6 +306,10 @@ export function ConverterUI() {
         formatted += "  ".repeat(pad) + line.trim() + "\n";
         pad += indent;
       });
+      if (svgCode === formatted.trim()) {
+        showToast("success", "SVG is already formatted");
+        return;
+      }
       setSvgCode(formatted.trim());
       showToast("success", "SVG code formatted");
     } catch {
@@ -307,6 +333,26 @@ export function ConverterUI() {
 
   async function handleFile(file: File | undefined | null) {
     if (!file) return;
+    if (mode === "raster-to-svg") {
+      if (!file.type.includes("image/png") && !file.type.includes("image/jpeg") && !file.name.toLowerCase().endsWith(".png") && !file.name.toLowerCase().endsWith(".jpg") && !file.name.toLowerCase().endsWith(".jpeg")) {
+        setError("Please choose a PNG or JPG image.");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image too large. Maximum size is 5MB.");
+        return;
+      }
+      setRasterFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setRasterDataUrl(e.target?.result as string);
+        setSvgCode(DUMMY_CODE);
+        setResult(null);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
       setError("Please choose an SVG file (.svg).");
       return;
@@ -330,6 +376,63 @@ export function ConverterUI() {
   }
 
   async function handleConvert() {
+    if (mode === "raster-to-svg") {
+      if (!rasterFile && !rasterDataUrl) {
+        showToast("error", "No image selected. Upload a PNG or JPG to convert.");
+        return;
+      }
+      setError(null);
+      setConverting(true);
+      try {
+        const formData = new FormData();
+        if (rasterFile) {
+            formData.append('file', rasterFile);
+        } else {
+            const res = await fetch(rasterDataUrl!);
+            const blob = await res.blob();
+            formData.append('file', blob, 'restored-image.png');
+        }
+        
+        const token = getAccessToken();
+        const res = await fetch('/api/v1/vectorize', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formData
+        });
+        
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new ApiError(res.status, errData.code || "unknown_error", errData.message || "Vectorization failed");
+        }
+        
+        const data = await res.json();
+        setResult({ data: data.payload.svg, format: "svg", mimeType: "image/svg+xml", size: data.payload.svg.length, width: 0, height: 0, conversionsUsed: data.payload.conversionsUsed, remaining: data.payload.remaining, warnings: [] });
+        setSvgCode(data.payload.svg);
+        showToast("success", "Vectorization successful! Ready to download.");
+        trackConversion("raster_vectorized", { output_format: "svg" });
+        
+        if (data.payload.remaining !== undefined) {
+          const reached = data.payload.remaining === 0;
+          setUsage({
+            conversionsUsed: data.payload.conversionsUsed,
+            remaining: data.payload.remaining,
+            isUnlimited: false,
+            limitReached: reached,
+          });
+          window.dispatchEvent(new CustomEvent("crushUsageUpdated", { detail: { conversionsUsed: data.payload.conversionsUsed, remaining: data.payload.remaining } }));
+        }
+      } catch (err) {
+        if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
+          setShowSignupPrompt(true);
+          return;
+        }
+        showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
+      } finally {
+        setConverting(false);
+      }
+      return;
+    }
+
     if (isPlaceholderCode || svgCode.trim() === "") {
       showToast("error", "Paste your SVG code or upload a file to get started.");
       return;
@@ -419,14 +522,25 @@ export function ConverterUI() {
 
   function handleDownload() {
     if (!result?.data) return;
-    const dataUrl = `data:${result.mimeType};base64,${result.data}`;
-    const ext = result.format === "jpeg" ? "jpg" : result.format;
+    let downloadUrl: string;
+    let ext: string;
+    if (result.format === "svg") {
+      const blob = new Blob([result.data], { type: "image/svg+xml;charset=utf-8" });
+      downloadUrl = URL.createObjectURL(blob);
+      ext = "svg";
+    } else {
+      downloadUrl = `data:${result.mimeType};base64,${result.data}`;
+      ext = result.format === "jpeg" ? "jpg" : result.format;
+    }
     const a = document.createElement("a");
-    a.href = dataUrl;
+    a.href = downloadUrl;
     a.download = `crushsvg-${Date.now()}.${ext}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
+    if (result.format === "svg") {
+      URL.revokeObjectURL(downloadUrl);
+    }
     showToast("success", "Your download has started");
     trackConversion("png_downloaded", { output_format: ext });
     if (limitReached && status !== "authed") {
@@ -458,7 +572,7 @@ export function ConverterUI() {
             <div className="w-full lg:w-[537px] flex flex-col">
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                  SVG Code
+                  {mode === "raster-to-svg" ? "Raster Image" : "SVG Code"}
                 </h2>
                 <div className="flex items-center gap-[10px]">
                   {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
@@ -476,7 +590,7 @@ export function ConverterUI() {
                     type="button"
                     onClick={handleClearSvg}
                     aria-label="Clear SVG editor"
-                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${svgCode !== SAMPLE_SVG ? "opacity-100" : "opacity-0 pointer-events-none"
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${(mode === "svg-to-png" ? svgCode !== SAMPLE_SVG : !!rasterDataUrl) ? "opacity-100" : "opacity-0 pointer-events-none"
                       }`}
                   >
                     <div
@@ -495,7 +609,7 @@ export function ConverterUI() {
                     </span>
                   </button>
                   {usage && (
-                    <span className="font-body font-normal text-[12px] md:text-[13px] text-[#475569]">
+                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {usage.isUnlimited
                         ? "Unlimited conversions"
                         : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
@@ -504,34 +618,50 @@ export function ConverterUI() {
                 </div>
               </div>
 
-              {/* SVG Code Box */}
-              <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
-                <textarea
-                  id="svg-code-textarea"
-                  value={svgCode === SAMPLE_SVG ? "" : svgCode}
-                  placeholder={DUMMY_CODE}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "") {
-                      handleSvgChange(SAMPLE_SVG);
-                    } else {
-                      handleSvgChange(val);
-                    }
-                  }}
-                  spellCheck={false}
-                  aria-label="SVG code editor"
-                  className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
-                />
-                {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
-                <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
-              </div>
+              {mode === "svg-to-png" ? (
+                <>
+                  {/* SVG Code Box */}
+                  <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+                    <textarea
+                      id="svg-code-textarea"
+                      value={svgCode === SAMPLE_SVG ? "" : svgCode}
+                      placeholder={DUMMY_CODE}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          handleSvgChange(SAMPLE_SVG);
+                        } else {
+                          handleSvgChange(val);
+                        }
+                      }}
+                      spellCheck={false}
+                      aria-label="SVG code editor"
+                      className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    />
+                    {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
+                    <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {rasterDataUrl ? (
+                    <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden flex items-center justify-center p-[20px]">
+                      <img src={rasterDataUrl} className="max-w-full max-h-full object-contain" alt="Selected Raster Image" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden flex items-center justify-center">
+                      <p className="font-body text-[#94A3B8]">No image selected</p>
+                    </div>
+                  )}
+                </>
+              )}
 
               <input
                 ref={fileInputRef}
                 id="svg-file-upload"
                 type="file"
-                aria-label="Upload SVG file"
-                accept=".svg,image/svg+xml"
+                aria-label={mode === "raster-to-svg" ? "Upload PNG/JPG file" : "Upload SVG file"}
+                accept={mode === "raster-to-svg" ? ".png,.jpg,.jpeg,image/png,image/jpeg" : ".svg,image/svg+xml"}
                 className="absolute w-0 h-0 opacity-0 overflow-hidden"
                 onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
               />
@@ -546,21 +676,23 @@ export function ConverterUI() {
                 tabIndex={0}
                 aria-label="Drag and drop or select an SVG file"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus:border-brand-primary focus:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
+                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
               >
                 <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
                 <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                   <span className="font-normal">Drag & Drop or </span>
-                  <span className="font-medium text-brand-primary">Select SVG</span>
+                  <span className="font-medium text-brand-primary">{mode === "raster-to-svg" ? "Select Image" : "Select SVG"}</span>
                 </div>
               </div> 
 
               {/* Bottom Source Text */}
-              <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px] ">
-                {dims.width && dims.height
-                  ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
-                  : "Source size: unknown — set width/height or viewBox on your SVG"}
-              </p>
+              {mode === "svg-to-png" && (
+                <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px] ">
+                  {dims.width && dims.height
+                    ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
+                    : "Source size: unknown — set width/height or viewBox on your SVG"}
+                </p>
+              )}
 
               <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[6px]">
                 <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
@@ -579,10 +711,10 @@ export function ConverterUI() {
 
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
-                {storageRestored && previewUrl && !previewError ? (
+                {((storageRestored && previewUrl && !previewError) || (mode === "raster-to-svg" && result && result.data)) ? (
                   <img
-                    src={previewUrl}
-                    alt="SVG preview"
+                    src={mode === "raster-to-svg" && result && result.data ? `data:image/svg+xml;base64,${btoa(result.data)}` : previewUrl}
+                    alt={mode === "raster-to-svg" ? "Vectorized SVG preview" : "SVG preview"}
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={() => setPreviewError(true)}
                   />
@@ -596,9 +728,11 @@ export function ConverterUI() {
               </div>
 
               {/* Settings & Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px]">
-                {/* Dropdowns Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
+              <div className={`w-full mt-[16px] md:mt-[20px] ${converting ? "pointer-events-none opacity-50" : ""}`}>
+                {mode === "svg-to-png" && (
+                  <>
+                    {/* Dropdowns Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
 
                   {/* Width Input */}
                   <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
@@ -847,9 +981,10 @@ export function ConverterUI() {
                             }
                             resetConversion();
                           }}
-                          placeholder="e.g. 500"
+                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                           aria-label="Custom width in pixels or centimeters"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                          autoComplete="off"
+                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
                         />
                         {selectedWidth !== "Original" && selectedWidth !== "" && (
                           <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
@@ -874,9 +1009,10 @@ export function ConverterUI() {
                             }
                             resetConversion();
                           }}
-                          placeholder="e.g. 500"
+                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                           aria-label="Custom height in pixels or centimeters"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                          autoComplete="off"
+                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
                         />
                         {selectedHeight !== "Auto" && selectedHeight !== "" && (
                           <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
@@ -902,6 +1038,8 @@ export function ConverterUI() {
                     className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded border-[#8F8F8F] accent-brand-primary cursor-pointer"
                   />
                 </label>
+                  </>
+                )}
 
                 {error && (
                   <div role="alert" className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[13px] leading-[18px] text-red-700">
@@ -936,7 +1074,7 @@ export function ConverterUI() {
                         disabled={converting || isPlaceholderCode}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          Download PNG
+                          {mode === "raster-to-svg" ? "Download SVG" : "Download PNG"}
                           <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert" />
                         </span>
                       </Button>
