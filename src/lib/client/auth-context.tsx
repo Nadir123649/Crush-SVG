@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionStorage.setItem('crush_session_only', '1')
         } catch {}
       }
-      showToast('success', 'Logged in successfully')
+      showToast('success', 'Signed in successfully. Welcome back!')
     },
     [applySession]
   )
@@ -238,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionStorage.setItem('crush_session_only', '1')
         } catch {}
       }
-      showToast('success', 'Logged in successfully')
+      showToast('success', 'Signed in successfully. Welcome back!')
     },
     [applySession]
   )
@@ -260,7 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         body: JSON.stringify({ currentPassword, newPassword }),
       })
-      showToast('success', 'Password changed. Please sign in again.')
+      showToast('success', 'Password updated. Please sign in again.')
       clearAuth()
     },
     [clearAuth]

@@ -278,7 +278,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       if (text && isValidSvgContent(text)) {
         e.preventDefault();
         handleSvgChange(text.trim());
-        showToast("success", "SVG code pasted from clipboard!");
+        showToast("success", "SVG pasted from clipboard");
       }
     }
     window.addEventListener("paste", handleGlobalPaste);
@@ -307,9 +307,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         pad += indent;
       });
       setSvgCode(formatted.trim());
-      showToast("success", "SVG code formatted!");
+      showToast("success", "SVG code formatted");
     } catch {
-      showToast("error", "Could not format SVG code.");
+      showToast("error", "We couldn't format this SVG. Please check that the code is valid.");
     }
   }
 
@@ -321,9 +321,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob })
       ]);
-      showToast("success", "PNG image copied to clipboard!");
+      showToast("success", "Image copied to clipboard");
     } catch {
-      showToast("error", "Could not copy image to clipboard. Try downloading instead.");
+      showToast("error", "Couldn't copy the image. Please try downloading it instead.");
     }
   }
 
@@ -430,7 +430,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     }
 
     if (isPlaceholderCode || svgCode.trim() === "") {
-      showToast("error", "SVG code is empty. Paste your SVG code to convert.");
+      showToast("error", "Paste your SVG code or upload a file to get started.");
       return;
     }
     setError(null);
@@ -484,7 +484,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       ]);
 
       setResult(res);
-      showToast("success", "Conversion successful! Ready to download.");
+      showToast("success", "Conversion complete. Your file is ready to download.");
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
         width: options.width,
@@ -507,7 +507,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         return;
       }
       if (err instanceof DOMException && err.name === "TimeoutError") {
-        showToast("error", "Conversion timed out. Please try again.");
+        showToast("error", "The conversion took too long. Please try again.");
         return;
       }
       showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
@@ -537,7 +537,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     if (result.format === "svg") {
       URL.revokeObjectURL(downloadUrl);
     }
-    showToast("success", "Downloading…");
+    showToast("success", "Your download has started");
     trackConversion("png_downloaded", { output_format: ext });
     if (limitReached && status !== "authed") {
       setLimitDownloadDone(true);

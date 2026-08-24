@@ -30,7 +30,7 @@ export function ForgotPasswordCard() {
         body: JSON.stringify({ email }),
       });
       setSent(true);
-      showToast("success", "Password reset email sent successfully. Please check your inbox.");
+      showToast("success", "Reset link sent. Please check your inbox.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -56,7 +56,7 @@ export function ForgotPasswordCard() {
         {sent ? (
           <div className="flex flex-col items-center gap-[12px] py-[16px]">
             <PasswordResetSuccessAlert 
-              message="Password reset email sent successfully. Please check your inbox." 
+              message="Reset link sent. Please check your inbox." 
               onClose={() => setSent(false)}
             />
             <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mt-[12px]">

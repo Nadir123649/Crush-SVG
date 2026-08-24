@@ -151,8 +151,8 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)
     } else {
-      emitToast('error', 'Session expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Session expired. Please sign in again.')
+      emitToast('error', 'Your session has expired. Please sign in again.')
+      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }
   }
 
@@ -168,8 +168,8 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await fetch(path, { ...init, headers })
     } else {
-      emitToast('error', 'Session expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Session expired. Please sign in again.')
+      emitToast('error', 'Your session has expired. Please sign in again.')
+      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }
   }
 
