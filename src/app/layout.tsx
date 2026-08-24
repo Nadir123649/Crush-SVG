@@ -100,7 +100,6 @@ export default function RootLayout({
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
 
         {/* Google Tag Manager DNS */}

@@ -133,7 +133,7 @@ export function Header() {
 
             <Link
               href="/contact-us?r=1"
-              className="hidden md:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden md:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Need Help?
             </Link>

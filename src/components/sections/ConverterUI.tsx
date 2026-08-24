@@ -306,6 +306,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         formatted += "  ".repeat(pad) + line.trim() + "\n";
         pad += indent;
       });
+      if (svgCode === formatted.trim()) {
+        showToast("success", "SVG is already formatted");
+        return;
+      }
       setSvgCode(formatted.trim());
       showToast("success", "SVG code formatted");
     } catch {
@@ -605,7 +609,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     </span>
                   </button>
                   {usage && (
-                    <span className="font-body font-normal text-[12px] md:text-[13px] text-[#475569]">
+                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {usage.isUnlimited
                         ? "Unlimited conversions"
                         : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
@@ -672,7 +676,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 tabIndex={0}
                 aria-label="Drag and drop or select an SVG file"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus:border-brand-primary focus:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
+                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
               >
                 <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
                 <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
@@ -724,7 +728,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
               </div>
 
               {/* Settings & Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px]">
+              <div className={`w-full mt-[16px] md:mt-[20px] ${converting ? "pointer-events-none opacity-50" : ""}`}>
                 {mode === "svg-to-png" && (
                   <>
                     {/* Dropdowns Row */}
@@ -977,9 +981,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                             }
                             resetConversion();
                           }}
-                          placeholder="e.g. 500"
+                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                           aria-label="Custom width in pixels or centimeters"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                          autoComplete="off"
+                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
                         />
                         {selectedWidth !== "Original" && selectedWidth !== "" && (
                           <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
@@ -1004,9 +1009,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                             }
                             resetConversion();
                           }}
-                          placeholder="e.g. 500"
+                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                           aria-label="Custom height in pixels or centimeters"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                          autoComplete="off"
+                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
                         />
                         {selectedHeight !== "Auto" && selectedHeight !== "" && (
                           <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
