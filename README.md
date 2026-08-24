@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/CrushSVG-logo.svg" width="120" alt="CrushSVG Logo" />
+  <img src="./public/crushsvg.webp" width="120" alt="CrushSVG Logo" />
 
   # CrushSVG
 
