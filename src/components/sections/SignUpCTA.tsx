@@ -1,18 +1,58 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
+import { getUsage } from "@/lib/client/sessions";
+import type { UsageInfo } from "@/lib/shared/shared-types";
 
 export function SignUpCTA() {
   const { status } = useAuth();
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+
+  useEffect(() => {
+    if (status === 'guest') {
+      getUsage().then(setUsage).catch(() => {});
+
+      const handleUsageUpdated = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        if (customEvent.detail) {
+          setUsage((prev) => {
+            const newUsage = prev ? { ...prev } : { conversionsUsed: 0, remaining: 3, isUnlimited: false };
+            newUsage.conversionsUsed = customEvent.detail.conversionsUsed;
+            newUsage.remaining = customEvent.detail.remaining;
+            return newUsage;
+          });
+        }
+      };
+
+      window.addEventListener("crushUsageUpdated", handleUsageUpdated);
+      return () => window.removeEventListener("crushUsageUpdated", handleUsageUpdated);
+    }
+  }, [status]);
 
   if (status === "authed") {
     return null;
   }
+
+  const remaining = usage ? usage.remaining : 3;
+  const used = usage ? usage.conversionsUsed : 0;
+  const totalFree = remaining + used || 3; // Default to 3 if both are 0 but total isn't known
+
+  const points = [];
+  for (let i = totalFree; i > 0; i--) {
+    let text = "";
+    if (i === 1) {
+      text = "Last Free Conversion";
+    } else {
+      text = `${i} Free Conversions Left`;
+    }
+    points.push({ val: i, text });
+  }
+  points.push({ val: 0, text: "Sign Up For Free" });
+
   return (
     <section className="w-full flex justify-center mb-[60px] md:mb-[100px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center gap-[40px]">
@@ -24,7 +64,7 @@ export function SignUpCTA() {
             <span className="text-[#DA582D]">No credit card</span> required.
           </h2>
           <p className="font-body font-normal text-[14px] lg:text-[16px] leading-[18.67px] text-text-muted text-center lg:text-left">
-            Enjoy 3 free conversions with no signup required. When you&apos;re ready for more, create a<br className="hidden lg:inline" />{" "}
+            Enjoy {totalFree} free conversions with no signup required. When you&apos;re ready for more, create a<br className="hidden lg:inline" />{" "}
             free account to unlock unlimited access.
           </p>
 
@@ -33,53 +73,29 @@ export function SignUpCTA() {
             {/* Vertical Dashed Line */}
             <div className="absolute left-[29px] lg:left-[9px] top-[38px] lg:top-[14px] bottom-[44px] lg:bottom-[20px] w-[1px] border-l border-dashed border-[#D0D0D0] z-0"></div>
 
-            {/* Point 1 */}
-            <div className="flex items-center gap-[18px] z-10 relative">
-              <div className="w-[18px] h-[18px] rounded-full bg-[#FCF1ED] flex items-center justify-center shrink-0">
-                <div className="w-[10px] h-[10px] rounded-full border-[1px] border-brand-primary flex items-center justify-center">
-                  <div className="w-[1.8px] h-[1.8px] rounded-full bg-brand-primary"></div>
+            {points.map((p) => {
+              const isActive = p.val === remaining;
+              return (
+                <div key={p.val} className="flex items-center gap-[18px] z-10 relative">
+                  {isActive ? (
+                    <div className="w-[18px] h-[18px] rounded-full bg-brand-primary flex items-center justify-center shrink-0">
+                      <div className="w-[10px] h-[10px] rounded-full border-[1px] border-white flex items-center justify-center">
+                        <div className="w-[1.8px] h-[1.8px] rounded-full bg-white"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-[18px] h-[18px] rounded-full bg-[#FCF1ED] flex items-center justify-center shrink-0">
+                      <div className="w-[10px] h-[10px] rounded-full border-[1px] border-brand-primary flex items-center justify-center">
+                        <div className="w-[1.8px] h-[1.8px] rounded-full bg-brand-primary"></div>
+                      </div>
+                    </div>
+                  )}
+                  <span className={`font-heading font-medium text-[14px] leading-[18.67px] tracking-[0.04em] ${isActive ? 'text-brand-primary' : 'text-text-dark'}`}>
+                    {p.text}
+                  </span>
                 </div>
-              </div>
-              <span className="font-heading font-medium text-[14px] leading-[18.67px] tracking-[0.04em] text-text-dark">
-                3 Free Conversions Left
-              </span>
-            </div>
-
-            {/* Point 2 */}
-            <div className="flex items-center gap-[18px] z-10 relative">
-              <div className="w-[18px] h-[18px] rounded-full bg-[#FCF1ED] flex items-center justify-center shrink-0">
-                <div className="w-[10px] h-[10px] rounded-full border-[1px] border-brand-primary flex items-center justify-center">
-                  <div className="w-[1.8px] h-[1.8px] rounded-full bg-brand-primary"></div>
-                </div>
-              </div>
-              <span className="font-heading font-medium text-[14px] leading-[18.67px] tracking-[0.04em] text-text-dark">
-                2 Free Conversions Left
-              </span>
-            </div>
-
-            {/* Point 3 */}
-            <div className="flex items-center gap-[18px] z-10 relative">
-              <div className="w-[18px] h-[18px] rounded-full bg-[#FCF1ED] flex items-center justify-center shrink-0">
-                <div className="w-[10px] h-[10px] rounded-full border-[1px] border-brand-primary flex items-center justify-center">
-                  <div className="w-[1.8px] h-[1.8px] rounded-full bg-brand-primary"></div>
-                </div>
-              </div>
-              <span className="font-heading font-medium text-[14px] leading-[18.67px] tracking-[0.04em] text-text-dark">
-                Last Free Conversion
-              </span>
-            </div>
-
-            {/* Point 4 Active */}
-            <div className="flex items-center gap-[18px] z-10 relative">
-              <div className="w-[18px] h-[18px] rounded-full bg-brand-primary flex items-center justify-center shrink-0">
-                <div className="w-[10px] h-[10px] rounded-full border-[1px] border-white flex items-center justify-center">
-                  <div className="w-[1.8px] h-[1.8px] rounded-full bg-white"></div>
-                </div>
-              </div>
-              <span className="font-heading font-medium text-[14px] leading-[18.67px] tracking-[0.04em] text-brand-primary">
-                Sign Up For Free
-              </span>
-            </div>
+              );
+            })}
           </div>
         </div>
 
@@ -88,10 +104,14 @@ export function SignUpCTA() {
           <div className="w-full max-w-[331px] lg:max-w-[380px] h-auto lg:h-[406px] p-[24px] lg:pt-[40px] lg:px-[24px] lg:pb-[24px] bg-[#FFFFFF] rounded-[12px] border-none flex flex-col items-center">
 
             {/* User Icon */}
-            <Image src={IMAGES.profile} alt="Profile Icon" width={24} height={24} className="mb-[12px] lg:mb-[16px]" />
+            <img src={IMAGES.profile} alt="Profile Icon" width={24} height={24} className="mb-[12px] lg:mb-[16px]" />
 
             <h3 className="font-heading font-semibold text-[16px] lg:text-[18px] leading-[22px] lg:leading-[24px] tracking-[0.04em] text-center text-text-dark mb-[10px]">
-              You&apos;ve used your 3 free<br />conversions
+              {remaining === 0 ? (
+                <>You&apos;ve used your {totalFree} free<br />conversions</>
+              ) : (
+                <>You have {remaining} free<br />conversion{remaining === 1 ? '' : 's'} left</>
+              )}
             </h3>
 
             <p className="font-body font-normal text-[13px] lg:text-[14px] leading-[18.67px] text-center text-text-muted mb-[16px] lg:mb-[26px]">
