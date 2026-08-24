@@ -46,8 +46,8 @@ export function Footer() {
               <span className="text-brand-primary">SVG</span>
             </div>
           </Link>
-          <p className="font-body font-normal text-[13px] md:text-[14px] leading-[125%] text-[#4B5563] mt-[4px] md:mt-[8px]">
-            From SVG to PNG, Exactly as Intended.<br className="hidden md:inline" />
+          <p className="font-body font-normal text-[12px] leading-[12px] text-[#4B5563] mt-[4px] md:mt-[8px]">
+            From SVG to PNG, Exactly as Intended.<br className="hidden md:inline" />{" "}
             Convert, optimize, and ship pixel-perfect assets.
           </p>
         </div>
@@ -58,20 +58,20 @@ export function Footer() {
           <div className="flex flex-wrap justify-center gap-[8px]">
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
               <div className="w-[6px] h-[6px] rounded-full bg-[#D94A1E]"></div>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">Browser Based</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">Browser Based</span>
             </div>
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="4.5" cy="4.5" r="3" fill="#D94A1E" fillOpacity="0.3" />
                 <circle cx="8" cy="8" r="3" fill="#D94A1E" />
               </svg>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">Transparent PNG</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">Transparent PNG</span>
             </div>
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">No Install</span>
             </div>
           </div>
         </div>
@@ -81,26 +81,26 @@ export function Footer() {
           {/* Column 1: Explore */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Explore</h4>
-            <Link href="/#converter" onClick={(e) => handleHashClick(e, '#converter')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
-            <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Features</Link>
-            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">How It Works</Link>
-            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Changelog</Link>
+            <Link href="/#converter" onClick={(e) => handleHashClick(e, '#converter')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
+            <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Features</Link>
+            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">How It Works</Link>
+            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Changelog</Link>
           </div>
           {/* Column 2: Resources */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Resources</h4>
-            <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Guides</Link>
-            <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Help & FAQ</Link>
-            <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Support Hub</Link>
-            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Contact Us</Link>
+            <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Guides</Link>
+            <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Help & FAQ</Link>
+            <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Support Hub</Link>
+            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Contact Us</Link>
           </div>
           {/* Column 3: Company */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Company</h4>
-            <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">About Us</Link>
-            <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Our Team</Link>
-            <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Privacy Policy</Link>
-            <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[13px] md:text-[14px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Terms of Service</Link>
+            <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">About Us</Link>
+            <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Our Team</Link>
+            <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Privacy Policy</Link>
+            <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
 
@@ -112,20 +112,20 @@ export function Footer() {
           <div className="flex justify-center gap-[12px]">
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <div className="w-[6px] h-[6px] rounded-full bg-[#D94A1E]"></div>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">Browser Based</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">Browser Based</span>
             </div>
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="4.5" cy="4.5" r="3" fill="#D94A1E" fillOpacity="0.3" />
                 <circle cx="8" cy="8" r="3" fill="#D94A1E" />
               </svg>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">Transparent PNG</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">Transparent PNG</span>
             </div>
             <div className="h-[39px] px-[12px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[8px]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4.66667 11.0833L1.16667 7.58333L2.33333 6.41667L4.66667 8.75L11.6667 1.75L12.8333 2.91667L4.66667 11.0833Z" fill="#D94A1E" />
               </svg>
-              <span className="font-body text-[11px] font-medium text-[#4B5563]">No Install</span>
+              <span className="font-body text-[12px] font-medium text-[#4B5563]">No Install</span>
             </div>
           </div>
 
@@ -166,7 +166,7 @@ export function Footer() {
 
       {/* Divider */}
       <div className="w-full max-w-[1280px] h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[60px] mb-[16px] md:mb-[20px]"></div>
-
+  
       {/* Bottom Footer */}
       <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-[8px] md:gap-[12px]">

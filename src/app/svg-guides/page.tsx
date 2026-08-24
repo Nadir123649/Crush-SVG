@@ -238,8 +238,8 @@ export default function SvgGuidesPage() {
               <p className="font-afacad text-sm text-text-muted">Test it directly in our client-side sandbox converter with custom scale factors.</p>
             </div>
             <Link
-              href="/"
-              className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+              href="/#converter"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
             >
               Open Converter &rarr;
             </Link>
@@ -272,7 +272,7 @@ export default function SvgGuidesPage() {
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
-                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The fix — Use CrushSVG:</strong>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">The fix - Use CrushSVG:</strong>
                 <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Paste or upload your SVG on <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link>. Set a high resolution (e.g. 2x scale for retina displays), click Convert, and download the PNG. Then embed it in your email template using a standard <code className="bg-[#F5F5F5] px-[4px] rounded text-[14px]">{`<img>`}</code> tag with a descriptive alt attribute.</span>
               </div>
             </li>
@@ -291,22 +291,22 @@ export default function SvgGuidesPage() {
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
-                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 1 — Export as SVG from Figma:</strong>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 1 - Export as SVG from Figma:</strong>
                 <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Select your frame or component in Figma. Go to the right panel → Export → choose <strong>SVG</strong> format. Make sure &quot;Include id attribute&quot; is unchecked to keep the file clean.</span>
               </div>
             </li>
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
-                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 2 — Convert on CrushSVG:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Upload your exported SVG file to <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link>. The transparent background is preserved automatically — no extra steps needed. Set your desired width, height, or scale factor for retina-ready output.</span>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 2 - Convert on CrushSVG:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Upload your exported SVG file to <Link href="/" className="text-brand-primary font-medium hover:underline">CrushSVG</Link>. The transparent background is preserved automatically - no extra steps needed. Set your desired width, height, or scale factor for retina-ready output.</span>
               </div>
             </li>
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
-                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 3 — Download your PNG:</strong>
-                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Download the crisp transparent PNG. It will retain all gradients, shadows, masks, and effects exactly as designed in Figma — ready for presentations, websites, or email templates. Need assistance? Visit our <Link href="/support" className="text-brand-primary hover:underline">Support Center</Link>.</span>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Step 3 - Download your PNG:</strong>
+                <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">Download the crisp transparent PNG. It will retain all gradients, shadows, masks, and effects exactly as designed in Figma - ready for presentations, websites, or email templates. Need assistance? Visit our <Link href="/support" className="text-brand-primary hover:underline">Support Center</Link>.</span>
               </div>
             </li>
           </ul>
@@ -318,13 +318,13 @@ export default function SvgGuidesPage() {
             9. Why SVG Does Not Display in Gmail or HTML Emails
           </h2>
           <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6] mb-[16px]">
-            You carefully designed a beautiful SVG logo or icon, but when you send the email — it&apos;s just blank or broken. Here&apos;s exactly why this happens and how to permanently fix it.
+            You carefully designed a beautiful SVG logo or icon, but when you send the email - it&apos;s just blank or broken. Here&apos;s exactly why this happens and how to permanently fix it.
           </p>
           <ul className="flex flex-col gap-[16px]">
             <li className="flex gap-[12px] items-start">
               <div className="mt-[6px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
               <div>
-                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Root Cause — Email Security Policies:</strong>
+                <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">Root Cause - Email Security Policies:</strong>
                 <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">SVG files are XML-based and can embed scripts, animations, and external links. Gmail, Outlook, and many other clients block SVGs entirely to prevent XSS (Cross-Site Scripting) attacks and phishing exploits.</span>
               </div>
             </li>

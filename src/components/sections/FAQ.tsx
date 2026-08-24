@@ -66,7 +66,7 @@ export function FAQ() {
               }}
             >
               <div className="flex justify-between items-center gap-[10px]">
-                <h3 className="font-heading font-medium text-[15px] md:text-[18px] text-text-dark">
+                <h3 className="font-heading font-medium text-[16px] text-text-dark">
                   {faq.question}
                 </h3>
                 <Image
@@ -83,7 +83,7 @@ export function FAQ() {
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="font-body font-normal text-[13px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
+                  <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
                     {faq.answer}
                   </p>
                 </div>

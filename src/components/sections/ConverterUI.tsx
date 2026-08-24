@@ -49,7 +49,7 @@ const formatDimensionLabel = (val: string, currentUnit: string) => {
 export function ConverterUI() {
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
-  const [selectedWidth, setSelectedWidth] = useState("480");
+  const [selectedWidth, setSelectedWidth] = useState("Original");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
   const [unit, setUnit] = useState<"px" | "cm">("px");
@@ -546,14 +546,14 @@ export function ConverterUI() {
                 tabIndex={0}
                 aria-label="Drag and drop or select an SVG file"
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 transition-colors`}
+                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus:border-brand-primary focus:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
               >
-                <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} style={{ width: "auto", height: "auto" }} className="object-contain" />
+                <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
                 <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                   <span className="font-normal">Drag & Drop or </span>
                   <span className="font-medium text-brand-primary">Select SVG</span>
                 </div>
-              </div>
+              </div> 
 
               {/* Bottom Source Text */}
               <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px] ">
@@ -563,7 +563,7 @@ export function ConverterUI() {
               </p>
 
               <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[6px]">
-                <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="w-[12px] object-contain" />
+                <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
                 <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
               </p>
 
@@ -890,7 +890,7 @@ export function ConverterUI() {
 
                 {/* Transparent Background Box */}
                 <label htmlFor="transparent-bg-toggle" className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors">
-                  <span className="font-body font-normal text-[15px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
+                  <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
                     Transparent Background
                   </span>
                   <input
@@ -937,7 +937,7 @@ export function ConverterUI() {
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           Download PNG
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} style={{ width: "auto", height: "auto" }} className="brightness-0 invert md:w-[18px]" />
+                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert" />
                         </span>
                       </Button>
                     ) : (
@@ -948,7 +948,7 @@ export function ConverterUI() {
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert
-                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} style={{ width: "auto", height: "auto" }} className="brightness-0 invert md:w-[18px]" />
+                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} className="brightness-0 invert" />
                         </span>
                       </Button>
                     )}

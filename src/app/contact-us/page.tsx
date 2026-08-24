@@ -9,6 +9,7 @@ export default function ContactUsPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,6 +28,7 @@ export default function ContactUsPage() {
       setEmail("");
       setMessage("");
       setHasSubmitted(false);
+      setMessageSent(true);
     }, 1000);
   };
 
@@ -151,7 +153,7 @@ export default function ContactUsPage() {
             aria-label="Send contact message"
             className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading ? "Sending..." : "Send Message"}
+            {loading ? "Sending..." : messageSent ? "Send another message" : "Send Message"}
           </button>
         </form>
 
