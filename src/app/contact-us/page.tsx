@@ -22,7 +22,7 @@ export default function ContactUsPage() {
     // Simulate sending message
     setTimeout(() => {
       setLoading(false);
-      showToast("success", "Message sent successfully! We will get back to you soon.");
+      showToast("success", "Message sent. Our team will get back to you shortly.");
       setName("");
       setEmail("");
       setMessage("");
