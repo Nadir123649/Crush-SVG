@@ -1,6 +1,6 @@
 export const IMAGES = {
     logo: "/crushsvg.webp",
-    drag: "/drag.webp",
+    drag: "/Drag.webp",
     uploadImage: "/upload.webp",
     agencies: "/agencies.webp",
     designers: "/designers.webp",
