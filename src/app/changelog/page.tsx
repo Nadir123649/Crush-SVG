@@ -138,8 +138,8 @@ export default function ChangelogPage() {
             Submit Idea
           </Link>
           <Link
-            href="/"
-            className="px-5 py-2.5 rounded-xl bg-white border border-[#E5DFDA] text-text-dark text-sm font-semibold hover:bg-gray-50 transition-colors"
+            href="/#converter"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Open Converter
           </Link>

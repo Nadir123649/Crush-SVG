@@ -37,7 +37,7 @@ function Badge({ text }: { text: string }) {
       <svg width="14" height="11" viewBox="0 0 14 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
         <path d="M1.5 5.5L5 9L12.5 1.5" stroke="#D94A1E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-      <span className="font-body font-medium text-[13px] md:text-[16px] leading-[18.67px] text-text-dark whitespace-normal md:whitespace-nowrap text-center">
+      <span className="font-body font-medium text-[14px] leading-[18.67px] text-text-dark whitespace-normal md:whitespace-nowrap text-center">
         {text}
       </span>
     </div>

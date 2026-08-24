@@ -80,7 +80,6 @@ export function AuthCard({ type }: AuthCardProps) {
       setSubmitting(null);
     }
   }
-
 async function handleOAuth(provider: OAuthProvider) {
     setError(null);
     // OAuth opens a popup — the button stays unchanged instead of showing a
@@ -149,7 +148,7 @@ async function handleOAuth(provider: OAuthProvider) {
 
   const submitLabel = submitting === "email" ? (isLogin ? "Logging in..." : "Creating account...") : isLogin ? "Log In" : "Create Account";
 
-  const isNameInvalid = hasSubmitted && !isLogin && (!name.trim() || name.trim().length < 3 || name.trim().length > 16);
+  const isNameInvalid = hasSubmitted && !isLogin && (!name.trim() || name.trim().length < 3);
   const isEmailInvalid = hasSubmitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordInvalid = hasSubmitted && password.length < 6;
 
@@ -184,6 +183,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
                 autoComplete="name"
+                maxLength={30}
                 aria-invalid={isNameInvalid ? "true" : undefined}
                 aria-describedby={isNameInvalid ? "auth-name-error" : undefined}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isNameInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
@@ -273,9 +273,15 @@ async function handleOAuth(provider: OAuthProvider) {
           {error && (
             <div
               role="alert"
-              className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[13px] leading-[18px] text-red-700"
+              className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[12px] leading-[18px] text-red-700"
             >
-              {error}
+              {error && error.includes("already exists") ? (
+                <span>
+                  An account with this email already exists. Please <a href="/login" style={{ color: "#0000EE", fontWeight: 600, textDecoration: "underline" }}>log in</a> instead.
+                </span>
+              ) : (
+                error
+              )}
               {isLogin && verificationRequired && (
                 <button
                   type="button"
@@ -321,8 +327,8 @@ async function handleOAuth(provider: OAuthProvider) {
 
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
-          <p className="font-afacad font-normal text-[11px] leading-[14px] text-[#475569]">
-            By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] hover:underline">Privacy Policy.</Link>
+          <p className="font-afacad font-normal text-[12px] leading-[12px] text-[#475569]">
+            By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Privacy Policy.</Link>
           </p>
         </div>
       </div>
