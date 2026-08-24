@@ -1,6 +1,11 @@
+"use client";
+
 import React from "react";
+import { useAuth } from "@/lib/client/auth-context";
 
 export function Features() {
+  const { user } = useAuth();
+
   return (
     <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px] scroll-mt-[120px] md:scroll-mt-[180px]">
       
@@ -19,7 +24,7 @@ export function Features() {
         <Badge text="Free" />
         <Badge text="Multiple export sizes" />
         <Badge text="Transparent background" />
-        <Badge text="3 free conversions, no login required" />
+        {!user && <Badge text="3 free conversions, no login required" />}
       </div>
 
     </section>

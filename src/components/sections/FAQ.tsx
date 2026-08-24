@@ -44,7 +44,7 @@ export function FAQ() {
   };
 
   return (
-    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
+    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[50px] scroll-mt-[100px] md:scroll-mt-[140px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getFAQSchema(faqs)) }}
