@@ -6,14 +6,14 @@ import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
 
-export function FAQ() {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const faqs = [
+  const baseFaqs = [
     {
       question: "Is CrushSVG really free?",
-      answer: "Yes. You can convert up to three SVGs without creating an account. After that, a free account lets you continue converting no credit card, subscriptions, or hidden fees.",
+      answer: "Yes. You can convert up to three files without creating an account. After that, a free account lets you continue converting no credit card, subscriptions, or hidden fees.",
     },
     {
       question: "What happens after my 3 free conversions?",
@@ -21,17 +21,28 @@ export function FAQ() {
     },
     {
       question: "Do I need to install anything?",
-      answer: "No, CrushSVG is entirely web-based. You don't need to install any software or plugins. Simply paste your SVG code or upload your file directly in your browser.",
+      answer: "No, CrushSVG is entirely web-based. You don't need to install any software or plugins. Simply upload your file directly in your browser.",
     },
-    {
+  ];
+
+  if (mode === "raster-to-svg") {
+    baseFaqs.push({
+      question: "Are my PNG and JPG files secure?",
+      answer: "Absolutely. Your privacy is our priority. Your images are processed securely and we never store, share, or use your uploaded files for any other purposes.",
+    });
+  } else {
+    baseFaqs.push({
       question: "Is my SVG code stored or shared?",
       answer: "Your privacy is our priority. Your SVG code is processed securely and is never stored, shared, or used for any other purposes.",
-    },
-    {
-      question: "Can I choose the output size?",
-      answer: "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
-    },
-  ].filter(faq => {
+    });
+  }
+
+  baseFaqs.push({
+    question: mode === "raster-to-svg" ? "Can I control the SVG output quality?" : "Can I choose the output size?",
+    answer: mode === "raster-to-svg" ? "Yes! Our conversion engine intelligently traces your raster images to produce scalable SVG paths." : "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
+  });
+
+  const faqs = baseFaqs.filter(faq => {
     // Hide this specific question for logged-in users
     if (status === "authed" && faq.question === "What happens after my 3 free conversions?") {
       return false;

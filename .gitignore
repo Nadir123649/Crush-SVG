@@ -46,3 +46,6 @@ public/debug.json
 
 # Playwright MCP artifacts
 .playwright-mcp/
+
+# Markdown files
+*.md

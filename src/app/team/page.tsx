@@ -36,17 +36,59 @@ export default function TeamPage() {
   const team = [
     {
       name: "Sardar Muhammad Nadir",
-      role: "CEO and Founder ",
-      bio: "Full-stack architect with a focus on web performance, client-side rendering engines, and scalable SaaS infrastructure. Nadir leads technical development at The Nevon and engineered CrushSVG's vector rasterization pipeline.",
+      role: "CEO and Founder",
+      bio: "Visionary entrepreneur and tech leader driving the strategic direction of The Nevon. Nadir is focused on building high-impact SaaS products, scaling teams, and establishing CrushSVG as a premier tool in the design and development ecosystem.",
       initials: "SN",
-      skills: ["Next.js", "TypeScript", "Canvas/WebAssembly", "Cloud Infrastructure"],
+      skills: ["Business Strategy", "Product Vision", "Team Leadership", "Venture Growth"],
     },
     {
       name: "Muhammad Aswad Khan",
-      role: "Project manager",
-      bio: "Product strategist and interface designer dedicated to crafting friction-free digital experiences. Aswad oversees product roadmap, UX architecture, and developer relations across The Nevon product suite.",
+      role: "Project Manager",
+      bio: "Dedicated project manager bridging the gap between design, engineering, and business goals. Aswad oversees Agile workflows, team coordination, sprint planning, and ensures timely, high-quality delivery across all of The Nevon's initiatives.",
       initials: "AK",
-      skills: ["Product Strategy", "UI/UX Architecture", "SEO & Growth", "Design Systems"],
+      skills: ["Agile Management", "Sprint Planning", "Team Coordination", "Product Delivery"],
+    },
+    {
+      name: "Muhammad Hassan Irfan",
+      role: "Lead Full-Stack Developer & AI Engineer",
+      bio: "Full-stack engineer focused on building secure, scalable, and high-performance digital products. Hassan combines deep frontend and backend expertise with modern MERN and Next.js architecture, extensive WordPress experience, and advanced AI prompt engineering to turn complex product requirements into polished, production-ready solutions.",
+      initials: "HI",
+      skills: ["Full-Stack Engineering", "MERN & Next.js", "AI Engineering", "WordPress"],
+    },
+    {
+      name: "Abdul Raheem",
+      role: "Frontend Engineer",
+      bio: "Frontend Engineer focused on building responsive, high-performance, and user-friendly digital products. Abdul combines strong frontend development expertise with modern React and Next.js architecture, responsive UI implementation, and a keen eye for detail to turn complex designs and product requirements into polished, scalable, and production-ready interfaces.",
+      initials: "AR",
+      skills: ["Frontend Architecture", "React & Next.js", "Responsive UI", "System Design"],
+    },
+    {
+      name: "Muhammad Umar",
+      role: "Director of Business Development",
+      bio: "Driving B2B growth through strategic business development, lead generation, and targeted outreach. Umar focuses on building qualified sales pipelines, client acquisition, and optimizing LinkedIn, email, CRM, and automation-driven outreach systems.",
+      initials: "MU",
+      skills: ["Business Development", "Lead Generation", "B2B Sales", "Client Acquisition", "Sales Strategy"],
+    },
+    {
+      name: "Mohammad Azan Mehdi",
+      role: "Business Development & Lead Generation",
+      bio: "Driving B2B growth through targeted lead generation, outbound sales, and automation-powered outreach systems. Azan focuses on building qualified sales pipelines, managing prospecting and client acquisition, and optimizing CRM, LinkedIn, and email outreach workflows.",
+      initials: "AM",
+      skills: ["Business Development", "Lead Generation", "B2B Sales", "n8n Automation", "CRM & Outreach"],
+    },
+    {
+      name: "Ali Aun",
+      role: "QA & Digital Experience Specialist",
+      bio: "Turning ideas into polished, scalable products through quality assurance, AI-powered automation, and growth-focused digital strategy. Ali oversees product testing, UI/UX feedback, and content publishing across The Nevon's product suite.",
+      initials: "AA",
+      skills: ["QA & Testing", "AI Automation", "Content Strategy", "UI/UX Feedback"],
+    },
+    {
+      name: "Mishal",
+      role: "UI/UX Designer",
+      bio: "Creating intuitive, engaging, and visually refined digital experiences through user-centered design, thoughtful interfaces, and modern design systems. Mishal focuses on transforming product requirements into clean, functional, and user-friendly experiences while maintaining consistency across web and digital products.",
+      initials: "M",
+      skills: ["UI/UX Design", "User-Centered Design", "Interface Design", "Design Systems", "Wireframing & Prototyping", "Responsive Design", "Visual Design"],
     },
   ];
 
@@ -144,18 +186,20 @@ export default function TeamPage() {
           We love hearing how designers and developers use CrushSVG in their daily workflows.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Link 
+          <Button 
             href="/contact-us"
-            className="flex items-center justify-center px-8 h-12 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-base hover:opacity-90 transition-opacity"
+            variant="solid"
+            className="px-8 h-12 rounded-xl font-bricolage font-semibold text-base"
           >
             Get In Touch
-          </Link>
-          <Link 
+          </Button>
+          <Button 
             href="/"
-            className="flex items-center justify-center px-6 h-12 rounded-xl bg-white border border-[#E5DFDA] text-text-dark font-bricolage font-semibold text-base hover:bg-gray-50 transition-colors"
+            variant="outline"
+            className="px-6 h-12 rounded-xl font-bricolage font-semibold text-base border border-[#E5DFDA]"
           >
             Try the Converter
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

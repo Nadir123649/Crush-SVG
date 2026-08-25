@@ -2,12 +2,12 @@ import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 
-export function StepsSection() {
+export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const steps = [
     {
       icon: IMAGES.uploadImage,
-      title: "Paste or Upload",
-      description: "Drop your SVG file or paste standard markup directly into the field.",
+      title: mode === "raster-to-svg" ? "Upload PNG/JPG" : "Paste or Upload",
+      description: mode === "raster-to-svg" ? "Drop your raster image directly into the field to begin." : "Drop your SVG file or paste standard markup directly into the field.",
       imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
     },
     {
@@ -18,8 +18,8 @@ export function StepsSection() {
     },
     {
       icon: IMAGES.downloadImage,
-      title: <>Download<br />PNG</>,
-      description: "Create sharp, transparent PNGs ready for anywhere.",
+      title: mode === "raster-to-svg" ? <>Download<br />SVG</> : <>Download<br />PNG</>,
+      description: mode === "raster-to-svg" ? "Create crisp, perfectly scalable vectors ready for anywhere." : "Create sharp, transparent PNGs ready for anywhere.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
   ];
