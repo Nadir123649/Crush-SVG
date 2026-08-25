@@ -48,7 +48,7 @@ const formatDimensionLabel = (val: string, currentUnit: string) => {
 
 export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const { status, sessionVersion } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | "rasterQuality" | "rasterColors" | "rasterBackground" | "rasterPathOpt" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("Original");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
@@ -57,6 +57,11 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
   const [transparent, setTransparent] = useState(false);
+  const [rasterQuality, setRasterQuality] = useState("Medium");
+  const [rasterColors, setRasterColors] = useState("Auto");
+  const [rasterBackground, setRasterBackground] = useState("Preserve");
+  const [rasterBgColor, setRasterBgColor] = useState("#ffffff");
+  const [rasterPathOpt, setRasterPathOpt] = useState("Balanced");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +91,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   const heightRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef<HTMLDivElement>(null);
   const unitRef = useRef<HTMLDivElement>(null);
+  const rasterQualityRef = useRef<HTMLDivElement>(null);
+  const rasterColorsRef = useRef<HTMLDivElement>(null);
+  const rasterBackgroundRef = useRef<HTMLDivElement>(null);
+  const rasterPathOptRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const storageRestoredRef = useRef(false);
@@ -139,6 +148,26 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       }
       if (openDropdown === "unit" && unitRef.current) {
         if (!unitRef.current.contains(target) || target === unitRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "rasterQuality" && rasterQualityRef.current) {
+        if (!rasterQualityRef.current.contains(target) || target === rasterQualityRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "rasterColors" && rasterColorsRef.current) {
+        if (!rasterColorsRef.current.contains(target) || target === rasterColorsRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "rasterBackground" && rasterBackgroundRef.current) {
+        if (!rasterBackgroundRef.current.contains(target) || target === rasterBackgroundRef.current) {
+          setOpenDropdown(null);
+        }
+      }
+      if (openDropdown === "rasterPathOpt" && rasterPathOptRef.current) {
+        if (!rasterPathOptRef.current.contains(target) || target === rasterPathOptRef.current) {
           setOpenDropdown(null);
         }
       }
@@ -408,6 +437,12 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
             formData.append('file', blob, 'restored-image.png');
         }
         
+        formData.append('quality', rasterQuality);
+        formData.append('colors', rasterColors);
+        formData.append('background', rasterBackground);
+        formData.append('bgColor', rasterBgColor);
+        formData.append('pathOpt', rasterPathOpt);
+        
         const token = getAccessToken();
         const res = await fetch('/api/v1/vectorize', {
           method: 'POST',
@@ -576,10 +611,13 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     <>
       <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto lg:h-[650px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
+        <div className="w-full h-auto lg:min-h-[650px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
 
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto lg:h-[626px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col lg:flex-row justify-center px-0 md:px-[40px] py-0 md:py-[20px] gap-[24px] md:gap-[30px]">
+          <div className="w-full h-auto lg:min-h-[626px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] gap-[24px] md:gap-[30px]">
+            
+            {/* Top row with columns */}
+            <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
 
             {/* Left Column (SVG Code) */}
             <div className="w-full lg:w-[537px] flex flex-col">
@@ -592,8 +630,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     <button
                       type="button"
                       onClick={handleFormatSvg}
+                      disabled={converting}
                       aria-label="Format SVG code"
-                      className="rounded-[6px] border border-[#8F8F8F] px-[8px] py-[4px] font-body font-medium text-[12px] text-[#475569] hover:text-brand-primary hover:border-brand-primary transition-colors"
+                      className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${converting ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none" : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary"}`}
                       title="Format SVG Code"
                     >
                       Format Code
@@ -602,9 +641,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                   <button
                     type="button"
                     onClick={handleClearSvg}
+                    disabled={converting}
                     aria-label="Clear SVG editor"
-                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${(mode === "svg-to-png" ? svgCode !== SAMPLE_SVG : !!rasterDataUrl) ? "opacity-100" : "opacity-0 pointer-events-none"
-                      }`}
+                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${(mode === "svg-to-png" ? svgCode !== SAMPLE_SVG : !!rasterDataUrl) ? (converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100") : "opacity-0 pointer-events-none"}`}
                   >
                     <div
                       className="absolute inset-0 z-0 pointer-events-none"
@@ -705,30 +744,16 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     tabIndex={0}
                     aria-label="Drag and drop or select an image file"
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                    className={`w-full h-full min-h-[350px] md:min-h-[485px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-[#FFFFFF]"} flex flex-col items-center justify-center gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors relative overflow-hidden`}
+                    className={`w-full h-[200px] md:h-[302px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-[#FFFFFF]"} flex flex-col items-center justify-center gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors relative overflow-hidden`}
                   >
-                    {rasterDataUrl ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center relative">
-                        <img src={rasterDataUrl} className="max-w-[80%] max-h-[80%] object-contain z-10" alt="Selected Raster Image" />
-                        <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <div className="flex flex-col items-center gap-[10px]">
-                            <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain drop-shadow-md" />
-                            <div className="font-body text-[16px] text-brand-primary font-medium bg-white px-4 py-2 rounded-full shadow-sm">Replace Image</div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <Image src={IMAGES.drag} alt="Drag Cloud" width={80} height={80} className="object-contain" />
-                        <div className="font-body text-[16px] md:text-[18px] text-text-dark text-center mt-2">
-                          <span className="font-normal">Drag & Drop or </span>
-                          <span className="font-medium text-brand-primary">Select Image</span>
-                        </div>
-                        <p className="font-body text-[14px] text-[#94A3B8] text-center mt-1">
-                          PNG or JPG (Max 5MB)
-                        </p>
-                      </>
-                    )}
+                    <Image src={IMAGES.drag} alt="Drag Cloud" width={80} height={80} className="object-contain" />
+                    <div className="font-body text-[16px] md:text-[18px] text-text-dark text-center mt-2">
+                      <span className="font-normal">{rasterDataUrl ? "Image Selected - " : "Drag & Drop or "}</span>
+                      <span className="font-medium text-brand-primary">{rasterDataUrl ? "Replace Image" : "Select Image"}</span>
+                    </div>
+                    <p className="font-body text-[14px] text-[#94A3B8] text-center mt-1">
+                      PNG or JPG (Max 5MB)
+                    </p>
                   </div>
                 </>
               )} 
@@ -759,10 +784,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
               {/* Live Preview Box */}
               <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
-                {((storageRestored && previewUrl && !previewError) || (mode === "raster-to-svg" && result && result.data)) ? (
+                {((storageRestored && previewUrl && !previewError) || (mode === "raster-to-svg" && (result?.data || rasterDataUrl))) ? (
                   <img
-                    src={mode === "raster-to-svg" && result && result.data ? `data:image/svg+xml;base64,${btoa(result.data)}` : previewUrl}
-                    alt={mode === "raster-to-svg" ? "Vectorized SVG preview" : "SVG preview"}
+                    src={mode === "raster-to-svg" ? (result?.data ? `data:image/svg+xml;base64,${btoa(result.data)}` : rasterDataUrl || "") : previewUrl}
+                    alt={mode === "raster-to-svg" ? (result?.data ? "Vectorized SVG preview" : "Uploaded Image") : "SVG preview"}
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={() => setPreviewError(true)}
                   />
@@ -1090,7 +1115,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                   </>
                 )}
               </div>
+            </div>
 
+            
               {error && (
                 <div role="alert" className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700">
                   {error}
@@ -1158,9 +1185,183 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
 
               </div>
-
             </div>
-
+          
+            {/* Raster Dropdowns moved below both columns */}
+            <div className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
+              {mode === "raster-to-svg" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px] w-full">
+                    {/* Quality */}
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterQualityRef}>
+                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Quality</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterQuality" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "rasterQuality" ? null : "rasterQuality")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {rasterQuality}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Toggle Quality dropdown"
+                          onClick={() => setOpenDropdown(openDropdown === "rasterQuality" ? null : "rasterQuality")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterQuality" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                      {openDropdown === "rasterQuality" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["Low", "Medium", "High"].map((opt) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={rasterQuality === opt}
+                                onClick={() => { setRasterQuality(opt); setOpenDropdown(null); resetConversion(); }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Colors */}
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterColorsRef}>
+                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Colors</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterColors" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "rasterColors" ? null : "rasterColors")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {rasterColors}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Toggle Colors dropdown"
+                          onClick={() => setOpenDropdown(openDropdown === "rasterColors" ? null : "rasterColors")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterColors" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                      {openDropdown === "rasterColors" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["Auto", "Limited", "Full"].map((opt) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={rasterColors === opt}
+                                onClick={() => { setRasterColors(opt); setOpenDropdown(null); resetConversion(); }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Background */}
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterBackgroundRef}>
+                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Background</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterBackground" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "rasterBackground" ? null : "rasterBackground")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center gap-[8px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {rasterBackground === "Custom" && (
+                            <input 
+                              type="color" 
+                              value={rasterBgColor} 
+                              onChange={(e) => { setRasterBgColor(e.target.value); resetConversion(); }} 
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-[24px] h-[24px] p-0 border-none rounded cursor-pointer" 
+                            />
+                          )}
+                          {rasterBackground}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Toggle Background dropdown"
+                          onClick={() => setOpenDropdown(openDropdown === "rasterBackground" ? null : "rasterBackground")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterBackground" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                      {openDropdown === "rasterBackground" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["Preserve", "Transparent", "Custom"].map((opt) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={rasterBackground === opt}
+                                onClick={() => { setRasterBackground(opt); setOpenDropdown(null); resetConversion(); }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Path Optimization */}
+                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterPathOptRef}>
+                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Path Optimization</label>
+                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterPathOpt" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
+                        <div
+                          onClick={() => setOpenDropdown(openDropdown === "rasterPathOpt" ? null : "rasterPathOpt")}
+                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                        >
+                          {rasterPathOpt}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Toggle Path Optimization dropdown"
+                          onClick={() => setOpenDropdown(openDropdown === "rasterPathOpt" ? null : "rasterPathOpt")}
+                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                        >
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterPathOpt" ? "rotate-180" : ""}`}>
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                      {openDropdown === "rasterPathOpt" && (
+                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                            {["Off", "Balanced", "Maximum"].map((opt) => (
+                              <div
+                                key={opt}
+                                role="option"
+                                aria-selected={rasterPathOpt === opt}
+                                onClick={() => { setRasterPathOpt(opt); setOpenDropdown(null); resetConversion(); }}
+                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                              >
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

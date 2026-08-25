@@ -3,11 +3,11 @@
 import React from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
-export function Features() {
+export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const { user } = useAuth();
 
   return (
-    <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px] scroll-mt-[66px] md:scroll-mt-[92px]">
+    <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       
       {/* Heading & Description */} 
       <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">
@@ -15,7 +15,11 @@ export function Features() {
           Stop <span className="text-[#DA582D]">juggling design tools</span> and<br className="hidden md:inline" /> unreliable converters
         </h2>
         <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-center text-text-muted">
-          Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds<br className="hidden md:inline" /> perfect for Gmail, Outlook, Canva, websites, newsletters, and more.
+          {mode === "svg-to-png" ? (
+            <>Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds<br className="hidden md:inline" /> perfect for Gmail, Outlook, Canva, websites, newsletters, and more.</>
+          ) : (
+            <>Simply upload a PNG or JPG, or drag and drop it to create a crisp, scalable SVG in seconds<br className="hidden md:inline" /> perfect for logos, icons, vector graphics, websites, and more.</>
+          )}
         </p>
       </div>
 
