@@ -117,6 +117,15 @@ export const EMAIL_VERIFICATION_HTML = `<!DOCTYPE html>
                 margin: 0 auto !important;
             }
 
+            .logo-mobile {
+                width: 26px !important;
+                height: 26px !important;
+            }
+
+            .logo-text-mobile {
+                font-size: 24px !important;
+            }
+
             .cta-strong {
                 max-width: 100% !important;
                 margin: 0 auto !important;
@@ -154,9 +163,9 @@ export const EMAIL_VERIFICATION_HTML = `<!DOCTYPE html>
                                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mobile-logo-center" style="display: inline-block; vertical-align: middle;">
                                                     <tr>
                                                         <td valign="middle" style="padding-right: 6px;">
-                                                            <a href="https://crushsvg.net/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="26" height="26" alt="CrushSVG" border="0" style="display: block;"></a>
+                                                            <a href="https://crushsvg.net/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="42" height="42" alt="CrushSVG" border="0" class="logo-mobile" style="display: block;"></a>
                                                         </td>
-                                                        <td valign="middle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; color: #353A3E; line-height: 1;">
+                                                        <td valign="middle" class="logo-text-mobile" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; font-weight: 700; color: #353A3E; line-height: 1;">
                                                             <a href="https://crushsvg.net/" target="_blank" style="color: #353A3E; text-decoration: none;">Crush<span style="color: #D94A1E;">SVG</span></a>
                                                         </td>
                                                     </tr>
@@ -481,6 +490,15 @@ export const RESET_PASSWORD_HTML = `<!DOCTYPE html>
                 margin: 0 auto !important;
             }
 
+            .logo-mobile {
+                width: 26px !important;
+                height: 26px !important;
+            }
+
+            .logo-text-mobile {
+                font-size: 24px !important;
+            }
+
             .subtitle-margin {
                 margin-bottom: 60px !important;
             }
@@ -529,9 +547,9 @@ export const RESET_PASSWORD_HTML = `<!DOCTYPE html>
                                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mobile-logo-center" style="display: inline-block; vertical-align: middle;">
                                                     <tr>
                                                         <td valign="middle" style="padding-right: 6px;">
-                                                            <a href="https://crushsvg.net/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="26" height="26" alt="CrushSVG" border="0" style="display: block;"></a>
+                                                            <a href="https://crushsvg.net/" target="_blank"><img src="https://res.cloudinary.com/df80crgrw/image/upload/v1786610399/CrushSVG-logo_qsusgx.png" width="42" height="42" alt="CrushSVG" border="0" class="logo-mobile" style="display: block;"></a>
                                                         </td>
-                                                        <td valign="middle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; color: #353A3E; line-height: 1;">
+                                                        <td valign="middle" class="logo-text-mobile" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; font-weight: 700; color: #353A3E; line-height: 1;">
                                                             <a href="https://crushsvg.net/" target="_blank" style="color: #353A3E; text-decoration: none;">Crush<span style="color: #D94A1E;">SVG</span></a>
                                                         </td>
                                                     </tr>

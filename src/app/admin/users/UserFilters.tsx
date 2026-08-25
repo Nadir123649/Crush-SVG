@@ -23,27 +23,18 @@ export function UserFilters({
   const [role, setRole] = useState(initialRole);
   const [status, setStatus] = useState(initialStatus);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     
-    if (search) params.set("search", search);
-    else params.delete("search");
+    if (value && value !== "all") params.set(key, value);
+    else params.delete(key);
     
-    if (role && role !== "all") params.set("role", role);
-    else params.delete("role");
-    
-    if (status && status !== "all") params.set("status", status);
-    else params.delete("status");
-
-    // Reset to page 1 on new filter
     params.set("page", "1");
-
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Search Card */}
       <div className="bg-white border border-[#F2EDE8] p-6 rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)]">
         <label className="font-body font-semibold text-sm text-text-dark mb-3 block">Search Users</label>
@@ -52,7 +43,16 @@ export function UserFilters({
           <input 
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleFilterChange("search", search);
+              }
+            }}
+            onBlur={() => handleFilterChange("search", search)}
             placeholder="Name or email..."
             className="w-full bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] py-2.5 pl-10 pr-3 font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
           />
@@ -71,7 +71,10 @@ export function UserFilters({
             <label className="font-body font-semibold text-sm text-text-muted mb-2 block">Role</label>
             <select 
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => {
+                setRole(e.target.value);
+                handleFilterChange("role", e.target.value);
+              }}
               className="w-full bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] py-2.5 px-3 font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all cursor-pointer outline-none"
             >
               <option value="all">All Roles</option>
@@ -89,7 +92,10 @@ export function UserFilters({
                   name="status" 
                   value="all" 
                   checked={status === 'all'}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    handleFilterChange("status", e.target.value);
+                  }}
                   className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
                 />
                 <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">All Statuses</span>
@@ -100,7 +106,10 @@ export function UserFilters({
                   name="status" 
                   value="active" 
                   checked={status === 'active'}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    handleFilterChange("status", e.target.value);
+                  }}
                   className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
                 />
                 <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">Active (Verified)</span>
@@ -111,19 +120,18 @@ export function UserFilters({
                   name="status" 
                   value="unverified" 
                   checked={status === 'unverified'}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    handleFilterChange("status", e.target.value);
+                  }}
                   className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
                 />
                 <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">Unverified</span>
               </label>
             </div>
           </div>
-
-          <button type="submit" className="w-full mt-2 py-2.5 bg-brand-primary text-white rounded-[8px] font-body font-semibold hover:bg-[#c23f15] transition-colors text-sm">
-            Apply Filters
-          </button>
         </div>
       </div>
-    </form>
+    </div>
   );
 }
