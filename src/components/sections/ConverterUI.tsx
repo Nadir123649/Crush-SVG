@@ -611,10 +611,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     <>
       <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto lg:min-h-[650px] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px]">
+        <div className={`w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[650px]" : "lg:min-h-[500px]"}`}>
 
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto lg:min-h-[626px] bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] gap-[24px] md:gap-[30px]">
+          <div className={`w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[626px]" : "lg:min-h-[476px]"}`}>
             
             {/* Top row with columns */}
             <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
@@ -767,7 +767,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 </p>
               )}
 
-              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[24px]" : "mt-[6px] md:mt-[8px]"}`}>
+              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[24px]" : "mt-[6px] md:mt-[8px]"}`}>
                 <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
                 <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
               </p>
@@ -1188,9 +1188,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
             </div>
           
             {/* Raster Dropdowns moved below both columns */}
-            <div className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
-              {mode === "raster-to-svg" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px] w-full">
+            {mode === "raster-to-svg" && (
+              <div className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px] w-full">
                     {/* Quality */}
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterQualityRef}>
                       <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Quality</label>
@@ -1360,8 +1360,8 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                       )}
                     </div>
                   </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
