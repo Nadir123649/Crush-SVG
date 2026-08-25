@@ -75,7 +75,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
   useEffect(() => {
     if (converting) {
-      const timer = setTimeout(() => setProgress(100), 50);
+      const timer = setTimeout(() => setProgress(90), 50);
       return () => clearTimeout(timer);
     }
     queueMicrotask(() => setProgress(0));
@@ -254,6 +254,17 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     }
   }
 
+  function resetDropdowns() {
+    setSelectedWidth("Original");
+    setSelectedHeight("Auto");
+    setSelectedScale("2x");
+    setUnit("px");
+    setIsCustomWidth(false);
+    setIsCustomHeight(false);
+    setIsCustomScale(false);
+    setTransparent(false);
+  }
+
   function handleClearSvg() {
     if (mode === "raster-to-svg") {
       setRasterFile(null);
@@ -265,6 +276,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     setResult(null);
     setError(null);
     setPreviewError(false);
+    resetDropdowns();
     try {
       sessionStorage.removeItem(storageKey);
     } catch { }
@@ -278,6 +290,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       if (text && isValidSvgContent(text)) {
         e.preventDefault();
         handleSvgChange(text.trim());
+        resetDropdowns();
         showToast("success", "SVG pasted from clipboard");
       }
     }
@@ -306,7 +319,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         formatted += "  ".repeat(pad) + line.trim() + "\n";
         pad += indent;
       });
-      if (svgCode === formatted.trim()) {
+      if (svgCode.trim() === formatted.trim()) {
         showToast("success", "SVG is already formatted");
         return;
       }
@@ -333,13 +346,15 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
   async function handleFile(file: File | undefined | null) {
     if (!file) return;
+    setError(null);
+    resetDropdowns();
     if (mode === "raster-to-svg") {
       if (!file.type.includes("image/png") && !file.type.includes("image/jpeg") && !file.name.toLowerCase().endsWith(".png") && !file.name.toLowerCase().endsWith(".jpg") && !file.name.toLowerCase().endsWith(".jpeg")) {
         setError("Please choose a PNG or JPG image.");
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Image too large. Maximum size is 5MB.");
+      if (Number(file.size) > 10 * 1024 * 1024) {
+        setError("Image too large. Maximum size is 10MB.");
         return;
       }
       setRasterFile(file);
@@ -357,8 +372,8 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       setError("Please choose an SVG file (.svg).");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("SVG file too large. Maximum size is 5MB.");
+    if (Number(file.size) > 10 * 1024 * 1024) {
+      setError("SVG file too large. Maximum size is 10MB.");
       return;
     }
     try {
@@ -482,13 +497,11 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
     setConverting(true);
     try {
-      const [res] = await Promise.all([
-        convertText(svgCode, options),
-        new Promise((resolve) => setTimeout(resolve, 2000))
-      ]);
+      const res = await convertText(svgCode, options);
 
       setResult(res);
-      showToast("success", "Conversion complete. Your file is ready to download.");
+      const outputExt = (res.format ?? "png").toUpperCase();
+      showToast("success", `Conversion complete. Your ${outputExt} is ready to download.`);
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
         width: options.width,
@@ -641,49 +654,84 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
                     <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   </div>
+
+                  <input
+                    ref={fileInputRef}
+                    id="svg-file-upload"
+                    type="file"
+                    aria-label="Upload SVG file"
+                    accept=".svg,image/svg+xml"
+                    className="absolute w-0 h-0 opacity-0 overflow-hidden"
+                    onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
+                  />
+
+                  {/* Drag & Drop Upload Box */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Drag and drop or select an SVG file"
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+                    className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
+                  >
+                    <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
+                    <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
+                      <span className="font-normal">Drag & Drop or </span>
+                      <span className="font-medium text-brand-primary">Select SVG</span>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <>
-                  {rasterDataUrl ? (
-                    <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden flex items-center justify-center p-[20px]">
-                      <img src={rasterDataUrl} className="max-w-full max-h-full object-contain" alt="Selected Raster Image" />
-                    </div>
-                  ) : (
-                    <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden flex items-center justify-center">
-                      <p className="font-body text-[#94A3B8]">No image selected</p>
-                    </div>
-                  )}
+                  <input
+                    ref={fileInputRef}
+                    id="raster-file-upload"
+                    type="file"
+                    aria-label="Upload PNG/JPG file"
+                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                    className="absolute w-0 h-0 opacity-0 overflow-hidden"
+                    onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
+                  />
+                  {/* Full Height Drag & Drop Box for Raster */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Drag and drop or select an image file"
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
+                    className={`w-full h-full min-h-[350px] md:min-h-[485px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-[#FFFFFF]"} flex flex-col items-center justify-center gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors relative overflow-hidden`}
+                  >
+                    {rasterDataUrl ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center relative">
+                        <img src={rasterDataUrl} className="max-w-[80%] max-h-[80%] object-contain z-10" alt="Selected Raster Image" />
+                        <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="flex flex-col items-center gap-[10px]">
+                            <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain drop-shadow-md" />
+                            <div className="font-body text-[16px] text-brand-primary font-medium bg-white px-4 py-2 rounded-full shadow-sm">Replace Image</div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Image src={IMAGES.drag} alt="Drag Cloud" width={80} height={80} className="object-contain" />
+                        <div className="font-body text-[16px] md:text-[18px] text-text-dark text-center mt-2">
+                          <span className="font-normal">Drag & Drop or </span>
+                          <span className="font-medium text-brand-primary">Select Image</span>
+                        </div>
+                        <p className="font-body text-[14px] text-[#94A3B8] text-center mt-1">
+                          PNG or JPG (Max 5MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </>
-              )}
-
-              <input
-                ref={fileInputRef}
-                id="svg-file-upload"
-                type="file"
-                aria-label={mode === "raster-to-svg" ? "Upload PNG/JPG file" : "Upload SVG file"}
-                accept={mode === "raster-to-svg" ? ".png,.jpg,.jpeg,image/png,image/jpeg" : ".svg,image/svg+xml"}
-                className="absolute w-0 h-0 opacity-0 overflow-hidden"
-                onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
-              />
-
-              {/* Drag & Drop Upload Box */}
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                role="button"
-                tabIndex={0}
-                aria-label="Drag and drop or select an SVG file"
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
-              >
-                <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
-                <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
-                  <span className="font-normal">Drag & Drop or </span>
-                  <span className="font-medium text-brand-primary">{mode === "raster-to-svg" ? "Select Image" : "Select SVG"}</span>
-                </div>
-              </div> 
+              )} 
 
               {/* Bottom Source Text */}
               {mode === "svg-to-png" && (
@@ -694,7 +742,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 </p>
               )}
 
-              <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[6px]">
+              <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px] md:mt-[24px]">
                 <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
                 <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
               </p>
@@ -728,11 +776,12 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
               </div>
 
               {/* Settings & Controls */}
-              <div className={`w-full mt-[16px] md:mt-[20px] ${converting ? "pointer-events-none opacity-50" : ""}`}>
-                {mode === "svg-to-png" && (
-                  <>
-                    {/* Dropdowns Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
+              <div className="w-full mt-[16px] md:mt-[20px]">
+                <div className={`w-full transition-all duration-300 ${converting ? "hidden md:block pointer-events-none opacity-50" : ""}`}>
+                  {mode === "svg-to-png" && (
+                    <>
+                      {/* Dropdowns Row */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
 
                   {/* Width Input */}
                   <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
@@ -1040,24 +1089,25 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 </label>
                   </>
                 )}
+              </div>
 
-                {error && (
-                  <div role="alert" className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[13px] leading-[18px] text-red-700">
-                    {error}
-                  </div>
-                )}
+              {error && (
+                <div role="alert" className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700">
+                  {error}
+                </div>
+              )}
 
-                {/* Action Buttons Row */}
-                {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
-                    <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
-                      <div
-                        className="absolute top-0 left-0 h-full bg-[#D94A1E] transition-all duration-[2000ms] ease-linear"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+              {/* Action Buttons Row */}
+              {converting ? (
+                <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
+                    <div
+                      className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${progress === 0 ? "duration-0" : "duration-[15000ms]"}`}
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
-                ) : (
+                </div>
+              ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
                     {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
@@ -1092,13 +1142,13 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     )}
 
                     {result && result.warnings && result.warnings.length > 0 && (
-                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[11px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm">
+                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[12px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm">
                         {result.warnings.map((w) => <p key={w}>{w}</p>)}
                       </div>
                     )}
 
                     {result && result.size !== undefined && (
-                      <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[11px] text-[#64748B] whitespace-nowrap">
+                      <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[12px] text-[#64748B] whitespace-nowrap">
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
                       </p>

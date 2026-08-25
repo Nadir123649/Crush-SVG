@@ -244,16 +244,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
-    // Log out instantly: clear local state first so the UI flips to guest
-    // immediately, then tell the server in the background (revoke the session
-    // and delete the httpOnly refresh cookie) without blocking the user.
-    clearAuth()
+    // Clear storage so the fresh /login page loads cleanly as a guest
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('crush_user')
+      localStorage.removeItem('crush_usage')
+      localStorage.removeItem('crush_converter_state')
+      sessionStorage.setItem('crush_auth_status', 'guest')
+    }
     void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
     void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
       .catch(() => {})
     window.location.href = '/login'
-  }, [clearAuth])
+  }, [])
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {

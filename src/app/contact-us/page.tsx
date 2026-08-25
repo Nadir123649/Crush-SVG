@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { showToast } from "@/lib/client/toast-bridge";
+import { Hero } from "@/components/sections/Hero";
 
 export default function ContactUsPage() {
   const [name, setName] = useState("");
@@ -37,20 +38,15 @@ export default function ContactUsPage() {
   const isMessageInvalid = hasSubmitted && (!message.trim() || message.trim().length < 10);
 
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
 
       {/* Header Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[24px] md:mb-[40px] mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>Direct Team Access</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
-          Contact <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Us</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[600px]">
-          Have questions, bug reports, feature requests, or partnership inquiries? Reach out to <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> at <a href="https://www.thenevon.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">The Nevon</a>.
-        </p>
-      </div>
+      <Hero
+        badge="Direct Team Access"
+        title={<>Contact <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Us</span></>}
+        subtitle={<>Have questions, bug reports, feature requests, or partnership inquiries? Reach out to <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> at <a href="https://www.thenevon.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">The Nevon</a>.</>}
+        className="mb-[24px] md:mb-[40px]"
+      />
 
       {/* Quick Self-Help Navigation Cards */}
       <div className="w-full max-w-[600px] grid grid-cols-3 gap-3 mb-6 text-center">
@@ -62,7 +58,7 @@ export default function ContactUsPage() {
           <span className="block font-heading font-semibold text-xs md:text-sm text-text-dark group-hover:text-brand-primary">
             Help & FAQ
           </span>
-          <span className="block font-afacad text-[11px] text-text-muted mt-0.5">Quick answers</span>
+          <span className="block font-afacad text-[12px] text-text-muted mt-0.5">Quick answers</span>
         </Link>
 
         <Link
@@ -73,7 +69,7 @@ export default function ContactUsPage() {
           <span className="block font-heading font-semibold text-xs md:text-sm text-text-dark group-hover:text-brand-primary">
             SVG Guides
           </span>
-          <span className="block font-afacad text-[11px] text-text-muted mt-0.5">Fix formatting</span>
+          <span className="block font-afacad text-[12px] text-text-muted mt-0.5">Fix formatting</span>
         </Link>
 
         <Link
@@ -84,12 +80,12 @@ export default function ContactUsPage() {
           <span className="block font-heading font-semibold text-xs md:text-sm text-text-dark group-hover:text-brand-primary">
             Support Hub
           </span>
-          <span className="block font-afacad text-[11px] text-text-muted mt-0.5">Known solutions</span>
+          <span className="block font-afacad text-[12px] text-text-muted mt-0.5">Known solutions</span>
         </Link>
       </div>
 
       {/* Contact Form Section */}
-      <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] p-[20px] md:p-[48px] border border-[#F2EDE8]"
+      <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
         <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]">

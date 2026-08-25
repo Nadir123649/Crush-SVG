@@ -127,7 +127,7 @@ export function ResetPasswordCard() {
 
         {/* Footer Text */}
         <div className="text-center mt-[12px]">
-          <p className="font-afacad font-normal text-[13px] text-[#475569]">
+          <p className="font-afacad font-normal text-[14px] text-[#475569]">
             Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
           </p>
         </div>

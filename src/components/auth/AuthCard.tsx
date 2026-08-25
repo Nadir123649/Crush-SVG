@@ -12,12 +12,13 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 interface AuthCardProps {
   type: "login" | "signup";
+  returnTo?: string;
 }
 
 type OAuthProvider = "google" | "github" | "x";
 type SubmittingState = "email" | null;
 
-export function AuthCard({ type }: AuthCardProps) {
+export function AuthCard({ type, returnTo }: AuthCardProps) {
   const isLogin = type === "login";
   const router = useRouter();
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
@@ -61,7 +62,11 @@ export function AuthCard({ type }: AuthCardProps) {
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
-        router.push("/");
+        const urlReturn = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get("returnTo") : null;
+        const finalReturn = returnTo || urlReturn || "/";
+        if (typeof window !== 'undefined' && finalReturn !== window.location.pathname) {
+          router.push(finalReturn);
+        }
         router.refresh();
       } else {
         await register(name.trim(), email, password);
@@ -86,7 +91,11 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
-      router.push("/");
+      const urlReturn = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get("returnTo") : null;
+      const finalReturn = returnTo || urlReturn || "/";
+      if (typeof window !== 'undefined' && finalReturn !== window.location.pathname) {
+        router.push(finalReturn);
+      }
       router.refresh();
     } catch (err) {
       // Closing the popup (or a cancelled popup request) is a cancellation,
@@ -127,7 +136,7 @@ async function handleOAuth(provider: OAuthProvider) {
           </p>
           <div className="flex flex-col items-center gap-[8px] mt-[8px]">
             {resendDone ? (
-              <p className="font-afacad text-[13px] text-[#D94A1E]">Verification email sent again.</p>
+              <p className="font-afacad text-[14px] text-[#D94A1E]">Verification email sent again.</p>
             ) : (
               <button
                 type="button"
@@ -183,7 +192,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
                 autoComplete="name"
-                maxLength={30}
+                maxLength={16}
                 aria-invalid={isNameInvalid ? "true" : undefined}
                 aria-describedby={isNameInvalid ? "auth-name-error" : undefined}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isNameInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-[#D94A1E]"} bg-transparent px-[12px] font-afacad text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
@@ -255,7 +264,7 @@ async function handleOAuth(provider: OAuthProvider) {
 
           {isLogin && (
             <div className="flex items-center justify-between w-full mt-1">
-              <label className="flex items-center gap-[8px] font-afacad text-[13px] text-[#4B5563] cursor-pointer">
+              <label className="flex items-center gap-[8px] font-afacad text-[14px] text-[#4B5563] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -264,7 +273,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 />
                 Remember me
               </label>
-              <Link href="/forgot-password" className="font-afacad font-medium text-[13px] text-[#D94A1E] hover:underline">
+              <Link href="/forgot-password" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -287,7 +296,7 @@ async function handleOAuth(provider: OAuthProvider) {
                   type="button"
                   onClick={handleResend}
                   disabled={resendDone}
-                  className="block mt-[6px] font-afacad font-medium text-[13px] text-[#D94A1E] hover:underline disabled:text-[#AEAEAE]"
+                  className="block mt-[6px] font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline disabled:text-[#AEAEAE]"
                 >
                   {resendDone ? "Verification email sent again" : "Resend verification email"}
                 </button>
