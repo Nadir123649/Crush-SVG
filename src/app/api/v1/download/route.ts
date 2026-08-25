@@ -3,8 +3,8 @@ import fs from 'fs';
 import https from 'https';
 import path from 'path';
 
-export async function GET() {
-  return new Promise((resolve) => {
+export async function GET(): Promise<NextResponse> {
+  return new Promise<NextResponse>((resolve) => {
     https.get('https://raw.githubusercontent.com/jankovicsandras/imagetracerjs/master/imagetracer_v1.2.6.js', (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
