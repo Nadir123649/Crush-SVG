@@ -18,6 +18,7 @@ export default function TermsAndConditions() {
         
         {/* Hero Section */}
         <Hero
+          badge="Legal Agreements"
           title={<>Terms of <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Service</span></>}
           subtitle={<>Last updated: August 2026 &bull; Provided by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link></>}
           className="mb-[16px] md:mb-[40px]"

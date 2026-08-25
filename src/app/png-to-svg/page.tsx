@@ -30,15 +30,15 @@ export default function PngToSvg() {
   return (
     <div className="w-full flex flex-col items-center">
       <Hero 
-        title={<>PNG/JPG to <span className="bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-transparent bg-clip-text">SVG</span> Converter</>} 
+        title={<>From <span className="text-brand-primary">PNG to SVG,</span> Exactly<br className="hidden md:inline" /> as Intended</>} 
         subtitle="Turn your raster images into perfectly scalable SVG vectors instantly." 
       />
       <ConverterUI mode="raster-to-svg" />
       <Features />
       <SignUpCTA />
-      <StepsSection />
+      <StepsSection mode="raster-to-svg" />
       <TargetAudience />
-      <FAQ />
+      <FAQ mode="raster-to-svg" />
     </div>
   );
 }

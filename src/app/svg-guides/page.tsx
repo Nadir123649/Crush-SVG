@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
+import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = constructMetadata({
   title: "SVG Guides & Best Practices | CrushSVG",
@@ -350,18 +351,20 @@ export default function SvgGuidesPage() {
           <p className="font-afacad text-sm text-text-muted">Browse our FAQ or reach out to our engineering team for personalized support.</p>
         </div>
         <div className="flex gap-3 shrink-0">
-          <Link
+          <Button
             href="/help"
-            className="px-5 py-2.5 rounded-xl bg-white border border-[#E5DFDA] text-text-dark text-sm font-semibold hover:bg-gray-50 transition-colors"
+            variant="outline"
+            className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold border border-[#E5DFDA]"
           >
             Help & FAQ
-          </Link>
-          <Link
+          </Button>
+          <Button
             href="/contact-us"
-            className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            variant="solid"
+            className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold"
           >
             Contact Support
-          </Link>
+          </Button>
         </div>
       </div>
     </div>
