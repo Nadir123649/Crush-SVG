@@ -47,7 +47,7 @@ export default function AboutUsPage() {
     },
     {
       name: "Muhammad Aswad Khan",
-      role: "Technical Project Manger",
+      role: "Technical Project Manager",
       bio: "Product strategist focused on developer experience, user interface design, and scaling digital tools at The Nevon.",
       initials: "AK",
     },
