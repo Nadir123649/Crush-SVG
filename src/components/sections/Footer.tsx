@@ -11,7 +11,13 @@ export function Footer() {
       e.preventDefault();
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        const headerOffset = window.innerWidth >= 768 ? 92 : 66;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        // Adding 2px to ensure the border of the previous section is completely hidden
+        window.scrollTo({
+          top: elementPosition - headerOffset + 2,
+          behavior: "smooth"
+        });
         window.history.pushState(null, "", `/${hash}`);
       }
     }
@@ -81,26 +87,26 @@ export function Footer() {
           {/* Column 1: Explore */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Explore</h4>
-            <Link href="/#converter" onClick={(e) => handleHashClick(e, '#converter')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
-            <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Features</Link>
-            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">How It Works</Link>
-            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Changelog</Link>
+            <Link href="/#converter" onClick={(e) => handleHashClick(e, '#converter')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
+            <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Features</Link>
+            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">How It Works</Link>
+            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Changelog</Link>
           </div>
           {/* Column 2: Resources */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Resources</h4>
-            <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Guides</Link>
-            <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Help & FAQ</Link>
-            <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Support Hub</Link>
-            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Contact Us</Link>
+            <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Guides</Link>
+            <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Help & FAQ</Link>
+            <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Support Hub</Link>
+            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Contact Us</Link>
           </div>
           {/* Column 3: Company */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Company</h4>
-            <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">About Us</Link>
-            <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Our Team</Link>
-            <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Privacy Policy</Link>
-            <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[13px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Terms of Service</Link>
+            <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">About Us</Link>
+            <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Our Team</Link>
+            <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Privacy Policy</Link>
+            <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
 
@@ -131,13 +137,13 @@ export function Footer() {
 
           {/* Social Icons */}
           <div className="flex justify-center gap-[24px] mt-[12px]">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.facebook.com/profile.php?id=61593405728605" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.facebook} alt="Facebook logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.instagram.com/crsuhsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.instagram} alt="Instagram logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.linkedin.com/company/crushsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.linkedin} alt="LinkedIn logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
           </div>
@@ -150,13 +156,13 @@ export function Footer() {
 
           {/* Social Icons (Mobile) */}
           <div className="flex justify-center gap-[24px]">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.facebook.com/profile.php?id=61593405728605" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.facebook} alt="Facebook logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.instagram.com/crsuhsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.instagram} alt="Instagram logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.linkedin.com/company/crushsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.linkedin} alt="LinkedIn logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
           </div>

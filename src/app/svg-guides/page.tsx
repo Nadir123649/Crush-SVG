@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
 
 export const metadata: Metadata = constructMetadata({
   title: "SVG Guides & Best Practices | CrushSVG",
@@ -50,24 +51,19 @@ export default function SvgGuidesPage() {
   ];
 
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[24px] md:mb-[40px]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>Developer & Designer Documentation</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
-          SVG <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Guides</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[600px]">
-          Everything you need to know about Scalable Vector Graphics, from fundamental optimization to flawless raster conversions with <Link href="/" className="text-brand-primary hover:underline font-medium">CrushSVG</Link>.
-        </p>
-      </div>
+      <Hero
+        badge="Developer & Designer Documentation"
+        title={<>SVG <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Guides</span></>}
+        subtitle={<>Everything you need to know about Scalable Vector Graphics, from fundamental optimization to flawless raster conversions with <Link href="/" className="text-brand-primary hover:underline font-medium">CrushSVG</Link>.</>}
+        className="mb-[24px] md:mb-[40px]"
+      />
 
       {/* Table of Contents Quick Nav */}
       <div className="w-full max-w-[800px] bg-white rounded-[16px] p-6 md:p-8 border border-[#F2EDE8] mb-8" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>

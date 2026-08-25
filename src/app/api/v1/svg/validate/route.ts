@@ -30,8 +30,8 @@ function isValidSVG(svg: string): { valid: boolean; error?: string } {
     return { valid: false, error: 'SVG tags are not properly closed.' }
   }
 
-  if (trimmed.length > 5 * 1024 * 1024) {
-    return { valid: false, error: 'SVG file too large. Maximum size is 5MB.' }
+  if (trimmed.length > 10 * 1024 * 1024) {
+    return { valid: false, error: 'SVG file too large. Maximum size is 10MB.' }
   }
 
   const dangerousPatterns = [

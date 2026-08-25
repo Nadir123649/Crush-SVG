@@ -57,6 +57,10 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -88,13 +92,6 @@ export default function ResetPasswordPage() {
     <>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
-        <Link href="/login" className="absolute top-[24px] right-[24px] text-gray-500 hover:text-gray-700 z-10 p-1" aria-label="Back to login">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M6 6L18 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </Link>
-
         <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
           {tokenState === "checking" && (
             <div className="flex flex-col items-center gap-[12px] py-[48px]">
@@ -110,8 +107,8 @@ export default function ResetPasswordPage() {
                 This password reset link is invalid or has expired. Request a new one.
               </p>
               <Link
-                href="/login"
-                className="font-afacad text-[13px] text-[#4B5563] hover:text-[#D94A1E] mt-[4px]"
+                href="/?auth=login"
+                className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E] mt-[4px]"
               >
                 Back to login
               </Link>
@@ -130,11 +127,11 @@ export default function ResetPasswordPage() {
               <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
                 Your password has been updated. Sign in with your new password.
               </p>
-              <p className="font-afacad text-[13px] text-[#4B5563] text-center leading-[20px]">
+              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
                 Redirecting to login in {redirectIn}s…
               </p>
               <Link
-                href="/login"
+                href="/?auth=login"
                 className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
               >
                 Log In
@@ -159,14 +156,12 @@ export default function ResetPasswordPage() {
                     <input
                       id="rp-password"
                       type={showPassword ? "text" : "password"}
-                      required
-                      minLength={8}
                       maxLength={20}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => { setPassword(e.target.value); setError(null); }}
                       placeholder="Enter your password"
                       autoComplete="new-password"
-                      className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                      className={`w-full h-[32px] rounded-[4px] border-[1px] ${error ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
                     />
                     <button
                       type="button"
@@ -194,14 +189,12 @@ export default function ResetPasswordPage() {
                       <input
                         id="rp-confirm"
                         type={showConfirmPassword ? "text" : "password"}
-                        required
-                        minLength={8}
                         maxLength={20}
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
                         placeholder="Re-enter new password"
                         autoComplete="new-password"
-                        className="w-full h-[32px] rounded-[4px] border-[1px] border-[#B8B8B8] bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
+                        className={`w-full h-[32px] rounded-[4px] border-[1px] ${error === "Passwords do not match." ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#AEAEAE] transition-colors`}
                       />
                       <button
                         type="button"
@@ -224,7 +217,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {error && (
-                  <div role="alert" className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[13px] leading-[18px] text-red-700">
+                  <div role="alert" className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[14px] leading-[18px] text-red-700">
                     {error}
                   </div>
                 )}
@@ -241,7 +234,7 @@ export default function ResetPasswordPage() {
 
               {/* Footer Text */}
               <div className="text-center mt-[12px]">
-                <p className="font-afacad font-normal text-[13px] text-[#57534E]">
+                <p className="font-afacad font-normal text-[14px] text-[#57534E]">
                   Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
                 </p>
               </div>

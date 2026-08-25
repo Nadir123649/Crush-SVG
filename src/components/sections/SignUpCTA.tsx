@@ -115,7 +115,7 @@ export function SignUpCTA() {
               )}
             </h3>
 
-            <p className="font-body font-normal text-[13px] lg:text-[14px] leading-[18.67px] text-center text-text-muted mb-[16px] lg:mb-[26px]">
+            <p className="font-body font-normal text-[14px] lg:text-[14px] leading-[18.67px] text-center text-text-muted mb-[16px] lg:mb-[26px]">
               Create a free account to keep converting. No credit card<br className="hidden lg:inline" /> required ever.
             </p>
 
@@ -124,7 +124,7 @@ export function SignUpCTA() {
               <Button href="/login" variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">Log In</Button>
             </div>
 
-            <p className="font-body font-normal text-[11px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-text-muted mt-[16px] lg:mt-[26px]">
+            <p className="font-body font-normal text-[12px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-text-muted mt-[16px] lg:mt-[26px]">
               Your SVG code is safe. It stays in this session until you finish<br className="hidden lg:inline" /> signing up.
             </p>
           </div>
