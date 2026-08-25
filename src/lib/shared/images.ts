@@ -7,7 +7,7 @@ export const IMAGES = {
     dropdown: "/dropdown.webp",
     exportIcon: "/export-icon.webp",
     downloadImage: "/download-image.webp",
-    facebook: "/facebook.webp",
+    facebook: "/facebook.svg",
     file: "/file.webp",
     globe: "/globe.webp",
     google: "/google.svg",

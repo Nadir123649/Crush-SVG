@@ -255,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
       .catch(() => {})
-    window.location.href = '/login'
+    window.location.href = '/'
   }, [])
 
   const changePassword = useCallback(
