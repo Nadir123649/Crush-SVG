@@ -742,7 +742,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 </p>
               )}
 
-              <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px] md:mt-[24px]">
+              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[24px]" : "mt-[6px] md:mt-[8px]"}`}>
                 <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
                 <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
               </p>

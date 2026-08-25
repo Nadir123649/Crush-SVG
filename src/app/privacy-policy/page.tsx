@@ -18,6 +18,7 @@ export default function PrivacyPolicy() {
         
         {/* Hero Section */}
         <Hero
+          badge="Data Protection & Privacy"
           title={<>Privacy <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Policy</span></>}
           subtitle={<>Last updated: August 2026 &bull; Maintained by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link></>}
           className="mb-[16px] md:mb-[40px]"
