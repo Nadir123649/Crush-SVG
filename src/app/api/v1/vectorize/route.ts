@@ -4,7 +4,9 @@ import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } 
 import { logConversion } from '@/lib/usage/conversion-logger'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
-import { uploadImage } from '@/lib/integrations/cloudinary'
+import sharp from 'sharp'
+// @ts-ignore
+import ImageTracer from '@/lib/utils/imagetracer'
 
 export const runtime = 'nodejs'
 
@@ -36,9 +38,20 @@ export async function POST(request: NextRequest) {
 
   let fileBuffer: Buffer
   let mimeType: string
+  let quality: string = 'Medium'
+  let colors: string = 'Auto'
+  let background: string = 'Preserve'
+  let bgColor: string = '#ffffff'
+  let pathOpt: string = 'Balanced'
+  
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
+    quality = formData.get('quality') as string || 'Medium'
+    colors = formData.get('colors') as string || 'Auto'
+    background = formData.get('background') as string || 'Preserve'
+    bgColor = formData.get('bgColor') as string || '#ffffff'
+    pathOpt = formData.get('pathOpt') as string || 'Balanced'
     if (!file) {
       return errorResponse(400, 'validation_error', 'No file uploaded', undefined, request)
     }
@@ -59,23 +72,64 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // We use Cloudinary's e_vectorize which returns an SVG format
-    const result: any = await uploadImage(fileBuffer, "crushsvg_vectorize", {
-      format: 'svg',
-      effect: 'vectorize:colors:3:detail:1.0',
-    });
+    let sharpInstance = sharp(fileBuffer);
+    
+    // Apply background color if 'Custom' is selected
+    if (background === 'Custom') {
+        sharpInstance = sharpInstance.flatten({ background: bgColor });
+    }
+    
+    // Get raw RGBA pixels
+    const { data, info } = await sharpInstance
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
 
-    const svgUrl = result.secure_url;
-    if (!svgUrl) {
-      throw new Error("Failed to get SVG URL from vectorizer");
+    const imgData = { 
+        width: info.width, 
+        height: info.height, 
+        data: new Uint8ClampedArray(data) 
+    };
+
+    const options: any = {};
+
+    // Map quality to detail settings
+    if (quality === 'Low') {
+      options.ltres = 1;
+      options.qtres = 1;
+      options.pathomit = 16;
+    } else if (quality === 'High') {
+      options.ltres = 0.1;
+      options.qtres = 0.1;
+      options.pathomit = 0;
+    } else { // Medium
+      options.ltres = 1;
+      options.qtres = 1;
+      options.pathomit = 8;
     }
 
-    // Fetch the generated SVG content
-    const svgRes = await fetch(svgUrl);
-    if (!svgRes.ok) {
-      throw new Error("Failed to fetch generated SVG");
+    // Map colors
+    if (colors === 'Limited') {
+      options.numberofcolors = 4;
+    } else if (colors === 'Full') {
+      options.numberofcolors = 64;
+    } else { // Auto
+      options.numberofcolors = 16;
     }
-    const svgCode = await svgRes.text();
+
+    // Map path optimization
+    if (pathOpt === 'Off') {
+      options.blurradius = 0;
+    } else if (pathOpt === 'Maximum') {
+      options.blurradius = 5;
+      options.blurdelta = 64;
+    } else { // Balanced
+      options.blurradius = 1;
+      options.blurdelta = 20;
+    }
+
+    // Vectorize!
+    const svgCode = ImageTracer.imagedataToSVG(imgData, options);
 
     let conversionsUsed = 0
     try {
@@ -141,8 +195,12 @@ export async function POST(request: NextRequest) {
     }
     return res
 
-  } catch (error) {
-    console.error('Vectorize failed:', error)
+  } catch (error: any) {
+    console.error('Vectorization failed:', error)
+    // Write error to a scratch file so I can read it!
+    try {
+      require('fs').writeFileSync('./scratch/vectorize-error.txt', String(error?.stack || error));
+    } catch(e){}
     
     await logConversion({
       userId: usage.userId,
@@ -153,6 +211,6 @@ export async function POST(request: NextRequest) {
       errorReason: "vectorization_failed"
     })
 
-    return errorResponse(500, 'vectorization_failed', 'Failed to convert image to SVG', undefined, request)
+    return errorResponse(500, 'vectorization_error', 'Vectorization failed. Please try again.', undefined, request)
   }
 }

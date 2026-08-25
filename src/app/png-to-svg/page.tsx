@@ -34,7 +34,7 @@ export default function PngToSvg() {
         subtitle="Turn your raster images into perfectly scalable SVG vectors instantly." 
       />
       <ConverterUI mode="raster-to-svg" />
-      <Features />
+      <Features mode="raster-to-svg" />
       <SignUpCTA />
       <StepsSection mode="raster-to-svg" />
       <TargetAudience />
