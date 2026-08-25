@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
+import { Button } from "@/components/ui/Button";
 
 export const metadata = constructMetadata({
   title: "Meet the Team | CrushSVG & The Nevon",
@@ -34,14 +36,14 @@ export default function TeamPage() {
   const team = [
     {
       name: "Sardar Muhammad Nadir",
-      role: "Lead Engineer & Co-Founder",
+      role: "CEO and Founder ",
       bio: "Full-stack architect with a focus on web performance, client-side rendering engines, and scalable SaaS infrastructure. Nadir leads technical development at The Nevon and engineered CrushSVG's vector rasterization pipeline.",
       initials: "SN",
       skills: ["Next.js", "TypeScript", "Canvas/WebAssembly", "Cloud Infrastructure"],
     },
     {
       name: "Muhammad Aswad Khan",
-      role: "Product Lead & Co-Founder",
+      role: "Project manager",
       bio: "Product strategist and interface designer dedicated to crafting friction-free digital experiences. Aswad oversees product roadmap, UX architecture, and developer relations across The Nevon product suite.",
       initials: "AK",
       skills: ["Product Strategy", "UI/UX Architecture", "SEO & Growth", "Design Systems"],
@@ -49,24 +51,19 @@ export default function TeamPage() {
   ];
 
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(teamSchema) }}
       />
 
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[32px] md:mb-[60px]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>The Creators</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
-          Meet the <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Team</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[620px]">
-          We are builders, engineers, and designers from <a href="https://www.thenevon.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">The Nevon</a> creating purposeful tools that eliminate daily friction for developers and creatives.
-        </p>
-      </div>
+      <Hero
+        badge="The Creators"
+        title={<>Meet the <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Team</span></>}
+        subtitle={<>We are builders, engineers, and designers from <a href="https://www.thenevon.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">The Nevon</a> creating purposeful tools that eliminate daily friction for developers and creatives.</>}
+        className="mb-[32px] md:mb-[60px]"
+      />
 
       {/* Team Grid */}
       <div className="w-full max-w-[900px] grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -87,7 +84,7 @@ export default function TeamPage() {
               </div>
             </div>
 
-            <p className="font-afacad text-[15px] md:text-[16px] text-text-muted leading-[1.6] mb-6 flex-1">
+            <p className="font-afacad text-[16px] md:text-[16px] text-text-muted leading-[1.6] mb-6 flex-1">
               {member.bio}
             </p>
 
@@ -110,29 +107,30 @@ export default function TeamPage() {
 
       {/* Parent Organization Highlight */}
       <div className="w-full max-w-[900px] flex flex-col bg-white rounded-[20px] p-6 md:p-10 border border-[#F2EDE8] mb-12" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="max-w-[550px]">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="max-w-[550px] flex flex-col items-center text-center lg:items-start lg:text-left">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-primary block mb-1">Our Parent Studio</span>
             <h3 className="font-heading font-semibold text-2xl text-text-dark mb-3">The Nevon</h3>
             <p className="font-afacad text-[16px] text-text-muted leading-relaxed">
               The Nevon builds software products, developer utilities, and web platforms designed around speed, reliability, and precision. CrushSVG is part of our commitment to accessible, ad-free web tooling.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full lg:w-auto">
             <a
               href="https://www.thenevon.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center px-6 h-11 rounded-xl bg-[#FCF1ED] text-brand-primary font-semibold text-sm hover:bg-[#FBE8E0] transition-colors"
+              className="flex items-center justify-center px-6 h-11 rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[14px] hover:opacity-90 transition-opacity whitespace-nowrap w-full sm:w-auto"
             >
               Visit The Nevon &rarr;
             </a>
-            <Link
+            <Button
               href="/about"
-              className="flex items-center justify-center px-6 h-11 rounded-xl bg-white border border-[#E5DFDA] text-text-dark font-semibold text-sm hover:bg-gray-50 transition-colors"
+              variant="outline"
+              className="h-11 px-6 rounded-[12px] font-bricolage font-semibold text-[14px] whitespace-nowrap w-full sm:w-auto"
             >
               About Our Story
-            </Link>
+            </Button>
           </div>
         </div>
       </div>

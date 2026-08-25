@@ -16,6 +16,7 @@ import {
 import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
+import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-VCLLSKB082";
@@ -168,17 +169,9 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <Header />
-
-          <ScrollToTop />
-
-          <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
-            <main id="main-content" className="w-full flex-1">
-              {children}
-            </main>
-          </div>
-
-          <Footer />
+          <ClientLayoutWrapper>
+            {children}
+          </ClientLayoutWrapper>
         </AuthProvider>
 
         <ToastProvider />

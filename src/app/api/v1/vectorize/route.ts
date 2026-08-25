@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     fileBuffer = Buffer.from(arrayBuffer)
     
-    if (fileBuffer.length > 5 * 1024 * 1024) {
-      return errorResponse(400, 'validation_error', 'File size exceeds 5MB limit', undefined, request)
+    if (fileBuffer.length > 10 * 1024 * 1024) {
+      return errorResponse(400, 'validation_error', 'File size exceeds 10MB limit', undefined, request)
     }
   } catch (err) {
     return errorResponse(400, 'validation_error', 'Invalid form data', undefined, request)

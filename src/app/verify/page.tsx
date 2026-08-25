@@ -42,7 +42,7 @@ function VerificationContent() {
           onContinue={() => router.push("/")}
         />
         {variant === "success" && redirectIn > 0 && (
-          <p className="text-center font-afacad text-[13px] text-[#4B5563] mt-[12px]">
+          <p className="text-center font-afacad text-[14px] text-[#4B5563] mt-[12px]">
             Redirecting you to the home page in {redirectIn}s…
           </p>
         )}

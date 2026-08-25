@@ -101,10 +101,19 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 
 import { EMAIL_VERIFICATION_HTML, RESET_PASSWORD_HTML } from "@/emails/html-templates";
 
+function rewriteSiteLinks(html: string, url: string): string {
+  const origin = /^https?:\/\/[^/]+/.exec(url)?.[0];
+  if (!origin) return html;
+  return html
+    .split("https://crushsvg.net").join(origin)
+    .split("{{origin}}").join(origin);
+}
+
 export async function sendVerificationEmail(to: string, url: string): Promise<void> {
   let html = EMAIL_VERIFICATION_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
+  html = rewriteSiteLinks(html, url);
   await sendEmail(to, "Verify your CrushSVG email", html);
 }
 
@@ -112,5 +121,6 @@ export async function sendResetPasswordEmail(to: string, url: string): Promise<v
   let html = RESET_PASSWORD_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
+  html = rewriteSiteLinks(html, url);
   await sendEmail(to, "Reset your CrushSVG password", html);
 }

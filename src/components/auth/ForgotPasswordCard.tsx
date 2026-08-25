@@ -25,12 +25,20 @@ export function ForgotPasswordCard() {
 
     setSubmitting(true);
     try {
-      await apiFetch<{ message: string }>("/api/v1/passwords/forgot", {
+      const res = await fetch("/api/v1/passwords/forgot", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      setSent(true);
-      showToast("success", "Reset link sent. Please check your inbox.");
+      
+      if (res.ok) {
+        setSent(true);
+        showToast("success", "Reset link sent. Please check your inbox.");
+      } else {
+        const data = await res.json().catch(() => null);
+        const errMsg = data?.payload?.error?.message || data?.error?.message || "Something went wrong. Please try again.";
+        setError(errMsg);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -108,7 +116,7 @@ export function ForgotPasswordCard() {
         {/* Footer Text */}
         {!sent && (
           <div className="text-center mt-[-4px]">
-            <p className="font-afacad font-normal text-[11px] text-[#475569]">
+            <p className="font-afacad font-normal text-[12px] text-[#475569]">
               Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
             </p>
           </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
 
 export const metadata = constructMetadata({
   title: "About Us | CrushSVG - Built by The Nevon",
@@ -53,24 +54,19 @@ export default function AboutUsPage() {
   ];
 
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
       />
 
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[24px] md:mb-[60px]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>Part of The Nevon Suite</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
-          About <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">CrushSVG</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[650px]">
-          From SVG to PNG, exactly as intended. We built CrushSVG to solve the frustration of broken assets, dropped styles, and missing fonts during vector-to-raster conversion.
-        </p>
-      </div>
+      <Hero
+        badge="Part of The Nevon Suite"
+        title={<>About <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">CrushSVG</span></>}
+        subtitle="From SVG to PNG, exactly as intended. We built CrushSVG to solve the frustration of broken assets, dropped styles, and missing fonts during vector-to-raster conversion."
+        className="mb-[24px] md:mb-[60px]"
+      />
 
       {/* Content Sections */}
       <div className="w-full max-w-[800px] flex flex-col gap-[32px] md:gap-[48px]">

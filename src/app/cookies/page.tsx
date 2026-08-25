@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { constructMetadata } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
 
 export const metadata: Metadata = constructMetadata({
   title: "Cookies Policy | CrushSVG",
@@ -12,18 +13,15 @@ export const metadata: Metadata = constructMetadata({
 
 export default function CookiesPolicyPage() {
   return (
-    <div className="w-full flex justify-center py-[40px] md:py-[80px]">
+    <div className="w-full flex justify-center pb-[40px] md:pb-[80px]">
       <article className="w-full max-w-[800px] flex flex-col gap-[24px]">
         
         {/* Hero Section */}
-        <div className="flex flex-col items-center text-center max-w-[800px] mb-[16px] md:mb-[40px] mx-auto">
-          <h1 className="font-heading font-semibold text-[30px] leading-[36px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[8px] md:mb-[16px]">
-            Cookies <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Policy</span>
-          </h1>
-          <p className="font-afacad text-sm md:text-base text-text-muted">
-            Last updated: August 2026 &bull; Part of CrushSVG by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link>
-          </p>
-        </div>
+        <Hero
+          title={<>Cookies <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Policy</span></>}
+          subtitle={<>Last updated: August 2026 &bull; Part of CrushSVG by <Link href="/about" className="text-brand-primary hover:underline font-medium">The Nevon</Link></>}
+          className="mb-[16px] md:mb-[40px]"
+        />
 
         {/* Content */}
         <section className="flex flex-col gap-[16px]">

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FAQ } from "@/components/sections/FAQ";
 import { constructMetadata } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
 
 export const metadata: Metadata = constructMetadata({
   title: "Help & FAQ | CrushSVG",
@@ -13,20 +14,15 @@ export const metadata: Metadata = constructMetadata({
 
 export default function HelpPage() {
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
 
       {/* Header Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[24px] md:mb-[40px]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>Knowledge & Support</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[32px] leading-[40px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[16px]">
-          Help & <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">FAQ</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[620px]">
-          Need assistance with CrushSVG? Check our frequently asked questions, read our <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">technical guides</Link>, or contact <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.
-        </p>
-      </div>
+      <Hero
+        badge="Knowledge & Support"
+        title={<>Help & <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">FAQ</span></>}
+        subtitle={<>Need assistance with CrushSVG? Check our frequently asked questions, read our <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">technical guides</Link>, or contact <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.</>}
+        className="mb-[24px] md:mb-[40px]"
+      />
 
       {/* Quick Resource Cards */}
       <div className="w-full max-w-[890px] grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

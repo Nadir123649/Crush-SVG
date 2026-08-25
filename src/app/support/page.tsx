@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
+import { Hero } from "@/components/sections/Hero";
 
 export const metadata = constructMetadata({
   title: "Support Center | CrushSVG",
@@ -46,24 +47,19 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center md:py-[60px] min-h-[60vh]">
+    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
       />
 
       {/* Hero Section */}
-      <div className="flex flex-col items-center text-center max-w-[800px] mb-[32px] md:mb-[48px]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FCF1ED] text-brand-primary text-sm font-semibold mb-4 border border-[#F2EDE8]">
-          <span>Assistance & Resources</span>
-        </div>
-        <h1 className="font-heading font-semibold text-[32px] leading-[40px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-text-dark mb-[16px]">
-          Support <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Center</span>
-        </h1>
-        <p className="font-afacad text-[16px] md:text-[20px] text-text-muted leading-[1.5] max-w-[600px]">
-          How can we help you today? Browse troubleshooting FAQs, explore our vector guides, or message <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.
-        </p>
-      </div>
+      <Hero
+        badge="Assistance & Resources"
+        title={<>Support <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Center</span></>}
+        subtitle={<>How can we help you today? Browse troubleshooting FAQs, explore our vector guides, or message <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.</>}
+        className="mb-[32px] md:mb-[48px]"
+      />
 
       {/* Quick Links Section */}
       <div className="w-full max-w-[800px] grid grid-cols-1 sm:grid-cols-3 gap-[16px] mb-[48px]">
@@ -132,7 +128,7 @@ export default function SupportPage() {
               <h3 className="font-heading font-semibold text-[18px] md:text-[20px] text-text-dark mb-[10px]">
                 {faq.question}
               </h3>
-              <p className="font-afacad text-[15px] md:text-[16px] text-text-muted leading-[1.6] mb-3">
+              <p className="font-afacad text-[16px] md:text-[16px] text-text-muted leading-[1.6] mb-3">
                 {faq.answer}
               </p>
               {faq.guideLink && (

@@ -118,15 +118,15 @@ export function Header() {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href="/png-to-svg"
-              className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              href={pathname === "/png-to-svg" ? "/" : "/png-to-svg"}
+              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              PNG to SVG
+              {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
             </Link>
 
             <Link
               href="/svg-guides"
-              className="hidden lg:inline-block font-body font-semibold text-[15px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Guides
             </Link>
@@ -195,7 +195,7 @@ export function Header() {
                     className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
                   >
                     <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
-                      <p className="font-body font-medium text-[13px] text-text-dark truncate">
+                      <p className="font-body font-medium text-[14px] text-text-dark truncate">
                         {user.displayName || "CrushSVG user"}
                       </p>
 
@@ -204,9 +204,20 @@ export function Header() {
                       </p>
                     </div>
 
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setMenuOpen(false)}
+                        className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
+
                     <button
                       type="button"
                       role="menuitem"
+
                       onClick={handleLogout}
                       className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
                     >

@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     return errorResponse(
       401,
       'email_not_verified',
-      'Your email is not verified yet. Please verify your email first, then log in — check your inbox for the verification link.'
+      'Your email is not verified yet. Please verify your email first, then log in.'
     )
   }
 
