@@ -91,7 +91,10 @@ export async function POST(request: NextRequest) {
         data: new Uint8ClampedArray(data) 
     };
 
-    const options: any = {};
+    const options: any = {
+      layering: 0,
+      strokewidth: 1, // Adds a 1px stroke of the same color to fill any gaps (prevents tearing)
+    };
 
     // Map quality to detail settings
     if (quality === 'Low') {
@@ -103,18 +106,18 @@ export async function POST(request: NextRequest) {
       options.qtres = 0.1;
       options.pathomit = 0;
     } else { // Medium
-      options.ltres = 1;
-      options.qtres = 1;
+      options.ltres = 0.5;
+      options.qtres = 0.5;
       options.pathomit = 8;
     }
 
     // Map colors
     if (colors === 'Limited') {
-      options.numberofcolors = 4;
-    } else if (colors === 'Full') {
-      options.numberofcolors = 64;
-    } else { // Auto
       options.numberofcolors = 16;
+    } else if (colors === 'Full') {
+      options.numberofcolors = 128; // Increased for better full color
+    } else { // Auto
+      options.numberofcolors = 64; // Increased from 16 to 64 for better defaults
     }
 
     // Map path optimization
@@ -124,7 +127,7 @@ export async function POST(request: NextRequest) {
       options.blurradius = 5;
       options.blurdelta = 64;
     } else { // Balanced
-      options.blurradius = 1;
+      options.blurradius = 0; // Removing the 1px blur prevents edges from degrading
       options.blurdelta = 20;
     }
 

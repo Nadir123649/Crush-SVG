@@ -626,7 +626,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                   {mode === "raster-to-svg" ? "Raster Image" : "SVG Code"}
                 </h2>
                 <div className="flex items-center gap-[10px]">
-                  {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
+                  {mode === "svg-to-png" && svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
                     <button
                       type="button"
                       onClick={handleFormatSvg}
@@ -1148,7 +1148,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                       <Button
                         className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
-                        disabled={converting || isPlaceholderCode}
+                        disabled={converting || (mode === "svg-to-png" && isPlaceholderCode)}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           {mode === "raster-to-svg" ? "Download SVG" : "Download PNG"}

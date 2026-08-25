@@ -1,7 +1,41 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
+import { useState } from "react";
+import { apiFetch } from "@/lib/client/http";
+import { showToast } from "@/lib/client/toast-bridge";
 
 export default function SettingsPage() {
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminEmail || !adminPassword) {
+      showToast("error", "Email and password are required.");
+      return;
+    }
+    setAddingAdmin(true);
+    try {
+      await apiFetch("/api/v1/admin/users", {
+        method: "POST",
+        body: JSON.stringify({ email: adminEmail, password: adminPassword, role: "admin" })
+      });
+      showToast("success", "Admin user added successfully!");
+      setAdminEmail("");
+      setAdminPassword("");
+    } catch (err: any) {
+      if (err.message.includes("409")) {
+        showToast("error", "A user with this email already exists.");
+      } else {
+        showToast("error", "Failed to add admin user.");
+      }
+    } finally {
+      setAddingAdmin(false);
+    }
+  };
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Page Title */}
@@ -74,13 +108,15 @@ export default function SettingsPage() {
             </div>
             <div className="w-full h-px bg-[#F2EDE8] mb-6"></div>
             
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleAddAdmin}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
                   <label className="font-body font-semibold text-sm text-text-muted">Admin Email</label>
                   <input 
                     type="email" 
                     placeholder="admin@crushsvg.com"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
                   />
                 </div>
@@ -89,15 +125,21 @@ export default function SettingsPage() {
                   <input 
                     type="password" 
                     placeholder="••••••••"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
                   />
                 </div>
               </div>
               
               <div className="flex justify-end pt-2">
-                <Button variant="solid" className="px-6 py-2.5 h-auto shadow-sm gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-                  Add Admin
+                <Button variant="solid" className="px-6 py-2.5 h-auto shadow-sm gap-2" disabled={addingAdmin} type="submit">
+                  {addingAdmin ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-1"></div>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                  )}
+                  {addingAdmin ? "Adding..." : "Add Admin"}
                 </Button>
               </div>
             </form>

@@ -18,7 +18,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     },
     {
       icon: IMAGES.downloadImage,
-      title: mode === "raster-to-svg" ? <>Download<br />SVG</> : <>Download<br />PNG</>,
+      title: mode === "raster-to-svg" ? "Download SVG" : "Download PNG",
       description: mode === "raster-to-svg" ? "Create crisp, perfectly scalable vectors ready for anywhere." : "Create sharp, transparent PNGs ready for anywhere.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },

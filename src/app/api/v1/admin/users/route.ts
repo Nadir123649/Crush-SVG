@@ -5,6 +5,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { User, isDuplicateKeyError } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
+import { hashPassword } from '@/lib/auth/passwords'
 
 export const runtime = 'nodejs'
 
@@ -76,10 +77,11 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, '', '', undefined, request)
   }
 
-  const { email, displayName, role = 'user' } = body as {
+  const { email, displayName, role = 'user', password } = body as {
     email: string
     displayName?: string
     role?: 'user' | 'admin'
+    password?: string
   }
 
   if (!email || !email.includes('@')) {
@@ -103,6 +105,8 @@ export async function POST(request: NextRequest) {
       displayName: displayName ?? email.split('@')[0],
       photoURL: null,
       role,
+      isVerified: true,
+      password: password ? await hashPassword(password) : undefined,
       providers: ['admin'],
       conversionsUsed: 0,
       lastLoginAt: new Date(),

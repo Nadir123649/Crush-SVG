@@ -17,12 +17,14 @@ const SvgMore = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
-  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
-  const role = typeof searchParams.role === 'string' ? searchParams.role : 'all';
-  const status = typeof searchParams.status === 'string' ? searchParams.status : 'all';
+  const params = await searchParams;
+  
+  const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
+  const search = typeof params.search === 'string' ? params.search : '';
+  const role = typeof params.role === 'string' ? params.role : 'all';
+  const status = typeof params.status === 'string' ? params.status : 'all';
   
   const limit = 15;
   const skip = (page - 1) * limit;
