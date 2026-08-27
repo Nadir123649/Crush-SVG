@@ -6,6 +6,10 @@ export interface AuditLogDoc {
     adminId: string;
     action: string;
     target?: string | null;
+    resourceType?: string | null;
+    resourceId?: string | null;
+    details?: any;
+    ipAddress?: string | null;
     metadata?: any;
     createdAt: Date;
 }
@@ -14,6 +18,10 @@ const auditLogSchema = new Schema({
     adminId: { type: String, required: true, index: true },
     action: { type: String, required: true },
     target: { type: String, default: null },
+    resourceType: { type: String, default: null },
+    resourceId: { type: String, default: null },
+    details: { type: Schema.Types.Mixed },
+    ipAddress: { type: String, default: null },
     metadata: { type: Schema.Types.Mixed },
     createdAt: { type: Date, default: Date.now, index: true },
 });

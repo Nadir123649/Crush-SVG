@@ -148,7 +148,9 @@ export function Navbar() {
             </Link>
 
             {/* Authentication State */}
-            {user ? (
+            {status === "loading" ? (
+              <div className="flex items-center gap-[14px] md:gap-[16px] w-[174px] md:w-[294px] h-[32px] md:h-[42px]"></div>
+            ) : user ? (
               <div className="relative" ref={menuRef}>
                 <button
                   type="button"

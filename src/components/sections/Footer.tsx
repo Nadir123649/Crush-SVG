@@ -4,8 +4,12 @@ import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+  const isRasterToSvg = pathname === "/png-to-svg";
+
   const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
     if (typeof window !== "undefined" && window.location.pathname === "/") {
       e.preventDefault();
@@ -53,8 +57,8 @@ export function Footer() {
             </div>
           </Link>
           <p className="font-body font-normal text-[12px] leading-[12px] text-[#4B5563] mt-[4px] md:mt-[8px]">
-            From SVG to PNG, Exactly as Intended.<br className="hidden md:inline" />{" "}
-            Convert, optimize, and ship pixel-perfect assets.
+            {isRasterToSvg ? "From PNG to SVG, Exactly as Intended." : "From SVG to PNG, Exactly as Intended."}<br className="hidden md:inline" />{" "}
+            {isRasterToSvg ? "Convert, vectorize, and ship scalable assets." : "Convert, optimize, and ship pixel-perfect assets."}
           </p>
         </div>
 
@@ -136,7 +140,7 @@ export function Footer() {
           </div>
 
           {/* Social Icons */}
-          <div className="flex justify-center gap-[24px] mt-[12px]">
+          <div className="flex justify-center gap-[24px] mt-[7px]">
             <a href="https://www.facebook.com/profile.php?id=61593405728605" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.facebook} alt="Facebook logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>

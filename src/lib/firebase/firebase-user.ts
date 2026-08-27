@@ -45,6 +45,9 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
             photoURL: token.picture ?? user.photoURL,
             lastLoginAt: now,
         };
+        if (token.email_verified) {
+            updateData.isVerified = true;
+        }
         if (expectedRole === "admin" && user.role !== "admin") {
             updateData.role = "admin";
         }
@@ -63,6 +66,7 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
             providers: [provider],
             linkedProviders: [provider],
             role: roleFor(email),
+            isVerified: token.email_verified ?? false,
             conversionsUsed: 0,
             lastLoginAt: now,
         });

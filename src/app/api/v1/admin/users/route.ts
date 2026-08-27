@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { auth } from '@/lib/middleware/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
-import { User, isDuplicateKeyError } from '@/lib/database/db'
+import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
 import { hashPassword } from '@/lib/auth/passwords'
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, '', '', undefined, request)
+    return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
   }
 
   const { email, displayName, role = 'user', password } = body as {
@@ -85,16 +85,24 @@ export async function POST(request: NextRequest) {
   }
 
   if (!email || !email.includes('@')) {
-    return errorResponse(400, '', '', undefined, request)
+    return errorResponse(400, 'invalid_email', 'A valid email address is required', undefined, request)
+  }
+
+  if (!displayName || !displayName.trim()) {
+    return errorResponse(400, 'missing_name', 'Display name is required', undefined, request)
+  }
+
+  if (!password || password.length < 8) {
+    return errorResponse(400, 'weak_password', 'Password must be at least 8 characters', undefined, request)
   }
 
   if (role !== 'user' && role !== 'admin') {
-    return errorResponse(400, '', '', undefined, request)
+    return errorResponse(400, 'invalid_role', 'Role must be either "user" or "admin"', undefined, request)
   }
 
   const existing = await User.findOne({ email: email.toLowerCase().trim() })
   if (existing) {
-    return errorResponse(409, '', '', undefined, request)
+    return errorResponse(409, 'email_taken', 'A user with this email already exists', undefined, request)
   }
 
   let created
@@ -113,10 +121,20 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     if (isDuplicateKeyError(error)) {
-      return errorResponse(409, '', '', undefined, request)
+      return errorResponse(409, 'email_taken', 'A user with this email already exists', undefined, request)
     }
     throw error
   }
+
+  await AuditLog.create({
+    adminId: adminCheck.user.id,
+    action: 'user_created',
+    target: created._id.toString(),
+    resourceType: 'user',
+    resourceId: created.uid,
+    details: { email: created.email, role: created.role },
+    metadata: { email: created.email, role: created.role },
+  })
 
   return successResponse({ user: toUserDTO(created) }, 201, rateLimitHeaders(rl), request)
 }
