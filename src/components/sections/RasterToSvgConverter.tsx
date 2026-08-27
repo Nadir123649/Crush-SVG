@@ -74,6 +74,8 @@ interface CustomDropdownProps {
   onToggle: () => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   disabled?: boolean;
+  customColor?: string;
+  onCustomColorChange?: (color: string) => void;
 }
 
 function VectorDropdown({
@@ -85,6 +87,8 @@ function VectorDropdown({
   onToggle,
   dropdownRef,
   disabled,
+  customColor,
+  onCustomColorChange,
 }: CustomDropdownProps) {
   const selected = options.find((o) => o.value === value) || options[0];
 
@@ -114,9 +118,24 @@ function VectorDropdown({
           disabled ? "opacity-50 cursor-not-allowed" : "hover:border-[#D94A1E]"
         }`}
       >
-        <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
-          {selected.label}
-        </span>
+        {value === "Custom" && customColor ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+              Custom
+            </span>
+            <span
+              className="w-[16px] h-[16px] rounded-full border border-gray-300 shrink-0 inline-block shadow-2xs"
+              style={{ backgroundColor: customColor }}
+            />
+            <span className="font-mono text-[11px] md:text-[12px] text-brand-primary font-semibold uppercase shrink-0">
+              {customColor}
+            </span>
+          </div>
+        ) : (
+          <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+            {selected.label}
+          </span>
+        )}
         <button
           type="button"
           tabIndex={-1}
@@ -143,8 +162,8 @@ function VectorDropdown({
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[220px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
-          <div role="listbox" className="w-full max-h-[218px] overflow-y-auto py-[6px] brand-scrollbar">
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[260px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
+          <div role="listbox" className="w-full max-h-[258px] overflow-y-auto py-[6px] brand-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;
               return (
@@ -183,6 +202,48 @@ function VectorDropdown({
                   <span className="font-body text-[11px] md:text-[12px] text-[#64748B]">
                     {opt.desc}
                   </span>
+
+                  {opt.value === "Custom" && onCustomColorChange && customColor && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 flex items-center justify-between gap-1 flex-wrap"
+                    >
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {COLOR_PRESETS.map((c) => (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            title={c.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCustomColorChange(c.hex);
+                            }}
+                            className={`w-[18px] h-[18px] rounded-full border border-gray-300 transition-transform ${
+                              customColor.toLowerCase() === c.hex.toLowerCase()
+                                ? "scale-115 ring-2 ring-brand-primary"
+                                : "hover:scale-105"
+                            }`}
+                            style={{ backgroundColor: c.hex }}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="color"
+                          value={customColor}
+                          onChange={(e) => onCustomColorChange(e.target.value)}
+                          className="w-[20px] h-[20px] p-0 border-none rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={customColor}
+                          onChange={(e) => onCustomColorChange(e.target.value)}
+                          maxLength={7}
+                          className="w-[58px] h-[22px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -822,7 +883,8 @@ export function RasterToSvgConverter() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
-                  <div className="w-full rounded-[14px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] gap-[8px]">
+                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                    {/* Row 1: File Info */}
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
                         <div className="w-[28px] h-[28px] rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
@@ -830,35 +892,52 @@ export function RasterToSvgConverter() {
                             {fileExt}
                           </span>
                         </div>
-                        <span className="font-body font-medium text-[13px] md:text-[14px] text-[#202427] truncate">
+                        <span className="font-body font-semibold text-[13px] md:text-[14px] text-[#202427] truncate">
                           {imageName || "raster-image.png"}
                         </span>
                       </div>
-                      <span className="font-body text-[12px] md:text-[13px] text-[#64748B] shrink-0 font-medium">
+                      <span className="font-body text-[11px] md:text-[12px] text-[#64748B] bg-white border border-gray-200 px-2 py-0.5 rounded-md shrink-0 font-medium font-mono">
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[12px] md:text-[13px] text-[#475569] border-t border-gray-200/80 pt-[8px]">
-                      <span>
-                        Dimensions:{" "}
-                        <strong className="font-medium text-[#202427]">
-                          {imageDims ? `${imageDims.width} × ${imageDims.height} px` : "Analyzing..."}
+                    {/* Row 2: 3 Metrics Cards */}
+                    <div className="grid grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Dimensions</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "..."}
                         </strong>
+                      </div>
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Aspect Ratio</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
+                        </strong>
+                      </div>
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Input Format</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {fileExt} Bitmap
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Row 3: Status Line */}
+                    <div className="flex items-center justify-between text-[11px] md:text-[12px] text-[#64748B] border-t border-gray-200/80 pt-[6px]">
+                      <span className="truncate">
+                        Quality: <strong className="text-[#202427] font-medium">{rasterQuality}</strong> &bull; Colors: <strong className="text-[#202427] font-medium">{rasterColors}</strong> &bull; BG: <strong className="text-[#202427] font-medium">{rasterBackground}</strong>
                       </span>
-                      {imageDims && (
-                        <span className="text-[#64748B]">
-                          Ratio: {(imageDims.width / imageDims.height).toFixed(2)}
-                        </span>
-                      )}
+                      <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full rounded-[14px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-center mt-[16px] gap-[8px]">
-                    <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
+                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                    <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
                       <span>Vector Tracing Engine</span>
+                      <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">PNG &amp; JPG to SVG</span>
                     </div>
-                    <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[5px]">
+                    <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
                         <span>Converts pixels into sharp, infinitely scalable vector paths</span>
@@ -1039,11 +1118,11 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full mt-[16px] transition-all duration-300 ${
+                  className={`w-full h-auto min-h-[176px] md:h-[180px] mt-[16px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
                       label="Quality"
@@ -1087,6 +1166,8 @@ export function RasterToSvgConverter() {
                       onToggle={() => setOpenDropdown(openDropdown === "background" ? null : "background")}
                       dropdownRef={backgroundRef}
                       disabled={converting}
+                      customColor={rasterBgColor}
+                      onCustomColorChange={setRasterBgColor}
                     />
 
                     {/* Path Optimization Dropdown */}
@@ -1104,46 +1185,6 @@ export function RasterToSvgConverter() {
                       disabled={converting}
                     />
                   </div>
-
-                  {/* Custom Background Color Picker (Shows when Custom is selected) */}
-                  {rasterBackground === "Custom" && (
-                    <div className="w-full mt-[12px] p-[12px] rounded-[12px] border border-[#8F8F8F] bg-white flex flex-col sm:flex-row items-center justify-between gap-[10px]">
-                      <span className="font-heading font-semibold text-[13px] text-[#475569]">
-                        Select Background Color:
-                      </span>
-                      <div className="flex items-center gap-[8px] flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={() => setRasterBgColor(c.hex)}
-                            className={`w-[22px] h-[22px] rounded-full border border-gray-300 transition-transform ${
-                              rasterBgColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "scale-125 ring-2 ring-brand-primary"
-                                : "hover:scale-110"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                        <div className="flex items-center gap-1.5 ml-1">
-                          <input
-                            type="color"
-                            value={rasterBgColor}
-                            onChange={(e) => setRasterBgColor(e.target.value)}
-                            className="w-[26px] h-[26px] p-0 border-none rounded cursor-pointer"
-                          />
-                          <input
-                            type="text"
-                            value={rasterBgColor}
-                            onChange={(e) => setRasterBgColor(e.target.value)}
-                            maxLength={7}
-                            className="w-[74px] h-[28px] px-2 font-mono text-[12px] border border-gray-300 rounded-md outline-none focus:border-brand-primary uppercase"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Error Banner */}
