@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/$/, "");
 
 export const DEFAULT_KEYWORDS = [
   "crush svg",
@@ -19,7 +19,6 @@ export const DEFAULT_KEYWORDS = [
   "svg optimizer",
   "svg rasterizer",
   "svg to png transparent",
-  "The Nevon",
 ];
 
 interface SEOProps {
