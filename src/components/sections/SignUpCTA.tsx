@@ -125,7 +125,7 @@ export function SignUpCTA() {
             </div>
 
             <p className="font-body font-normal text-[12px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-text-muted mt-[16px] lg:mt-[26px]">
-              Your SVG code is safe. It stays in this session until you finish<br className="hidden lg:inline" /> signing up.
+              Your session and files are safe. They stay in this session until you finish<br className="hidden lg:inline" /> signing up.
             </p>
           </div>
         </div>

@@ -30,17 +30,28 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
       question: "Are my PNG and JPG files secure?",
       answer: "Absolutely. Your privacy is our priority. Your images are processed securely and we never store, share, or use your uploaded files for any other purposes.",
     });
+    baseFaqs.push({
+      question: "What image formats can I convert?",
+      answer: "CrushSVG supports PNG, JPG, and JPEG raster images up to 10MB in file size.",
+    });
+    baseFaqs.push({
+      question: "Can I control the SVG output quality?",
+      answer: "Yes! You can adjust the quality presets (Low, Medium, High), color quantization (Auto, Limited, Full), background handling, and path smoothing.",
+    });
+    baseFaqs.push({
+      question: "Can I copy the SVG vector code directly?",
+      answer: "Yes! You can toggle between the visual Vector Preview and the SVG Code view, or click 'Copy SVG Code' to copy the markup directly into your clipboard.",
+    });
   } else {
     baseFaqs.push({
       question: "Is my SVG code stored or shared?",
       answer: "Your privacy is our priority. Your SVG code is processed securely and is never stored, shared, or used for any other purposes.",
     });
+    baseFaqs.push({
+      question: "Can I choose the output size?",
+      answer: "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
+    });
   }
-
-  baseFaqs.push({
-    question: mode === "raster-to-svg" ? "Can I control the SVG output quality?" : "Can I choose the output size?",
-    answer: mode === "raster-to-svg" ? "Yes! Our conversion engine intelligently traces your raster images to produce scalable SVG paths." : "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
-  });
 
   const faqs = baseFaqs.filter(faq => {
     // Hide this specific question for logged-in users

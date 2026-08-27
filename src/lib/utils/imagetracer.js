@@ -988,6 +988,9 @@ function ImageTracer(){
 
 		// Drawing: Layers and Paths loops
 		for(var lcnt=0; lcnt < tracedata.layers.length; lcnt++){
+			if (tracedata.palette[lcnt] && tracedata.palette[lcnt].a === 0) {
+				continue;
+			}
 			for(var pcnt=0; pcnt < tracedata.layers[lcnt].length; pcnt++){
 				
 				// Adding SVG <path> string

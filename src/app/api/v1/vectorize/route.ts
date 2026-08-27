@@ -32,9 +32,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (!process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY === 'dummy') {
-    return errorResponse(501, 'not_implemented', 'Vectorization service is not configured on this server.', undefined, request)
-  }
 
   let fileBuffer: Buffer
   let mimeType: string
@@ -200,10 +197,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Vectorization failed:', error)
-    // Write error to a scratch file so I can read it!
-    try {
-      require('fs').writeFileSync('./scratch/vectorize-error.txt', String(error?.stack || error));
-    } catch(e){}
     
     await logConversion({
       userId: usage.userId,

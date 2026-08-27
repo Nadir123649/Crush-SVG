@@ -37,7 +37,7 @@ export default function PngToSvg() {
       <Features mode="raster-to-svg" />
       <SignUpCTA />
       <StepsSection mode="raster-to-svg" />
-      <TargetAudience />
+      <TargetAudience mode="raster-to-svg" />
       <FAQ mode="raster-to-svg" />
     </div>
   );
