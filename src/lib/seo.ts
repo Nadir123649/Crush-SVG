@@ -152,9 +152,10 @@ export function getWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Crush SVG",
-    "alternateName": "Crush SVG Converter",
-    "url": "https://crushsvg.net/",
+    "@id": `${SITE_URL}/#website`,
+    "name": "CrushSVG",
+    "alternateName": "CrushSVG Converter",
+    "url": SITE_URL,
   };
 }
 
