@@ -32,10 +32,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (!process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY === 'dummy') {
-    return errorResponse(501, 'not_implemented', 'Vectorization service is not configured on this server.', undefined, request)
-  }
-
   let fileBuffer: Buffer
   let mimeType: string
   let quality: string = 'Medium'
@@ -64,15 +60,16 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     fileBuffer = Buffer.from(arrayBuffer)
     
-    if (fileBuffer.length > 10 * 1024 * 1024) {
-      return errorResponse(400, 'validation_error', 'File size exceeds 10MB limit', undefined, request)
+    if (fileBuffer.length > 5 * 1024 * 1024) {
+      return errorResponse(400, 'validation_error', 'Your file is larger than 5 MB. Please upload a smaller image.', undefined, request)
     }
   } catch (err) {
     return errorResponse(400, 'validation_error', 'Invalid form data', undefined, request)
   }
 
   try {
-    let sharpInstance = sharp(fileBuffer);
+    let sharpInstance = sharp(fileBuffer)
+      .resize({ width: 1000, height: 1000, fit: 'inside', withoutEnlargement: true });
     
     // Apply background color if 'Custom' is selected
     if (background === 'Custom') {
@@ -92,8 +89,8 @@ export async function POST(request: NextRequest) {
     };
 
     const options: any = {
-      layering: 0,
-      strokewidth: 1, // Adds a 1px stroke of the same color to fill any gaps (prevents tearing)
+      layering: 1, // Overlapping paths completely eliminates gaps/cracks between colors
+      strokewidth: 0.2, // Subtle stroke prevents sub-pixel rendering cracks without thickening edges
     };
 
     // Map quality to detail settings
@@ -127,7 +124,7 @@ export async function POST(request: NextRequest) {
       options.blurradius = 5;
       options.blurdelta = 64;
     } else { // Balanced
-      options.blurradius = 0; // Removing the 1px blur prevents edges from degrading
+      options.blurradius = 1; // 1px blur smooths out the raw pixels before tracing (fixes pixelation)
       options.blurdelta = 20;
     }
 
@@ -142,6 +139,7 @@ export async function POST(request: NextRequest) {
         guestId: usage.kind === 'guest' ? guestId : undefined,
         inputFormat: mimeType === 'image/png' ? 'png' : 'jpg',
         outputFormat: 'svg',
+        originalSize: fileBuffer.length,
         success: true,
       })
     } catch (error) {

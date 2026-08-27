@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
         <section className="flex flex-col gap-[16px]">
           <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">1. Introduction</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            At CrushSVG, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our <Link href="/" className="text-brand-primary hover:underline font-medium">SVG to PNG conversion service</Link>. Please read this policy carefully alongside our <Link href="/terms" className="text-brand-primary hover:underline font-medium">Terms of Service</Link>.
+            At CrushSVG, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our <Link href="/" className="text-brand-primary hover:underline font-medium">conversion services</Link>. Please read this policy carefully alongside our <Link href="/terms" className="text-brand-primary hover:underline font-medium">Terms of Service</Link>.
           </p>
         </section>
 
@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
             <strong>Personal Information:</strong> If you choose to create an account, we collect personal information such as your name, email address, and authentication credentials. If you log in via a third-party provider (e.g., Google or GitHub), we receive basic profile information required to authenticate you.
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            <strong>Uploaded Content:</strong> When you use our conversion tool, you upload SVG files. We process these files strictly to generate your requested PNG output.
+            <strong>Uploaded Content:</strong> When using our PNG to SVG vectorization tool, your raster images are temporarily processed on our secure servers to generate the vector output and are deleted immediately after conversion. SVG to PNG conversions happen entirely in your browser without uploading any files to our servers.
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
             <strong>Automatically Collected Information:</strong> We automatically collect certain information about your device and usage of our website. This may include your IP address, browser type, operating system, and usage analytics.
@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
             We implement industry-standard security measures to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure. 
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            <strong>File Retention:</strong> All SVG to PNG conversions happen entirely in your browser using our client-side processing. Your files are never uploaded to, processed by, or stored on our servers.
+            <strong>File Retention:</strong> SVG to PNG conversions happen entirely in your browser using our client-side processing (your files are never uploaded). For PNG to SVG conversions, files are securely processed on our servers and immediately deleted after conversion. We do not store, retain, or train models on any of your uploaded images.
           </p>
         </section>
 

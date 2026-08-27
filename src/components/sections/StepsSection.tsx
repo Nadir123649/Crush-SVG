@@ -6,13 +6,13 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   const steps = [
     {
       icon: IMAGES.uploadImage,
-      title: mode === "raster-to-svg" ? "Upload PNG/JPG" : "Paste or Upload",
+      title: mode === "raster-to-svg" ? <>Upload<br />PNG/JPG</> : <>Paste or<br />Upload</>,
       description: mode === "raster-to-svg" ? "Drop your raster image directly into the field to begin." : "Drop your SVG file or paste standard markup directly into the field.",
-      imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
+      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
     {
       icon: IMAGES.exportIcon,
-      title: "Choose Your Size",
+      title: <>Choose Your<br />Size</>,
       description: "Adjust width in pixels or simply scale it up for high-resolution output.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },

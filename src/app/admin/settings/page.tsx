@@ -88,7 +88,7 @@ export default function SettingsPage() {
                   <label className="font-body font-semibold text-sm text-text-muted">Support Email</label>
                   <input 
                     type="email" 
-                    defaultValue="support@crushsvg.com"
+                    defaultValue="support@crushsvg.net"
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
                   />
                 </div>
@@ -114,7 +114,7 @@ export default function SettingsPage() {
                   <label className="font-body font-semibold text-sm text-text-muted">Admin Email</label>
                   <input 
                     type="email" 
-                    placeholder="admin@crushsvg.com"
+                    placeholder="admin@crushsvg.net"
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 

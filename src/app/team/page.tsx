@@ -90,6 +90,13 @@ export default function TeamPage() {
       initials: "M",
       skills: ["UI/UX Design", "User-Centered Design", "Interface Design", "Design Systems", "Wireframing & Prototyping", "Responsive Design", "Visual Design"],
     },
+    {
+      name: "Minahil Saleem",
+      role: "Product Strategist | Copywriter",
+      bio: "Product strategist and copywriter helping build a SaaS platform from the ground up. Minahil shapes product strategy, writes email flows built to convert, and crafts website copy.",
+      initials: "MS",
+      skills: ["Product Strategy", "Email Marketing", "Website Copywriting", "Social Media Management"],
+    },
   ];
 
   return (
@@ -108,7 +115,7 @@ export default function TeamPage() {
       />
 
       {/* Team Grid */}
-      <div className="w-full max-w-[900px] grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <div className="w-full max-w-[1200px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {team.map((member) => (
           <div
             key={member.name}

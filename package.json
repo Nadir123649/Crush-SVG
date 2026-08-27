@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "worker": "tsx scripts/conversion-worker.ts"
+    "worker": "tsx scripts/conversion-worker.ts",
+    "seed:admin": "tsx scripts/seed-admin.ts"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

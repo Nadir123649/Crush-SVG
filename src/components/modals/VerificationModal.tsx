@@ -15,7 +15,7 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
 
   return (
     <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
-      <div className="flex flex-col items-center py-[24px]">
+      <div className="flex flex-col items-center ">
         <div className="flex items-center gap-[4px]">
           <Image
             src={IMAGES.logo}
@@ -31,11 +31,11 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         </div>
 
         {/* Heading */}
-        <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[24px]">
+        <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center mt-[20px]">
           {isSuccess ? "Verification Complete" : "Link Invalid or Expired"}
         </h2>
 
-        <div className="mt-[24px]">
+        <div className="mt-[20px]">
           <Image
             src={isSuccess ? IMAGES.verification : IMAGES.lock}
             alt=""
@@ -60,9 +60,9 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         {!isSuccess && (
           <Link
             href="/signup"
-            className="w-[238px] h-[42px] mt-[32px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
+            className="w-[238px] h-[42px] mt-[32px] mb-[8px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
           >
-            Create an account
+            Request new link
           </Link>
         )}
       </div>

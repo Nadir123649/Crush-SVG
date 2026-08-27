@@ -20,6 +20,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
       {/* Badge */}
       {shouldShowAuthBadge ? (
         <div 
+          suppressHydrationWarning
           style={{ 
             border: "1px solid transparent",
             background: "linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box"
