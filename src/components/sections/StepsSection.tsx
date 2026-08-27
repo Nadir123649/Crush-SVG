@@ -6,20 +6,20 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   const steps = [
     {
       icon: IMAGES.uploadImage,
-      title: mode === "raster-to-svg" ? <>Upload<br />PNG/JPG</> : <>Paste or<br />Upload</>,
-      description: mode === "raster-to-svg" ? "Drop your raster image directly into the field to begin." : "Drop your SVG file or paste standard markup directly into the field.",
-      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+      title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Paste or Upload",
+      description: mode === "raster-to-svg" ? "Drop your raster image or paste from clipboard directly into the converter." : "Drop your SVG file or paste standard markup directly into the field.",
+      imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
     },
     {
       icon: IMAGES.exportIcon,
-      title: <>Choose Your<br />Size</>,
-      description: "Adjust width in pixels or simply scale it up for high-resolution output.",
+      title: mode === "raster-to-svg" ? "Tune Vector Settings" : "Choose Your Size",
+      description: mode === "raster-to-svg" ? "Adjust quality, color palette, and path smoothing for clean vector curves." : "Adjust width in pixels or simply scale it up for high-resolution output.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
     {
       icon: IMAGES.downloadImage,
       title: mode === "raster-to-svg" ? "Download SVG" : "Download PNG",
-      description: mode === "raster-to-svg" ? "Create crisp, perfectly scalable vectors ready for anywhere." : "Create sharp, transparent PNGs ready for anywhere.",
+      description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Create sharp, transparent PNGs ready for anywhere.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
   ];
