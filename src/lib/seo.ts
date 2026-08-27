@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/$/, "");
 
 export const DEFAULT_KEYWORDS = [
   "crush svg",
@@ -19,7 +19,6 @@ export const DEFAULT_KEYWORDS = [
   "svg optimizer",
   "svg rasterizer",
   "svg to png transparent",
-  "The Nevon",
 ];
 
 interface SEOProps {
@@ -153,9 +152,10 @@ export function getWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Crush SVG",
-    "alternateName": "Crush SVG Converter",
-    "url": "https://crushsvg.net/",
+    "@id": `${SITE_URL}/#website`,
+    "name": "CrushSVG",
+    "alternateName": "CrushSVG Converter",
+    "url": SITE_URL,
   };
 }
 
