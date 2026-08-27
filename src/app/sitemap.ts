@@ -1,7 +1,17 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
+import { getAllPosts } from "@/lib/blog";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const posts = getAllPosts();
+  
+  const blogUrls: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.date).toISOString().split('T')[0],
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
   return [
     {
       url: `${SITE_URL}`,
@@ -15,6 +25,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: new Date().toISOString().split('T')[0],
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    ...blogUrls,
     {
       url: `${SITE_URL}/png-to-svg`,
       lastModified: "2026-08-27",
@@ -77,3 +94,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
+
