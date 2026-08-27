@@ -31,13 +31,13 @@ export default function PngToSvg() {
     <div className="w-full flex flex-col items-center">
       <Hero 
         title={<>From <span className="text-brand-primary">PNG to SVG,</span> Exactly<br className="hidden md:inline" /> as Intended</>} 
-        subtitle="Turn your raster images into perfectly scalable SVG vectors instantly." 
+        subtitle="Upload a PNG or JPG file, or drag and drop it. Generate perfectly scalable SVG vectors in seconds for logos, illustrations, websites, and more." 
       />
       <ConverterUI mode="raster-to-svg" />
       <Features mode="raster-to-svg" />
       <SignUpCTA />
       <StepsSection mode="raster-to-svg" />
-      <TargetAudience />
+      <TargetAudience mode="raster-to-svg" />
       <FAQ mode="raster-to-svg" />
     </div>
   );

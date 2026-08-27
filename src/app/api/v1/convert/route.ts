@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         guestId: usage.kind === 'guest' ? guestId : undefined,
         inputFormat: 'svg',
         outputFormat: 'png',
+        originalSize: result.buffer.length,
         success: true,
       })
     } catch (error) {

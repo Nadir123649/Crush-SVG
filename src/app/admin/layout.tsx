@@ -25,37 +25,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo(0, 0);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (status === "authed" && user?.role !== "admin") {
-      // Non-admins trying to access admin dashboard
       router.push("/");
     }
   }, [status, user, router]);
 
-  if (status === "loading") {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#FFFCFA]">
-        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (status === "guest") {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-[#FFFCFA] p-4">
-        <AuthCard type="login" returnTo={pathname} />
-      </div>
-    );
-  }
-
-  if (status === "authed" && user?.role !== "admin") {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#FFFCFA]">
-        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const isLoading = status === "loading";
+  const isGuest = status === "guest";
+  const isNonAdmin = status === "authed" && user?.role !== "admin";
+  const showOverlay = isLoading || isGuest || isNonAdmin;
 
   const navLinks = [
     { href: "/admin", label: "Overview", icon: SvgDashboard },
@@ -67,7 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     try {
-      // Use the proper client-side Auth context logout to clear all storage and cookies
       await logout();
       router.push('/login');
     } catch (e) {
@@ -77,6 +63,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCFA] font-body text-text-body antialiased flex overflow-hidden">
+      {/* Auth overlay — always rendered, same outer div */}
+      {showOverlay && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FFFCFA]">
+          {isLoading && (
+            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+          )}
+          {isGuest && (
+            <AuthCard type="login" returnTo={pathname} />
+          )}
+          {isNonAdmin && (
+            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+          )}
+        </div>
+      )}
+
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -84,6 +85,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
+
+      {/* Desktop sidebar edge toggle */}
+      <div
+        className="hidden md:flex fixed inset-y-0 left-0 z-[55] w-[5px] cursor-col-resize hover:bg-brand-primary/10 transition-colors items-center justify-center group"
+        onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+      >
+        <div className="w-[3px] h-8 rounded-full bg-gray-300 group-hover:bg-brand-primary transition-colors" />
+      </div>
 
       {/* NavigationDrawer (SideNav) */}
       <nav className={`
@@ -175,21 +184,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Admin {"/"} {navLinks.find(l => l.href === pathname)?.label || "Overview"}
             </h1>
           </div>
-
-          <div className="flex items-center space-x-4">
-            <button className="p-2 rounded-full hover:bg-gray-50 text-text-muted transition-colors relative">
-              <SvgBell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-brand-primary rounded-full"></span>
-            </button>
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-[#F2EDE8] cursor-pointer">
-              <SvgUser className="w-4 h-4 text-text-muted" />
-            </div>
-          </div>
         </header>
 
         {/* Canvas */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6 lg:p-10 mx-auto max-w-7xl">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          <div className="p-6 lg:p-10 mx-auto max-w-full">
             {children}
           </div>
         </div>

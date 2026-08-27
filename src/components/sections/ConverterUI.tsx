@@ -6,7 +6,13 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { convertText, isValidSvgContent, svgToDataUrl, type ConvertRequest, type ConvertResponse } from "@/lib/client/converter";
+import {
+  convertText,
+  isValidSvgContent,
+  svgToDataUrl,
+  type ConvertRequest,
+  type ConvertResponse,
+} from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
@@ -14,6 +20,7 @@ import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
+import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -47,8 +54,15 @@ const formatDimensionLabel = (val: string, currentUnit: string) => {
 };
 
 export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+  if (mode === "raster-to-svg") {
+    return <RasterToSvgConverter />;
+  }
+  return <SvgToPngConverter />;
+}
+
+function SvgToPngConverter() {
   const { status, sessionVersion } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | "rasterQuality" | "rasterColors" | "rasterBackground" | "rasterPathOpt" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("Original");
   const [selectedHeight, setSelectedHeight] = useState("Auto");
   const [selectedScale, setSelectedScale] = useState("2x");
@@ -57,11 +71,6 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
   const [transparent, setTransparent] = useState(false);
-  const [rasterQuality, setRasterQuality] = useState("Medium");
-  const [rasterColors, setRasterColors] = useState("Auto");
-  const [rasterBackground, setRasterBackground] = useState("Preserve");
-  const [rasterBgColor, setRasterBgColor] = useState("#ffffff");
-  const [rasterPathOpt, setRasterPathOpt] = useState("Balanced");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,10 +82,17 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [previewError, setPreviewError] = useState(false);
 
-  const [rasterFile, setRasterFile] = useState<File | null>(null);
-  const [rasterDataUrl, setRasterDataUrl] = useState<string | null>(null);
-  const storageKey = mode === "raster-to-svg" ? "crush_vectorizer_state" : CONVERTER_STORAGE_KEY;
+  const widthRef = useRef<HTMLDivElement>(null);
+  const heightRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef<HTMLDivElement>(null);
+  const unitRef = useRef<HTMLDivElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const storageRestoredRef = useRef(false);
+  const [storageRestored, setStorageRestored] = useState(false);
+  const prevStatusRef = useRef<AuthStatus | null>(null);
 
   useEffect(() => {
     if (converting) {
@@ -86,26 +102,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     queueMicrotask(() => setProgress(0));
   }, [converting]);
 
-  const [previewError, setPreviewError] = useState(false);
-  const widthRef = useRef<HTMLDivElement>(null);
-  const heightRef = useRef<HTMLDivElement>(null);
-  const scaleRef = useRef<HTMLDivElement>(null);
-  const unitRef = useRef<HTMLDivElement>(null);
-  const rasterQualityRef = useRef<HTMLDivElement>(null);
-  const rasterColorsRef = useRef<HTMLDivElement>(null);
-  const rasterBackgroundRef = useRef<HTMLDivElement>(null);
-  const rasterPathOptRef = useRef<HTMLDivElement>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const storageRestoredRef = useRef(false);
-  const [storageRestored, setStorageRestored] = useState(false);
-  const prevStatusRef = useRef<AuthStatus | null>(null);
-
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
-    // The previous user signed out (or their session ended): wipe the editor
-    // so no private SVG lingers on screen or in memory for the next user.
     if (prev === "authed" && status !== "authed") {
       setSvgCode(SAMPLE_SVG);
       setResult(null);
@@ -114,62 +113,34 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
       setUsage(null);
       setUsageFailed(false);
       setShowSignupPrompt(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("crush_converter_state");
+        sessionStorage.removeItem("crush_vectorizer_state");
+      }
     }
   }, [status]);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
-
   const aspectLabel = dims.width && dims.height ? ` (aspect ratio ${(dims.width / dims.height).toFixed(3)})` : "";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
-
-      // Close dropdown if clicking on any label
-      if (target.tagName?.toLowerCase() === 'label') {
+      if (target.tagName?.toLowerCase() === "label") {
         setOpenDropdown(null);
         return;
       }
-
-      if (openDropdown === "width" && widthRef.current) {
-        if (!widthRef.current.contains(target) || target === widthRef.current) {
-          setOpenDropdown(null);
-        }
+      if (openDropdown === "width" && widthRef.current && !widthRef.current.contains(target)) {
+        setOpenDropdown(null);
       }
-      if (openDropdown === "height" && heightRef.current) {
-        if (!heightRef.current.contains(target) || target === heightRef.current) {
-          setOpenDropdown(null);
-        }
+      if (openDropdown === "height" && heightRef.current && !heightRef.current.contains(target)) {
+        setOpenDropdown(null);
       }
-      if (openDropdown === "scale" && scaleRef.current) {
-        if (!scaleRef.current.contains(target) || target === scaleRef.current) {
-          setOpenDropdown(null);
-        }
+      if (openDropdown === "scale" && scaleRef.current && !scaleRef.current.contains(target)) {
+        setOpenDropdown(null);
       }
-      if (openDropdown === "unit" && unitRef.current) {
-        if (!unitRef.current.contains(target) || target === unitRef.current) {
-          setOpenDropdown(null);
-        }
-      }
-      if (openDropdown === "rasterQuality" && rasterQualityRef.current) {
-        if (!rasterQualityRef.current.contains(target) || target === rasterQualityRef.current) {
-          setOpenDropdown(null);
-        }
-      }
-      if (openDropdown === "rasterColors" && rasterColorsRef.current) {
-        if (!rasterColorsRef.current.contains(target) || target === rasterColorsRef.current) {
-          setOpenDropdown(null);
-        }
-      }
-      if (openDropdown === "rasterBackground" && rasterBackgroundRef.current) {
-        if (!rasterBackgroundRef.current.contains(target) || target === rasterBackgroundRef.current) {
-          setOpenDropdown(null);
-        }
-      }
-      if (openDropdown === "rasterPathOpt" && rasterPathOptRef.current) {
-        if (!rasterPathOptRef.current.contains(target) || target === rasterPathOptRef.current) {
-          setOpenDropdown(null);
-        }
+      if (openDropdown === "unit" && unitRef.current && !unitRef.current.contains(target)) {
+        setOpenDropdown(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -177,63 +148,39 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }, [openDropdown]);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    // When authed, wait until the access token is actually attached: a
-    // restored session (page refresh) sets status to 'authed' before
-    // refreshSession resolves, and fetching in that gap would make the server
-    // fall back to the guest quota and flash the wrong "3 of 3" counter.
-    if (status === 'authed' && !getAccessToken()) return;
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
     let cancelled = false;
     getUsage()
       .then((u) => {
-        if (!cancelled) {
-          setUsage(u);
-        }
+        if (!cancelled) setUsage(u);
       })
       .catch(() => {
-        // Guest usage unavailable — the server still enforces the limit, so
-        // the converter must not get stuck waiting on this request.
         if (!cancelled) {
           setUsage(null);
           setUsageFailed(true);
         }
-      })
-    return () => { cancelled = true }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [status, sessionVersion]);
 
   useEffect(() => {
-    // Restore the saved SVG + conversion result after hydration. sessionStorage
-    // keeps the work across a refresh of the same tab but is cleared when the
-    // tab (or browser) is closed — an uploaded SVG never lingers for the next
-    // visit. Reading storage during render (useState initializers) would make
-    // the client's first render differ from the server's. Deferred to a
-    // microtask so it runs before the next paint without violating the "no
-    // synchronous setState in effects" rule.
     queueMicrotask(() => {
       try {
-        const raw = sessionStorage.getItem(storageKey);
+        const raw = sessionStorage.getItem(CONVERTER_STORAGE_KEY);
         if (!raw) return;
         const saved = JSON.parse(raw);
-        if (mode === "raster-to-svg") {
-          const r = saved as { rasterDataUrl?: unknown; result?: unknown };
-          if (typeof r.rasterDataUrl === "string") {
-            setRasterDataUrl(r.rasterDataUrl);
-          }
-          const savedResult = r.result as ConvertResponse | undefined;
-          if (savedResult && typeof savedResult.data === "string") {
-            setResult(savedResult);
-          }
-        } else {
-          const savedSvg = saved as { svgCode?: unknown; result?: unknown };
-          if (typeof savedSvg.svgCode === "string" && savedSvg.svgCode.trim() !== "") {
-            setSvgCode(savedSvg.svgCode);
-          }
-          const savedResult = savedSvg.result as ConvertResponse | undefined;
-          if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
-            setResult(savedResult);
-          }
+        const savedSvg = saved as { svgCode?: unknown; result?: unknown };
+        if (typeof savedSvg.svgCode === "string" && savedSvg.svgCode.trim() !== "") {
+          setSvgCode(savedSvg.svgCode);
         }
-      } catch { }
+        const savedResult = savedSvg.result as ConvertResponse | undefined;
+        if (savedResult && typeof savedResult.data === "string" && typeof savedResult.format === "string") {
+          setResult(savedResult);
+        }
+      } catch {}
       finally {
         storageRestoredRef.current = true;
         setStorageRestored(true);
@@ -242,18 +189,13 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }, []);
 
   useEffect(() => {
-    // Never save before the first restore: the save effect runs on mount with
-    // the default sample SVG and would otherwise overwrite the persisted
-    // state before the restore microtask gets to read it.
     if (!storageRestoredRef.current) return;
     try {
-      // Large PNGs (base64) can exceed storage quota — drop the result
-      // from persistence when it's too big so the SVG itself still survives.
       const persistableResult =
         result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
-      sessionStorage.setItem(storageKey, JSON.stringify(mode === "raster-to-svg" ? { rasterDataUrl, result: persistableResult } : { svgCode, result: persistableResult }));
-    } catch { }
-  }, [svgCode, rasterDataUrl, result, mode, storageKey]);
+      sessionStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
+    } catch {}
+  }, [svgCode, result]);
 
   const previewSvgUrl = useMemo(() => {
     if (!svgCode || svgCode.trim() === "") return "";
@@ -261,13 +203,8 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }, [svgCode]);
 
   const isValidSvg = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
-
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
-
-  // The sample/dummy code is a demo placeholder only — converting or
-  // downloading it is blocked.
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
-
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
   function handleSvgChange(value: string) {
@@ -278,9 +215,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }
 
   function resetConversion() {
-    if (result) {
-      setResult(null);
-    }
+    if (result) setResult(null);
   }
 
   function resetDropdowns() {
@@ -295,20 +230,14 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }
 
   function handleClearSvg() {
-    if (mode === "raster-to-svg") {
-      setRasterFile(null);
-      setRasterDataUrl(null);
-      setSvgCode(DUMMY_CODE);
-    } else {
-      setSvgCode(SAMPLE_SVG);
-    }
+    setSvgCode(SAMPLE_SVG);
     setResult(null);
     setError(null);
     setPreviewError(false);
     resetDropdowns();
     try {
-      sessionStorage.removeItem(storageKey);
-    } catch { }
+      sessionStorage.removeItem(CONVERTER_STORAGE_KEY);
+    } catch {}
   }
 
   useEffect(() => {
@@ -359,43 +288,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     }
   }
 
-  async function handleCopyImage() {
-    if (!result || !result.data) return;
-    try {
-      const response = await fetch(result.data);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob })
-      ]);
-      showToast("success", "Image copied to clipboard");
-    } catch {
-      showToast("error", "Couldn't copy the image. Please try downloading it instead.");
-    }
-  }
-
   async function handleFile(file: File | undefined | null) {
-    if (!file) return;
     setError(null);
+    if (!file) return;
     resetDropdowns();
-    if (mode === "raster-to-svg") {
-      if (!file.type.includes("image/png") && !file.type.includes("image/jpeg") && !file.name.toLowerCase().endsWith(".png") && !file.name.toLowerCase().endsWith(".jpg") && !file.name.toLowerCase().endsWith(".jpeg")) {
-        setError("Please choose a PNG or JPG image.");
-        return;
-      }
-      if (Number(file.size) > 10 * 1024 * 1024) {
-        setError("Image too large. Maximum size is 10MB.");
-        return;
-      }
-      setRasterFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setRasterDataUrl(e.target?.result as string);
-        setSvgCode(DUMMY_CODE);
-        setResult(null);
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
 
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
       setError("Please choose an SVG file (.svg).");
@@ -416,73 +312,11 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
+    setError(null);
     void handleFile(e.dataTransfer.files?.[0]);
   }
 
   async function handleConvert() {
-    if (mode === "raster-to-svg") {
-      if (!rasterFile && !rasterDataUrl) {
-        showToast("error", "No image selected. Upload a PNG or JPG to convert.");
-        return;
-      }
-      setError(null);
-      setConverting(true);
-      try {
-        const formData = new FormData();
-        if (rasterFile) {
-            formData.append('file', rasterFile);
-        } else {
-            const res = await fetch(rasterDataUrl!);
-            const blob = await res.blob();
-            formData.append('file', blob, 'restored-image.png');
-        }
-        
-        formData.append('quality', rasterQuality);
-        formData.append('colors', rasterColors);
-        formData.append('background', rasterBackground);
-        formData.append('bgColor', rasterBgColor);
-        formData.append('pathOpt', rasterPathOpt);
-        
-        const token = getAccessToken();
-        const res = await fetch('/api/v1/vectorize', {
-          method: 'POST',
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-          body: formData
-        });
-        
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new ApiError(res.status, errData.code || "unknown_error", errData.message || "Vectorization failed");
-        }
-        
-        const data = await res.json();
-        setResult({ data: data.payload.svg, format: "svg", mimeType: "image/svg+xml", size: data.payload.svg.length, width: 0, height: 0, conversionsUsed: data.payload.conversionsUsed, remaining: data.payload.remaining, warnings: [] });
-        setSvgCode(data.payload.svg);
-        showToast("success", "Vectorization successful! Ready to download.");
-        trackConversion("raster_vectorized", { output_format: "svg" });
-        
-        if (data.payload.remaining !== undefined) {
-          const reached = data.payload.remaining === 0;
-          setUsage({
-            conversionsUsed: data.payload.conversionsUsed,
-            remaining: data.payload.remaining,
-            isUnlimited: false,
-            limitReached: reached,
-          });
-          window.dispatchEvent(new CustomEvent("crushUsageUpdated", { detail: { conversionsUsed: data.payload.conversionsUsed, remaining: data.payload.remaining } }));
-        }
-      } catch (err) {
-        if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
-          setShowSignupPrompt(true);
-          return;
-        }
-        showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
-      } finally {
-        setConverting(false);
-      }
-      return;
-    }
-
     if (isPlaceholderCode || svgCode.trim() === "") {
       showToast("error", "Paste your SVG code or upload a file to get started.");
       return;
@@ -496,9 +330,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         setError(`Invalid width value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm") {
-        wNum = wNum * PX_PER_CM;
-      }
+      if (unit === "cm") wNum = wNum * PX_PER_CM;
       options.width = Math.round(wNum);
       if (options.width < 1 || options.width > MAX_CUSTOM_PX) {
         setError(`Width must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
@@ -512,9 +344,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         setError(`Invalid height value. Enter a number like 480 or 12.7.`);
         return;
       }
-      if (unit === "cm") {
-        hNum = hNum * PX_PER_CM;
-      }
+      if (unit === "cm") hNum = hNum * PX_PER_CM;
       options.height = Math.round(hNum);
       if (options.height < 1 || options.height > MAX_CUSTOM_PX) {
         setError(`Height must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
@@ -533,7 +363,6 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     setConverting(true);
     try {
       const res = await convertText(svgCode, options);
-
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", `Conversion complete. Your ${outputExt} is ready to download.`);
@@ -551,7 +380,11 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
           isUnlimited: false,
           limitReached: reached,
         });
-        window.dispatchEvent(new CustomEvent("crushUsageUpdated", { detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining } }));
+        window.dispatchEvent(
+          new CustomEvent("crushUsageUpdated", {
+            detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining },
+          })
+        );
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
@@ -570,25 +403,14 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
   function handleDownload() {
     if (!result?.data) return;
-    let downloadUrl: string;
-    let ext: string;
-    if (result.format === "svg") {
-      const blob = new Blob([result.data], { type: "image/svg+xml;charset=utf-8" });
-      downloadUrl = URL.createObjectURL(blob);
-      ext = "svg";
-    } else {
-      downloadUrl = `data:${result.mimeType};base64,${result.data}`;
-      ext = result.format === "jpeg" ? "jpg" : result.format;
-    }
+    const downloadUrl = `data:${result.mimeType};base64,${result.data}`;
+    const ext = result.format === "jpeg" ? "jpg" : result.format;
     const a = document.createElement("a");
     a.href = downloadUrl;
     a.download = `crushsvg-${Date.now()}.${ext}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    if (result.format === "svg") {
-      URL.revokeObjectURL(downloadUrl);
-    }
     showToast("success", "Your download has started");
     trackConversion("png_downloaded", { output_format: ext });
     if (limitReached && status !== "authed") {
@@ -600,541 +422,618 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   const cmPresets = ["5", "10", "15", "20", "30", "50", "75", "100"];
   const widthOptions = ["Original", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
   const heightOptions = ["Auto", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
-  // Scale only applies when the SVG is converted at its intrinsic size — the
-  // server ignores it once a width or height is set.
   const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
-
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
-  const isCheckingUsage = status === 'loading' || (status === 'guest' && usage === null && !usageFailed);
 
   return (
     <>
-      <section id="converter" className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]">
+      <section
+        id="converter"
+        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+      >
         {/* Outer Dashed Border Box */}
-        <div className={`w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[650px]" : "lg:min-h-[500px]"}`}>
-
+        <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
           {/* Inner Dashed Border Box */}
-          <div className={`w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[626px]" : "lg:min-h-[476px]"}`}>
-            
+          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
             {/* Top row with columns */}
             <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
-
-            {/* Left Column (SVG Code) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                  {mode === "raster-to-svg" ? "Raster Image" : "SVG Code"}
-                </h2>
-                <div className="flex items-center gap-[10px]">
-                  {mode === "svg-to-png" && svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
+              {/* Left Column (SVG Code) */}
+              <div className="w-full lg:w-[537px] flex flex-col">
+                <div className="flex items-center justify-between mb-[12px] h-[36px]">
+                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">SVG Code</h2>
+                  <div className="flex items-center gap-[10px]">
+                    {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
+                      <button
+                        type="button"
+                        onClick={handleFormatSvg}
+                        disabled={converting}
+                        aria-label="Format SVG code"
+                        className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${
+                          converting
+                            ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none"
+                            : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary"
+                        }`}
+                        title="Format SVG Code"
+                      >
+                        Format Code
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={handleFormatSvg}
+                      onClick={handleClearSvg}
                       disabled={converting}
-                      aria-label="Format SVG code"
-                      className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${converting ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none" : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary"}`}
-                      title="Format SVG Code"
+                      aria-label="Clear SVG editor"
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
+                        svgCode !== SAMPLE_SVG
+                          ? converting
+                            ? "opacity-50 cursor-not-allowed pointer-events-none"
+                            : "opacity-100"
+                          : "opacity-0 pointer-events-none"
+                      }`}
                     >
-                      Format Code
+                      <div
+                        className="absolute inset-0 z-0 pointer-events-none"
+                        style={{
+                          border: "1px solid transparent",
+                          background:
+                            "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+                          borderRadius: "inherit",
+                        }}
+                      />
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                        Clear
+                      </span>
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleClearSvg}
-                    disabled={converting}
-                    aria-label="Clear SVG editor"
-                    className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${(mode === "svg-to-png" ? svgCode !== SAMPLE_SVG : !!rasterDataUrl) ? (converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100") : "opacity-0 pointer-events-none"}`}
-                  >
-                    <div
-                      className="absolute inset-0 z-0 pointer-events-none"
-                      style={{
-                        border: "1px solid transparent",
-                        background: "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
-                        borderRadius: "inherit"
-                      }}
-                    />
-                    <div
-                      className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]"
-                    />
-                    <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
-                      Clear
-                    </span>
-                  </button>
-                  {usage && (
-                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {usage.isUnlimited
-                        ? "Unlimited conversions"
-                        : `${usage.conversionsUsed} of ${usage.conversionsUsed + usage.remaining} free conversions used`}
-                    </span>
-                  )}
+                    {usage && (
+                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                        {usage.isUnlimited
+                          ? "Unlimited conversions"
+                          : `${usage.conversionsUsed} of ${
+                              usage.conversionsUsed + usage.remaining
+                            } free conversions used`}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {mode === "svg-to-png" ? (
-                <>
-                  {/* SVG Code Box */}
-                  <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
-                    <textarea
-                      id="svg-code-textarea"
-                      value={svgCode === SAMPLE_SVG ? "" : svgCode}
-                      placeholder={DUMMY_CODE}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          handleSvgChange(SAMPLE_SVG);
-                        } else {
-                          handleSvgChange(val);
-                        }
-                      }}
-                      spellCheck={false}
-                      aria-label="SVG code editor"
-                      className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
-                    />
-                    {/* Fake bottom padding overlay to fix WebKit textarea bug without shrinking scrollbar */}
-                    <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
-                  </div>
-
-                  <input
-                    ref={fileInputRef}
-                    id="svg-file-upload"
-                    type="file"
-                    aria-label="Upload SVG file"
-                    accept=".svg,image/svg+xml"
-                    className="absolute w-0 h-0 opacity-0 overflow-hidden"
-                    onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
+                {/* SVG Code Box */}
+                <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+                  <textarea
+                    id="svg-code-textarea"
+                    value={svgCode === SAMPLE_SVG ? "" : svgCode}
+                    placeholder={DUMMY_CODE}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        handleSvgChange(SAMPLE_SVG);
+                      } else {
+                        handleSvgChange(val);
+                      }
+                    }}
+                    spellCheck={false}
+                    aria-label="SVG code editor"
+                    className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
                   />
+                  <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+                </div>
 
-                  {/* Drag & Drop Upload Box */}
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={handleDrop}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Drag and drop or select an SVG file"
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                    className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"} mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
-                  >
-                    <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
-                    <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
-                      <span className="font-normal">Drag & Drop or </span>
-                      <span className="font-medium text-brand-primary">Select SVG</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    id="raster-file-upload"
-                    type="file"
-                    aria-label="Upload PNG/JPG file"
-                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-                    className="absolute w-0 h-0 opacity-0 overflow-hidden"
-                    onChange={(e) => { void handleFile(e.target.files?.[0]); e.target.value = "" }}
-                  />
-                  {/* Full Height Drag & Drop Box for Raster */}
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={handleDrop}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Drag and drop or select an image file"
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click() }}
-                    className={`w-full h-[200px] md:h-[302px] rounded-[16px] border ${dragOver ? "border-solid border-brand-primary bg-gray-50" : "border-dashed md:border-solid border-[#8F8F8F] bg-[#FFFFFF]"} flex flex-col items-center justify-center gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors relative overflow-hidden`}
-                  >
-                    <Image src={IMAGES.drag} alt="Drag Cloud" width={80} height={80} className="object-contain" />
-                    <div className="font-body text-[16px] md:text-[18px] text-text-dark text-center mt-2">
-                      <span className="font-normal">{rasterDataUrl ? "Image Selected - " : "Drag & Drop or "}</span>
-                      <span className="font-medium text-brand-primary">{rasterDataUrl ? "Replace Image" : "Select Image"}</span>
-                    </div>
-                    <p className="font-body text-[14px] text-[#94A3B8] text-center mt-1">
-                      PNG or JPG (Max 5MB)
-                    </p>
-                  </div>
-                </>
-              )} 
+                <input
+                  ref={fileInputRef}
+                  id="svg-file-upload"
+                  type="file"
+                  aria-label="Upload SVG file"
+                  accept=".svg,image/svg+xml"
+                  className="absolute w-0 h-0 opacity-0 overflow-hidden"
+                  onChange={(e) => {
+                    void handleFile(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
 
-              {/* Bottom Source Text */}
-              {mode === "svg-to-png" && (
-                <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px] ">
+                {/* Drag & Drop Upload Box */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Drag and drop or select an SVG file"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+                  }}
+                  className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${
+                    dragOver
+                      ? "border-solid border-brand-primary bg-gray-50"
+                      : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
+                  } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
+                >
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
+                  <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
+                    <span className="font-normal">Drag &amp; Drop or </span>
+                    <span className="font-medium text-brand-primary">Select SVG</span>
+                  </div>
+                </div>
+
+                {/* Bottom Source Text */}
+                <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px]">
                   {dims.width && dims.height
                     ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
                     : "Source size: unknown — set width/height or viewBox on your SVG"}
                 </p>
-              )}
 
-              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[24px]" : "mt-[6px] md:mt-[8px]"}`}>
-                <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
-                <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
-              </p>
-
-            </div>
-
-            {/* Right Column (Live Preview) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                  Live Preview
-                </h2>
+                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto mt-[6px] md:mt-[8px]">
+                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
+                  <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
+                </p>
               </div>
 
-              {/* Live Preview Box */}
-              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
-                {((storageRestored && previewUrl && !previewError) || (mode === "raster-to-svg" && (result?.data || rasterDataUrl))) ? (
-                  <img
-                    src={mode === "raster-to-svg" ? (result?.data ? `data:image/svg+xml;base64,${btoa(result.data)}` : rasterDataUrl || "") : previewUrl}
-                    alt={mode === "raster-to-svg" ? (result?.data ? "Vectorized SVG preview" : "Uploaded Image") : "SVG preview"}
-                    className="w-full h-full object-contain drop-shadow-md"
-                    onError={() => setPreviewError(true)}
-                  />
-                ) : storageRestored ? (
-                  <img
-                    src={IMAGES.uploadImage}
-                    alt="Upload placeholder"
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                  />
-                ) : null}
-              </div>
-
-              {/* Settings & Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px]">
-                <div className={`w-full transition-all duration-300 ${converting ? "hidden md:block pointer-events-none opacity-50" : ""}`}>
-                  {mode === "svg-to-png" && (
-                    <>
-                      {/* Dropdowns Row */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
-
-                  {/* Width Input */}
-                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
-                    <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Width</label>
-                    <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                      <div
-                        onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
-                        className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                      >
-                        {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Toggle width dropdown"
-                        onClick={() =>
-                          setOpenDropdown(openDropdown === "width" ? null : "width")
-                        }
-                        className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                      >
-                        <svg
-                          width="12"
-                          height="8"
-                          viewBox="0 0 12 8"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`transition-transform duration-200 ${openDropdown === "width" ? "rotate-180" : ""
-                            }`}
-                        >
-                          <path
-                            d="M1 1.5L6 6.5L11 1.5"
-                            stroke="#353A3E"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* Width Dropdown Menu */}
-                    {openDropdown === "width" && (
-                      <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                        <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {widthOptions.map((opt: string) => (
-                            <div
-                              key={opt}
-                              role="option"
-                              aria-selected={selectedWidth === opt}
-                              onClick={() => {
-                                if (opt === "Custom") {
-                                  setIsCustomWidth(true);
-                                  setSelectedWidth("");
-                                } else {
-                                  setIsCustomWidth(false);
-                                  setSelectedWidth(opt);
-                                }
-                                setOpenDropdown(null);
-                                resetConversion();
-                              }}
-                              className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                            >
-                              {formatDimensionLabel(opt, unit)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Height Input */}
-                  <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
-                    <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Height</label>
-                    <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                      <div
-                        onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
-                        className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                      >
-                        {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Toggle height dropdown"
-                        onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
-                        className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                      >
-                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "height" ? "rotate-180" : ""}`}>
-                          <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* Height Dropdown Menu */}
-                    {openDropdown === "height" && (
-                      <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                        <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                          {heightOptions.map((opt: string) => (
-                            <div
-                              key={opt}
-                              role="option"
-                              aria-selected={selectedHeight === opt}
-                              onClick={() => {
-                                if (opt === "Custom") {
-                                  setIsCustomHeight(true);
-                                  setSelectedHeight("");
-                                } else {
-                                  setIsCustomHeight(false);
-                                  setSelectedHeight(opt);
-                                }
-                                setOpenDropdown(null);
-                                resetConversion();
-                              }}
-                              className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                            >
-                              {formatDimensionLabel(opt, unit)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Unit Dropdown Input */}
-                  {isScaleDisabled ? (
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
-                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Unit</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <div
-                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
-                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                        >
-                          {unit}
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Toggle unit dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "unit" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Unit Dropdown Menu */}
-                      {openDropdown === "unit" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
-                            {["px", "cm"].map((opt: any) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={unit === opt}
-                                onClick={() => {
-                                  setUnit(opt);
-                                  setSelectedWidth("Original");
-                                  setSelectedHeight("Auto");
-                                  setIsCustomWidth(false);
-                                  setIsCustomHeight(false);
-                                  setOpenDropdown(null);
-                                  resetConversion();
-                                }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
-                      <label htmlFor="scale-multiplier-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Scale</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <input
-                          id="scale-multiplier-input"
-                          type="text"
-                          value={selectedScale}
-                          onChange={(e) => { setSelectedScale(e.target.value); resetConversion(); }}
-                          onFocus={() => setOpenDropdown("scale")}
-                          readOnly={!isCustomScale}
-                          aria-label="Scale multiplier factor"
-                          placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
-                          className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${!isCustomScale ? "cursor-default" : ""}`}
-                        />
-                        <button
-                          type="button"
-                          aria-label="Toggle scale dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "scale" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Scale Dropdown Menu */}
-                      {openDropdown === "scale" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                            {SCALE_OPTIONS.map((opt: string) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={selectedScale === opt}
-                                onClick={() => {
-                                  if (opt === "Custom") {
-                                    setIsCustomScale(true);
-                                    setSelectedScale("");
-                                  } else {
-                                    setIsCustomScale(false);
-                                    setSelectedScale(opt);
-                                  }
-                                  setOpenDropdown(null);
-                                  resetConversion();
-                                }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+              {/* Right Column (Live Preview) */}
+              <div className="w-full lg:w-[537px] flex flex-col">
+                <div className="flex items-center justify-between mb-[12px] h-[36px]">
+                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">Live Preview</h2>
                 </div>
 
-                {/* Custom Edit Row */}
-                {(isCustomWidth || isCustomHeight) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                      <label htmlFor="custom-width-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Width</label>
-                      <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                        <input
-                          id="custom-width-input"
-                          type="text"
-                          value={isCustomWidth ? selectedWidth : (selectedWidth === "Original" ? "" : selectedWidth.replace(/[^0-9.]/g, ''))}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (/^[0-9.]*$/.test(val)) {
-                              setSelectedWidth(val);
-                              setIsCustomWidth(true);
-                            }
-                            resetConversion();
-                          }}
-                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                          aria-label="Custom width in pixels or centimeters"
-                          autoComplete="off"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
-                        />
-                        {selectedWidth !== "Original" && selectedWidth !== "" && (
-                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                            {unit}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                      <label htmlFor="custom-height-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Custom Height</label>
-                      <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                        <input
-                          id="custom-height-input"
-                          type="text"
-                          value={isCustomHeight ? selectedHeight : (selectedHeight === "Auto" ? "" : selectedHeight.replace(/[^0-9.]/g, ''))}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (/^[0-9.]*$/.test(val)) {
-                              setSelectedHeight(val);
-                              setIsCustomHeight(true);
-                            }
-                            resetConversion();
-                          }}
-                          placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                          aria-label="Custom height in pixels or centimeters"
-                          autoComplete="off"
-                          className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:[transition-delay:9999s]"
-                        />
-                        {selectedHeight !== "Auto" && selectedHeight !== "" && (
-                          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                            {unit}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Transparent Background Box */}
-                <label htmlFor="transparent-bg-toggle" className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors">
-                  <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
-                    Transparent Background
-                  </span>
-                  <input
-                    id="transparent-bg-toggle"
-                    type="checkbox"
-                    checked={transparent}
-                    aria-label="Enable transparent background for PNG output"
-                    onChange={(e) => { setTransparent(e.target.checked); resetConversion(); }}
-                    className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded border-[#8F8F8F] accent-brand-primary cursor-pointer"
-                  />
-                </label>
-                  </>
-                )}
-              </div>
-            </div>
-
-            
-              {error && (
-                <div role="alert" className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700">
-                  {error}
-                </div>
-              )}
-
-              {/* Action Buttons Row */}
-              {converting ? (
-                <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
-                  <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
-                    <div
-                      className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${progress === 0 ? "duration-0" : "duration-[15000ms]"}`}
-                      style={{ width: `${progress}%` }}
+                {/* Live Preview Box */}
+                <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
+                  {storageRestored && previewUrl && !previewError ? (
+                    <img
+                      src={previewUrl}
+                      alt="SVG preview"
+                      className="w-full h-full object-contain drop-shadow-md"
+                      onError={() => setPreviewError(true)}
                     />
+                  ) : storageRestored ? (
+                    <img
+                      src={IMAGES.uploadImage}
+                      alt="Upload placeholder"
+                      className="max-w-full max-h-full w-auto h-auto object-contain"
+                    />
+                  ) : null}
+                </div>
+
+                {/* Settings & Controls */}
+                <div className="w-full mt-[16px] md:mt-[20px]">
+                  <div
+                    className={`w-full transition-all duration-300 ${
+                      converting ? "hidden md:block pointer-events-none opacity-50" : ""
+                    }`}
+                  >
+                    {/* Dropdowns Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
+                      {/* Width Input */}
+                      <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
+                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                          Width
+                        </label>
+                        <div
+                          className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
+                            openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                        >
+                          <div
+                            onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
+                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                          >
+                            {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
+                          </div>
+                          <button
+                            type="button"
+                            aria-label="Toggle width dropdown"
+                            onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
+                            className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                          >
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className={`transition-transform duration-200 ${
+                                openDropdown === "width" ? "rotate-180" : ""
+                              }`}
+                            >
+                              <path
+                                d="M1 1.5L6 6.5L11 1.5"
+                                stroke="#353A3E"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {openDropdown === "width" && (
+                          <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                              {widthOptions.map((opt: string) => (
+                                <div
+                                  key={opt}
+                                  role="option"
+                                  aria-selected={selectedWidth === opt}
+                                  onClick={() => {
+                                    if (opt === "Custom") {
+                                      setIsCustomWidth(true);
+                                      setSelectedWidth("");
+                                    } else {
+                                      setIsCustomWidth(false);
+                                      setSelectedWidth(opt);
+                                    }
+                                    setOpenDropdown(null);
+                                    resetConversion();
+                                  }}
+                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                >
+                                  {formatDimensionLabel(opt, unit)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Height Input */}
+                      <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
+                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                          Height
+                        </label>
+                        <div
+                          className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
+                            openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                        >
+                          <div
+                            onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
+                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                          >
+                            {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
+                          </div>
+                          <button
+                            type="button"
+                            aria-label="Toggle height dropdown"
+                            onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
+                            className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                          >
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className={`transition-transform duration-200 ${
+                                openDropdown === "height" ? "rotate-180" : ""
+                              }`}
+                            >
+                              <path
+                                d="M1 1.5L6 6.5L11 1.5"
+                                stroke="#353A3E"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {openDropdown === "height" && (
+                          <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                              {heightOptions.map((opt: string) => (
+                                <div
+                                  key={opt}
+                                  role="option"
+                                  aria-selected={selectedHeight === opt}
+                                  onClick={() => {
+                                    if (opt === "Custom") {
+                                      setIsCustomHeight(true);
+                                      setSelectedHeight("");
+                                    } else {
+                                      setIsCustomHeight(false);
+                                      setSelectedHeight(opt);
+                                    }
+                                    setOpenDropdown(null);
+                                    resetConversion();
+                                  }}
+                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                >
+                                  {formatDimensionLabel(opt, unit)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Unit / Scale Dropdown */}
+                      {isScaleDisabled ? (
+                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
+                          <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                            Unit
+                          </label>
+                          <div
+                            className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
+                              openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          >
+                            <div
+                              onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                              className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+                            >
+                              {unit}
+                            </div>
+                            <button
+                              type="button"
+                              aria-label="Toggle unit dropdown"
+                              onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
+                              className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
+                            >
+                              <svg
+                                width="12"
+                                height="8"
+                                viewBox="0 0 12 8"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`transition-transform duration-200 ${
+                                  openDropdown === "unit" ? "rotate-180" : ""
+                                }`}
+                              >
+                                <path
+                                  d="M1 1.5L6 6.5L11 1.5"
+                                  stroke="#353A3E"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {openDropdown === "unit" && (
+                            <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                              <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                                {["px", "cm"].map((opt) => (
+                                  <div
+                                    key={opt}
+                                    role="option"
+                                    aria-selected={unit === opt}
+                                    onClick={() => {
+                                      setUnit(opt as "px" | "cm");
+                                      setSelectedWidth("Original");
+                                      setSelectedHeight("Auto");
+                                      setIsCustomWidth(false);
+                                      setIsCustomHeight(false);
+                                      setOpenDropdown(null);
+                                      resetConversion();
+                                    }}
+                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  >
+                                    {opt}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
+                          <label
+                            htmlFor="scale-multiplier-input"
+                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
+                          >
+                            Scale
+                          </label>
+                          <div
+                            className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
+                              openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          >
+                            <input
+                              id="scale-multiplier-input"
+                              type="text"
+                              value={selectedScale}
+                              onChange={(e) => {
+                                setSelectedScale(e.target.value);
+                                resetConversion();
+                              }}
+                              onFocus={() => setOpenDropdown("scale")}
+                              readOnly={!isCustomScale}
+                              aria-label="Scale multiplier factor"
+                              placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
+                              className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${
+                                !isCustomScale ? "cursor-default" : ""
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              aria-label="Toggle scale dropdown"
+                              onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
+                              className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
+                            >
+                              <svg
+                                width="12"
+                                height="8"
+                                viewBox="0 0 12 8"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`transition-transform duration-200 ${
+                                  openDropdown === "scale" ? "rotate-180" : ""
+                                }`}
+                              >
+                                <path
+                                  d="M1 1.5L6 6.5L11 1.5"
+                                  stroke="#353A3E"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {openDropdown === "scale" && (
+                            <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
+                              <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                                {SCALE_OPTIONS.map((opt: string) => (
+                                  <div
+                                    key={opt}
+                                    role="option"
+                                    aria-selected={selectedScale === opt}
+                                    onClick={() => {
+                                      if (opt === "Custom") {
+                                        setIsCustomScale(true);
+                                        setSelectedScale("");
+                                      } else {
+                                        setIsCustomScale(false);
+                                        setSelectedScale(opt);
+                                      }
+                                      setOpenDropdown(null);
+                                      resetConversion();
+                                    }}
+                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  >
+                                    {opt}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Custom Width / Height Inputs */}
+                    {(isCustomWidth || isCustomHeight) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
+                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
+                          <label
+                            htmlFor="custom-width-input"
+                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
+                          >
+                            Custom Width
+                          </label>
+                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
+                            <input
+                              id="custom-width-input"
+                              type="text"
+                              value={
+                                isCustomWidth
+                                  ? selectedWidth
+                                  : selectedWidth === "Original"
+                                  ? ""
+                                  : selectedWidth.replace(/[^0-9.]/g, "")
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^[0-9.]*$/.test(val)) {
+                                  setSelectedWidth(val);
+                                  setIsCustomWidth(true);
+                                }
+                                resetConversion();
+                              }}
+                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                              aria-label="Custom width in pixels or centimeters"
+                              autoComplete="off"
+                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                            />
+                            {selectedWidth !== "Original" && selectedWidth !== "" && (
+                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
+                                {unit}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
+                          <label
+                            htmlFor="custom-height-input"
+                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
+                          >
+                            Custom Height
+                          </label>
+                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
+                            <input
+                              id="custom-height-input"
+                              type="text"
+                              value={
+                                isCustomHeight
+                                  ? selectedHeight
+                                  : selectedHeight === "Auto"
+                                  ? ""
+                                  : selectedHeight.replace(/[^0-9.]/g, "")
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^[0-9.]*$/.test(val)) {
+                                  setSelectedHeight(val);
+                                  setIsCustomHeight(true);
+                                }
+                                resetConversion();
+                              }}
+                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                              aria-label="Custom height in pixels or centimeters"
+                              autoComplete="off"
+                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
+                            />
+                            {selectedHeight !== "Auto" && selectedHeight !== "" && (
+                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
+                                {unit}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transparent Background Box */}
+                    <label
+                      htmlFor="transparent-bg-toggle"
+                      className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
+                    >
+                      <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
+                        Transparent Background
+                      </span>
+                      <input
+                        id="transparent-bg-toggle"
+                        type="checkbox"
+                        checked={transparent}
+                        aria-label="Enable transparent background for PNG output"
+                        onChange={(e) => {
+                          setTransparent(e.target.checked);
+                          resetConversion();
+                        }}
+                        className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded border-[#8F8F8F] accent-brand-primary cursor-pointer"
+                      />
+                    </label>
                   </div>
                 </div>
-              ) : (
+
+                {error && (
+                  <div
+                    role="alert"
+                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
+                  >
+                    {error}
+                  </div>
+                )}
+
+                {/* Action Buttons Row */}
+                {converting ? (
+                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                    <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
+                      <div
+                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
+                          progress === 0 ? "duration-0" : "duration-[15000ms]"
+                        }`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
                     {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
@@ -1148,11 +1047,17 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                       <Button
                         className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
-                        disabled={converting || (mode === "svg-to-png" && isPlaceholderCode)}
+                        disabled={converting || isPlaceholderCode}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          {mode === "raster-to-svg" ? "Download SVG" : "Download PNG"}
-                          <Image src={IMAGES.exportIcon} alt="" width={16} height={16} className="brightness-0 invert" />
+                          Download PNG
+                          <Image
+                            src={IMAGES.exportIcon}
+                            alt=""
+                            width={16}
+                            height={16}
+                            className="brightness-0 invert"
+                          />
                         </span>
                       </Button>
                     ) : (
@@ -1163,18 +1068,29 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert
-                          <Image src={IMAGES.exportIcon} alt="" width={20} height={20} className="brightness-0 invert" />
+                          <Image
+                            src={IMAGES.exportIcon}
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="brightness-0 invert"
+                          />
                         </span>
                       </Button>
                     )}
 
                     {result && result.warnings && result.warnings.length > 0 && (
-                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[12px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm">
-                        {result.warnings.map((w) => <p key={w}>{w}</p>)}
+                      <div
+                        role="alert"
+                        className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[12px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm"
+                      >
+                        {result.warnings.map((w) => (
+                          <p key={w}>{w}</p>
+                        ))}
                       </div>
                     )}
 
-                    {result && result.size !== undefined && (
+                    {result && result.size !== undefined && (!isPlaceholderCode) && (
                       <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[12px] text-[#64748B] whitespace-nowrap">
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
@@ -1182,190 +1098,14 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     )}
                   </div>
                 )}
-
-
               </div>
             </div>
-          
-            {/* Raster Dropdowns moved below both columns */}
-            {mode === "raster-to-svg" && (
-              <div className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px] w-full">
-                    {/* Quality */}
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterQualityRef}>
-                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Quality</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterQuality" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <div
-                          onClick={() => setOpenDropdown(openDropdown === "rasterQuality" ? null : "rasterQuality")}
-                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                        >
-                          {rasterQuality}
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Toggle Quality dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "rasterQuality" ? null : "rasterQuality")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterQuality" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-                      {openDropdown === "rasterQuality" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
-                            {["Low", "Medium", "High"].map((opt) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={rasterQuality === opt}
-                                onClick={() => { setRasterQuality(opt); setOpenDropdown(null); resetConversion(); }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Colors */}
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterColorsRef}>
-                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Colors</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterColors" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <div
-                          onClick={() => setOpenDropdown(openDropdown === "rasterColors" ? null : "rasterColors")}
-                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                        >
-                          {rasterColors}
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Toggle Colors dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "rasterColors" ? null : "rasterColors")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterColors" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-                      {openDropdown === "rasterColors" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
-                            {["Auto", "Limited", "Full"].map((opt) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={rasterColors === opt}
-                                onClick={() => { setRasterColors(opt); setOpenDropdown(null); resetConversion(); }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Background */}
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterBackgroundRef}>
-                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Background</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterBackground" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <div
-                          onClick={() => setOpenDropdown(openDropdown === "rasterBackground" ? null : "rasterBackground")}
-                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center gap-[8px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                        >
-                          {rasterBackground === "Custom" && (
-                            <input 
-                              type="color" 
-                              value={rasterBgColor} 
-                              onChange={(e) => { setRasterBgColor(e.target.value); resetConversion(); }} 
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-[24px] h-[24px] p-0 border-none rounded cursor-pointer" 
-                            />
-                          )}
-                          {rasterBackground}
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Toggle Background dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "rasterBackground" ? null : "rasterBackground")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterBackground" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-                      {openDropdown === "rasterBackground" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
-                            {["Preserve", "Transparent", "Custom"].map((opt) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={rasterBackground === opt}
-                                onClick={() => { setRasterBackground(opt); setOpenDropdown(null); resetConversion(); }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Path Optimization */}
-                    <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterPathOptRef}>
-                      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">Path Optimization</label>
-                      <div className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${openDropdown === "rasterPathOpt" ? "border-[#D94A1E]" : "border-[#8F8F8F]"} flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}>
-                        <div
-                          onClick={() => setOpenDropdown(openDropdown === "rasterPathOpt" ? null : "rasterPathOpt")}
-                          className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                        >
-                          {rasterPathOpt}
-                        </div>
-                        <button
-                          type="button"
-                          aria-label="Toggle Path Optimization dropdown"
-                          onClick={() => setOpenDropdown(openDropdown === "rasterPathOpt" ? null : "rasterPathOpt")}
-                          className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
-                        >
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transition-transform duration-200 ${openDropdown === "rasterPathOpt" ? "rotate-180" : ""}`}>
-                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#353A3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-                      {openDropdown === "rasterPathOpt" && (
-                        <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                          <div role="listbox" className="w-full py-[8px] brand-scrollbar">
-                            {["Off", "Balanced", "Maximum"].map((opt) => (
-                              <div
-                                key={opt}
-                                role="option"
-                                aria-selected={rasterPathOpt === opt}
-                                onClick={() => { setRasterPathOpt(opt); setOpenDropdown(null); resetConversion(); }}
-                                className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-              </div>
-            )}
           </div>
         </div>
       </section>
-      {showSignupPrompt && status !== "authed" && <SignupPromptModal onClose={() => setShowSignupPrompt(false)} />}
+      {showSignupPrompt && status !== "authed" && (
+        <SignupPromptModal onClose={() => setShowSignupPrompt(false)} />
+      )}
     </>
   );
 }
