@@ -3,8 +3,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { IMAGES } from "@/lib/shared/images";
 
-export function TargetAudience() {
-  const cards = [
+export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+  const cards = mode === "raster-to-svg" ? [
+    {
+      icon: IMAGES.message,
+      title: "Web Developers",
+      description: "Convert raster logos and bitmap icons into lightweight, scalable SVG vectors for fast web performance.",
+      href: "/svg-guides",
+      linkText: "Read Vector Best Practices",
+    },
+    {
+      icon: IMAGES.marketing,
+      title: "Marketers",
+      description: "Turn raster badges and product illustrations into crisp vector assets that scale cleanly across all screens.",
+      href: "/svg-guides",
+      linkText: "Explore Guides",
+    },
+    {
+      icon: IMAGES.agencies,
+      title: "Agencies",
+      description: "Deliver high-quality vector assets for clients in seconds without needing heavy desktop design tools.",
+      href: "/png-to-svg#converter",
+      linkText: "Vectorize Assets Fast",
+    },
+    {
+      icon: IMAGES.designers,
+      title: "UI Designers",
+      description: "Transform bitmap sketches and icons into editable vector paths ready for Figma, Sketch, and Illustrator.",
+      href: "/svg-guides",
+      linkText: "Figma Vector Guide",
+    },
+  ] : [
     {
       icon: IMAGES.message,
       title: "Email Developers",

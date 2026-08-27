@@ -198,10 +198,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Vectorization failed:', error)
-    // Write error to a scratch file so I can read it!
-    try {
-      require('fs').writeFileSync('./scratch/vectorize-error.txt', String(error?.stack || error));
-    } catch(e){}
     
     await logConversion({
       userId: usage.userId,
