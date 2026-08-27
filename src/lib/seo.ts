@@ -95,7 +95,6 @@ export function constructMetadata({
         { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
         { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
         { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-        { url: "/CrushSVG-logo.svg", type: "image/svg+xml" },
         { url: "/icon.svg", type: "image/svg+xml" },
       ],
       apple: [
@@ -104,7 +103,7 @@ export function constructMetadata({
       other: [
         {
           rel: "mask-icon",
-          url: "/CrushSVG-logo.svg",
+          url: "/icon-512.png",
           color: "#D94A1E",
         },
       ],
@@ -168,16 +167,16 @@ export function getOrganizationSchema() {
     url: SITE_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${SITE_URL}/CrushSVG-logo.svg`,
+      url: `${SITE_URL}/icon-512.png`,
       width: 512,
       height: 512,
     },
-    image: `${SITE_URL}/CrushSVG-logo.svg`,
+    image: `${SITE_URL}/icon-512.png`,
     description: "Lightning-fast, precise SVG to PNG converter.",
     brand: {
       "@type": "Brand",
       name: "CrushSVG",
-      logo: `${SITE_URL}/CrushSVG-logo.svg`,
+      logo: `${SITE_URL}/icon-512.png`,
     },
     contactPoint: {
       "@type": "ContactPoint",
