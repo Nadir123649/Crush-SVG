@@ -34,7 +34,7 @@ export default function SvgGuidesPage() {
       name: "CrushSVG",
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/CrushSVG-logo.svg`,
+        url: `${SITE_URL}/icon-512.png`,
       },
     },
   };
