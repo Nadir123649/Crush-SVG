@@ -40,9 +40,25 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserDTO | null>(null)
+  const [user, setUser] = useState<UserDTO | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        if (storedUser) return JSON.parse(storedUser)
+      } catch {}
+    }
+    return null
+  })
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [status, setStatus] = useState<AuthStatus>('loading')
+  const [status, setStatus] = useState<AuthStatus>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem('crush_user')) return 'authed'
+        if (sessionStorage.getItem('crush_auth_status') === 'guest') return 'guest'
+      } catch {}
+    }
+    return 'loading'
+  })
   // Bumped whenever the access token is applied or cleared. Lets consumers
   // (e.g. usage fetching) react to the token actually being attached, which is
   // not guaranteed by `status` alone when a session is restored from storage.
@@ -54,7 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionId(payload.sessionId ?? null)
     setSessionRemember(payload.remember ?? null)
     setUser(payload.user)
-    setStatus('authed')
+    setStatus((prevStatus) => {
+      if (prevStatus === 'guest' && typeof window !== 'undefined') {
+        sessionStorage.removeItem('crush_converter_state')
+        sessionStorage.removeItem('crush_vectorizer_state')
+      }
+      return 'authed'
+    })
     setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
@@ -76,7 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('crush_usage')
       // A logged-out user must not carry the previous user's editor contents
       // to the next session.
-      localStorage.removeItem('crush_converter_state')
+      sessionStorage.removeItem('crush_converter_state')
+      sessionStorage.removeItem('crush_vectorizer_state')
       sessionStorage.setItem('crush_auth_status', 'guest')
     }
   }, [])
@@ -84,40 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false
 
-    // Restore the persisted session snapshot after hydration. Reading storage
-    // during render (useState initializers) would make the client's first
-    // render differ from the server's, causing hydration mismatches. Deferred
-    // to a microtask so it runs before the next paint without violating the
-    // "no synchronous setState in effects" rule.
-    queueMicrotask(() => {
-      if (cancelled) return
-      let restoredUser = false
-      try {
-        const storedUser = localStorage.getItem('crush_user')
-        if (storedUser) {
-          setUser(JSON.parse(storedUser))
-          restoredUser = true
-        }
-      } catch {}
-      if (restoredUser) {
-        // A stored user snapshot means we are authenticated. Adopt the authed
-        // state immediately so the authenticated UI stays stable during a
-        // refresh — a stale 'guest' marker must never flash the guest UI. The
-        // mount refresh (or the first real API call) attaches the access token.
-        setStatus('authed')
-      } else {
-        // No stored user snapshot: hold the loading state until the mount
-        // refresh settles. The persisted 'guest' marker is NOT authoritative —
-        // clearAuth can leave a still-valid session cookie behind (e.g. a
-        // rate-limited logout), so trusting the marker would flash the guest
-        // UI on refresh for a session that is actually valid. The mount
-        // refresh decides; on its failure, visitors without a stored user
-        // resolve to the guest state immediately.
-      }
-      // A restored user snapshot means the app is in an authed session even
-      // before the access token arrives — API calls may refresh on demand.
-      setSessionRestored(restoredUser)
-    })
+    // Initialize sessionRestored based on whether we already have a user synchronously.
+    const restoredUser = !!user
+    setSessionRestored(restoredUser)
 
     setAuthExpiredHandler(() => {
       if (!cancelled) clearAuth()

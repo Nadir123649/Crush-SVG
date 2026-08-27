@@ -335,8 +335,8 @@ export const EMAIL_VERIFICATION_HTML = `<!DOCTYPE html>
                                     <a href="https://crushsvg.net/" target="_blank"
                                         style="text-decoration: none;">
                                         <span
-                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #D94A1E;">Crush<span
-                                                style="color: #353A3E;">SVG</span></span>
+                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #353A3E;">Crush<span
+                                                style="color: #D94A1E;">SVG</span></span>
                                     </a>
                                 </td>
                             </tr>
@@ -349,8 +349,8 @@ export const EMAIL_VERIFICATION_HTML = `<!DOCTYPE html>
                             <tr>
                                 <td align="center"
                                     style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
-                                    <a href="https://crushsvg.net/privacy" target="_blank"
-                                        style="color: #D1C7BD; text-decoration: none;">Privacy</a> &bull;
+                                    <a href="https://crushsvg.net/privacy-policy" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Privacy Policy</a> &bull;
                                     <a href="https://crushsvg.net/terms" target="_blank"
                                         style="color: #D1C7BD; text-decoration: none;">Terms</a> &bull;
                                     <a href="https://crushsvg.net/support" target="_blank"
@@ -800,8 +800,8 @@ export const RESET_PASSWORD_HTML = `<!DOCTYPE html>
                                     <a href="https://crushsvg.net/" target="_blank"
                                         style="text-decoration: none;">
                                         <span
-                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #D94A1E;">Crush<span
-                                                style="color: #353A3E;">SVG</span></span>
+                                            style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #353A3E;">Crush<span
+                                                style="color: #D94A1E;">SVG</span></span>
                                     </a>
                                 </td>
                             </tr>
@@ -814,8 +814,8 @@ export const RESET_PASSWORD_HTML = `<!DOCTYPE html>
                             <tr>
                                 <td align="center"
                                     style="padding-top: 10px; font-family: 'Afacad', sans-serif; font-size: 12px; font-weight: 400; line-height: 100%; color: #D1C7BD;">
-                                    <a href="https://crushsvg.net/privacy" target="_blank"
-                                        style="color: #D1C7BD; text-decoration: none;">Privacy</a> &bull;
+                                    <a href="https://crushsvg.net/privacy-policy" target="_blank"
+                                        style="color: #D1C7BD; text-decoration: none;">Privacy Policy</a> &bull;
                                     <a href="https://crushsvg.net/terms" target="_blank"
                                         style="color: #D1C7BD; text-decoration: none;">Terms</a> &bull;
                                     <a href="https://crushsvg.net/support" target="_blank"

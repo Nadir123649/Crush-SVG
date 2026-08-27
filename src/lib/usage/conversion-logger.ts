@@ -6,6 +6,7 @@ export async function logConversion(params: {
     guestId?: string | null;
     inputFormat: string;
     outputFormat: string;
+    originalSize?: number | null;
     success: boolean;
     errorReason?: string | null;
 }) {
@@ -15,6 +16,7 @@ export async function logConversion(params: {
             guestId: params.guestId || null,
             inputFormat: params.inputFormat,
             outputFormat: params.outputFormat,
+            originalSize: params.originalSize ?? null,
             success: params.success,
             errorReason: params.errorReason || null,
         });

@@ -7,6 +7,7 @@ export interface ConversionLogDoc {
     guestId?: string | null;
     inputFormat: string;
     outputFormat: string;
+    originalSize?: number | null;
     success: boolean;
     errorReason?: string | null;
     createdAt: Date;
@@ -17,6 +18,7 @@ const conversionLogSchema = new Schema({
     guestId: { type: String, default: null, index: true },
     inputFormat: { type: String, required: true },
     outputFormat: { type: String, required: true },
+    originalSize: { type: Number, default: null },
     success: { type: Boolean, required: true, default: true },
     errorReason: { type: String, default: null },
     createdAt: { type: Date, default: Date.now, index: true },

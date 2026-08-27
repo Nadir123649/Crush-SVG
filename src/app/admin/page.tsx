@@ -23,14 +23,14 @@ export default async function AdminDashboard() {
     totalConversions,
     rasterConversions,
     recentAudits,
-    recentConversions,
+    rawRecentConversions,
     conversionsLast7Days
   ] = await Promise.all([
     User.countDocuments(),
     ConversionLog.countDocuments({ success: true }),
     ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
     AuditLog.find().sort({ createdAt: -1 }).limit(10),
-    ConversionLog.find().sort({ createdAt: -1 }).limit(5).populate('userId', 'email'),
+    ConversionLog.find().sort({ createdAt: -1 }).limit(5),
     ConversionLog.aggregate([
       { $match: { success: true, createdAt: { $gte: sevenDaysAgo } } },
       { $group: {
@@ -40,6 +40,20 @@ export default async function AdminDashboard() {
       { $sort: { _id: 1 } }
     ])
   ]);
+
+  const userIds = [...new Set(rawRecentConversions.map((c: any) => c.userId).filter(Boolean))];
+  const conversionUsers = userIds.length > 0
+    ? await User.find({ uid: { $in: userIds } }).select('uid email displayName photoURL').lean()
+    : [];
+  const userMap = new Map(conversionUsers.map((u: any) => [u.uid, u]));
+  const recentConversions = rawRecentConversions.map((c: any) => {
+    const obj = c.toObject ? c.toObject() : { ...c, _id: c._id?.toString() };
+    return {
+      ...obj,
+      _id: obj._id?.toString() || '',
+      userId: obj.userId ? userMap.get(obj.userId) || null : null,
+    };
+  });
 
   // Format chart data
   const chartData = [];
@@ -132,9 +146,6 @@ export default async function AdminDashboard() {
               <h2 className="font-heading font-bold text-2xl text-text-dark">Analytics Overview</h2>
               <p className="font-body text-[16px] text-text-muted mt-1">Last 7 days performance metrics</p>
             </div>
-            <div className="flex bg-[#FFFCFA] rounded-[12px] p-1 border border-[#F2EDE8]">
-              <button className="px-5 py-2 text-[14px] font-semibold rounded-[8px] bg-white text-text-dark shadow-sm border border-[#F2EDE8] transition-colors">Conversions</button>
-            </div>
           </div>
 
           <div className="flex-1 w-full min-h-[300px]">
@@ -163,7 +174,7 @@ export default async function AdminDashboard() {
                     {isUser ? <SvgUserPlus className="w-4 h-4" /> : isSettings ? <SvgSettings className="w-4 h-4" /> : <SvgActivity className="w-4 h-4" />}
                   </div>
                   <div>
-                    <p className="text-text-dark"><span className="font-bold">{audit.actorId}</span> {audit.action} {audit.resourceType}</p>
+                    <p className="text-text-dark"><span className="font-bold">{audit.adminId}</span> {audit.action} {audit.resourceType || ''}</p>
                     <span className="text-xs text-text-muted">{new Date(audit.createdAt).toLocaleString()}</span>
                   </div>
                 </div>

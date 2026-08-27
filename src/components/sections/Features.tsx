@@ -26,7 +26,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       {/* Badges Row */}
       <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[30px] md:mt-[62px] max-w-[361px] md:max-w-[1000px]">
         <Badge text="Free" />
-        <Badge text="Multiple export sizes" />
+        <Badge text={mode === "raster-to-svg" ? "Perfectly scalable vectors" : "Multiple export sizes"} />
         <Badge text="Transparent background" />
         {!user && <Badge text="3 free conversions, no login required" />}
       </div>

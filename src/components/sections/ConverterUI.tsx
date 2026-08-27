@@ -106,14 +106,20 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
     prevStatusRef.current = status;
     // The previous user signed out (or their session ended): wipe the editor
     // so no private SVG lingers on screen or in memory for the next user.
-    if (prev === "authed" && status !== "authed") {
+    if ((prev === "authed" && status !== "authed") || (prev === "guest" && status === "authed")) {
       setSvgCode(SAMPLE_SVG);
+      setRasterDataUrl(null);
+      setRasterFile(null);
       setResult(null);
       setError(null);
       setPreviewError(false);
       setUsage(null);
       setUsageFailed(false);
       setShowSignupPrompt(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("crush_converter_state");
+        sessionStorage.removeItem("crush_vectorizer_state");
+      }
     }
   }, [status]);
 
@@ -374,16 +380,16 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   }
 
   async function handleFile(file: File | undefined | null) {
-    if (!file) return;
     setError(null);
+    if (!file) return;
     resetDropdowns();
     if (mode === "raster-to-svg") {
       if (!file.type.includes("image/png") && !file.type.includes("image/jpeg") && !file.name.toLowerCase().endsWith(".png") && !file.name.toLowerCase().endsWith(".jpg") && !file.name.toLowerCase().endsWith(".jpeg")) {
         setError("Please choose a PNG or JPG image.");
         return;
       }
-      if (Number(file.size) > 10 * 1024 * 1024) {
-        setError("Image too large. Maximum size is 10MB.");
+      if (Number(file.size) > 5 * 1024 * 1024) {
+        setError("Your file is larger than 5 MB. Please upload a smaller image.");
         return;
       }
       setRasterFile(file);
@@ -416,6 +422,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
+    setError(null);
     void handleFile(e.dataTransfer.files?.[0]);
   }
 
@@ -614,7 +621,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
         <div className={`w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[650px]" : "lg:min-h-[500px]"}`}>
 
           {/* Inner Dashed Border Box */}
-          <div className={`w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[626px]" : "lg:min-h-[476px]"}`}>
+          <div className={`w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-start px-0 md:px-[40px] pt-[20px] md:pt-[32px] pb-[20px] transition-all duration-300 ${mode === "raster-to-svg" ? "lg:min-h-[626px]" : "lg:min-h-[476px]"}`}>
             
             {/* Top row with columns */}
             <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
@@ -706,7 +713,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
                   {/* Drag & Drop Upload Box */}
                   <div
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => { setError(null); fileInputRef.current?.click(); }}
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
@@ -736,7 +743,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                   />
                   {/* Full Height Drag & Drop Box for Raster */}
                   <div
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => { setError(null); fileInputRef.current?.click(); }}
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
@@ -767,7 +774,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                 </p>
               )}
 
-              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[24px]" : "mt-[6px] md:mt-[8px]"}`}>
+              <p className={`font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] ${mode === "raster-to-svg" ? "mt-[16px] md:mt-[18px]" : "lg:mt-auto mt-[6px] md:mt-[8px]"}`}>
                 <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
                 <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
               </p>
@@ -1135,7 +1142,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                   </div>
                 </div>
               ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
+                  <div className={`flex flex-col items-center justify-center relative ${mode === "svg-to-png" ? "gap-[12px] md:gap-[16px] mt-[16px]" : "mt-[4px]"}`}>
                     {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
@@ -1169,13 +1176,13 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
                     )}
 
                     {result && result.warnings && result.warnings.length > 0 && (
-                      <div role="alert" className="absolute top-full mt-[4px] rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[12px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm">
+                      <div role="alert" className={`${mode === "svg-to-png" ? "absolute top-full mt-[4px]" : "mt-[8px]"} rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] font-body text-[12px] leading-[14px] text-amber-800 w-[300px] z-10 shadow-sm`}>
                         {result.warnings.map((w) => <p key={w}>{w}</p>)}
                       </div>
                     )}
 
-                    {result && result.size !== undefined && (
-                      <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[12px] text-[#64748B] whitespace-nowrap">
+                    {result && result.size !== undefined && (!isPlaceholderCode) && (
+                      <p className={`${mode === "svg-to-png" ? "absolute top-full mt-[4px]" : "mt-[6px]"} text-center font-body font-normal text-[10px] md:text-[12px] text-[#64748B] whitespace-nowrap`}>
                         {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
                         {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
                       </p>
@@ -1189,7 +1196,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
           
             {/* Raster Dropdowns moved below both columns */}
             {mode === "raster-to-svg" && (
-              <div className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
+              <div className={`w-full mt-[12px] md:mt-[16px] transition-all duration-300 ${converting ? "hidden md:flex pointer-events-none opacity-50" : ""}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px] w-full">
                     {/* Quality */}
                     <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={rasterQualityRef}>
