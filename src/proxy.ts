@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRequestId } from '@/lib/shared/logger'
 
 const API_SUBDOMAINS = ['api.crushsvg.net', 'staging.api.crushsvg.net']
-const CORS_ORIGINS = ['https://crushsvg.net', 'https://staging.crushsvg.net']
+const CORS_ORIGINS = ['https://crushsvg.net', 'https://www.crushsvg.net', 'https://staging.crushsvg.net']
 
 function isApiSubdomain(hostname: string | null): boolean {
   return !!hostname && API_SUBDOMAINS.includes(hostname)
