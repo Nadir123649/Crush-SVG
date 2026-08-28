@@ -8,6 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
 import { ApiError, getAccessToken } from "@/lib/client/http";
+import { apiBase } from "@/lib/client/api";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -591,7 +592,7 @@ export function RasterToSvgConverter() {
       formData.append("pathOpt", rasterPathOpt);
 
       const token = getAccessToken();
-      const res = await fetch("/api/v1/vectorize", {
+      const res = await fetch(apiBase("/api/v1/vectorize"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,

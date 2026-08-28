@@ -11,6 +11,7 @@ import {
   type AuthError,
 } from "firebase/auth";
 import type { UserDTO } from "@/lib/shared/shared-types";
+import { apiBase } from "@/lib/client/api";
 
 const PROVIDER_URL_MAP: Record<string, string> = {
   "google.com": "google",
@@ -105,7 +106,7 @@ export async function exchangeIdToken(rememberMe = true): Promise<SessionRespons
   const providerId = currentUser.providerData[0]?.providerId;
   const provider = providerId ? (PROVIDER_URL_MAP[providerId] ?? "password") : "password";
   const idToken = await currentUser.getIdToken();
-  const response = await fetch(`/api/v1/oauth/${provider}`, {
+  const response = await fetch(apiBase(`/api/v1/oauth/${provider}`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ firebaseToken: idToken, rememberMe }),
@@ -143,6 +144,6 @@ export async function resendVerificationEmail(): Promise<void> {
 }
 
 export async function signOut() {
-  await fetch("/api/v1/auth/logout", { method: "POST" });
+  await fetch(apiBase("/api/v1/auth/logout"), { method: "POST" });
   await firebaseSignOut(getFirebaseAuth());
 }
