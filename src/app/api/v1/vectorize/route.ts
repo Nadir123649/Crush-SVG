@@ -1,213 +1,146 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
-import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/usage/conversion-usage'
-import { logConversion } from '@/lib/usage/conversion-logger'
-import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
-import { successResponse, errorResponse } from '@/lib/http/api-response'
-import sharp from 'sharp'
-// @ts-ignore
-import ImageTracer from '@/lib/utils/imagetracer'
+import { NextRequest, NextResponse } from "next/server";
+import { successResponse, errorResponse } from "@/lib/http/api-response";
+import { logConversion } from "@/lib/usage/conversion-logger";
+import { checkRateLimit } from "@/lib/security/rate-limit";
+import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
+import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
+import { rasterOptionsSchema } from "@/lib/raster/validation";
+import { rasterToSvg, recommendQueue } from "@/lib/raster/raster-to-svg";
+import { rasterToSvgQueued, rasterQueueEnabled } from "@/lib/raster/raster-queue";
+import type { RasterOptions } from "@/lib/raster/types";
 
-export const runtime = 'nodejs'
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
-export async function POST(request: NextRequest) {
-  const rl = await checkRateLimit(request, 'convert:vectorize', 10, 60_000)
-  if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests. Try again later.', rateLimitHeaders(rl), request)
+const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60_000;
+
+async function getUsage(request: NextRequest) {
+  const guestId = ensureGuestId(request).guestId ?? crypto.randomUUID();
+  try {
+    const used = Math.min(await getGuestUsage(guestId), GUEST_CONVERSION_LIMIT);
+    return { guestId, maxConversions: GUEST_CONVERSION_LIMIT, used, remaining: Math.max(GUEST_CONVERSION_LIMIT - used, 0) };
+  } catch {
+    return { guestId, maxConversions: GUEST_CONVERSION_LIMIT, used: 0, remaining: GUEST_CONVERSION_LIMIT };
   }
+}
 
-  const { guestId, setCookie } = ensureGuestId(request)
-  const usage = await getConversionUsage(request, guestId ?? undefined)
-
-  if (usage.kind === 'auth-error') {
-    return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
-  }
-  if (usage.kind === 'guest' && usage.limitReached) {
+async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
+  if (request.headers.get("x-user-id")) return getUsage(request);
+  const usage = await getUsage(request);
+  if (usage.remaining <= 0) {
     return errorResponse(
       429,
-      'limit_reached',
-      "You've used your 3 free conversions. Create a free account to keep converting.",
+      "guest_limit_reached",
+      "Daily guest conversion limit reached. Sign in or try again tomorrow.",
       undefined,
-      request
-    )
+      request,
+    );
   }
+  return usage;
+}
 
-  let fileBuffer: Buffer
-  let mimeType: string
-  let quality: string = 'Medium'
-  let colors: string = 'Auto'
-  let background: string = 'Preserve'
-  let bgColor: string = '#ffffff'
-  let pathOpt: string = 'Balanced'
-  
+async function incrementUsage(guestId: string) {
   try {
-    const formData = await request.formData()
-    const file = formData.get('file') as File | null
-    quality = formData.get('quality') as string || 'Medium'
-    colors = formData.get('colors') as string || 'Auto'
-    background = formData.get('background') as string || 'Preserve'
-    bgColor = formData.get('bgColor') as string || '#ffffff'
-    pathOpt = formData.get('pathOpt') as string || 'Balanced'
-    if (!file) {
-      return errorResponse(400, 'validation_error', 'No file uploaded', undefined, request)
-    }
-    
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      return errorResponse(400, 'validation_error', 'Only PNG and JPG images are supported', undefined, request)
-    }
-    mimeType = file.type
-    
-    const arrayBuffer = await file.arrayBuffer()
-    fileBuffer = Buffer.from(arrayBuffer)
-    
-    if (fileBuffer.length > 5 * 1024 * 1024) {
-      return errorResponse(400, 'validation_error', 'Your file is larger than 5 MB. Please upload a smaller image.', undefined, request)
-    }
-  } catch (err) {
-    return errorResponse(400, 'validation_error', 'Invalid form data', undefined, request)
+    await incrementGuestUsage(guestId);
+  } catch {
+    /* non-fatal */
   }
+}
 
+export async function POST(request: NextRequest) {
   try {
-    let sharpInstance = sharp(fileBuffer)
-      .resize({ width: 1000, height: 1000, fit: 'inside', withoutEnlargement: true });
-    
-    // Apply background color if 'Custom' is selected
-    if (background === 'Custom') {
-        sharpInstance = sharpInstance.flatten({ background: bgColor });
-    }
-    
-    // Get raw RGBA pixels
-    const { data, info } = await sharpInstance
-        .ensureAlpha()
-        .raw()
-        .toBuffer({ resolveWithObject: true });
-
-    const imgData = { 
-        width: info.width, 
-        height: info.height, 
-        data: new Uint8ClampedArray(data) 
-    };
-
-    const options: any = {
-      layering: 1, // Overlapping paths completely eliminates gaps/cracks between colors
-      strokewidth: 0.2, // Subtle stroke prevents sub-pixel rendering cracks without thickening edges
-    };
-
-    // Map quality to detail settings
-    if (quality === 'Low') {
-      options.ltres = 1;
-      options.qtres = 1;
-      options.pathomit = 16;
-    } else if (quality === 'High') {
-      options.ltres = 0.1;
-      options.qtres = 0.1;
-      options.pathomit = 0;
-    } else { // Medium
-      options.ltres = 0.5;
-      options.qtres = 0.5;
-      options.pathomit = 8;
+    const rate = await checkRateLimit(request, "vectorize", RATE_LIMIT, RATE_WINDOW_MS);
+    if (!rate.allowed) {
+      return errorResponse(429, "rate_limited", "Too many requests. Slow down and retry.", undefined, request);
     }
 
-    // Map colors
-    if (colors === 'Limited') {
-      options.numberofcolors = 16;
-    } else if (colors === 'Full') {
-      options.numberofcolors = 128; // Increased for better full color
-    } else { // Auto
-      options.numberofcolors = 64; // Increased from 16 to 64 for better defaults
+    const limitOrResponse = await enforceGuestLimit(request);
+    if (limitOrResponse instanceof NextResponse) return limitOrResponse;
+    const limit = limitOrResponse;
+
+    const form = await request.formData();
+    const file = form.get("file");
+
+    if (!(file instanceof File)) {
+      return errorResponse(400, "missing_file", "No image file provided.", undefined, request);
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return errorResponse(400, "file_too_large", "Image exceeds the 12MB upload limit.", undefined, request);
     }
 
-    // Map path optimization
-    if (pathOpt === 'Off') {
-      options.blurradius = 0;
-    } else if (pathOpt === 'Maximum') {
-      options.blurradius = 5;
-      options.blurdelta = 64;
-    } else { // Balanced
-      options.blurradius = 1; // 1px blur smooths out the raw pixels before tracing (fixes pixelation)
-      options.blurdelta = 20;
+    const options = rasterOptionsSchema.parse({
+      mode: form.get("mode") ?? undefined,
+      quality: form.get("quality") ?? undefined,
+      colorCount: form.get("colorCount") ?? undefined,
+      background: form.get("background") ?? undefined,
+      bgColor: form.get("bgColor") ?? undefined,
+    }) as RasterOptions;
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const originalSize = file.size;
+
+    let result;
+    if (rasterQueueEnabled() && (await recommendQueue(buffer))) {
+      result = await rasterToSvgQueued(buffer, options);
+    } else {
+      result = await rasterToSvg(buffer, options);
     }
 
-    // Vectorize!
-    const svgCode = ImageTracer.imagedataToSVG(imgData, options);
+    await logConversion({
+      userId: request.headers.get("x-user-id"),
+      guestId: limit.guestId,
+      inputFormat: file.type || "image",
+      outputFormat: "svg",
+      originalSize,
+      success: true,
+    });
 
-    let conversionsUsed = 0
-    try {
-      conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
-      await logConversion({
-        userId: usage.userId,
-        guestId: usage.kind === 'guest' ? guestId : undefined,
-        inputFormat: mimeType === 'image/png' ? 'png' : 'jpg',
-        outputFormat: 'svg',
-        originalSize: fileBuffer.length,
-        success: true,
-      })
-    } catch (error) {
-      console.error('Failed to record conversion usage:', error)
-    }
+    const userId = request.headers.get("x-user-id");
+    if (!userId) await incrementUsage(limit.guestId);
 
-    const nextUsed = usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
-    const remaining = nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
-
-    const acceptsBinary =
-      request.headers.get('accept')?.includes('image/svg+xml') ||
-      request.nextUrl.searchParams.get('download') === '1'
-
-    if (acceptsBinary) {
-      const res = new NextResponse(svgCode, {
-        status: 200,
-        headers: {
-          'Content-Type': 'image/svg+xml',
-          'Content-Disposition': `attachment; filename="vectorized-${Date.now()}.svg"`,
-          'X-Conversions-Used': String(conversionsUsed),
-          ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
-        },
-      })
-      if (setCookie) {
-        res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
-          httpOnly: true,
-          secure: setCookie.secure,
-          sameSite: 'lax',
-          path: '/',
-          maxAge: setCookie.maxAge,
-        })
-      }
-      return res
-    }
-
-    const res = successResponse(
+    const usage = await getUsage(request);
+    const response = successResponse(
       {
-        svg: svgCode,
-        conversionsUsed,
-        remaining,
+        svg: result.svg,
+        width: result.width,
+        height: result.height,
+        imageClass: result.imageClass,
+        colorCount: result.colorCount,
+        size: result.size,
+        advisory: result.advisory,
+        conversionsUsed: userId ? undefined : usage.used,
+        remaining: userId ? undefined : usage.remaining,
       },
       200,
       undefined,
-      request
-    )
-    if (setCookie) {
-      res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
-        httpOnly: true,
-        secure: setCookie.secure,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: setCookie.maxAge,
-      })
+      request,
+    );
+
+    const { setCookie } = ensureGuestId(request);
+    if (setCookie) response.cookies.set(setCookie);
+    return response;
+  } catch (error) {
+    if (error instanceof RasterConversionError) {
+      await logConversionError(request, error);
+      return errorResponse(error.status, error.code, error.message, undefined, request);
     }
-    return res
-
-  } catch (error: any) {
-    console.error('Vectorization failed:', error)
-    
-    await logConversion({
-      userId: usage.userId,
-      guestId: usage.kind === 'guest' ? guestId : undefined,
-      inputFormat: mimeType === 'image/png' ? 'png' : 'jpg',
-      outputFormat: 'svg',
-      success: false,
-      errorReason: "vectorization_failed"
-    })
-
-    return errorResponse(500, 'vectorization_error', 'Vectorization failed. Please try again.', undefined, request)
+    const failure = classifyRasterError(error);
+    await logConversionError(request, error);
+    return errorResponse(failure.status, failure.code, failure.message, undefined, request);
   }
+}
+
+async function logConversionError(request: NextRequest, error: unknown) {
+  const userId = request.headers.get("x-user-id");
+  const guestId = !userId ? ensureGuestId(request).guestId : null;
+  await logConversion({
+    userId,
+    guestId,
+    inputFormat: "image",
+    outputFormat: "svg",
+    success: false,
+    errorReason: error instanceof Error ? error.message : "vectorization_failed",
+  });
 }
