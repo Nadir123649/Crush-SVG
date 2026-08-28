@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = "crushsvg-v1";
+const CACHE_NAME = "crushsvg-v2";
 const OFFLINE_URL = "/";
 
 /**
@@ -9,8 +9,6 @@ const OFFLINE_URL = "/";
  */
 const PRE_CACHE_URLS = [
   OFFLINE_URL,
-  "/CrushSVG-logo.svg",
-  "/favicon.ico",
   "/manifest.webmanifest",
 ];
 
@@ -44,10 +42,11 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Skip non-GET, API calls, and chrome-extension requests
+  // Skip non-GET, API calls, Next.js static assets, and chrome-extension requests
   if (
     request.method !== "GET" ||
     request.url.includes("/api/") ||
+    request.url.includes("/_next/static/") ||
     request.url.includes("/monitoring") ||
     request.url.startsWith("chrome-extension://")
   ) {
