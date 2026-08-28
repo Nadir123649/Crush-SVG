@@ -1,6 +1,14 @@
 {
   "framework": "nextjs",
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path((?!_next|api|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|llms.*).*)",
+      "has": [{ "type": "host", "value": "www.crushsvg.net" }],
+      "destination": "https://crushsvg.net/:path",
+      "permanent": true
+    }
+  ],
   "functions": {
     "src/app/api/v1/convert/route.ts": {
       "maxDuration": 30
