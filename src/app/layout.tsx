@@ -17,6 +17,7 @@ import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
+import { Settings } from "@/lib/database/db";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-VCLLSKB082";
@@ -48,11 +49,21 @@ export const metadata: Metadata = constructMetadata({
   canonicalPath: "/",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let logoUrl = undefined;
+  try {
+    const settings = await Settings.findOne();
+    if (settings?.logoUrl) {
+      logoUrl = settings.logoUrl;
+    }
+  } catch (e) {
+    // Ignore db fetch error
+  }
+
   return (
     <html
       lang="en"
@@ -61,28 +72,6 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
     >
       <head>
-        {/* Google Tag Manager */}
-        <Script
-          id="google-tag-manager"
-          strategy="beforeInteractive"
-        >
-          {`
-            (function(w,d,s,l,i){
-              w[l]=w[l]||[];
-              w[l].push({
-                'gtm.start': new Date().getTime(),
-                event:'gtm.js'
-              });
-              var f=d.getElementsByTagName(s)[0],
-                  j=d.createElement(s),
-                  dl=l!='dataLayer'?'&l='+l:'';
-              j.async=true;
-              j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-              f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','${GTM_ID}');
-          `}
-        </Script>
-
         {/* Google Search Console */}
         <meta
           name="google-site-verification"
@@ -109,30 +98,84 @@ export default function RootLayout({
           href="https://www.googletagmanager.com"
         />
 
-        {/* Google AdSense */}
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          crossOrigin="anonymous"
+        {/* Google Tag Manager */}
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+            (function(w,d,s,l,i){
+              w[l]=w[l]||[];
+              w[l].push({
+                'gtm.start': new Date().getTime(),
+                event:'gtm.js'
+              });
+              var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),
+                  dl=l!='dataLayer'?'&l='+l:'';
+              j.async=true;
+              j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+              f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','${GTM_ID}');
+          `}}
         />
 
-        {/* Website Schema */}
+        {/* Google AdSense */}
+        <Script
+          id="google-adsense"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          strategy="afterInteractive"
+        />
+
+        {/* GDPR: Default consent denied — must run before GA4 config */}
+        <Script
+          id="consent-default"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied',
+                'wait_for_update': 500
+              });
+            `,
+          }}
+        />
+
+        {/* Google Analytics */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}}
+        />
+
+        {/* Structured Data (JSON-LD) - placed in head to avoid hydration mismatch */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(getWebSiteSchema()),
           }}
         />
-
-        {/* Organization Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(getOrganizationSchema()),
           }}
         />
-
-        {/* Web Application Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -145,6 +188,7 @@ export default function RootLayout({
         className="min-h-full flex flex-col items-center bg-background overflow-x-hidden"
         suppressHydrationWarning
       >
+
         {/* Google Tag Manager - noscript */}
         <noscript>
           <iframe
@@ -167,7 +211,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <ClientLayoutWrapper>
+          <ClientLayoutWrapper logoUrl={logoUrl}>
             {children}
           </ClientLayoutWrapper>
         </AuthProvider>
@@ -177,42 +221,6 @@ export default function RootLayout({
         <Analytics />
 
         <SpeedInsights />
-
-        {/* GDPR: Default consent denied — must run before GA4 config */}
-        <Script
-          id="consent-default"
-          strategy="beforeInteractive"
-        >
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-
-            gtag('consent', 'default', {
-              analytics_storage: 'denied',
-              ad_storage: 'denied',
-              wait_for_update: 500
-            });
-          `}
-        </Script>
-
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
-        />
-
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-        >
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
 
         {/* Cookie Consent Banner */}
         <CookieConsentBanner />

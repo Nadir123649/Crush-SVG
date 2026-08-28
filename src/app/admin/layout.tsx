@@ -52,13 +52,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/settings", label: "Settings", icon: SvgSettings },
   ];
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/login');
-    } catch (e) {
-      console.error(e);
-    }
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
   };
 
   return (

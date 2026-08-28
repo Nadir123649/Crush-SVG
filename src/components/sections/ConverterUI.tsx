@@ -216,6 +216,7 @@ function SvgToPngConverter() {
 
   function resetConversion() {
     if (result) setResult(null);
+    if (error) setError(null);
   }
 
   function resetDropdowns() {
@@ -324,30 +325,30 @@ function SvgToPngConverter() {
     setError(null);
     const options: ConvertRequest = { transparent };
 
-    if (selectedWidth !== "Original") {
+    if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
       let wNum = parseFloat(selectedWidth);
-      if (Number.isNaN(wNum) || wNum <= 0) {
-        setError(`Invalid width value. Enter a number like 480 or 12.7.`);
+      if (Number.isNaN(wNum)) {
+        setError(`Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
       if (unit === "cm") wNum = wNum * PX_PER_CM;
       options.width = Math.round(wNum);
       if (options.width < 1 || options.width > MAX_CUSTOM_PX) {
-        setError(`Width must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(`Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
     }
 
-    if (selectedHeight !== "Auto") {
+    if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
       let hNum = parseFloat(selectedHeight);
-      if (Number.isNaN(hNum) || hNum <= 0) {
-        setError(`Invalid height value. Enter a number like 480 or 12.7.`);
+      if (Number.isNaN(hNum)) {
+        setError(`Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
       if (unit === "cm") hNum = hNum * PX_PER_CM;
       options.height = Math.round(hNum);
       if (options.height < 1 || options.height > MAX_CUSTOM_PX) {
-        setError(`Height must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(`Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
     }
@@ -566,10 +567,31 @@ function SvgToPngConverter() {
                     : "Source size: unknown — set width/height or viewBox on your SVG"}
                 </p>
 
-                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto mt-[6px] md:mt-[8px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
-                  <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
-                </p>
+                <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
+                  {/* Feature Guide Box (when Custom is selected) */}
+                  {(isCustomWidth || isCustomHeight) && (
+                    <div className="w-full rounded-[12px] border border-[#8F8F8F] bg-white p-[14px] md:p-[16px] flex flex-col justify-center mb-[37px] gap-[8px]">
+                      <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
+                        <span>Pro PNG Export</span>
+                      </div>
+                      <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[5px]">
+                        <li className="flex items-center gap-2">
+                          <span className="text-brand-primary font-bold">✓</span>
+                          <span>Crisp, high-resolution rendering up to 4000px</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-brand-primary font-bold">✓</span>
+                          <span>Maintains perfect aspect ratio automatically</span>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain shrink-0" />
+                    <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
+                  </p>
+                </div>
               </div>
 
               {/* Right Column (Live Preview) */}

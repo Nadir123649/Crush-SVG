@@ -1,5 +1,12 @@
 import "server-only";
 import { Schema, model, type Model, type Types } from "mongoose";
+
+export const VALID_USER_FILTER = {
+    $or: [
+        { isVerified: true },
+        { providers: { $in: ['google', 'google.com'] } }
+    ]
+};
 export interface UserDoc {
     _id: Types.ObjectId;
     uid: string;

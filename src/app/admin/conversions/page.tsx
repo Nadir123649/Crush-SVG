@@ -197,10 +197,10 @@ export default function ConversionsPage() {
       <section className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
         {loading && (
           <div className="p-8">
-            <div className="flex justify-center my-8">
-              <svg className="w-8 h-8 text-brand-primary animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2v4M12 12v4M12 22v4" strokeWidth="2" strokeLinecap="round"/></svg>
+            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
+              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+              <span className="font-body text-text-muted">Loading conversions...</span>
             </div>
-            <span className="font-body text-text-muted">Loading conversions...</span>
           </div>
         )}
 

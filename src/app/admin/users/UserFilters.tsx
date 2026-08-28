@@ -75,43 +75,30 @@ export function UserFilters({
               <option value="user">User</option>
             </select>
           </div>
-          
+
           <div>
             <label className="font-body font-semibold text-sm text-text-muted mb-2 block">Status</label>
-            <div className="flex flex-col gap-3">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="radio" 
-                  name="status" 
-                  value="all" 
-                  checked={status === 'all'}
-                  onChange={(e) => onStatusRadioChange(e.target.value)}
-                  className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
-                />
-                <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">All Statuses</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="radio" 
-                  name="status" 
-                  value="active" 
-                  checked={status === 'active'}
-                  onChange={(e) => onStatusRadioChange(e.target.value)}
-                  className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
-                />
-                <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">Active (Verified)</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="radio" 
-                  name="status" 
-                  value="unverified" 
-                  checked={status === 'unverified'}
-                  onChange={(e) => onStatusRadioChange(e.target.value)}
-                  className="w-4 h-4 text-brand-primary border-[#F2EDE8] focus:ring-brand-primary/20 cursor-pointer"
-                />
-                <span className="font-body text-sm text-text-dark group-hover:text-brand-primary transition-colors">Unverified</span>
-              </label>
+            <div className="flex flex-col gap-2">
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'verified', label: 'Verified' },
+                { value: 'unverified', label: 'Unverified' },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 cursor-pointer font-body text-sm text-text-dark px-3 py-2 rounded-[8px] border border-[#F2EDE8] bg-[#FFFCFA] hover:border-brand-primary/40 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="status-filter"
+                    value={opt.value}
+                    checked={status === opt.value}
+                    onChange={() => onStatusRadioChange(opt.value)}
+                    className="accent-brand-primary"
+                  />
+                  {opt.label}
+                </label>
+              ))}
             </div>
           </div>
         </div>
