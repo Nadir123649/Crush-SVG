@@ -6,7 +6,7 @@ import { IMAGES } from "@/lib/shared/images";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function Footer() {
+export function Footer({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
   const isRasterToSvg = pathname === "/png-to-svg";
 
@@ -45,8 +45,8 @@ export function Footer() {
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
           <Link href="/" onClick={(e) => handlePageClick(e, '/')} aria-label="CrushSVG homepage" className="flex items-center gap-[10px]">
             <Image
-              src={IMAGES.logo}
-              alt="CrushSVG Icon"
+              src={logoUrl || IMAGES.logo}
+              alt="CrushSVG Logo"
               width={42}
               height={42}
               className="w-[42px] h-[42px] object-contain"

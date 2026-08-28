@@ -137,7 +137,7 @@ export default async function AdminDashboard() {
       {/* Row 2: Overview Chart & Live Feed */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Overview Chart (2/3 width) */}
-        <div className="lg:col-span-2 bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-full">
+        <div className="lg:col-span-2 bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-[500px] lg:h-[480px]">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="font-heading font-bold text-2xl text-text-dark">Analytics Overview</h2>
@@ -145,13 +145,13 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex-1 w-full min-h-[300px]">
+          <div className="flex-1 w-full min-h-0">
             <AnalyticsChart data={chartData} labels={chartLabels} />
           </div>
         </div>
 
         {/* Live Feed (1/3 width) */}
-        <div className="bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-full max-h-[500px] lg:max-h-none">
+        <div className="bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-[500px] lg:h-[480px]">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#F2EDE8]">
             <h2 className="font-heading font-bold text-2xl text-text-dark">Audit Feed</h2>
             <span className="flex items-center text-xs text-[#D94A1E] font-bold">

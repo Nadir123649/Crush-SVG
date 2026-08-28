@@ -91,7 +91,7 @@ export default function UsersPage() {
     };
     loadUsers();
     return () => { cancelled = true; };
-  }, [search, role, page, sortBy, sortOrder]);
+  }, [search, role, status, page, sortBy, sortOrder]);
 
   // Delete user
   const handleDeleteUser = async (user: any) => {
@@ -357,7 +357,7 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F2EDE8]">
-                   {users.map((u: any) => {
+                   {users.map((u: any, index: number) => {
                     const isGoogle = Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
                     const isVerified = u.isVerified === true || isGoogle;
                     const initials = u.displayName ? u.displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
@@ -425,7 +425,9 @@ export default function UsersPage() {
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
                             {openMenuUid === u.uid && (
-                              <div className="absolute right-0 mt-1 w-40 bg-white border border-[#F2EDE8] rounded-[8px] shadow-lg z-50 py-1">
+                              <div className={`absolute right-0 w-40 bg-white border border-[#F2EDE8] rounded-[8px] shadow-lg z-50 py-1 ${
+                                index >= users.length - 2 ? "bottom-full mb-1" : "top-full mt-1"
+                              }`}>
                                 <button
                                   onClick={() => { setOpenMenuUid(null); handleEditUser(u); }}
                                   className="w-full px-4 py-2 text-left text-sm font-body text-text-dark hover:bg-[#FFFCFA] flex items-center gap-2"

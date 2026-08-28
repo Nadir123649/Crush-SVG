@@ -60,7 +60,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
     : "";
 
   return (
-    <div className="relative w-full h-[300px] md:h-[400px]">
+    <div className="relative w-full h-full">
       <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox={`0 0 ${width} ${height}`}>
         <defs>
           <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">

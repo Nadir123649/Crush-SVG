@@ -747,9 +747,23 @@ export function RasterToSvgConverter() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={converting}
-                      className="absolute top-3 right-3 z-20 px-3 py-1 bg-white/90 hover:bg-white text-[#353A3E] hover:text-brand-primary border border-gray-200 rounded-md text-[12px] font-body font-medium shadow-xs transition-colors cursor-pointer"
+                      className={`absolute top-3 right-3 z-20 group rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
+                        converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"
+                      }`}
                     >
-                      Replace Image
+                      <div
+                        className="absolute inset-0 z-0 pointer-events-none"
+                        style={{
+                          border: "1px solid transparent",
+                          background:
+                            "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+                          borderRadius: "inherit",
+                        }}
+                      />
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                        Replace Image
+                      </span>
                     </button>
 
                     {/* Drag Replace Feedback */}

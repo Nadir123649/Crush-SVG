@@ -1,10 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
@@ -29,7 +34,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         <Badge text={mode === "raster-to-svg" ? "Scalable Vector Output" : "Multiple export sizes"} />
         <Badge text="Transparent background" />
         {mode === "raster-to-svg" && <Badge text="Color & detail controls" />}
-        {!user && <Badge text="3 free conversions, no login required" />}
+        {(!mounted || !user) && <Badge text="3 free conversions, no login required" />}
       </div>
 
     </section>

@@ -17,6 +17,7 @@ import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
+import { Settings } from "@/lib/database/db";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-VCLLSKB082";
@@ -48,11 +49,21 @@ export const metadata: Metadata = constructMetadata({
   canonicalPath: "/",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let logoUrl = undefined;
+  try {
+    const settings = await Settings.findOne();
+    if (settings?.logoUrl) {
+      logoUrl = settings.logoUrl;
+    }
+  } catch (e) {
+    // Ignore db fetch error
+  }
+
   return (
     <html
       lang="en"
@@ -200,7 +211,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <ClientLayoutWrapper>
+          <ClientLayoutWrapper logoUrl={logoUrl}>
             {children}
           </ClientLayoutWrapper>
         </AuthProvider>

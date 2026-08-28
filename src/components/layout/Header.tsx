@@ -11,7 +11,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-export function Header() {
+export function Header({ logoUrl }: { logoUrl?: string }) {
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -117,8 +117,8 @@ export function Header() {
             className="flex items-center gap-[4px] md:gap-[6px]"
           >
             <Image
-              src={IMAGES.logo}
-              alt="CrushSVG Icon"
+              src={logoUrl || IMAGES.logo}
+              alt="CrushSVG Logo"
               width={26}
               height={26}
               className="w-[20px] h-[20px] md:w-[26px] md:h-[26px] object-contain"
