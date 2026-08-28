@@ -733,10 +733,10 @@ export function RasterToSvgConverter() {
                     />
 
                     {/* Format Pill Badge */}
-                    <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-[#202427]/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-md text-[11px] font-heading font-medium tracking-wide">
+                    <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-brand-primary backdrop-blur-xs text-white px-2.5 py-1 rounded-md text-[12px] font-heading font-medium tracking-wide">
                       <span>{fileExt}</span>
                       {imageDims && (
-                        <span className="text-gray-400 text-[10px]">
+                        <span className="text-white/80 text-[12px]">
                           {imageDims.width}×{imageDims.height}
                         </span>
                       )}
@@ -884,7 +884,7 @@ export function RasterToSvgConverter() {
                 )}
 
                 {/* Privacy Assurance Text */}
-                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[12px] lg:mt-auto">
+                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
@@ -954,15 +954,15 @@ export function RasterToSvgConverter() {
                     </div>
                   ) : previewMode === "code" && result ? (
                     /* SVG Code Viewer State */
-                    <div className="w-full h-full flex flex-col bg-[#0F172A] rounded-[12px] p-[14px] text-gray-100 overflow-hidden relative">
-                      <div className="flex items-center justify-between pb-2 border-b border-gray-700/80 mb-2 shrink-0">
-                        <span className="text-[12px] font-mono text-gray-400">
+                    <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
+                        <span className="text-[12px] font-mono text-[#64748B]">
                           SVG Markup ({formatFileSize(result.size)})
                         </span>
                         <button
                           type="button"
                           onClick={handleCopySvg}
-                          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium bg-[#1E293B] hover:bg-brand-primary text-white rounded-md transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium bg-gray-100 hover:bg-brand-primary text-[#353A3E] hover:text-white rounded-md transition-colors cursor-pointer"
                         >
                           <svg
                             width="11"
@@ -978,7 +978,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? "Copied!" : "Copy Code"}
                         </button>
                       </div>
-                      <pre className="flex-1 overflow-auto font-mono text-[11px] leading-[16px] text-gray-300 brand-scrollbar whitespace-pre-wrap select-all">
+                      <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
                         {result.svg}
                       </pre>
                     </div>
@@ -990,7 +990,7 @@ export function RasterToSvgConverter() {
                         alt="Original source image"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-heading px-2 py-0.5 rounded">
+                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
                         Original Raster
                       </span>
                     </div>
@@ -1002,7 +1002,7 @@ export function RasterToSvgConverter() {
                         alt="Vectorized SVG output"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[10px] font-heading font-semibold px-2 py-0.5 rounded shadow-xs">
+                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading font-semibold px-2 py-0.5 rounded shadow-xs">
                         Scalable SVG
                       </span>
                     </div>
@@ -1026,7 +1026,7 @@ export function RasterToSvgConverter() {
                       <img
                         src={IMAGES.uploadImage}
                         alt="Upload placeholder"
-                        className="w-[64px] h-[64px] object-contain opacity-60"
+                        className="w-[64px] h-[64px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
                         Vector preview will appear here
@@ -1052,6 +1052,7 @@ export function RasterToSvgConverter() {
                       onChange={(val) => {
                         setRasterQuality(val);
                         setOpenDropdown(null);
+                        setResult(null);
                       }}
                       isOpen={openDropdown === "quality"}
                       onToggle={() => setOpenDropdown(openDropdown === "quality" ? null : "quality")}
@@ -1067,6 +1068,7 @@ export function RasterToSvgConverter() {
                       onChange={(val) => {
                         setRasterColors(val);
                         setOpenDropdown(null);
+                        setResult(null);
                       }}
                       isOpen={openDropdown === "colors"}
                       onToggle={() => setOpenDropdown(openDropdown === "colors" ? null : "colors")}
@@ -1082,6 +1084,7 @@ export function RasterToSvgConverter() {
                       onChange={(val) => {
                         setRasterBackground(val);
                         setOpenDropdown(null);
+                        setResult(null);
                       }}
                       isOpen={openDropdown === "background"}
                       onToggle={() => setOpenDropdown(openDropdown === "background" ? null : "background")}
@@ -1097,6 +1100,7 @@ export function RasterToSvgConverter() {
                       onChange={(val) => {
                         setRasterPathOpt(val);
                         setOpenDropdown(null);
+                        setResult(null);
                       }}
                       isOpen={openDropdown === "pathOpt"}
                       onToggle={() => setOpenDropdown(openDropdown === "pathOpt" ? null : "pathOpt")}
@@ -1117,7 +1121,10 @@ export function RasterToSvgConverter() {
                             key={c.hex}
                             type="button"
                             title={c.name}
-                            onClick={() => setRasterBgColor(c.hex)}
+                            onClick={() => {
+                              setRasterBgColor(c.hex);
+                              setResult(null);
+                            }}
                             className={`w-[22px] h-[22px] rounded-full border border-gray-300 transition-transform ${
                               rasterBgColor.toLowerCase() === c.hex.toLowerCase()
                                 ? "scale-125 ring-2 ring-brand-primary"
@@ -1130,13 +1137,19 @@ export function RasterToSvgConverter() {
                           <input
                             type="color"
                             value={rasterBgColor}
-                            onChange={(e) => setRasterBgColor(e.target.value)}
+                            onChange={(e) => {
+                              setRasterBgColor(e.target.value);
+                              setResult(null);
+                            }}
                             className="w-[26px] h-[26px] p-0 border-none rounded cursor-pointer"
                           />
                           <input
                             type="text"
                             value={rasterBgColor}
-                            onChange={(e) => setRasterBgColor(e.target.value)}
+                            onChange={(e) => {
+                              setRasterBgColor(e.target.value);
+                              setResult(null);
+                            }}
                             maxLength={7}
                             className="w-[74px] h-[28px] px-2 font-mono text-[12px] border border-gray-300 rounded-md outline-none focus:border-brand-primary uppercase"
                           />
@@ -1252,7 +1265,7 @@ export function RasterToSvgConverter() {
 
                     {/* Result Details */}
                     {result && result.size > 0 && (
-                      <p className="text-center font-body font-normal text-[11px] md:text-[12px] text-[#64748B] whitespace-nowrap mt-1">
+                      <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
                         SVG Vector &bull; {formatFileSize(result.size)} &bull; Infinitely Scalable
                       </p>
                     )}

@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
 
   const userIds = [...new Set(docs.map((d: any) => d.userId).filter(Boolean))];
   const users = userIds.length > 0
-    ? await User.find({ uid: { $in: userIds } }).select('uid email displayName photoURL').lean()
+    ? await User.find({ _id: { $in: userIds } }).select('uid email displayName photoURL').lean()
     : [];
-  const userMap = new Map(users.map((u: any) => [u.uid, u]));
+  const userMap = new Map(users.map((u: any) => [u._id.toString(), u]));
   const enrichedDocs = docs.map((d: any) => ({
     ...d.toObject(),
     userId: d.userId ? userMap.get(d.userId) || null : null,

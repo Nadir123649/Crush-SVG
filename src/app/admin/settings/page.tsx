@@ -2,14 +2,129 @@
 
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
-import { useState } from "react";
-import { apiFetch } from "@/lib/client/http";
+import { useState, useEffect, useRef } from "react";
+import { apiFetch, authFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 
 export default function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
+  
+  const [loading, setLoading] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [settings, setSettings] = useState({
+    siteName: "CrushSVG Production",
+    supportEmail: "support@crushsvg.net",
+    logoUrl: "",
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings");
+        if (response?.settings) {
+          setSettings(response.settings);
+        }
+      } catch (err) {
+        showToast("error", "Failed to load settings.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings", {
+        method: "PATCH",
+        body: JSON.stringify({
+          siteName: settings.siteName,
+          supportEmail: settings.supportEmail,
+        }),
+      });
+      if (response?.settings) {
+        setSettings(response.settings);
+        showToast("success", "Settings saved successfully!");
+      }
+    } catch (err) {
+      showToast("error", "Failed to save settings.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) {
+      showToast("error", "Invalid file type. Only PNG, JPEG, WebP, and SVG are allowed.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("error", "File too large. Maximum size is 2MB for logos.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadRes = await authFetch("/api/v1/uploads", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Failed to upload image");
+      }
+      
+      const uploadData = await uploadRes.json();
+
+      const logoUrl = uploadData?.payload?.url;
+      if (logoUrl) {
+        const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings", {
+          method: "PATCH",
+          body: JSON.stringify({ logoUrl }),
+        });
+        if (response?.settings) {
+          setSettings(response.settings);
+          showToast("success", "Logo updated successfully!");
+        }
+      }
+    } catch (err) {
+      showToast("error", "Failed to upload logo.");
+    } finally {
+      setUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!settings.logoUrl) return;
+    setUploadingLogo(true);
+    try {
+      const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings", {
+        method: "PATCH",
+        body: JSON.stringify({ logoUrl: "" }),
+      });
+      if (response?.settings) {
+        setSettings(response.settings);
+        showToast("success", "Logo removed successfully!");
+      }
+    } catch (err) {
+      showToast("error", "Failed to remove logo.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,20 +170,36 @@ export default function SettingsPage() {
             <h3 className="font-heading font-semibold text-xl text-text-dark mb-4">General Information</h3>
             <div className="w-full h-px bg-[#F2EDE8] mb-6"></div>
             
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSaveSettings}>
               {/* Logo Upload Area */}
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <div className="w-24 h-24 rounded-[12px] border border-[#F2EDE8] bg-[#FFFCFA] flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                  <Image src="/crushsvg.webp" alt="Organization Logo" fill className="object-contain p-4" />
+                  {settings.logoUrl ? (
+                    <Image src={settings.logoUrl} alt="Organization Logo" fill className="object-contain p-4" />
+                  ) : (
+                    <Image src="/crushsvg.webp" alt="Organization Logo" fill className="object-contain p-4 opacity-30" />
+                  )}
+                  {uploadingLogo && (
+                    <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full border-2 border-brand-primary border-t-transparent animate-spin"></div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2 pt-1">
                   <h4 className="font-body font-bold text-sm text-text-dark">Organization Logo</h4>
                   <p className="font-body text-sm text-text-muted">Recommended size: 256x256px. JPG, PNG, or SVG.</p>
                   <div className="flex gap-2 mt-2">
-                    <button type="button" className="bg-[#FFFCFA] text-text-dark font-body font-semibold text-sm px-4 py-2 rounded-[8px] border border-[#F2EDE8] hover:bg-gray-50 transition-colors">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                      onChange={handleLogoUpload}
+                    />
+                    <button type="button" disabled={uploadingLogo} onClick={() => fileInputRef.current?.click()} className="bg-[#FFFCFA] text-text-dark font-body font-semibold text-sm px-4 py-2 rounded-[8px] border border-[#F2EDE8] hover:bg-gray-50 transition-colors disabled:opacity-50">
                       Upload New
                     </button>
-                    <button type="button" className="text-red-600 font-body font-semibold text-sm px-4 py-2 rounded-[8px] hover:bg-red-50 transition-colors">
+                    <button type="button" disabled={uploadingLogo || !settings.logoUrl} onClick={handleRemoveLogo} className="text-red-600 font-body font-semibold text-sm px-4 py-2 rounded-[8px] hover:bg-red-50 transition-colors disabled:opacity-50">
                       Remove
                     </button>
                   </div>
@@ -80,7 +211,8 @@ export default function SettingsPage() {
                   <label className="font-body font-semibold text-sm text-text-muted">Site Name</label>
                   <input 
                     type="text" 
-                    defaultValue="CrushSVG Production"
+                    value={settings.siteName}
+                    onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
                   />
                 </div>
@@ -88,14 +220,17 @@ export default function SettingsPage() {
                   <label className="font-body font-semibold text-sm text-text-muted">Support Email</label>
                   <input 
                     type="email" 
-                    defaultValue="support@crushsvg.net"
+                    value={settings.supportEmail}
+                    onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
                     className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
                   />
                 </div>
               </div>
               
               <div className="flex justify-end pt-4">
-                <Button variant="solid" className="px-6 py-2.5 h-auto shadow-sm">Save Changes</Button>
+                <Button variant="solid" type="submit" disabled={savingSettings || loading} className="px-6 py-2.5 h-auto shadow-sm">
+                  {savingSettings ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </form>
           </section>

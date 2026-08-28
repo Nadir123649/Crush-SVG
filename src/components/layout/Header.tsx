@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export function Header() {
   const { user, status, logout } = useAuth();
   const router = useRouter();
@@ -16,14 +18,15 @@ export function Header() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [lastConverter, setLastConverter] = useState("/");
 
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
+  const [mounted, setMounted] = useState(false);
+  
+  useIsomorphicLayoutEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -50,16 +53,28 @@ export function Header() {
     };
   }, []);
 
-  async function handleLogout() {
-    await logout();
+  function handleLogout() {
+    setMenuOpen(false);
+    logout();
     showToast("success", "You've been signed out");
     router.push("/");
-    router.refresh();
   }
 
   useEffect(() => {
     queueMicrotask(() => setMenuOpen(false));
   }, [status, pathname]);
+
+  useEffect(() => {
+    if (pathname === "/png-to-svg" || pathname === "/") {
+      setLastConverter(pathname);
+      sessionStorage.setItem("last_converter", pathname);
+    } else {
+      const stored = sessionStorage.getItem("last_converter");
+      if (stored === "/png-to-svg" || stored === "/") {
+        setLastConverter(stored);
+      }
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -118,10 +133,11 @@ export function Header() {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href={pathname === "/png-to-svg" ? "/" : "/png-to-svg"}
+              href={lastConverter === "/png-to-svg" ? "/" : "/png-to-svg"}
+              suppressHydrationWarning
               className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
+              {lastConverter === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
             </Link>
 
             <Link
@@ -138,7 +154,9 @@ export function Header() {
               Need Help?
             </Link>
 
-            {user ? (
+            {!mounted || status === "loading" ? (
+              <div className="flex items-center w-[120px] md:w-[160px] h-[32px] md:h-[42px] bg-transparent" />
+            ) : user ? (
               <div className="relative" ref={menuRef}>
                 <button
                   type="button"

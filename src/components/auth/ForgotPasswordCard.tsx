@@ -62,7 +62,7 @@ export function ForgotPasswordCard() {
         </div>
 
         {sent ? (
-          <div className="flex flex-col items-center gap-[12px] py-[16px]">
+          <div className="flex flex-col items-center gap-[12px]">
             <PasswordResetSuccessAlert 
               message="Reset link sent. Please check your inbox." 
               onClose={() => setSent(false)}

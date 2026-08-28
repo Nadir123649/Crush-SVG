@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
+  useLayoutEffect,
 } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +13,8 @@ import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export function Navbar() {
   const { user, status, logout } = useAuth();
@@ -24,11 +26,11 @@ export function Navbar() {
 
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
+  const [mounted, setMounted] = useState(false);
+
+  useIsomorphicLayoutEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -55,11 +57,11 @@ export function Navbar() {
     };
   }, []);
 
-  async function handleLogout() {
-    await logout();
+  function handleLogout() {
+    setMenuOpen(false);
+    logout();
     showToast("success", "You've been signed out");
     router.push("/");
-    router.refresh();
   }
 
   useEffect(() => {
@@ -148,8 +150,8 @@ export function Navbar() {
             </Link>
 
             {/* Authentication State */}
-            {status === "loading" ? (
-              <div className="flex items-center gap-[14px] md:gap-[16px] w-[174px] md:w-[294px] h-[32px] md:h-[42px]"></div>
+            {!mounted || status === "loading" ? (
+              <div className="flex items-center w-[120px] md:w-[160px] h-[32px] md:h-[42px] bg-transparent" />
             ) : user ? (
               <div className="relative" ref={menuRef}>
                 <button

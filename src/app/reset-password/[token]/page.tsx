@@ -102,19 +102,22 @@ export default function ResetPasswordPage() {
 
           {tokenState === "invalid" && (
             <div className="flex flex-col items-center gap-[12px] py-[32px]">
+              <div className="w-16 h-16 rounded-full bg-[#FFF2ED] flex items-center justify-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D94A1E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
               <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Link invalid or expired</h2>
-              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
+              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mb-2">
                 This password reset link is invalid or has expired. Request a new one.
               </p>
               <Link
-                href="/?auth=login"
-                className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E] mt-[4px]"
+                href="/login"
+                className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E] transition-colors"
               >
                 Back to login
               </Link>
               <Link
                 href="/forgot-password"
-                className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
+                className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[16px] shadow-[0_2px_12px_rgba(217,74,30,0.2)]"
               >
                 Request new link
               </Link>

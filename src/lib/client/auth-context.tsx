@@ -104,6 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Synchronously restore state on client mount to prevent auth UI blinking
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        if (storedUser && status === 'loading') {
+          const parsed = JSON.parse(storedUser)
+          setUser(parsed)
+          setStatus('authed')
+        } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
+          setStatus('guest')
+        }
+      } catch {}
+    }
+  }, [status])
+
   useEffect(() => {
     let cancelled = false
 
@@ -236,19 +252,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
-    // Clear storage so the fresh /login page loads cleanly as a guest
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('crush_user')
-      localStorage.removeItem('crush_usage')
-      localStorage.removeItem('crush_converter_state')
-      sessionStorage.setItem('crush_auth_status', 'guest')
-    }
+    clearAuth()
     void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
     void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
       .catch(() => {})
-    window.location.href = '/'
-  }, [])
+  }, [clearAuth])
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {

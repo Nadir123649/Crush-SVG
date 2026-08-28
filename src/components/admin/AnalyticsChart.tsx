@@ -39,8 +39,25 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
     return { x, y, val, label: chartLabels[i] };
   });
 
-  const pathD = points.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ");
-  const fillPathD = `${pathD} L${points[points.length - 1].x},${height - padBottom} L${points[0].x},${height - padBottom} Z`;
+  const getCurvePath = (pts: { x: number; y: number }[]) => {
+    if (pts.length === 0) return "";
+    let path = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i];
+      const p1 = pts[i + 1];
+      const cp1x = p0.x + (p1.x - p0.x) * 0.5;
+      const cp1y = p0.y;
+      const cp2x = p0.x + (p1.x - p0.x) * 0.5;
+      const cp2y = p1.y;
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+    }
+    return path;
+  };
+
+  const pathD = getCurvePath(points);
+  const fillPathD = points.length > 0 
+    ? `${pathD} L ${points[points.length - 1].x} ${height - padBottom} L ${points[0].x} ${height - padBottom} Z`
+    : "";
 
   return (
     <div className="relative w-full h-[300px] md:h-[400px]">
@@ -60,7 +77,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
           const val = Math.round(maxVal - (maxVal * ratio));
           return (
             <g key={`grid-${i}`}>
-              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="#f3f4f6" strokeWidth="0.2" strokeDasharray="1 1" />
+              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="#f3f4f6" strokeWidth="0.2" strokeDasharray="1 1" vectorEffect="non-scaling-stroke" />
             </g>
           );
         })}
@@ -69,7 +86,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
         <path d={fillPathD} fill="url(#chartGradient)" />
         
         {/* Line */}
-        <path d={pathD} fill="none" stroke="#D94A1E" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke="#D94A1E" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Hover Points - Only drawing circles, text moved to HTML */}
         {points.map((p, i) => (
@@ -80,7 +97,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
             onMouseLeave={() => setHoverIndex(null)}
           >
             {/* Invisible large circle for easier hovering */}
-            <circle cx={p.x} cy={p.y} r="5" fill="transparent" />
+            <circle cx={p.x} cy={p.y} r="5" fill="transparent" vectorEffect="non-scaling-stroke" />
             
             {/* Visible small circle */}
             <circle 
@@ -89,7 +106,8 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
               r={hoverIndex === i ? "1.5" : "0.8"} 
               fill="#fff" 
               stroke="#D94A1E" 
-              strokeWidth="0.4" 
+              strokeWidth="1.5" 
+              vectorEffect="non-scaling-stroke"
             />
           </g>
         ))}

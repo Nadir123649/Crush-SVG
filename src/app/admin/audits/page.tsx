@@ -240,8 +240,10 @@ export default function AuditsPage() {
                             : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`}
                         </td>
                         <td className="p-5 font-medium">{audit.adminId}</td>
-                        <td className="p-5 font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block mt-3">
-                          {audit.ipAddress || 'N/A'}
+                        <td className="p-5">
+                          <span className="font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block">
+                            {audit.ipAddress || 'N/A'}
+                          </span>
                         </td>
                       </tr>
                     );

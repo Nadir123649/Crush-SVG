@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
 interface HeroProps {
@@ -12,6 +12,11 @@ interface HeroProps {
 
 export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: HeroProps) {
   const { status } = useAuth();
+  // Auth status is only known on the client. Render a stable value during
+  // SSR and the first client render so hydration matches; update after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const viewStatus = mounted ? status : "loading";
   const shouldShowAuthBadge = showAuthBadge !== false && !badge;
 
   return (
@@ -25,11 +30,11 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
             border: "1px solid transparent",
             background: "linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box"
           }}
-          className={`flex items-center gap-[6px] md:gap-[10px] h-[24px] md:h-[29px] rounded-[30px] px-[12px] md:px-[30px] justify-center max-w-[calc(100vw-32px)] sm:max-w-[340px] md:max-w-none transition-opacity duration-300 ${status === "loading" ? "opacity-0" : "opacity-100"}`}
+          className={`flex items-center gap-[6px] md:gap-[10px] h-[24px] md:h-[29px] rounded-[30px] px-[12px] md:px-[30px] justify-center max-w-[calc(100vw-32px)] sm:max-w-[340px] md:max-w-none transition-opacity duration-300 ${viewStatus === "loading" ? "opacity-0" : "opacity-100"}`}
         >
           <div className="w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0"></div>
           <span className="font-body font-medium text-[12px] sm:text-[12px] md:text-[14px] leading-[14px] md:leading-[18.67px] text-text-dark whitespace-nowrap overflow-hidden text-ellipsis">
-            {status === "authed" 
+            {viewStatus === "authed" 
               ? "You have unlimited conversions access." 
               : "3 free conversions. Create a free account for unlimited access."}
           </span>

@@ -3,6 +3,7 @@ import { auth } from '@/lib/middleware/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { User, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { getClientIp } from '@/lib/security/ip'
 
 export const runtime = 'nodejs'
 
@@ -48,8 +49,72 @@ export async function DELETE(
     resourceType: 'user',
     resourceId: uid,
     details: { email: user.email, role: user.role },
+    ipAddress: getClientIp(request),
     metadata: { email: user.email, role: user.role },
   })
 
   return successResponse({ deleted: true, uid }, 200, rateLimitHeaders(rl), request)
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ uid: string }> }
+) {
+  const rl = await checkRateLimit(request, 'admin:users:update', 20, 60_000)
+  if (!rl.allowed) {
+    return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
+  }
+
+  const who = await auth(request)
+  if ('error' in who) return who.error
+  if (who.user.role !== 'admin') {
+    return errorResponse(403, 'forbidden', 'Admin access required', undefined, request)
+  }
+
+  const { uid } = await params
+  if (!uid) {
+    return errorResponse(400, 'bad_request', 'Missing uid parameter', undefined, request)
+  }
+
+  let body: any
+  try {
+    body = await request.json()
+  } catch {
+    return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
+  }
+
+  const { displayName, role } = body
+  if (role && role !== 'admin' && role !== 'user') {
+    return errorResponse(400, 'invalid_role', 'Role must be user or admin', undefined, request)
+  }
+
+  const user = await User.findOne({ uid })
+  if (!user) {
+    return errorResponse(404, 'not_found', 'User not found', undefined, request)
+  }
+
+  if (role === 'user' && user.role === 'admin') {
+    const adminCount = await User.countDocuments({ role: 'admin' })
+    if (adminCount <= 1) {
+      return errorResponse(400, 'bad_request', 'Cannot demote the last admin user', undefined, request)
+    }
+  }
+
+  if (displayName) user.displayName = displayName
+  if (role) user.role = role
+
+  await user.save()
+
+  await AuditLog.create({
+    adminId: who.user.id,
+    action: 'user_updated',
+    target: uid,
+    resourceType: 'user',
+    resourceId: uid,
+    details: { email: user.email, newRole: role, newDisplayName: displayName },
+    ipAddress: getClientIp(request),
+    metadata: { email: user.email },
+  })
+
+  return successResponse({ updated: true, user: user.toObject() }, 200, rateLimitHeaders(rl), request)
 }
