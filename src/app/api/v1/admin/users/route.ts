@@ -6,6 +6,7 @@ import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
 import { hashPassword } from '@/lib/auth/passwords'
+import { getClientIp } from '@/lib/security/ip'
 
 export const runtime = 'nodejs'
 
@@ -32,19 +33,77 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
   const skip = (page - 1) * limit
   const search = searchParams.get('search')?.trim()
+  const status = searchParams.get('status')?.trim()
+  const sortBy = searchParams.get('sortBy') || 'createdAt'
+  const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1
+
+  // Verified = email verified OR Google/OAuth provider.
+  const verifiedOr = [
+    { isVerified: true },
+    { providers: { $in: ['google', 'google.com'] } }
+  ]
 
   const filter: Record<string, unknown> = {}
+  const andClauses: Record<string, unknown>[] = []
+
   if (search) {
-    filter.$or = [
-      { email: { $regex: search, $options: 'i' } },
-      { displayName: { $regex: search, $options: 'i' } },
-      { uid: { $regex: search, $options: 'i' } },
-    ]
+    andClauses.push({
+      $or: [
+        { email: { $regex: search, $options: 'i' } },
+        { displayName: { $regex: search, $options: 'i' } },
+        { uid: { $regex: search, $options: 'i' } },
+      ]
+    })
   }
 
-  const [total, docs] = await Promise.all([
-    User.countDocuments(filter),
-    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+  if (status === 'verified') {
+    andClauses.push({ $or: verifiedOr })
+  } else if (status === 'unverified') {
+    // Not verified AND not a Google/OAuth account
+    andClauses.push({ $nor: verifiedOr })
+  }
+
+  if (andClauses.length === 1) {
+    Object.assign(filter, andClauses[0])
+  } else if (andClauses.length > 1) {
+    filter.$and = andClauses
+  }
+
+  let docs
+  
+  if (sortBy === 'status') {
+    docs = await User.aggregate([
+      { $match: filter },
+      { 
+        $addFields: {
+          computedStatus: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: ["$isVerified", true] },
+                  { $in: ["google.com", { $ifNull: ["$providers", []] }] },
+                  { $in: ["google", { $ifNull: ["$providers", []] }] }
+                ]
+              },
+              then: 1, // Active
+              else: 0  // Unverified
+            }
+          }
+        }
+      },
+      { $sort: { computedStatus: sortOrder, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ])
+  } else {
+    // Default sorting
+    const sortObj: Record<string, 1 | -1> = {}
+    sortObj[sortBy] = sortOrder
+    docs = await User.find(filter).sort(sortObj).skip(skip).limit(limit)
+  }
+
+  const [total] = await Promise.all([
+    User.countDocuments(filter)
   ])
 
   return successResponse({
@@ -133,6 +192,7 @@ export async function POST(request: NextRequest) {
     resourceType: 'user',
     resourceId: created.uid,
     details: { email: created.email, role: created.role },
+    ipAddress: getClientIp(request),
     metadata: { email: created.email, role: created.role },
   })
 

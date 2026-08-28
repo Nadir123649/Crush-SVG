@@ -176,10 +176,10 @@ export default function AuditsPage() {
         
         {loading && (
           <div className="p-8">
-            <div className="flex justify-center my-8">
-              <svg className="w-8 h-8 text-brand-primary animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2v4M12 12v4M12 22v4" strokeWidth="2" strokeLinecap="round"/></svg>
+            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
+              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+              <span className="font-body text-text-muted">Loading audits...</span>
             </div>
-            <span className="font-body text-text-muted">Loading audit logs...</span>
           </div>
         )}
 
@@ -240,8 +240,10 @@ export default function AuditsPage() {
                             : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`}
                         </td>
                         <td className="p-5 font-medium">{audit.adminId}</td>
-                        <td className="p-5 font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block mt-3">
-                          {audit.ipAddress || 'N/A'}
+                        <td className="p-5">
+                          <span className="font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block">
+                            {audit.ipAddress || 'N/A'}
+                          </span>
                         </td>
                       </tr>
                     );

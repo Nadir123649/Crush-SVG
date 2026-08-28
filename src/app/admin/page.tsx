@@ -1,4 +1,4 @@
-import { User, ConversionLog, AuditLog } from "@/lib/database/db";
+import { User, ConversionLog, AuditLog, VALID_USER_FILTER } from "@/lib/database/db";
 import { AnalyticsChart } from "@/components/admin/AnalyticsChart";
 import { Button } from "@/components/ui/Button";
 
@@ -9,7 +9,6 @@ const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgActivity = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
 const SvgRadio = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>;
 const SvgDollarSign = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
-const SvgTrendingUp = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
 const SvgUserPlus = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>;
 const SvgSettings = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 
@@ -26,7 +25,7 @@ export default async function AdminDashboard() {
     rawRecentConversions,
     conversionsLast7Days
   ] = await Promise.all([
-    User.countDocuments(),
+    User.countDocuments(VALID_USER_FILTER),
     ConversionLog.countDocuments({ success: true }),
     ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
     AuditLog.find().sort({ createdAt: -1 }).limit(10),
@@ -43,9 +42,9 @@ export default async function AdminDashboard() {
 
   const userIds = [...new Set(rawRecentConversions.map((c: any) => c.userId).filter(Boolean))];
   const conversionUsers = userIds.length > 0
-    ? await User.find({ uid: { $in: userIds } }).select('uid email displayName photoURL').lean()
+    ? await User.find({ _id: { $in: userIds } }).select('uid email displayName photoURL').lean()
     : [];
-  const userMap = new Map(conversionUsers.map((u: any) => [u.uid, u]));
+  const userMap = new Map(conversionUsers.map((u: any) => [u._id.toString(), u]));
   const recentConversions = rawRecentConversions.map((c: any) => {
     const obj = c.toObject ? c.toObject() : { ...c, _id: c._id?.toString() };
     return {
@@ -72,7 +71,7 @@ export default async function AdminDashboard() {
   }
 
   // Fake MRR for visual purposes
-  const mrr = "$4,820";
+  const mrr = "$0 / 0";
 
   return (
     <div className="space-y-8">
@@ -130,17 +129,15 @@ export default async function AdminDashboard() {
           </div>
           <div>
             <span className="font-heading font-bold text-4xl text-text-dark block">{mrr}</span>
-            <span className="font-body text-sm text-[#059669] flex items-center mt-2 font-semibold">
-              <SvgTrendingUp className="w-4 h-4 mr-1" /> +18% from last month
-            </span>
+            <span className="font-body text-sm text-text-muted mt-2 block">No revenue recorded yet</span>
           </div>
         </div>
       </section>
 
       {/* Row 2: Overview Chart & Live Feed */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Overview Chart (2/3 width) */}
-        <div className="lg:col-span-2 bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col">
+        <div className="lg:col-span-2 bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-[500px] lg:h-[480px]">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="font-heading font-bold text-2xl text-text-dark">Analytics Overview</h2>
@@ -148,13 +145,13 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex-1 w-full min-h-[300px]">
+          <div className="flex-1 w-full min-h-0">
             <AnalyticsChart data={chartData} labels={chartLabels} />
           </div>
         </div>
 
         {/* Live Feed (1/3 width) */}
-        <div className="bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-[500px]">
+        <div className="bg-white border border-[#F2EDE8] rounded-[12px] p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col h-[500px] lg:h-[480px]">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#F2EDE8]">
             <h2 className="font-heading font-bold text-2xl text-text-dark">Audit Feed</h2>
             <span className="flex items-center text-xs text-[#D94A1E] font-bold">

@@ -24,13 +24,17 @@ export function getClientIp(request: NextRequest): string | null {
     const realIp = request.headers.get("x-real-ip");
     if (realIp && looksLikeIp(realIp))
         return realIp;
-    if (trustProxy()) {
-        const forwarded = request.headers.get("x-forwarded-for");
-        if (forwarded) {
-            for (const hop of forwarded.split(",")) {
-                if (looksLikeIp(hop))
-                    return hop.trim();
-            }
+    // x-forwarded-for is the de-facto standard header set by proxies/load
+    // balancers (including Vercel, nginx, etc.). The rightmost hop is the
+    // proxy itself; the leftmost is the original client. We take the first
+    // usable (public-looking) IP. Previously this was gated behind
+    // TRUST_PROXY, which left every audit IP empty in normal proxy setups.
+    const forwarded = request.headers.get("x-forwarded-for");
+    if (forwarded) {
+        for (const hop of forwarded.split(",")) {
+            const trimmed = hop.trim();
+            if (looksLikeIp(trimmed))
+                return trimmed;
         }
     }
     return null;
