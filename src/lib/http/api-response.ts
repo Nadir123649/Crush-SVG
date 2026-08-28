@@ -56,6 +56,12 @@ export function getOrigin(request: NextRequest): string {
         request.headers.get("host") ||
         "";
     if (host && (hostAllowed(host) || trustProxy())) {
+        // API subdomain should never be the canonical origin for email links,
+        // password resets, or any user-facing redirect — fall back to frontend.
+        const normalized = host.toLowerCase().replace(/:\d+$/, "");
+        if (/^(api|staging\.api)\.crushsvg\.net$/.test(normalized)) {
+            return canonicalBase() || "https://crushsvg.net";
+        }
         return originFromHost(request, host);
     }
     if (host && !isLocalHost(host) && !looksLikeIp(host)) {

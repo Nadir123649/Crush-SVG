@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/$/, "");
 
 export const DEFAULT_KEYWORDS = [
   "crush svg",
@@ -19,7 +19,6 @@ export const DEFAULT_KEYWORDS = [
   "svg optimizer",
   "svg rasterizer",
   "svg to png transparent",
-  "The Nevon",
 ];
 
 interface SEOProps {
@@ -96,7 +95,6 @@ export function constructMetadata({
         { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
         { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
         { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-        { url: "/CrushSVG-logo.svg", type: "image/svg+xml" },
         { url: "/icon.svg", type: "image/svg+xml" },
       ],
       apple: [
@@ -105,7 +103,7 @@ export function constructMetadata({
       other: [
         {
           rel: "mask-icon",
-          url: "/CrushSVG-logo.svg",
+          url: "/icon-512.png",
           color: "#D94A1E",
         },
       ],
@@ -153,9 +151,10 @@ export function getWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Crush SVG",
-    "alternateName": "Crush SVG Converter",
-    "url": "https://crushsvg.net/",
+    "@id": `${SITE_URL}/#website`,
+    "name": "CrushSVG",
+    "alternateName": "CrushSVG Converter",
+    "url": SITE_URL,
   };
 }
 
@@ -168,16 +167,16 @@ export function getOrganizationSchema() {
     url: SITE_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${SITE_URL}/CrushSVG-logo.svg`,
+      url: `${SITE_URL}/icon-512.png`,
       width: 512,
       height: 512,
     },
-    image: `${SITE_URL}/CrushSVG-logo.svg`,
+    image: `${SITE_URL}/icon-512.png`,
     description: "Lightning-fast, precise SVG to PNG converter.",
     brand: {
       "@type": "Brand",
       name: "CrushSVG",
-      logo: `${SITE_URL}/CrushSVG-logo.svg`,
+      logo: `${SITE_URL}/icon-512.png`,
     },
     contactPoint: {
       "@type": "ContactPoint",

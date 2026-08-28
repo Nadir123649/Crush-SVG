@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/client/http";
+import { apiBase } from "@/lib/client/api";
 import { PasswordResetSuccessAlert } from "@/components/ui/Alert";
 import { showToast } from "@/lib/client/toast-bridge";
 
@@ -25,7 +25,7 @@ export function ForgotPasswordCard() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/v1/passwords/forgot", {
+      const res = await fetch(apiBase("/api/v1/passwords/forgot"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

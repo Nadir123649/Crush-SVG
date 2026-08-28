@@ -1,5 +1,6 @@
 import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { emitToast } from '@/lib/client/toast-bridge'
+import { apiBase, API_BASE } from '@/lib/client/api'
 
 export class ApiError extends Error {
   readonly status: number
@@ -62,7 +63,7 @@ export function setAuthExpiredHandler(handler: AuthExpiredHandler | null): void 
   onAuthExpired = handler
 }
 
-const REFRESH_PATH = '/api/v1/auth/refresh'
+const REFRESH_PATH = apiBase('/api/v1/auth/refresh')
 
 let refreshInFlight: Promise<SessionPayload | null> | null = null
 
@@ -89,6 +90,7 @@ async function doRefresh(silent = false): Promise<SessionPayload | null> {
     res = await fetch(REFRESH_PATH, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      credentials: API_BASE ? 'include' : 'same-origin',
     })
   } catch {
     // Network failures are transient — the session is not dead.
@@ -156,7 +158,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
     }
   }
 
-  let res = await fetch(path, { ...init, headers })
+  let res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
 
   // Refresh on 401 when we have a token, or when a session was restored from
   // storage but the token isn't attached yet (e.g. the page-load refresh
@@ -166,7 +168,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
     const refreshed = await refreshSession()
     if (refreshed && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)
-      res = await fetch(path, { ...init, headers })
+      res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
     } else {
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')

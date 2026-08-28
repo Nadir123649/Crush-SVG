@@ -8,6 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
 import { ApiError, getAccessToken } from "@/lib/client/http";
+import { apiBase } from "@/lib/client/api";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -15,7 +16,7 @@ import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 
 const STORAGE_KEY = "crush_vectorizer_state";
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE_BYTES = 12 * 1024 * 1024; // 12MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 interface DropdownOption {
@@ -25,27 +26,29 @@ interface DropdownOption {
 }
 
 const QUALITY_OPTIONS: DropdownOption[] = [
-  { value: "Medium", label: "Medium", desc: "Balanced detail & file size" },
-  { value: "High", label: "High", desc: "Maximum detail & sharp edges" },
-  { value: "Low", label: "Low", desc: "Smooth, lightweight paths" },
+  { value: "standard", label: "Standard", desc: "Balanced detail & file size" },
+  { value: "max", label: "High", desc: "Maximum detail & sharp edges" },
+  { value: "draft", label: "Low", desc: "Smooth, lightweight paths" },
 ];
 
 const COLOR_OPTIONS: DropdownOption[] = [
-  { value: "Auto", label: "Auto (64 Colors)", desc: "Balanced palette for most images" },
-  { value: "Limited", label: "Limited (16 Colors)", desc: "Simpler flat palette for icons/logos" },
-  { value: "Full", label: "Full (128 Colors)", desc: "Rich color depth for detailed graphics" },
+  { value: "Auto", label: "Auto", desc: "Engine picks the best palette" },
+  { value: "8", label: "Limited (8)", desc: "Flat palette for icons & logos" },
+  { value: "24", label: "Rich (24)", desc: "More colors for detailed graphics" },
+  { value: "48", label: "Full (48)", desc: "High color depth for photos" },
+];
+
+const MODE_OPTIONS: DropdownOption[] = [
+  { value: "auto", label: "Auto", desc: "Detect logo, line art, or photo" },
+  { value: "logo", label: "Logo / Icon", desc: "Posterized color shapes" },
+  { value: "line-art", label: "Line Art", desc: "Monochrome vector outlines" },
+  { value: "photo", label: "Photo", desc: "Stylized posterized artwork" },
 ];
 
 const BACKGROUND_OPTIONS: DropdownOption[] = [
   { value: "Preserve", label: "Preserve", desc: "Keep original image background" },
   { value: "Transparent", label: "Transparent", desc: "Remove background, alpha vector" },
   { value: "Custom", label: "Custom Color", desc: "Fill with chosen background color" },
-];
-
-const PATH_OPT_OPTIONS: DropdownOption[] = [
-  { value: "Balanced", label: "Balanced", desc: "Clean curves & crisp lines" },
-  { value: "Maximum", label: "Maximum", desc: "Heavy smoothing, simplified paths" },
-  { value: "Off", label: "Off", desc: "Raw pixel-precise edge tracing" },
 ];
 
 const COLOR_PRESETS = [
@@ -74,6 +77,8 @@ interface CustomDropdownProps {
   onToggle: () => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   disabled?: boolean;
+  customColor?: string;
+  onCustomColorChange?: (color: string) => void;
 }
 
 function VectorDropdown({
@@ -85,6 +90,8 @@ function VectorDropdown({
   onToggle,
   dropdownRef,
   disabled,
+  customColor,
+  onCustomColorChange,
 }: CustomDropdownProps) {
   const selected = options.find((o) => o.value === value) || options[0];
 
@@ -114,9 +121,24 @@ function VectorDropdown({
           disabled ? "opacity-50 cursor-not-allowed" : "hover:border-[#D94A1E]"
         }`}
       >
-        <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
-          {selected.label}
-        </span>
+        {value === "Custom" && customColor ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+              Custom
+            </span>
+            <span
+              className="w-[16px] h-[16px] rounded-full border border-gray-300 shrink-0 inline-block shadow-2xs"
+              style={{ backgroundColor: customColor }}
+            />
+            <span className="font-mono text-[11px] md:text-[12px] text-brand-primary font-semibold uppercase shrink-0">
+              {customColor}
+            </span>
+          </div>
+        ) : (
+          <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+            {selected.label}
+          </span>
+        )}
         <button
           type="button"
           tabIndex={-1}
@@ -143,8 +165,8 @@ function VectorDropdown({
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[220px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
-          <div role="listbox" className="w-full max-h-[218px] overflow-y-auto py-[6px] brand-scrollbar">
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[260px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
+          <div role="listbox" className="w-full max-h-[258px] overflow-y-auto py-[6px] brand-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;
               return (
@@ -183,6 +205,48 @@ function VectorDropdown({
                   <span className="font-body text-[11px] md:text-[12px] text-[#64748B]">
                     {opt.desc}
                   </span>
+
+                  {opt.value === "Custom" && onCustomColorChange && customColor && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 flex items-center justify-between gap-1 flex-wrap"
+                    >
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {COLOR_PRESETS.map((c) => (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            title={c.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCustomColorChange(c.hex);
+                            }}
+                            className={`w-[18px] h-[18px] rounded-full border border-gray-300 transition-transform ${
+                              customColor.toLowerCase() === c.hex.toLowerCase()
+                                ? "scale-115 ring-2 ring-brand-primary"
+                                : "hover:scale-105"
+                            }`}
+                            style={{ backgroundColor: c.hex }}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="color"
+                          value={customColor}
+                          onChange={(e) => onCustomColorChange(e.target.value)}
+                          className="w-[20px] h-[20px] p-0 border-none rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={customColor}
+                          onChange={(e) => onCustomColorChange(e.target.value)}
+                          maxLength={7}
+                          className="w-[58px] h-[22px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -197,11 +261,11 @@ export function RasterToSvgConverter() {
   const { status, sessionVersion } = useAuth();
 
   // Settings
-  const [rasterQuality, setRasterQuality] = useState("Medium");
+  const [rasterQuality, setRasterQuality] = useState("standard");
   const [rasterColors, setRasterColors] = useState("Auto");
+  const [rasterMode, setRasterMode] = useState("auto");
   const [rasterBackground, setRasterBackground] = useState("Preserve");
   const [rasterBgColor, setRasterBgColor] = useState("#ffffff");
-  const [rasterPathOpt, setRasterPathOpt] = useState("Balanced");
 
   // File & State
   const [rasterFile, setRasterFile] = useState<File | null>(null);
@@ -219,13 +283,15 @@ export function RasterToSvgConverter() {
     size: number;
     conversionsUsed?: number;
     remaining?: number;
+    imageClass?: string;
+    advisory?: string;
   } | null>(null);
 
   // Preview & Dropdowns
   const [previewMode, setPreviewMode] = useState<"vector" | "source" | "code">("vector");
   const [copiedCode, setCopiedCode] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<"quality" | "colors" | "background" | "pathOpt" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"quality" | "colors" | "mode" | "background" | null>(null);
 
   // Auth & Quota
   const [usage, setUsage] = useState<UsageInfo | null>(null);
@@ -242,8 +308,8 @@ export function RasterToSvgConverter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qualityRef = useRef<HTMLDivElement>(null);
   const colorsRef = useRef<HTMLDivElement>(null);
+  const modeRef = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLDivElement>(null);
-  const pathOptRef = useRef<HTMLDivElement>(null);
 
   // Wipe data when signing out
   useEffect(() => {
@@ -303,7 +369,7 @@ export function RasterToSvgConverter() {
       if (openDropdown === "background" && backgroundRef.current && !backgroundRef.current.contains(target)) {
         setOpenDropdown(null);
       }
-      if (openDropdown === "pathOpt" && pathOptRef.current && !pathOptRef.current.contains(target)) {
+      if (openDropdown === "mode" && modeRef.current && !modeRef.current.contains(target)) {
         setOpenDropdown(null);
       }
     }
@@ -352,7 +418,7 @@ export function RasterToSvgConverter() {
           if (typeof saved.colors === "string") setRasterColors(saved.colors);
           if (typeof saved.background === "string") setRasterBackground(saved.background);
           if (typeof saved.bgColor === "string") setRasterBgColor(saved.bgColor);
-          if (typeof saved.pathOpt === "string") setRasterPathOpt(saved.pathOpt);
+          if (typeof saved.mode === "string") setRasterMode(saved.mode);
           if (saved.result && typeof saved.result.svg === "string") {
             setResult(saved.result);
           }
@@ -381,9 +447,9 @@ export function RasterToSvgConverter() {
           quality: rasterQuality,
           colors: rasterColors,
           background: rasterBackground,
-          bgColor: rasterBgColor,
-          pathOpt: rasterPathOpt,
-          result: persistableResult,
+           bgColor: rasterBgColor,
+           mode: rasterMode,
+           result: persistableResult,
         })
       );
     } catch {}
@@ -394,9 +460,9 @@ export function RasterToSvgConverter() {
     imageDims,
     rasterQuality,
     rasterColors,
+    rasterMode,
     rasterBackground,
     rasterBgColor,
-    rasterPathOpt,
     result,
   ]);
 
@@ -433,19 +499,21 @@ export function RasterToSvgConverter() {
       file.type === "image/jpeg" ||
       file.name.toLowerCase().endsWith(".jpg") ||
       file.name.toLowerCase().endsWith(".jpeg");
+    const isGif = file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif");
+    const isBmp = file.type === "image/bmp" || file.name.toLowerCase().endsWith(".bmp");
 
-    if (!isPng && !isJpg) {
-      setError("Please choose a valid PNG, JPG, or JPEG image file.");
-      showToast("error", "Unsupported file type. Please upload PNG or JPG.");
+    if (!isPng && !isJpg && !isGif && !isBmp) {
+      setError("Please choose a valid PNG, JPG, GIF, or BMP image file.");
+      showToast("error", "Unsupported file type. Please upload PNG, JPG, GIF, or BMP.");
       return;
     }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      setError(`Image too large (${sizeMB}MB). Maximum allowed size is 10MB.`);
-      showToast("error", "Image exceeds 10MB limit.");
-      return;
-    }
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        setError(`Image too large (${sizeMB}MB). Maximum allowed size is 12MB.`);
+        showToast("error", "Image exceeds 12MB limit.");
+        return;
+      }
 
     setRasterFile(file);
     setImageName(file.name);
@@ -481,11 +549,11 @@ export function RasterToSvgConverter() {
     setResult(null);
     setError(null);
     setPreviewMode("vector");
-    setRasterQuality("Medium");
+    setRasterQuality("standard");
     setRasterColors("Auto");
+    setRasterMode("auto");
     setRasterBackground("Preserve");
     setRasterBgColor("#ffffff");
-    setRasterPathOpt("Balanced");
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
@@ -523,14 +591,14 @@ export function RasterToSvgConverter() {
         formData.append("file", blob, imageName || "restored-image.png");
       }
 
+      formData.append("mode", rasterMode);
       formData.append("quality", rasterQuality);
-      formData.append("colors", rasterColors);
+      if (rasterColors !== "Auto") formData.append("colorCount", rasterColors);
       formData.append("background", rasterBackground);
       formData.append("bgColor", rasterBgColor);
-      formData.append("pathOpt", rasterPathOpt);
 
       const token = getAccessToken();
-      const res = await fetch("/api/v1/vectorize", {
+      const res = await fetch(apiBase("/api/v1/vectorize"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -554,6 +622,8 @@ export function RasterToSvgConverter() {
         size: svgByteLength,
         conversionsUsed: data.payload.conversionsUsed,
         remaining: data.payload.remaining,
+        imageClass: data.payload.imageClass,
+        advisory: data.payload.advisory,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
@@ -701,7 +771,7 @@ export function RasterToSvgConverter() {
                   id="raster-file-upload"
                   type="file"
                   aria-label="Upload PNG or JPG image file"
-                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                   accept=".png,.jpg,.jpeg,.gif,.bmp,image/png,image/jpeg,image/gif,image/bmp"
                   className="absolute w-0 h-0 opacity-0 overflow-hidden"
                   onChange={(e) => {
                     void handleFile(e.target.files?.[0]);
@@ -808,9 +878,9 @@ export function RasterToSvgConverter() {
                       <span className="font-semibold text-brand-primary">Select Image</span>
                     </div>
 
-                    <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
-                      PNG, JPG, or JPEG up to 10MB
-                    </p>
+                     <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
+                       PNG, JPG, GIF, or BMP up to 12MB
+                     </p>
 
                     <div className="flex items-center gap-2 mt-1">
                       <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
@@ -836,7 +906,8 @@ export function RasterToSvgConverter() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
-                  <div className="w-full rounded-[14px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] gap-[8px]">
+                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                    {/* Row 1: File Info */}
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
                         <div className="w-[28px] h-[28px] rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
@@ -844,35 +915,52 @@ export function RasterToSvgConverter() {
                             {fileExt}
                           </span>
                         </div>
-                        <span className="font-body font-medium text-[13px] md:text-[14px] text-[#202427] truncate">
+                        <span className="font-body font-semibold text-[13px] md:text-[14px] text-[#202427] truncate">
                           {imageName || "raster-image.png"}
                         </span>
                       </div>
-                      <span className="font-body text-[12px] md:text-[13px] text-[#64748B] shrink-0 font-medium">
+                      <span className="font-body text-[11px] md:text-[12px] text-[#64748B] bg-white border border-gray-200 px-2 py-0.5 rounded-md shrink-0 font-medium font-mono">
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[12px] md:text-[13px] text-[#475569] border-t border-gray-200/80 pt-[8px]">
-                      <span>
-                        Dimensions:{" "}
-                        <strong className="font-medium text-[#202427]">
-                          {imageDims ? `${imageDims.width} × ${imageDims.height} px` : "Analyzing..."}
+                    {/* Row 2: 3 Metrics Cards */}
+                    <div className="grid grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Dimensions</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "..."}
                         </strong>
+                      </div>
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Aspect Ratio</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
+                        </strong>
+                      </div>
+                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Input Format</span>
+                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                          {fileExt} Bitmap
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Row 3: Status Line */}
+                    <div className="flex items-center justify-between text-[11px] md:text-[12px] text-[#64748B] border-t border-gray-200/80 pt-[6px]">
+                      <span className="truncate">
+                        Quality: <strong className="text-[#202427] font-medium">{rasterQuality}</strong> &bull; Colors: <strong className="text-[#202427] font-medium">{rasterColors}</strong> &bull; BG: <strong className="text-[#202427] font-medium">{rasterBackground}</strong>
                       </span>
-                      {imageDims && (
-                        <span className="text-[#64748B]">
-                          Ratio: {(imageDims.width / imageDims.height).toFixed(2)}
-                        </span>
-                      )}
+                      <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full rounded-[14px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-center mt-[16px] gap-[8px]">
-                    <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
+                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                    <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
                       <span>Vector Tracing Engine</span>
+                      <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">PNG &amp; JPG to SVG</span>
                     </div>
-                    <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[5px]">
+                    <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
                         <span>Converts pixels into sharp, infinitely scalable vector paths</span>
@@ -881,10 +969,10 @@ export function RasterToSvgConverter() {
                         <span className="text-brand-primary font-bold">✓</span>
                         <span>Ideal for logos, icons, badges, illustrations &amp; line art</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>Adjust detail quality, color count &amp; path smoothing</span>
-                      </li>
+                       <li className="flex items-center gap-2">
+                         <span className="text-brand-primary font-bold">✓</span>
+                         <span>Adjust quality, color count &amp; tracing mode</span>
+                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
                         <span>Preserves transparency or fills with custom colors</span>
@@ -1053,11 +1141,11 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full mt-[16px] transition-all duration-300 ${
+                  className={`w-full h-auto min-h-[176px] md:h-[180px] mt-[16px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
                       label="Quality"
@@ -1104,73 +1192,27 @@ export function RasterToSvgConverter() {
                       onToggle={() => setOpenDropdown(openDropdown === "background" ? null : "background")}
                       dropdownRef={backgroundRef}
                       disabled={converting}
+                      customColor={rasterBgColor}
+                      onCustomColorChange={setRasterBgColor}
                     />
 
-                    {/* Path Optimization Dropdown */}
+                    {/* Tracing Mode Dropdown */}
                     <VectorDropdown
-                      label="Path Optimization"
-                      value={rasterPathOpt}
-                      options={PATH_OPT_OPTIONS}
+                      label="Tracing Mode"
+                      value={rasterMode}
+                      options={MODE_OPTIONS}
                       onChange={(val) => {
-                        setRasterPathOpt(val);
+                        setRasterMode(val);
                         setOpenDropdown(null);
                         setResult(null);
                       }}
-                      isOpen={openDropdown === "pathOpt"}
-                      onToggle={() => setOpenDropdown(openDropdown === "pathOpt" ? null : "pathOpt")}
-                      dropdownRef={pathOptRef}
+                      isOpen={openDropdown === "mode"}
+                      onToggle={() => setOpenDropdown(openDropdown === "mode" ? null : "mode")}
+                      dropdownRef={modeRef}
                       disabled={converting}
                     />
                   </div>
 
-                  {/* Custom Background Color Picker (Shows when Custom is selected) */}
-                  {rasterBackground === "Custom" && (
-                    <div className="w-full mt-[12px] p-[12px] rounded-[12px] border border-[#8F8F8F] bg-white flex flex-col sm:flex-row items-center justify-between gap-[10px]">
-                      <span className="font-heading font-semibold text-[13px] text-[#475569]">
-                        Select Background Color:
-                      </span>
-                      <div className="flex items-center gap-[8px] flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={() => {
-                              setRasterBgColor(c.hex);
-                              setResult(null);
-                            }}
-                            className={`w-[22px] h-[22px] rounded-full border border-gray-300 transition-transform ${
-                              rasterBgColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "scale-125 ring-2 ring-brand-primary"
-                                : "hover:scale-110"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                        <div className="flex items-center gap-1.5 ml-1">
-                          <input
-                            type="color"
-                            value={rasterBgColor}
-                            onChange={(e) => {
-                              setRasterBgColor(e.target.value);
-                              setResult(null);
-                            }}
-                            className="w-[26px] h-[26px] p-0 border-none rounded cursor-pointer"
-                          />
-                          <input
-                            type="text"
-                            value={rasterBgColor}
-                            onChange={(e) => {
-                              setRasterBgColor(e.target.value);
-                              setResult(null);
-                            }}
-                            maxLength={7}
-                            className="w-[74px] h-[28px] px-2 font-mono text-[12px] border border-gray-300 rounded-md outline-none focus:border-brand-primary uppercase"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Error Banner */}
@@ -1180,6 +1222,16 @@ export function RasterToSvgConverter() {
                     className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
                   >
                     {error}
+                  </div>
+                )}
+
+                {/* Advisory Banner (e.g. photo limitations) */}
+                {result && result.advisory && (
+                  <div
+                    role="note"
+                    className="rounded-[8px] border border-amber-200 bg-amber-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-amber-800"
+                  >
+                    {result.advisory}
                   </div>
                 )}
 
