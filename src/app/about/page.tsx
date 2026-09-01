@@ -42,13 +42,13 @@ export default function AboutUsPage() {
     {
       name: "Sardar Muhammad Nadir",
       role: "CEO and Founder",
-      bio: "Full-stack architect specializing in performance optimization, graphics rendering engines, and modern web applications.",
+      bio: "Visionary entrepreneur and tech leader driving the strategic direction of The Nevon. Nadir is focused on building high-impact SaaS products and scaling teams.",
       initials: "SN",
     },
     {
       name: "Muhammad Aswad Khan",
       role: "Project Manager",
-      bio: "Product strategist focused on developer experience, user interface design, and scaling digital tools at The Nevon.",
+      bio: "Dedicated project manager bridging the gap between design, engineering, and business goals. Aswad oversees Agile workflows and ensures timely, high-quality delivery.",
       initials: "AK",
     },
   ];

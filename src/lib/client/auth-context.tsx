@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
-      localStorage.removeItem('crush_usage')
+      localStorage.removeItem('crush_usage_info')
       sessionStorage.setItem('crush_auth_status', 'authed')
     }
   }, [])
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
-      localStorage.removeItem('crush_usage')
+      localStorage.removeItem('crush_usage_info')
       // A logged-out user must not carry the previous user's editor contents
       // to the next session.
       sessionStorage.removeItem('crush_converter_state')

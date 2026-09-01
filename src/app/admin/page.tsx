@@ -1,6 +1,7 @@
 import { User, ConversionLog, AuditLog, VALID_USER_FILTER } from "@/lib/database/db";
 import { AnalyticsChart } from "@/components/admin/AnalyticsChart";
 import { Button } from "@/components/ui/Button";
+import { LocalTime } from "@/components/utils/LocalTime";
 
 export const dynamic = "force-dynamic";
 
@@ -182,7 +183,7 @@ export default async function AdminDashboard() {
                   </div>
                   <div>
                     <p className="text-text-dark"><span className="font-bold">{audit.adminId}</span> {audit.action} {audit.resourceType || ''}</p>
-                    <span className="text-xs text-text-muted">{new Date(audit.createdAt).toLocaleString()}</span>
+                    <span className="text-xs text-text-muted"><LocalTime date={audit.createdAt} format="long" /></span>
                   </div>
                 </div>
               );
@@ -231,7 +232,7 @@ export default async function AdminDashboard() {
                     )}
                   </td>
                   <td className="p-5 text-text-muted font-medium">
-                    {new Date(conv.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <LocalTime date={conv.createdAt} format="time" />
                   </td>
                 </tr>
               ))}

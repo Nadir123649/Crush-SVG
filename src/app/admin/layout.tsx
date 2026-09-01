@@ -26,6 +26,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const touchStartXRef = React.useRef<number | null>(null);
+
+  const isMouseDownRef = React.useRef(false);
+  const mouseStartXRef = React.useRef<number | null>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isMouseDownRef.current || mouseStartXRef.current === null) return;
+      const diff = e.clientX - mouseStartXRef.current;
+      if (diff < -30 && isDesktopSidebarOpen) {
+        setIsDesktopSidebarOpen(false);
+        isMouseDownRef.current = false;
+        mouseStartXRef.current = null;
+      } else if (diff > 30 && !isDesktopSidebarOpen) {
+        setIsDesktopSidebarOpen(true);
+        isMouseDownRef.current = false;
+        mouseStartXRef.current = null;
+      }
+    };
+
+    const handleMouseUp = () => {
+      isMouseDownRef.current = false;
+      mouseStartXRef.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDesktopSidebarOpen]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -82,16 +114,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      {/* Desktop sidebar edge toggle */}
+      {/* Desktop sidebar edge hover resizer & toggle */}
       <div
-        className="hidden md:flex fixed inset-y-0 left-0 z-[55] w-[5px] cursor-col-resize hover:bg-brand-primary/10 transition-colors items-center justify-center group"
-        onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+        onMouseDown={(e) => {
+          isMouseDownRef.current = true;
+          mouseStartXRef.current = e.clientX;
+        }}
+        onClick={() => {
+          setIsDesktopSidebarOpen((prev) => !prev);
+        }}
+        className={`hidden md:flex fixed top-0 bottom-0 z-[60] w-4 cursor-col-resize items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
+          isDesktopSidebarOpen ? "left-[252px]" : "left-0"
+        }`}
+        title={isDesktopSidebarOpen ? "Click or drag left to close sidebar" : "Click or drag right to open sidebar"}
       >
-        <div className="w-[3px] h-8 rounded-full bg-gray-300 group-hover:bg-brand-primary transition-colors" />
+        {/* Invisible border line by default, highlighted on hover */}
+        <div className="w-[3px] h-full bg-transparent group-hover:bg-brand-primary transition-colors" />
+        
+        {/* Center handle indicator - only visible on hover */}
+        <div className="absolute top-1/2 -translate-y-1/2 w-5 h-10 rounded-full bg-brand-primary text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <svg
+            className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${
+              isDesktopSidebarOpen ? "" : "rotate-180"
+            }`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </div>
       </div>
 
-      {/* NavigationDrawer (SideNav) */}
-      <nav className={`
+      <nav 
+        onTouchStart={(e) => {
+          touchStartXRef.current = e.touches[0].clientX;
+        }}
+        onTouchMove={(e) => {
+          if (touchStartXRef.current === null) return;
+          const diff = touchStartXRef.current - e.touches[0].clientX;
+          if (diff > 50) {
+            setIsMobileMenuOpen(false);
+            touchStartXRef.current = null;
+          }
+        }}
+        onTouchEnd={() => {
+          touchStartXRef.current = null;
+        }}
+        className={`
         fixed md:relative inset-y-0 left-0 z-50
         flex flex-col w-[260px] h-screen py-6 bg-white border-r border-[#F2EDE8] justify-between
         transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]

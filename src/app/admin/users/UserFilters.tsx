@@ -65,15 +65,28 @@ export function UserFilters({
         <div className="space-y-5">
           <div>
             <label className="font-body font-semibold text-sm text-text-muted mb-2 block">Role</label>
-            <select 
-              value={role}
-              onChange={(e) => onRoleSelectChange(e.target.value)}
-              className="w-full bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] py-2.5 px-3 font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all cursor-pointer outline-none"
-            >
-              <option value="all">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
+            <div className="flex flex-col gap-2">
+              {[
+                { value: 'all', label: 'All Roles' },
+                { value: 'admin', label: 'Admin' },
+                { value: 'user', label: 'User' },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 cursor-pointer font-body text-sm text-text-dark px-3 py-2 rounded-[8px] border border-[#F2EDE8] bg-[#FFFCFA] hover:border-brand-primary/40 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="role-filter"
+                    value={opt.value}
+                    checked={role === opt.value}
+                    onChange={() => onRoleSelectChange(opt.value)}
+                    className="accent-brand-primary"
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
