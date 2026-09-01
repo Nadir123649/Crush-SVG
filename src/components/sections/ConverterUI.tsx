@@ -553,7 +553,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} style={{ width: "auto", height: "auto" }} className="object-contain" />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">Drag &amp; Drop or </span>
                     <span className="font-medium text-brand-primary">Select SVG</span>
@@ -588,7 +588,7 @@ function SvgToPngConverter() {
                   )}
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
-                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain shrink-0" />
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
                     <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
                   </p>
                 </div>

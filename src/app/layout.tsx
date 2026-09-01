@@ -163,31 +163,34 @@ export default async function RootLayout({
           `}}
         />
 
-        {/* Structured Data (JSON-LD) - placed in head to avoid hydration mismatch */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebSiteSchema()),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getOrganizationSchema()),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebApplicationSchema()),
-          }}
-        />
       </head>
 
       <body
         className="min-h-full flex flex-col items-center bg-background overflow-x-hidden"
         suppressHydrationWarning
       >
+        {/* Structured Data (JSON-LD) - in body to avoid hydration mismatch from browser extensions injecting scripts in head */}
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getWebSiteSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getOrganizationSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getWebApplicationSchema()),
+          }}
+        />
 
         {/* Google Tag Manager - noscript */}
         <noscript>
