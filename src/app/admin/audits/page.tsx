@@ -93,8 +93,8 @@ export default function AuditsPage() {
         const headers = ["Timestamp (UTC)", "Level", "Event Type", "Action Description", "User", "IP Address"];
         const getSeverityLevel = (action: string) => {
           const act = action.toLowerCase();
-          if (act.includes('fail') || act.includes('error') || act.includes('delete')) return 'Error';
-          if (act.includes('warn') || act.includes('limit') || act.includes('suspend')) return 'Warning';
+          if (act.includes('fail') || act.includes('error')) return 'Error';
+          if (act.includes('warn') || act.includes('limit') || act.includes('suspend') || act.includes('delete')) return 'Warning';
           return 'Info';
         };
 
@@ -130,8 +130,8 @@ export default function AuditsPage() {
   // Helper to determine severity based on action keywords
   const getSeverityLevel = (action: string) => {
     const act = action.toLowerCase();
-    if (act.includes('fail') || act.includes('error') || act.includes('delete')) return 'error';
-    if (act.includes('warn') || act.includes('limit') || act.includes('suspend')) return 'warning';
+    if (act.includes('fail') || act.includes('error')) return 'error';
+    if (act.includes('warn') || act.includes('limit') || act.includes('suspend') || act.includes('delete')) return 'warning';
     return 'info';
   };
 

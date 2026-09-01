@@ -81,7 +81,6 @@ function SvgToPngConverter() {
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [previewError, setPreviewError] = useState(false);
 
   const widthRef = useRef<HTMLDivElement>(null);
@@ -93,14 +92,6 @@ function SvgToPngConverter() {
   const storageRestoredRef = useRef(false);
   const [storageRestored, setStorageRestored] = useState(false);
   const prevStatusRef = useRef<AuthStatus | null>(null);
-
-  useEffect(() => {
-    if (converting) {
-      const timer = setTimeout(() => setProgress(90), 50);
-      return () => clearTimeout(timer);
-    }
-    queueMicrotask(() => setProgress(0));
-  }, [converting]);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -1045,18 +1036,16 @@ function SvgToPngConverter() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[42px] mt-[16px] lg:mt-auto flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
                     {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"

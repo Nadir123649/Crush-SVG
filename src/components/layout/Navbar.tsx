@@ -14,10 +14,8 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
 export function Navbar({ logoUrl }: { logoUrl?: string }) {
-  const { user, status, logout } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,11 +24,44 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
 
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const [mounted, setMounted] = useState(false);
+  // ── Synchronous auth class applied BEFORE first paint ─────────────────────
+  // Reads localStorage key crush_user (same key as AuthProvider) synchronously
+  // so the correct CSS class is applied before the browser paints even one
+  // frame — eliminating the Login<>Profile flicker on page refresh.
+  useLayoutEffect(() => {
+    const applyAuthClass = () => {
+      try {
+        const hasUser = !!localStorage.getItem("crush_user");
+        if (hasUser) {
+          document.documentElement.classList.add("user-logged-in");
+          document.documentElement.classList.remove("user-logged-out");
+        } else {
+          document.documentElement.classList.add("user-logged-out");
+          document.documentElement.classList.remove("user-logged-in");
+        }
+      } catch {
+        document.documentElement.classList.add("user-logged-out");
+        document.documentElement.classList.remove("user-logged-in");
+      }
+    };
 
-  useIsomorphicLayoutEffect(() => {
-    setMounted(true);
+    applyAuthClass();
+
+    // Keep in sync when storage changes in another tab (login/logout)
+    window.addEventListener("storage", applyAuthClass);
+    return () => window.removeEventListener("storage", applyAuthClass);
   }, []);
+
+  // Keep root auth class in sync when React auth state changes in same tab
+  useEffect(() => {
+    if (user) {
+      document.documentElement.classList.add("user-logged-in");
+      document.documentElement.classList.remove("user-logged-out");
+    } else {
+      document.documentElement.classList.add("user-logged-out");
+      document.documentElement.classList.remove("user-logged-in");
+    }
+  }, [user]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -66,7 +97,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
 
   useEffect(() => {
     queueMicrotask(() => setMenuOpen(false));
-  }, [status, pathname]);
+  }, [pathname]);
 
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (
@@ -130,14 +161,14 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
               href={pathname === "/png-to-svg" ? "/" : "/png-to-svg"}
-              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
             </Link>
 
-            <Link 
+            <Link
               href="/svg-guides"
-              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Guides
             </Link>
@@ -149,115 +180,115 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
               Need Help?
             </Link>
 
-            {/* Authentication State */}
-            {!mounted || status === "loading" ? (
-              <div className="flex items-center w-[120px] md:w-[160px] h-[32px] md:h-[42px] bg-transparent" />
-            ) : user ? (
-              <div className="relative" ref={menuRef}>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  aria-haspopup="menu"
-                  aria-expanded={menuOpen}
-                  aria-label="User account menu"
-                  className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+            {/* Auth area: BOTH states always in DOM; CSS controls visibility */}
+
+            {/* Logged-out: Login + Signup buttons */}
+            <div className="logged-out-only flex items-center gap-[14px] md:gap-[16px]">
+              <Button
+                href="/login"
+                variant="outline"
+                className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
+              >
+                Log In
+              </Button>
+
+              <Button
+                href="/signup"
+                variant="solid"
+                className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
+              >
+                Sign Up
+              </Button>
+            </div>
+
+            {/* Logged-in: Profile dropdown */}
+            <div className="logged-in-only relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="User account menu"
+                className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+              >
+                {user?.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
+                    {(user?.displayName || user?.email || "U")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </span>
+                )}
+
+                <span className="font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
+                  {user?.displayName || user?.email}
+                </span>
+
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 12 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`transition-transform duration-200 ${
+                    menuOpen ? "rotate-180" : ""
+                  }`}
                 >
-                  {user.photoURL ? (
-                    <Image
-                      src={user.photoURL}
-                      alt=""
-                      width={24}
-                      height={24}
-                      className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
-                      {(user.displayName || user.email || "U")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </span>
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#353A3E"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
+                >
+                  <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
+                    <p className="font-body font-medium text-[14px] text-text-dark truncate">
+                      {user?.displayName || "CrushSVG user"}
+                    </p>
+
+                    <p className="font-body text-[12px] text-text-muted truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
+                    >
+                      Admin Dashboard
+                    </Link>
                   )}
 
-                  <span className="font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
-                    {user.displayName || user.email}
-                  </span>
-
-                  <svg
-                    width="10"
-                    height="6"
-                    viewBox="0 0 12 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`transition-transform duration-200 ${
-                      menuOpen ? "rotate-180" : ""
-                    }`}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
                   >
-                    <path
-                      d="M1 1.5L6 6.5L11 1.5"
-                      stroke="#353A3E"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
 
-                {menuOpen && (
-                  <div
-                    role="menu"
-                    className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
-                  >
-                    <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
-                      <p className="font-body font-medium text-[14px] text-text-dark truncate">
-                        {user.displayName || "CrushSVG user"}
-                      </p>
-
-                      <p className="font-body text-[12px] text-text-muted truncate">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    {user.role === 'admin' && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setMenuOpen(false)}
-                        className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
-                      >
-                        Admin Dashboard
-                      </Link>
-                    )}
-
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={handleLogout}
-                      className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
-                    >
-                      Log out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-[14px] md:gap-[16px]">
-                <Button
-                  href="/login"
-                  variant="outline"
-                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
-                >
-                  Log In
-                </Button>
-
-                <Button
-                  href="/signup"
-                  variant="solid"
-                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            )}
           </div>
         </nav>
       </div>

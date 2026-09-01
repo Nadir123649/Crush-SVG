@@ -312,7 +312,6 @@ export function RasterToSvgConverter() {
 
   // Conversion result
   const [converting, setConverting] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     svg: string;
@@ -426,15 +425,6 @@ export function RasterToSvgConverter() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [openDropdown]);
-
-  // Smooth progress bar during conversion
-  useEffect(() => {
-    if (converting) {
-      const timer = setTimeout(() => setProgress(90), 50);
-      return () => clearTimeout(timer);
-    }
-    queueMicrotask(() => setProgress(0));
-  }, [converting]);
 
   // Restore state from sessionStorage after hydration
   useEffect(() => {
@@ -559,6 +549,7 @@ export function RasterToSvgConverter() {
     setImageName(file.name);
     setImageSize(file.size);
     setResult(null);
+    setError(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -993,7 +984,7 @@ export function RasterToSvgConverter() {
                 )}
 
                 {/* Privacy Assurance Text */}
-                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
+                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px] lg:mt-auto">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
@@ -1255,13 +1246,11 @@ export function RasterToSvgConverter() {
 
                 {/* Action CTA Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                  <div className="w-full h-[42px] mt-[16px] lg:mt-auto flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
                     <span className="font-body text-[12px] text-[#64748B]">
@@ -1269,7 +1258,7 @@ export function RasterToSvgConverter() {
                     </span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] lg:mt-auto relative">
                     {limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"

@@ -12,6 +12,12 @@ const SvgDollarSign = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg"
 const SvgUserPlus = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>;
 const SvgSettings = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 
+const formatK = (num: number) => {
+  return Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 })
+    .format(num)
+    .toLowerCase();
+};
+
 export default async function AdminDashboard() {
   // Compute date for last 7 days
   const sevenDaysAgo = new Date();
@@ -86,7 +92,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{totalUsers.toLocaleString()}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalUsers)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">All active accounts</span>
           </div>
         </div>
@@ -100,7 +106,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{totalConversions.toLocaleString()}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">Vectorized successfully</span>
           </div>
         </div>
@@ -114,7 +120,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{rasterConversions.toLocaleString()}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
           </div>
         </div>
@@ -155,7 +161,11 @@ export default async function AdminDashboard() {
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#F2EDE8]">
             <h2 className="font-heading font-bold text-2xl text-text-dark">Audit Feed</h2>
             <span className="flex items-center text-xs text-[#D94A1E] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#D94A1E] animate-pulse mr-2"></span> Live
+              <span className="relative flex h-2.5 w-2.5 mr-2">
+                <span className="animate-soft-ping absolute inline-flex h-full w-full rounded-full bg-[#D94A1E] opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#D94A1E]"></span>
+              </span>
+              Live
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-5 pr-2 brand-scrollbar">

@@ -41,13 +41,13 @@ export default function AboutUsPage() {
   const teamMembers = [
     {
       name: "Sardar Muhammad Nadir",
-      role: "Founder & Product Owner",
+      role: "CEO and Founder",
       bio: "Full-stack architect specializing in performance optimization, graphics rendering engines, and modern web applications.",
       initials: "SN",
     },
     {
       name: "Muhammad Aswad Khan",
-      role: "Technical Project Manager",
+      role: "Project Manager",
       bio: "Product strategist focused on developer experience, user interface design, and scaling digital tools at The Nevon.",
       initials: "AK",
     },
