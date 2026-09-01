@@ -572,7 +572,14 @@ function runVectorTrace(
     width,
     height,
   });
-  return vtrace.getSVG();
+
+  const originalConsoleError = console.error;
+  console.error = () => {};
+  try {
+    return vtrace.getSVG();
+  } finally {
+    console.error = originalConsoleError;
+  }
 }
 
 function countDistinctColors(imageData: ImageData): number {
