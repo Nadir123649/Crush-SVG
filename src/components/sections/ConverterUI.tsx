@@ -374,12 +374,18 @@ function SvgToPngConverter() {
       });
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
-        setUsage({
+        const updatedUsage = {
           conversionsUsed: res.conversionsUsed,
           remaining: res.remaining,
           isUnlimited: false,
           limitReached: reached,
-        });
+        };
+        setUsage(updatedUsage);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
+          } catch {}
+        }
         window.dispatchEvent(
           new CustomEvent("crushUsageUpdated", {
             detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining },
@@ -492,7 +498,7 @@ function SvgToPngConverter() {
                           : `${usage.conversionsUsed} of ${
                               usage.conversionsUsed + usage.remaining
                             } free conversions used`
-                        : ""}
+                        : "0 of 3 free conversions used"}
                     </span>
                   </div>
                 </div>

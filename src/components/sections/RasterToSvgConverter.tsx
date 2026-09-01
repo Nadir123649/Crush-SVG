@@ -660,6 +660,20 @@ export function RasterToSvgConverter() {
         conversionsUsed: res.conversionsUsed,
         remaining: res.remaining,
       });
+      if (res.conversionsUsed !== undefined && res.remaining !== undefined) {
+        const updatedUsage = {
+          conversionsUsed: res.conversionsUsed,
+          remaining: res.remaining,
+          isUnlimited: false,
+          limitReached: res.remaining === 0,
+        };
+        setUsage(updatedUsage);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
+          } catch {}
+        }
+      }
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
       trackConversion("raster_vectorized", { output_format: "svg" });
@@ -776,7 +790,7 @@ export function RasterToSvgConverter() {
                           : `${usage.conversionsUsed} of ${
                               usage.conversionsUsed + usage.remaining
                             } free conversions used`
-                        : ""}
+                        : "0 of 3 free conversions used"}
                     </span>
                   </div>
                 </div>
