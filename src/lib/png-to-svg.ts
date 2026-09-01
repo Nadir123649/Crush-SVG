@@ -1,10 +1,17 @@
 import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 
 export type ConvertMode = "auto" | "pixel" | "vector";
+export type QualityLevel = "low" | "standard" | "high";
+
+export interface ConvertOptions {
+  mode?: ConvertMode;
+  quality?: QualityLevel;
+}
 
 export interface ConvertResult {
   svg: string;
   modeUsed: "pixel" | "vector";
+  qualityUsed: QualityLevel;
   width: number;
   height: number;
   originalSize: number;
@@ -14,24 +21,72 @@ export interface ConvertResult {
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_DIMENSION = 2000;
-
-const VECTOR_OPTIONS: VTraceOptions = {
-  colorMode: "color",
-  hierarchical: "stacked",
-  mode: "spline",
-  filterSpeckle: 4,
-  colorPrecision: 8,
-  layerDifference: 16,
-  cornerThreshold: 60,
-  lengthThreshold: 4.0,
-  maxIterations: 10,
-  spliceThreshold: 45,
-  pathPrecision: 3,
-  background: VTrace.COLOR_TRANSPARENT,
-};
-
+const DEFAULT_MAX_DIMENSION = 2000;
+const UPSCALE_THRESHOLD = 1500;
 const VECTOR_SIZE_RATIO_LIMIT = 2.5;
+
+interface QualityPreset {
+  vtraceOptions: VTraceOptions;
+  maxDimension: number;
+  doUpscale: boolean;
+}
+
+const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
+  low: {
+    vtraceOptions: {
+      colorMode: "color",
+      hierarchical: "stacked",
+      mode: "spline",
+      filterSpeckle: 10,
+      colorPrecision: 6,
+      layerDifference: 24,
+      cornerThreshold: 75,
+      lengthThreshold: 6.0,
+      maxIterations: 6,
+      spliceThreshold: 45,
+      pathPrecision: 2,
+      background: VTrace.COLOR_TRANSPARENT,
+    },
+    maxDimension: 1400,
+    doUpscale: false,
+  },
+  standard: {
+    vtraceOptions: {
+      colorMode: "color",
+      hierarchical: "stacked",
+      mode: "spline",
+      filterSpeckle: 4,
+      colorPrecision: 8,
+      layerDifference: 16,
+      cornerThreshold: 60,
+      lengthThreshold: 4.0,
+      maxIterations: 10,
+      spliceThreshold: 45,
+      pathPrecision: 3,
+      background: VTrace.COLOR_TRANSPARENT,
+    },
+    maxDimension: 2000,
+    doUpscale: true,
+  },
+  high: {
+    vtraceOptions: {
+      colorMode: "color",
+      hierarchical: "stacked",
+      mode: "spline",
+      filterSpeckle: 2,
+      colorPrecision: 10,
+      layerDifference: 10,
+      cornerThreshold: 45,
+      lengthThreshold: 2.5,
+      maxIterations: 15,
+      spliceThreshold: 45,
+      pathPrecision: 4,
+      background: VTrace.COLOR_TRANSPARENT,
+    },
+    maxDimension: 2500,
+    doUpscale: true,
+  },
+};
 
 function validateFile(file: File): void {
   const ext = "." + file.name.split(".").pop()?.toLowerCase();
@@ -62,9 +117,13 @@ function loadImage(file: File): Promise<{ img: HTMLImageElement; dataUrl: string
   });
 }
 
-function clampDimension(w: number, h: number): { w: number; h: number } {
-  if (w <= MAX_DIMENSION && h <= MAX_DIMENSION) return { w, h };
-  const ratio = Math.min(MAX_DIMENSION / w, MAX_DIMENSION / h);
+function clampDimension(
+  w: number,
+  h: number,
+  maxDim: number = DEFAULT_MAX_DIMENSION
+): { w: number; h: number } {
+  if (w <= maxDim && h <= maxDim) return { w, h };
+  const ratio = Math.min(maxDim / w, maxDim / h);
   return { w: Math.round(w * ratio), h: Math.round(h * ratio) };
 }
 
@@ -121,9 +180,15 @@ function buildPixelSvg(dataUrl: string, width: number, height: number): string {
   ].join("\n");
 }
 
-function runVectorTrace(imageData: ImageData, width: number, height: number): string {
+function runVectorTrace(
+  imageData: ImageData,
+  width: number,
+  height: number,
+  quality: QualityLevel
+): string {
+  const preset = QUALITY_PRESETS[quality];
   const vtrace = new VTrace(imageData, {
-    ...VECTOR_OPTIONS,
+    ...preset.vtraceOptions,
     width,
     height,
   });
@@ -156,14 +221,27 @@ async function analyzeAndChoose(file: File): Promise<"pixel" | "vector"> {
 
 export async function convertPngToSvg(
   file: File,
-  mode: ConvertMode = "auto"
+  options?: ConvertOptions
 ): Promise<ConvertResult> {
+  const mode = options?.mode ?? "auto";
+  const quality: QualityLevel = options?.quality ?? "standard";
+
   validateFile(file);
 
   const { img, dataUrl } = await loadImage(file);
   const origW = img.naturalWidth;
   const origH = img.naturalHeight;
-  const { w: drawW, h: drawH } = clampDimension(origW, origH);
+
+  const preset = QUALITY_PRESETS[quality];
+  const { w: clampedW, h: clampedH } = clampDimension(origW, origH, preset.maxDimension);
+
+  let drawW = clampedW;
+  let drawH = clampedH;
+
+  if (preset.doUpscale && clampedW < UPSCALE_THRESHOLD && clampedH < UPSCALE_THRESHOLD) {
+    drawW = clampedW * 2;
+    drawH = clampedH * 2;
+  }
 
   const chosenMode = mode === "auto" ? await analyzeAndChoose(file) : mode;
 
@@ -172,6 +250,7 @@ export async function convertPngToSvg(
     return {
       svg,
       modeUsed: "pixel",
+      qualityUsed: quality,
       width: drawW,
       height: drawH,
       originalSize: file.size,
@@ -182,7 +261,7 @@ export async function convertPngToSvg(
   const imageData = drawToCanvas(img, drawW, drawH);
 
   try {
-    const svg = runVectorTrace(imageData, drawW, drawH);
+    const svg = runVectorTrace(imageData, drawW, drawH, quality);
     const processed = postProcessSvg(svg, drawW, drawH);
     const outputSize = new Blob([processed]).size;
 
@@ -191,6 +270,7 @@ export async function convertPngToSvg(
       return {
         svg: fallbackSvg,
         modeUsed: "pixel",
+        qualityUsed: quality,
         width: drawW,
         height: drawH,
         originalSize: file.size,
@@ -201,6 +281,7 @@ export async function convertPngToSvg(
     return {
       svg: processed,
       modeUsed: "vector",
+      qualityUsed: quality,
       width: drawW,
       height: drawH,
       originalSize: file.size,
@@ -211,6 +292,7 @@ export async function convertPngToSvg(
     return {
       svg: fallbackSvg,
       modeUsed: "pixel",
+      qualityUsed: quality,
       width: drawW,
       height: drawH,
       originalSize: file.size,

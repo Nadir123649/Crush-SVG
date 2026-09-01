@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg } from "@/lib/png-to-svg";
+import { convertPngToSvg, type QualityLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -30,6 +30,12 @@ const QUALITY_OPTIONS: DropdownOption[] = [
   { value: "max", label: "High", desc: "Maximum detail & sharp edges" },
   { value: "draft", label: "Low", desc: "Smooth, lightweight paths" },
 ];
+
+const QUALITY_MAP: Record<string, QualityLevel> = {
+  draft: "low",
+  standard: "standard",
+  max: "high",
+};
 
 const COLOR_OPTIONS: DropdownOption[] = [
   { value: "Auto", label: "Auto", desc: "Engine picks the best palette" },
@@ -282,6 +288,7 @@ export function RasterToSvgConverter() {
     svg: string;
     size: number;
     modeUsed?: "pixel" | "vector";
+    qualityUsed?: QualityLevel;
     conversionsUsed?: number;
     remaining?: number;
     imageClass?: string;
@@ -591,12 +598,15 @@ export function RasterToSvgConverter() {
         fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
       }
 
-      const res = await convertPngToSvg(fileToConvert);
+      const res = await convertPngToSvg(fileToConvert, {
+        quality: QUALITY_MAP[rasterQuality] ?? "standard",
+      });
 
       setResult({
         svg: res.svg,
         size: res.outputSize,
         modeUsed: res.modeUsed,
+        qualityUsed: res.qualityUsed,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
@@ -1294,7 +1304,9 @@ export function RasterToSvgConverter() {
                     {/* Result Details */}
                     {result && result.size > 0 && (
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
-                        {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"} &bull; {formatFileSize(result.size)} &bull; Infinitely Scalable
+                        {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
+                        {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
+                        {" · "}{formatFileSize(result.size)} · Infinitely Scalable
                       </p>
                     )}
                   </div>
