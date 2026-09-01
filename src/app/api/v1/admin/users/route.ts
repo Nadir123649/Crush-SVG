@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit
   const search = searchParams.get('search')?.trim()
   const status = searchParams.get('status')?.trim()
+  const role = searchParams.get('role')?.trim()
   const sortBy = searchParams.get('sortBy') || 'createdAt'
   const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1
 
@@ -54,6 +55,10 @@ export async function GET(request: NextRequest) {
         { uid: { $regex: search, $options: 'i' } },
       ]
     })
+  }
+
+  if (role && role !== 'all') {
+    andClauses.push({ role })
   }
 
   if (status === 'verified') {

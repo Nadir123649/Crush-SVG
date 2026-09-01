@@ -260,13 +260,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
               >
                 {user?.photoURL ? (
-                  <Image
+                  <img
                     src={user.photoURL}
                     alt=""
-                    width={24}
-                    height={24}
                     className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
                   />
                 ) : (
                   <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
