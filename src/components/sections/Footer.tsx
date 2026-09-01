@@ -148,7 +148,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <a href="https://www.facebook.com/profile.php?id=61593405728605" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.facebook} alt="Facebook logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://www.instagram.com/crsuhsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.instagram.com/crushsvg_net/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.instagram} alt="Instagram logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
             <a href="https://www.linkedin.com/company/crushsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
@@ -167,7 +167,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <a href="https://www.facebook.com/profile.php?id=61593405728605" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Facebook" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.facebook} alt="Facebook logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
-            <a href="https://www.instagram.com/crsuhsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
+            <a href="https://www.instagram.com/crushsvg_net/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on Instagram" className="hover:opacity-80 transition-opacity">
               <Image src={IMAGES.instagram} alt="Instagram logo" width={16} height={16} className="w-[16px] h-[16px] object-contain" />
             </a>
             <a href="https://www.linkedin.com/company/crushsvg/" target="_blank" rel="noopener noreferrer" aria-label="Visit CrushSVG on LinkedIn" className="hover:opacity-80 transition-opacity">
@@ -180,7 +180,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
 
       {/* Divider */}
       <div className="w-full max-w-[1280px] h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[60px] mb-[16px] md:mb-[20px]"></div>
-  
+
       {/* Bottom Footer */}
       <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-[8px] md:gap-[12px]">
@@ -196,6 +196,10 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="hover:text-brand-primary transition-colors">Terms</Link>
           <span className="mx-[8px]">•</span>
           <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="hover:text-brand-primary transition-colors">Privacy</Link>
+          <span className="mx-[8px]">•</span>
+          <Link href="/cookies" onClick={(e) => handlePageClick(e, '/cookies')} className="hover:text-brand-primary transition-colors">Cookies</Link>
+          <span className="mx-[8px]">•</span>
+          <Link href="/blog" onClick={(e) => handlePageClick(e, '/blog')} className="hover:text-brand-primary transition-colors">Blog</Link>
           <span className="mx-[8px]">•</span>
           <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="hover:text-brand-primary transition-colors">Support</Link>
         </div>

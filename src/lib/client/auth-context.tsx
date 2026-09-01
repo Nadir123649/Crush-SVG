@@ -40,25 +40,9 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserDTO | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUser = localStorage.getItem('crush_user')
-        if (storedUser) return JSON.parse(storedUser)
-      } catch {}
-    }
-    return null
-  })
+  const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        if (localStorage.getItem('crush_user')) return 'authed'
-        if (sessionStorage.getItem('crush_auth_status') === 'guest') return 'guest'
-      } catch {}
-    }
-    return 'loading'
-  })
+  const [status, setStatus] = useState<AuthStatus>('loading')
   // Bumped whenever the access token is applied or cleared. Lets consumers
   // (e.g. usage fetching) react to the token actually being attached, which is
   // not guaranteed by `status` alone when a session is restored from storage.
@@ -69,7 +53,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionRestored(true)
     setSessionId(payload.sessionId ?? null)
     setSessionRemember(payload.remember ?? null)
-    setUser(payload.user)
+    // Only update user state when the data actually changed.  On page
+    // refresh the useLayoutEffect above already restored the user from
+    // localStorage, so the refresh API returning the same snapshot would
+    // otherwise trigger an unnecessary re-render (new object reference)
+    // that briefly flickers the profile UI.
+    setUser((prev) => {
+      if (prev && payload.user && prev.uid === payload.user.uid
+        && prev.displayName === payload.user.displayName
+        && prev.photoURL === payload.user.photoURL
+        && prev.email === payload.user.email
+        && prev.role === payload.user.role) {
+        return prev
+      }
+      return payload.user
+    })
     setStatus((prevStatus) => {
       if (prevStatus === 'guest' && typeof window !== 'undefined') {
         sessionStorage.removeItem('crush_converter_state')
@@ -116,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
           setStatus('guest')
         }
-      } catch {}
+      } catch { }
     }
   }, [status])
 
@@ -169,9 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let marker: string | null = null
         try {
           marker = sessionStorage.getItem('crush_session_only')
-        } catch {}
+        } catch { }
         if (!marker) {
-          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
           clearAuth()
           return
         }
@@ -211,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
-        } catch {}
+        } catch { }
       }
       showToast('success', 'Signed in successfully. Welcome back!')
     },
@@ -244,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
-        } catch {}
+        } catch { }
       }
       showToast('success', 'Signed in successfully. Welcome back!')
     },
@@ -253,10 +251,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearAuth()
-    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
     void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
-      .catch(() => {})
+      .catch(() => { })
   }, [clearAuth])
 
   const changePassword = useCallback(

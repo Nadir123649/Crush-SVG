@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'invalid_email', 'A valid email address is required', undefined, request)
   }
 
-  if (!displayName || !displayName.trim()) {
-    return errorResponse(400, 'missing_name', 'Display name is required', undefined, request)
+  if (displayName && typeof displayName !== 'string') {
+    return errorResponse(400, 'invalid_name', 'Display name must be a string', undefined, request)
   }
 
   if (!password || password.length < 8) {
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     created = await User.create({
       uid: `admin_${email}`,
       email: email.toLowerCase().trim(),
-      displayName: displayName ?? email.split('@')[0],
+      displayName: (displayName && displayName.trim()) ? displayName.trim() : email.split('@')[0],
       photoURL: null,
       role,
       isVerified: true,

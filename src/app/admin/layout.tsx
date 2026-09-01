@@ -140,11 +140,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Profile / Logout */}
         <div className="px-6 pb-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm">
-              {user?.email?.[0]?.toUpperCase() || "A"}
-            </div>
+            {user?.photoURL ? (
+              <Image
+                src={user.photoURL}
+                alt={user.displayName || user.email || "Admin"}
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full object-cover border border-[#F2EDE8]"
+                unoptimized
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm">
+                {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
+              </div>
+            )}
             <div className="truncate text-sm text-text-muted font-medium">
-              {user?.email || "admin@example.com"}
+              {user?.displayName || user?.email || "admin@example.com"}
             </div>
           </div>
           <button 

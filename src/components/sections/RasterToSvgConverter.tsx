@@ -276,7 +276,6 @@ export function RasterToSvgConverter() {
 
   // Conversion result
   const [converting, setConverting] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     svg: string;
@@ -385,15 +384,6 @@ export function RasterToSvgConverter() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [openDropdown]);
-
-  // Smooth progress bar during conversion
-  useEffect(() => {
-    if (converting) {
-      const timer = setTimeout(() => setProgress(90), 50);
-      return () => clearTimeout(timer);
-    }
-    queueMicrotask(() => setProgress(0));
-  }, [converting]);
 
   // Restore state from sessionStorage after hydration
   useEffect(() => {
@@ -519,6 +509,7 @@ export function RasterToSvgConverter() {
     setImageName(file.name);
     setImageSize(file.size);
     setResult(null);
+    setError(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -1240,10 +1231,8 @@ export function RasterToSvgConverter() {
                   <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
                     <span className="font-body text-[12px] text-[#64748B]">
