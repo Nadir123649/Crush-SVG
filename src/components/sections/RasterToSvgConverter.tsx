@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, type QualityLevel } from "@/lib/png-to-svg";
+import { convertPngToSvg, type QualityLevel, type BackgroundMode } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -36,6 +36,22 @@ const QUALITY_MAP: Record<string, QualityLevel> = {
   standard: "standard",
   max: "high",
 };
+
+const BG_MAP: Record<string, BackgroundMode> = {
+  Preserve: "preserve",
+  Transparent: "transparent",
+  Custom: "custom",
+};
+
+function normalizeHex(input: string): string {
+  let hex = input.trim();
+  if (!hex.startsWith("#")) hex = "#" + hex;
+  if (hex.length === 4) {
+    hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  }
+  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex.toUpperCase();
+  return "#FFFFFF";
+}
 
 const COLOR_OPTIONS: DropdownOption[] = [
   { value: "Auto", label: "Auto", desc: "Engine picks the best palette" },
@@ -289,6 +305,7 @@ export function RasterToSvgConverter() {
     size: number;
     modeUsed?: "pixel" | "vector";
     qualityUsed?: QualityLevel;
+    backgroundColorUsed?: string;
     conversionsUsed?: number;
     remaining?: number;
     imageClass?: string;
@@ -600,6 +617,11 @@ export function RasterToSvgConverter() {
 
       const res = await convertPngToSvg(fileToConvert, {
         quality: QUALITY_MAP[rasterQuality] ?? "standard",
+        background: BG_MAP[rasterBackground] ?? "preserve",
+        backgroundColor:
+          rasterBackground === "Custom"
+            ? normalizeHex(rasterBgColor)
+            : undefined,
       });
 
       setResult({
@@ -607,6 +629,7 @@ export function RasterToSvgConverter() {
         size: res.outputSize,
         modeUsed: res.modeUsed,
         qualityUsed: res.qualityUsed,
+        backgroundColorUsed: res.backgroundColorUsed,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
@@ -831,6 +854,7 @@ export function RasterToSvgConverter() {
                       alt="Upload Image"
                       width={72}
                       height={72}
+                      style={{ width: "auto", height: "auto" }}
                       className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
 
@@ -948,7 +972,7 @@ export function RasterToSvgConverter() {
 
                 {/* Privacy Assurance Text */}
                 <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain shrink-0" />
+                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
               </div>
@@ -1306,6 +1330,8 @@ export function RasterToSvgConverter() {
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
                         {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
                         {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
+                        {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
+                        {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
                         {" · "}{formatFileSize(result.size)} · Infinitely Scalable
                       </p>
                     )}
