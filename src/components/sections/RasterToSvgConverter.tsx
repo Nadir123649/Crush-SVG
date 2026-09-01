@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { ApiError, getAccessToken } from "@/lib/client/http";
-import { apiBase } from "@/lib/client/api";
+import { convertPngToSvg, type QualityLevel } from "@/lib/png-to-svg";
+import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -16,7 +16,7 @@ import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 
 const STORAGE_KEY = "crush_vectorizer_state";
-const MAX_FILE_SIZE_BYTES = 12 * 1024 * 1024; // 12MB
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 interface DropdownOption {
@@ -30,6 +30,12 @@ const QUALITY_OPTIONS: DropdownOption[] = [
   { value: "max", label: "High", desc: "Maximum detail & sharp edges" },
   { value: "draft", label: "Low", desc: "Smooth, lightweight paths" },
 ];
+
+const QUALITY_MAP: Record<string, QualityLevel> = {
+  draft: "low",
+  standard: "standard",
+  max: "high",
+};
 
 const COLOR_OPTIONS: DropdownOption[] = [
   { value: "Auto", label: "Auto", desc: "Engine picks the best palette" },
@@ -281,6 +287,8 @@ export function RasterToSvgConverter() {
   const [result, setResult] = useState<{
     svg: string;
     size: number;
+    modeUsed?: "pixel" | "vector";
+    qualityUsed?: QualityLevel;
     conversionsUsed?: number;
     remaining?: number;
     imageClass?: string;
@@ -499,19 +507,18 @@ export function RasterToSvgConverter() {
       file.type === "image/jpeg" ||
       file.name.toLowerCase().endsWith(".jpg") ||
       file.name.toLowerCase().endsWith(".jpeg");
-    const isGif = file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif");
-    const isBmp = file.type === "image/bmp" || file.name.toLowerCase().endsWith(".bmp");
+    const isWebp = file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp");
 
-    if (!isPng && !isJpg && !isGif && !isBmp) {
-      setError("Please choose a valid PNG, JPG, GIF, or BMP image file.");
-      showToast("error", "Unsupported file type. Please upload PNG, JPG, GIF, or BMP.");
+    if (!isPng && !isJpg && !isWebp) {
+      setError("Please choose a valid PNG, JPG, or WebP image file.");
+      showToast("error", "Unsupported file type. Please upload PNG, JPG, or WebP.");
       return;
     }
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-        setError(`Image too large (${sizeMB}MB). Maximum allowed size is 12MB.`);
-        showToast("error", "Image exceeds 12MB limit.");
+        setError(`Image too large (${sizeMB}MB). Maximum allowed size is 10MB.`);
+        showToast("error", "Image exceeds 10MB limit.");
         return;
       }
 
@@ -582,75 +589,29 @@ export function RasterToSvgConverter() {
     setConverting(true);
 
     try {
-      const formData = new FormData();
+      let fileToConvert: File;
       if (rasterFile) {
-        formData.append("file", rasterFile);
+        fileToConvert = rasterFile;
       } else {
         const res = await fetch(rasterDataUrl!);
         const blob = await res.blob();
-        formData.append("file", blob, imageName || "restored-image.png");
+        fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
       }
 
-      formData.append("mode", rasterMode);
-      formData.append("quality", rasterQuality);
-      if (rasterColors !== "Auto") formData.append("colorCount", rasterColors);
-      formData.append("background", rasterBackground);
-      formData.append("bgColor", rasterBgColor);
-
-      const token = getAccessToken();
-      const res = await fetch(apiBase("/api/v1/vectorize"), {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
+      const res = await convertPngToSvg(fileToConvert, {
+        quality: QUALITY_MAP[rasterQuality] ?? "standard",
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new ApiError(
-          res.status,
-          errData.code || "unknown_error",
-          errData.message || "Vectorization failed. Please try again."
-        );
-      }
-
-      const data = await res.json();
-      const svgCode = data.payload.svg;
-      const svgByteLength = new Blob([svgCode]).size;
-
       setResult({
-        svg: svgCode,
-        size: svgByteLength,
-        conversionsUsed: data.payload.conversionsUsed,
-        remaining: data.payload.remaining,
-        imageClass: data.payload.imageClass,
-        advisory: data.payload.advisory,
+        svg: res.svg,
+        size: res.outputSize,
+        modeUsed: res.modeUsed,
+        qualityUsed: res.qualityUsed,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
       trackConversion("raster_vectorized", { output_format: "svg" });
-
-      if (data.payload.remaining !== undefined) {
-        const reached = data.payload.remaining === 0;
-        setUsage({
-          conversionsUsed: data.payload.conversionsUsed,
-          remaining: data.payload.remaining,
-          isUnlimited: false,
-          limitReached: reached,
-        });
-        window.dispatchEvent(
-          new CustomEvent("crushUsageUpdated", {
-            detail: {
-              conversionsUsed: data.payload.conversionsUsed,
-              remaining: data.payload.remaining,
-            },
-          })
-        );
-      }
     } catch (err) {
-      if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
-        setShowSignupPrompt(true);
-        return;
-      }
       const msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
       setError(msg);
       showToast("error", msg);
@@ -771,7 +732,7 @@ export function RasterToSvgConverter() {
                   id="raster-file-upload"
                   type="file"
                   aria-label="Upload PNG or JPG image file"
-                   accept=".png,.jpg,.jpeg,.gif,.bmp,image/png,image/jpeg,image/gif,image/bmp"
+                   accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
                   className="absolute w-0 h-0 opacity-0 overflow-hidden"
                   onChange={(e) => {
                     void handleFile(e.target.files?.[0]);
@@ -879,7 +840,7 @@ export function RasterToSvgConverter() {
                     </div>
 
                      <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
-                       PNG, JPG, GIF, or BMP up to 12MB
+                       PNG, JPG, or WebP up to 10MB
                      </p>
 
                     <div className="flex items-center gap-2 mt-1">
@@ -957,25 +918,25 @@ export function RasterToSvgConverter() {
                 ) : (
                   <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
                     <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
-                      <span>Vector Tracing Engine</span>
+                      <span>Dual-Engine Converter</span>
                       <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">PNG &amp; JPG to SVG</span>
                     </div>
                     <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Converts pixels into sharp, infinitely scalable vector paths</span>
+                        <span>Vector mode traces clean spline paths for logos, icons &amp; line art</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Ideal for logos, icons, badges, illustrations &amp; line art</span>
+                        <span>Pixel-perfect mode preserves photos &amp; gradients exactly</span>
                       </li>
                        <li className="flex items-center gap-2">
                          <span className="text-brand-primary font-bold">✓</span>
-                         <span>Adjust quality, color count &amp; tracing mode</span>
+                         <span>Auto-detects the best mode for your image</span>
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Preserves transparency or fills with custom colors</span>
+                        <span>100% client-side — your images never leave the browser</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
@@ -1104,9 +1065,20 @@ export function RasterToSvgConverter() {
                         alt="Vectorized SVG output"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading font-semibold px-2 py-0.5 rounded shadow-xs">
-                        Scalable SVG
-                      </span>
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                        {result.modeUsed && (
+                          <span className={`text-[11px] font-heading font-medium px-2 py-0.5 rounded shadow-xs ${
+                            result.modeUsed === "vector"
+                              ? "bg-emerald-600 text-white"
+                              : "bg-blue-600 text-white"
+                          }`}>
+                            {result.modeUsed === "vector" ? "Vector" : "Pixel-Perfect"}
+                          </span>
+                        )}
+                        <span className="bg-brand-primary text-white text-[12px] font-heading font-semibold px-2 py-0.5 rounded shadow-xs">
+                          Scalable SVG
+                        </span>
+                      </div>
                     </div>
                   ) : rasterDataUrl ? (
                     /* Image Uploaded, Ready to Convert State */
@@ -1332,7 +1304,9 @@ export function RasterToSvgConverter() {
                     {/* Result Details */}
                     {result && result.size > 0 && (
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
-                        SVG Vector &bull; {formatFileSize(result.size)} &bull; Infinitely Scalable
+                        {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
+                        {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
+                        {" · "}{formatFileSize(result.size)} · Infinitely Scalable
                       </p>
                     )}
                   </div>
