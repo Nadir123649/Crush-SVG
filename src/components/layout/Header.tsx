@@ -15,10 +15,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastConverter, setLastConverter] = useState("/");
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // ── Synchronous auth class applied BEFORE first paint ─────────────────────
   // Reads the same localStorage key the AuthProvider uses so we don't create
@@ -71,11 +73,18 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
       ) {
         setMenuOpen(false);
       }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMenuOpen(false);
+        setMobileMenuOpen(false);
       }
     }
 
@@ -96,7 +105,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   }
 
   useEffect(() => {
-    queueMicrotask(() => setMenuOpen(false));
+    queueMicrotask(() => {
+      setMenuOpen(false);
+      setMobileMenuOpen(false);
+    });
   }, [pathname]);
 
   useEffect(() => {
@@ -193,21 +205,48 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
             {/* Logged-out: Login + Signup buttons */}
             <div className="logged-out-only flex items-center gap-[14px] md:gap-[16px]">
-              <Button
-                href="/login"
-                variant="outline"
-                className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
-              >
-                Log In
-              </Button>
+              <div className="hidden md:flex items-center gap-[14px] md:gap-[16px]">
+                <Button
+                  href="/login"
+                  variant="outline"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
+                >
+                  Log In
+                </Button>
 
-              <Button
-                href="/signup"
-                variant="solid"
-                className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
-              >
-                Sign Up
-              </Button>
+                <Button
+                  href="/signup"
+                  variant="solid"
+                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
+                >
+                  Sign Up
+                </Button>
+              </div>
+
+              {/* Mobile Hamburger (logged-out) */}
+              <div className="md:hidden flex items-center relative" ref={mobileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((v) => !v)}
+                  className="p-2 -mr-2 text-text-dark hover:text-brand-primary transition-colors cursor-pointer"
+                  aria-label="Open menu"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {mobileMenuOpen && (
+                  <div className="absolute top-[40px] right-0 w-[200px] bg-white border border-[#E2E8F0] rounded-[12px] shadow-lg py-[16px] px-[16px] flex flex-col gap-[12px] z-50">
+                    <Button href="/login" variant="outline" className="w-full h-[40px] rounded-[8px] bg-[#FFFFFF]" onClick={() => setMobileMenuOpen(false)}>
+                      Log In
+                    </Button>
+                    <Button href="/signup" variant="solid" className="w-full h-[40px] rounded-[8px]" onClick={() => setMobileMenuOpen(false)}>
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Logged-in: Profile dropdown */}

@@ -1036,7 +1036,7 @@ function SvgToPngConverter() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[42px] mt-[16px] lg:mt-auto flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
@@ -1045,7 +1045,7 @@ function SvgToPngConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
                     {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
