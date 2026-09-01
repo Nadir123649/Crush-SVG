@@ -1,23 +1,28 @@
 import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 
-export type ConvertMode = "auto" | "pixel" | "vector";
+export type TracingMode = "auto" | "logo" | "line-art" | "photo";
+export type PaletteLevel = "auto" | "8" | "24" | "48";
 export type QualityLevel = "low" | "standard" | "high";
 export type BackgroundMode = "preserve" | "transparent" | "custom";
 
 export interface ConvertOptions {
-  mode?: ConvertMode;
+  tracingMode?: TracingMode;
+  palette?: PaletteLevel;
   quality?: QualityLevel;
   background?: BackgroundMode;
-  /** Hex color used when background === "custom". */
   backgroundColor?: string;
 }
 
 export interface ConvertResult {
   svg: string;
   modeUsed: "pixel" | "vector";
+  tracingModeUsed: TracingMode;
+  resolvedTracingMode: TracingMode;
+  paletteUsed: PaletteLevel;
   qualityUsed: QualityLevel;
   backgroundUsed: BackgroundMode;
   backgroundColorUsed?: string;
+  advisory?: string;
   width: number;
   height: number;
   originalSize: number;
@@ -26,73 +31,198 @@ export interface ConvertResult {
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const DEFAULT_MAX_DIMENSION = 2000;
 const UPSCALE_THRESHOLD = 1500;
 const VECTOR_SIZE_RATIO_LIMIT = 2.5;
 
-interface QualityPreset {
-  vtraceOptions: VTraceOptions;
+/* ── Quality → vtrace knobs ───────────────────────────────────────── */
+
+interface QualityKnobs {
+  vtraceOptions: Partial<VTraceOptions>;
   maxDimension: number;
   doUpscale: boolean;
 }
 
-const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
+const QUALITY_KNOBS: Record<QualityLevel, QualityKnobs> = {
   low: {
     vtraceOptions: {
-      colorMode: "color",
-      hierarchical: "stacked",
-      mode: "spline",
       filterSpeckle: 10,
       colorPrecision: 6,
       layerDifference: 24,
       cornerThreshold: 75,
       lengthThreshold: 6.0,
       maxIterations: 6,
-      spliceThreshold: 45,
       pathPrecision: 2,
-      background: VTrace.COLOR_TRANSPARENT,
     },
     maxDimension: 1400,
     doUpscale: false,
   },
   standard: {
     vtraceOptions: {
-      colorMode: "color",
-      hierarchical: "stacked",
-      mode: "spline",
       filterSpeckle: 4,
       colorPrecision: 8,
       layerDifference: 16,
       cornerThreshold: 60,
       lengthThreshold: 4.0,
       maxIterations: 10,
-      spliceThreshold: 45,
       pathPrecision: 3,
-      background: VTrace.COLOR_TRANSPARENT,
     },
     maxDimension: 2000,
     doUpscale: true,
   },
   high: {
     vtraceOptions: {
-      colorMode: "color",
-      hierarchical: "stacked",
-      mode: "spline",
       filterSpeckle: 2,
       colorPrecision: 10,
       layerDifference: 10,
       cornerThreshold: 45,
       lengthThreshold: 2.5,
       maxIterations: 15,
-      spliceThreshold: 45,
       pathPrecision: 4,
-      background: VTrace.COLOR_TRANSPARENT,
     },
     maxDimension: 2500,
     doUpscale: true,
   },
 };
+
+/* ── Image classification ─────────────────────────────────────────── */
+
+function grayLuma(r: number, g: number, b: number): number {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function classifyImage(imageData: ImageData): TracingMode {
+  const { data } = imageData;
+  const totalPixels = data.length / 4;
+  if (totalPixels === 0) return "photo";
+
+  let grayCount = 0;
+  let edgeCount = 0;
+  const step = Math.max(4, Math.floor(totalPixels / 50000));
+
+  for (let i = 0; i < data.length; i += step * 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const luma = grayLuma(r, g, b);
+    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+    if (saturation < 20) grayCount++;
+  }
+
+  const grayRatio = grayCount / (totalPixels / step);
+
+  // Edge density: compare each pixel with right neighbor
+  const edgeStep = Math.max(4, Math.floor(totalPixels / 30000));
+  let edgeSamples = 0;
+  for (let i = 0; i < data.length - 4 * edgeStep; i += edgeStep * 4) {
+    const diff =
+      Math.abs(data[i] - data[i + edgeStep * 4]) +
+      Math.abs(data[i + 1] - data[i + edgeStep * 4 + 1]) +
+      Math.abs(data[i + 2] - data[i + edgeStep * 4 + 2]);
+    if (diff > 80) edgeCount++;
+    edgeSamples++;
+  }
+  const edgeDensity = edgeSamples > 0 ? edgeCount / edgeSamples : 0;
+
+  // Line art: mostly grayscale + strong edges (outlines)
+  if (grayRatio > 0.80 && edgeDensity > 0.12) return "line-art";
+
+  const distinctColors = countDistinctColors(imageData);
+  // Logo: few distinct colors, not mostly gray (has some color)
+  if (distinctColors <= 64 && grayRatio <= 0.60) return "logo";
+
+  return "photo";
+}
+
+/* ── Preprocessing ─────────────────────────────────────────────────── */
+
+function preprocessGrayscale(imageData: ImageData): ImageData {
+  const { data, width: w, height: h } = imageData;
+  const out = new ImageData(new Uint8ClampedArray(data), w, h);
+  const od = out.data;
+  for (let i = 0; i < od.length; i += 4) {
+    const luma = Math.round(grayLuma(od[i], od[i + 1], od[i + 2]));
+    od[i] = luma;
+    od[i + 1] = luma;
+    od[i + 2] = luma;
+  }
+  return out;
+}
+
+/* ── Build vtrace options for a given mode + quality ──────────────── */
+
+function buildVtraceOptions(
+  mode: TracingMode,
+  quality: QualityLevel,
+  bgColor: string
+): VTraceOptions {
+  const base = QUALITY_KNOBS[quality].vtraceOptions;
+
+  switch (mode) {
+    case "line-art":
+      return {
+        colorMode: "binary",
+        threshold: VTrace.THRESHOLD_AUTO,
+        blackOnWhite: true,
+        filterSpeckle: base.filterSpeckle ?? 4,
+        pathPrecision: base.pathPrecision ?? 3,
+        background: bgColor,
+        hierarchical: "stacked",
+        mode: "spline",
+      };
+    case "logo":
+      return {
+        colorMode: "color",
+        colorPrecision: (base.colorPrecision ?? 8) + 1,
+        filterSpeckle: Math.max(2, (base.filterSpeckle ?? 4) - 2),
+        layerDifference: base.layerDifference ?? 16,
+        cornerThreshold: (base.cornerThreshold ?? 60) - 10,
+        lengthThreshold: (base.lengthThreshold ?? 4.0) - 1.0,
+        maxIterations: (base.maxIterations ?? 10) + 3,
+        spliceThreshold: base.spliceThreshold ?? 45,
+        pathPrecision: (base.pathPrecision ?? 3) + 1,
+        background: bgColor,
+        hierarchical: "stacked",
+        mode: "spline",
+        optCurve: true,
+        turdSize: 2,
+      };
+    case "photo":
+      return {
+        colorMode: "color",
+        colorPrecision: base.colorPrecision ?? 8,
+        filterSpeckle: (base.filterSpeckle ?? 4) + 2,
+        layerDifference: base.layerDifference ?? 16,
+        cornerThreshold: (base.cornerThreshold ?? 60) + 15,
+        lengthThreshold: (base.lengthThreshold ?? 4.0) + 2.0,
+        maxIterations: (base.maxIterations ?? 10) - 2,
+        spliceThreshold: (base.spliceThreshold ?? 45) + 15,
+        pathPrecision: base.pathPrecision ?? 3,
+        background: bgColor,
+        hierarchical: "stacked",
+        mode: "spline",
+        optCurve: true,
+        turdSize: 20,
+      };
+    case "auto":
+    default:
+      return {
+        colorMode: "color",
+        hierarchical: "stacked",
+        mode: "spline",
+        filterSpeckle: base.filterSpeckle ?? 4,
+        colorPrecision: base.colorPrecision ?? 8,
+        layerDifference: base.layerDifference ?? 16,
+        cornerThreshold: base.cornerThreshold ?? 60,
+        lengthThreshold: base.lengthThreshold ?? 4.0,
+        maxIterations: base.maxIterations ?? 10,
+        spliceThreshold: base.spliceThreshold ?? 45,
+        pathPrecision: base.pathPrecision ?? 3,
+        background: bgColor,
+      };
+  }
+}
+
+/* ── Helpers ───────────────────────────────────────────────────────── */
 
 function validateFile(file: File): void {
   const ext = "." + file.name.split(".").pop()?.toLowerCase();
@@ -154,11 +284,13 @@ function drawToCanvas(
   return ctx.getImageData(0, 0, targetW, targetH);
 }
 
-/** Sample corners + edge pixels to detect dominant background color. */
-function detectBackgroundColor(data: Uint8ClampedArray, w: number, h: number): { r: number; g: number; b: number; coverage: number } {
+function detectBackgroundColor(
+  data: Uint8ClampedArray,
+  w: number,
+  h: number
+): { r: number; g: number; b: number; coverage: number } {
   const samples: { r: number; g: number; b: number }[] = [];
 
-  // 4 corners
   const corners = [
     [0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1],
   ];
@@ -167,24 +299,18 @@ function detectBackgroundColor(data: Uint8ClampedArray, w: number, h: number): {
     samples.push({ r: data[i], g: data[i + 1], b: data[i + 2] });
   }
 
-  // ~8 edge samples per side
   for (let i = 0; i < 8; i++) {
     const t = Math.floor((i + 1) / 9 * (w - 1));
-    // top edge
     const ti = (0 * w + t) * 4;
     samples.push({ r: data[ti], g: data[ti + 1], b: data[ti + 2] });
-    // bottom edge
     const bi = ((h - 1) * w + t) * 4;
     samples.push({ r: data[bi], g: data[bi + 1], b: data[bi + 2] });
-    // left edge
     const li = (Math.floor(i * (h - 1) / 7) * w + 0) * 4;
     samples.push({ r: data[li], g: data[li + 1], b: data[li + 2] });
-    // right edge
     const ri = (Math.floor(i * (h - 1) / 7) * w + (w - 1)) * 4;
     samples.push({ r: data[ri], g: data[ri + 1], b: data[ri + 2] });
   }
 
-  // Cluster samples: group by within ±10 RGB, pick largest cluster
   const clusters: { r: number; g: number; b: number; count: number }[] = [];
   for (const s of samples) {
     let merged = false;
@@ -217,10 +343,6 @@ function detectBackgroundColor(data: Uint8ClampedArray, w: number, h: number): {
   };
 }
 
-/**
- * Remove background using chroma-key: set pixels close to detected bg → alpha 0.
- * Anti-black-blob: foreground pixels keep original RGB; background → transparent.
- */
 function removeBackground(
   imageData: ImageData,
   threshold = 35
@@ -230,8 +352,6 @@ function removeBackground(
   const od = out.data;
 
   const bg = detectBackgroundColor(data, w, h);
-
-  // If bg coverage < 5% → complex photo, don't destroy it
   if (bg.coverage < 0.05) return out;
 
   const distSq = (r: number, g: number, b: number) =>
@@ -247,11 +367,9 @@ function removeBackground(
     const b = od[i + 2];
     const a = od[i + 3];
 
-    // Already fully transparent → skip
     if (a === 0) continue;
 
     if (distSq(r, g, b) <= thresholdSq) {
-      // Background pixel → make transparent
       od[i + 3] = 0;
       bgCount++;
     } else {
@@ -259,7 +377,6 @@ function removeBackground(
     }
   }
 
-  // If almost everything was "bg" (fg < 10% of total), this isn't a simple bg — revert
   const total = fgCount + bgCount;
   if (total > 0 && fgCount / total < 0.1) {
     return imageData;
@@ -268,25 +385,13 @@ function removeBackground(
   return out;
 }
 
-/**
- * Post-process SVG to strip any full-bleed black/white background rects
- * that vtrace might add. Also removes solid-color full-viewport fills
- * matching the detected background.
- */
 function stripBlackPlate(svg: string): string {
-  let result = svg;
-
-  // Remove full-bleed solid black rect fills (vtrace artifact)
-  // Match: <rect ... fill="#000" ... width="W" height="H" .../> covering full viewBox
-  result = result.replace(
+  return svg.replace(
     /<rect[^>]*fill\s*=\s*["']#?0{3,6}["'][^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
     ""
   );
-
-  return result;
 }
 
-/** 1px mask dilation to reduce white halo around cutout edges. */
 function dilateAlpha(imageData: ImageData, px = 1): ImageData {
   const { data, width: w, height: h } = imageData;
   const out = new ImageData(new Uint8ClampedArray(data), w, h);
@@ -295,9 +400,8 @@ function dilateAlpha(imageData: ImageData, px = 1): ImageData {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
-      if (od[i + 3] > 0) continue; // already opaque
+      if (od[i + 3] > 0) continue;
 
-      // Check neighbors within radius
       let maxAlpha = 0;
       for (let dy = -px; dy <= px; dy++) {
         for (let dx = -px; dx <= px; dx++) {
@@ -309,7 +413,6 @@ function dilateAlpha(imageData: ImageData, px = 1): ImageData {
         }
       }
       if (maxAlpha > 0) {
-        // Inherit color from nearest opaque neighbor, set alpha to dilated value
         od[i + 3] = Math.min(255, maxAlpha);
       }
     }
@@ -321,7 +424,6 @@ function dilateAlpha(imageData: ImageData, px = 1): ImageData {
 function normalizeHex(input: string): string {
   let hex = input.trim();
   if (!hex.startsWith("#")) hex = "#" + hex;
-  // #RGB → #RRGGBB
   if (hex.length === 4) {
     hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
   }
@@ -338,10 +440,6 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
-/**
- * Fallback for complex photos: fill canvas with custom color, draw image on top.
- * Alpha regions in the source show the custom color through.
- */
 function bakeCustomBgUnderImage(
   img: HTMLImageElement,
   w: number,
@@ -362,11 +460,6 @@ function bakeCustomBgUnderImage(
   return ctx.getImageData(0, 0, w, h);
 }
 
-/**
- * Replace detected background pixels with a custom solid color.
- * Same chroma-key match rule as transparent, but writes opaque RGB(hex) + alpha=255.
- * Anti-black-blob: never leaves matched pixels as [0,0,0,0]; all pixels stay opaque.
- */
 function replaceBackgroundWithColor(
   imageData: ImageData,
   bg: { r: number; g: number; b: number },
@@ -401,7 +494,6 @@ function replaceBackgroundWithColor(
     }
   }
 
-  // If almost everything was "bg" (fg < 10%), this isn't a simple bg — revert
   const total = fgCount + bgCount;
   if (total > 0 && fgCount / total < 0.1) {
     return imageData;
@@ -459,13 +551,12 @@ function runVectorTrace(
   imageData: ImageData,
   width: number,
   height: number,
-  quality: QualityLevel
+  vtraceOptions: VTraceOptions
 ): string {
   if (width <= 0 || height <= 0) {
     throw new Error("Invalid image dimensions for vector tracing");
   }
 
-  // Check if image has any visible (non-transparent) pixels
   const { data } = imageData;
   let visiblePixels = 0;
   const step = Math.max(4, Math.floor(data.length / 4 / 10000));
@@ -476,9 +567,8 @@ function runVectorTrace(
     throw new Error("Image has no visible content to trace");
   }
 
-  const preset = QUALITY_PRESETS[quality];
   const vtrace = new VTrace(imageData, {
-    ...preset.vtraceOptions,
+    ...vtraceOptions,
     width,
     height,
   });
@@ -491,6 +581,7 @@ function countDistinctColors(imageData: ImageData): number {
   const step = Math.max(4, Math.floor(data.length / 4 / 50000));
 
   for (let i = 0; i < data.length; i += step * 4) {
+    if (data[i + 3] === 0) continue; // skip transparent
     const r = data[i] >> 3;
     const g = data[i + 1] >> 3;
     const b = data[i + 2] >> 3;
@@ -500,23 +591,20 @@ function countDistinctColors(imageData: ImageData): number {
   return seen.size;
 }
 
-async function analyzeAndChoose(file: File): Promise<"pixel" | "vector"> {
-  const { img } = await loadImage(file);
-  const { w, h } = clampDimension(img.naturalWidth, img.naturalHeight);
-  const imageData = drawToCanvas(img, w, h);
-  const colors = countDistinctColors(imageData);
-
-  return colors <= 128 ? "vector" : "pixel";
-}
+/* ── Main export ───────────────────────────────────────────────────── */
 
 export async function convertPngToSvg(
   file: File,
   options?: ConvertOptions
 ): Promise<ConvertResult> {
-  const mode = options?.mode ?? "auto";
+  const tracingMode: TracingMode = options?.tracingMode ?? "auto";
+  const palette: PaletteLevel = options?.palette ?? "auto";
   const quality: QualityLevel = options?.quality ?? "standard";
   const background: BackgroundMode = options?.background ?? "preserve";
-  const customHex = background === "custom" ? normalizeHex(options?.backgroundColor ?? "#FFFFFF") : undefined;
+  const customHex =
+    background === "custom"
+      ? normalizeHex(options?.backgroundColor ?? "#FFFFFF")
+      : undefined;
 
   validateFile(file);
 
@@ -524,70 +612,74 @@ export async function convertPngToSvg(
   const origW = img.naturalWidth;
   const origH = img.naturalHeight;
 
-  const preset = QUALITY_PRESETS[quality];
-  const { w: clampedW, h: clampedH } = clampDimension(origW, origH, preset.maxDimension);
+  const knobs = QUALITY_KNOBS[quality];
+  const { w: clampedW, h: clampedH } = clampDimension(
+    origW,
+    origH,
+    knobs.maxDimension
+  );
 
   let drawW = clampedW;
   let drawH = clampedH;
 
-  if (preset.doUpscale && clampedW < UPSCALE_THRESHOLD && clampedH < UPSCALE_THRESHOLD) {
+  if (knobs.doUpscale && clampedW < UPSCALE_THRESHOLD && clampedH < UPSCALE_THRESHOLD) {
     drawW = clampedW * 2;
     drawH = clampedH * 2;
   }
 
-  const chosenMode = mode === "auto" ? await analyzeAndChoose(file) : mode;
   const isTransparent = background === "transparent";
   const isCustom = background === "custom";
 
-  if (chosenMode === "pixel") {
-    let pixelDataUrl = dataUrl;
-    if (isTransparent) {
-      const imageData = drawToCanvas(img, drawW, drawH, true);
-      const processed = removeBackground(imageData);
-      const dilated = dilateAlpha(processed);
-      pixelDataUrl = imageDataToDataUrl(dilated, drawW, drawH);
-    } else if (isCustom && customHex) {
-      const imageData = drawToCanvas(img, drawW, drawH, false);
-      const bg = detectBackgroundColor(imageData.data, drawW, drawH);
-      const processed = bg.coverage >= 0.05
-        ? replaceBackgroundWithColor(imageData, bg, customHex)
-        : bakeCustomBgUnderImage(img, drawW, drawH, customHex);
-      pixelDataUrl = imageDataToDataUrl(processed, drawW, drawH);
-    }
-    const svg = buildPixelSvg(pixelDataUrl, drawW, drawH);
-    return {
-      svg,
-      modeUsed: "pixel",
-      qualityUsed: quality,
-      backgroundUsed: background,
-      backgroundColorUsed: customHex,
-      width: drawW,
-      height: drawH,
-      originalSize: file.size,
-      outputSize: new Blob([svg]).size,
-    };
-  }
-
+  /* ── Step 1: Draw canvas with background handling ──────────────── */
   const imageData = drawToCanvas(img, drawW, drawH, isTransparent);
   let processedImageData: ImageData;
+
   if (isTransparent) {
     processedImageData = removeBackground(imageData);
   } else if (isCustom && customHex) {
     const bg = detectBackgroundColor(imageData.data, drawW, drawH);
-    processedImageData = bg.coverage >= 0.05
-      ? replaceBackgroundWithColor(imageData, bg, customHex)
-      : bakeCustomBgUnderImage(img, drawW, drawH, customHex);
+    processedImageData =
+      bg.coverage >= 0.05
+        ? replaceBackgroundWithColor(imageData, bg, customHex)
+        : bakeCustomBgUnderImage(img, drawW, drawH, customHex);
   } else {
     processedImageData = imageData;
   }
 
+  /* ── Step 2: Resolve tracing mode ──────────────────────────────── */
+  let resolvedMode: TracingMode = tracingMode;
+  let advisory: string | undefined;
+
+  if (tracingMode === "auto") {
+    resolvedMode = classifyImage(processedImageData);
+  }
+
+  /* ── Step 3: Mode-specific preprocess ──────────────────────────── */
+  let preprocessed = processedImageData;
+  if (resolvedMode === "line-art") {
+    preprocessed = preprocessGrayscale(processedImageData);
+  }
+
+  /* ── Step 4: Build background color for vtrace ─────────────────── */
+  const bgColor =
+    isTransparent
+      ? VTrace.COLOR_TRANSPARENT
+      : isCustom && customHex
+        ? customHex
+        : VTrace.COLOR_TRANSPARENT;
+
+  /* ── Step 5: Build vtrace options ──────────────────────────────── */
+  const vtraceOptions = buildVtraceOptions(resolvedMode, quality, bgColor);
+
+  /* ── Step 6: Trace or fallback ─────────────────────────────────── */
   try {
-    const svg = runVectorTrace(processedImageData, drawW, drawH, quality);
+    const svg = runVectorTrace(preprocessed, drawW, drawH, vtraceOptions);
     const cleaned = stripBlackPlate(svg);
     const processed = postProcessSvg(cleaned, drawW, drawH);
     const outputSize = new Blob([processed]).size;
 
-    if (outputSize > file.size * VECTOR_SIZE_RATIO_LIMIT) {
+    // Photo fallback: if output is oversized, embed as pixel
+    if (resolvedMode === "photo" && outputSize > file.size * VECTOR_SIZE_RATIO_LIMIT) {
       let fallbackDataUrl = dataUrl;
       if (isTransparent) {
         const fbData = drawToCanvas(img, drawW, drawH, true);
@@ -598,12 +690,17 @@ export async function convertPngToSvg(
         fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
       }
       const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
+      advisory = "Photo mode: vector output exceeded size limit, fell back to pixel-embed SVG.";
       return {
         svg: fallbackSvg,
         modeUsed: "pixel",
+        tracingModeUsed: tracingMode,
+        resolvedTracingMode: resolvedMode,
+        paletteUsed: palette,
         qualityUsed: quality,
         backgroundUsed: background,
         backgroundColorUsed: customHex,
+        advisory,
         width: drawW,
         height: drawH,
         originalSize: file.size,
@@ -614,6 +711,9 @@ export async function convertPngToSvg(
     return {
       svg: processed,
       modeUsed: "vector",
+      tracingModeUsed: tracingMode,
+      resolvedTracingMode: resolvedMode,
+      paletteUsed: palette,
       qualityUsed: quality,
       backgroundUsed: background,
       backgroundColorUsed: customHex,
@@ -623,6 +723,7 @@ export async function convertPngToSvg(
       outputSize,
     };
   } catch {
+    // Any trace error → pixel fallback
     let fallbackDataUrl = dataUrl;
     if (isTransparent) {
       const fbData = drawToCanvas(img, drawW, drawH, true);
@@ -636,6 +737,9 @@ export async function convertPngToSvg(
     return {
       svg: fallbackSvg,
       modeUsed: "pixel",
+      tracingModeUsed: tracingMode,
+      resolvedTracingMode: resolvedMode,
+      paletteUsed: palette,
       qualityUsed: quality,
       backgroundUsed: background,
       backgroundColorUsed: customHex,

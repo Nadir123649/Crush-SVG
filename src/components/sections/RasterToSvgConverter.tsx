@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, type QualityLevel, type BackgroundMode } from "@/lib/png-to-svg";
+import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -41,6 +41,20 @@ const BG_MAP: Record<string, BackgroundMode> = {
   Preserve: "preserve",
   Transparent: "transparent",
   Custom: "custom",
+};
+
+const MODE_MAP: Record<string, TracingMode> = {
+  auto: "auto",
+  logo: "logo",
+  "line-art": "line-art",
+  photo: "photo",
+};
+
+const PALETTE_MAP: Record<string, PaletteLevel> = {
+  Auto: "auto",
+  "8": "8",
+  "24": "24",
+  "48": "48",
 };
 
 function normalizeHex(input: string): string {
@@ -304,12 +318,14 @@ export function RasterToSvgConverter() {
     svg: string;
     size: number;
     modeUsed?: "pixel" | "vector";
+    tracingModeUsed?: TracingMode;
+    resolvedTracingMode?: TracingMode;
+    paletteUsed?: PaletteLevel;
     qualityUsed?: QualityLevel;
     backgroundColorUsed?: string;
+    advisory?: string;
     conversionsUsed?: number;
     remaining?: number;
-    imageClass?: string;
-    advisory?: string;
   } | null>(null);
 
   // Preview & Dropdowns
@@ -622,14 +638,20 @@ export function RasterToSvgConverter() {
           rasterBackground === "Custom"
             ? normalizeHex(rasterBgColor)
             : undefined,
+        tracingMode: MODE_MAP[rasterMode] ?? "auto",
+        palette: PALETTE_MAP[rasterColors] ?? "auto",
       });
 
       setResult({
         svg: res.svg,
         size: res.outputSize,
         modeUsed: res.modeUsed,
+        tracingModeUsed: res.tracingModeUsed,
+        resolvedTracingMode: res.resolvedTracingMode,
+        paletteUsed: res.paletteUsed,
         qualityUsed: res.qualityUsed,
         backgroundColorUsed: res.backgroundColorUsed,
+        advisory: res.advisory,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
@@ -934,7 +956,7 @@ export function RasterToSvgConverter() {
                     {/* Row 3: Status Line */}
                     <div className="flex items-center justify-between text-[11px] md:text-[12px] text-[#64748B] border-t border-gray-200/80 pt-[6px]">
                       <span className="truncate">
-                        Quality: <strong className="text-[#202427] font-medium">{rasterQuality}</strong> &bull; Colors: <strong className="text-[#202427] font-medium">{rasterColors}</strong> &bull; BG: <strong className="text-[#202427] font-medium">{rasterBackground}</strong>
+                        Mode: <strong className="text-[#202427] font-medium">{rasterMode}</strong> &bull; Quality: <strong className="text-[#202427] font-medium">{rasterQuality}</strong> &bull; Colors: <strong className="text-[#202427] font-medium">{rasterColors}</strong> &bull; BG: <strong className="text-[#202427] font-medium">{rasterBackground}</strong>
                       </span>
                       <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
                     </div>
@@ -1329,9 +1351,16 @@ export function RasterToSvgConverter() {
                     {result && result.size > 0 && (
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
                         {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
+                        {result.tracingModeUsed === "auto" && result.resolvedTracingMode
+                          ? ` · Auto → ${result.resolvedTracingMode.charAt(0).toUpperCase()}${result.resolvedTracingMode.slice(1)}`
+                          : result.tracingModeUsed
+                            ? ` · ${result.tracingModeUsed.charAt(0).toUpperCase()}${result.tracingModeUsed.slice(1)}`
+                            : ""}
                         {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
+                        {result.resolvedTracingMode === "line-art" ? " · Palette N/A" : result.paletteUsed && result.paletteUsed !== "auto" ? ` · ${result.paletteUsed} Colors` : ""}
                         {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
                         {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
+                        {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
                         {" · "}{formatFileSize(result.size)} · Infinitely Scalable
                       </p>
                     )}
