@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { svgToDataUrl, vectorizeRaster, type VectorizeRequest, type VectorizeResponse } from "@/lib/client/converter";
+import { svgToDataUrl } from "@/lib/client/converter";
+import { convertPngToSvg, dataUrlToFile, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 
@@ -348,6 +349,11 @@ export function RasterToSvgConverter() {
     return null;
   });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
@@ -629,9 +635,7 @@ export function RasterToSvgConverter() {
       if (rasterFile) {
         fileToConvert = rasterFile;
       } else {
-        const res = await fetch(rasterDataUrl!);
-        const blob = await res.blob();
-        fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
+        fileToConvert = dataUrlToFile(rasterDataUrl!, imageName || "restored-image.png");
       }
 
       const parsedColorCount = PALETTE_MAP[rasterColors];
@@ -1292,7 +1296,7 @@ export function RasterToSvgConverter() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] lg:mt-auto relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}

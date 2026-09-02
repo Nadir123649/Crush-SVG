@@ -143,9 +143,9 @@ export default function AuditsPage() {
           <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
           <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
         </div>
-        <Button variant="solid" onClick={handleExportCSV} className="flex items-center gap-2 px-4 py-2.5 h-auto shadow-sm">
-          <SvgDownload className="w-4 h-4" />
-          Export CSV
+        <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
         </Button>
       </div>
 
@@ -164,7 +164,7 @@ export default function AuditsPage() {
         <button 
           type="button"
           onClick={() => loadAudits(1)}
-          className="flex items-center gap-2 px-4 py-2.5 border border-[#F2EDE8] bg-white rounded-[8px] text-text-dark font-body font-medium hover:bg-gray-50 transition-colors shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
+          className="min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 border border-[#F2EDE8] bg-white rounded-[8px] text-text-dark font-body font-medium hover:bg-gray-50 transition-colors shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
         >
           <SvgFilter className="w-4 h-4" />
           Filter
