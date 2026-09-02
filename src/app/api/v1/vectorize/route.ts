@@ -7,6 +7,7 @@ import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors"
 import { rasterOptionsSchema } from "@/lib/raster/validation";
 import { rasterToSvg, recommendQueue } from "@/lib/raster/raster-to-svg";
 import { rasterToSvgQueued, rasterQueueEnabled } from "@/lib/raster/raster-queue";
+import { auth } from "@/lib/middleware/auth-middleware";
 import type { RasterOptions } from "@/lib/raster/types";
 
 export const runtime = "nodejs";
@@ -26,8 +27,21 @@ async function getUsage(request: NextRequest) {
   }
 }
 
-async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
+async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number; userId?: string }> {
+  // Check Bearer token for authenticated users (client sends Authorization header, not x-user-id)
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const who = await auth(request);
+    if ("user" in who) {
+      // Authenticated user — unlimited conversions, skip guest limit
+      return { guestId: "", maxConversions: Infinity, used: 0, remaining: Infinity, userId: who.user.id };
+    }
+    // Token present but invalid/expired — fall through to guest path
+  }
+
+  // Legacy x-user-id header check (for any external callers)
   if (request.headers.get("x-user-id")) return getUsage(request);
+
   const usage = await getUsage(request);
   if (usage.remaining <= 0) {
     return errorResponse(
@@ -97,18 +111,17 @@ export async function POST(request: NextRequest) {
     if (inputExt === "jpeg") inputExt = "jpg";
 
     await logConversion({
-      userId: request.headers.get("x-user-id"),
-      guestId: limit.guestId,
-      inputFormat: inputExt,
+      userId: limit.userId ?? request.headers.get("x-user-id"),
+      guestId: limit.userId ? undefined : limit.guestId,
+      inputFormat: file.type || "image",
       outputFormat: "svg",
       originalSize,
       success: true,
     });
 
-    const userId = request.headers.get("x-user-id");
-    if (!userId) await incrementUsage(limit.guestId);
+    if (!limit.userId) await incrementUsage(limit.guestId);
 
-    const usage = await getUsage(request);
+    const usage = limit.userId ? { used: 0, remaining: Infinity } : await getUsage(request);
     const response = successResponse(
       {
         svg: result.svg,
@@ -118,8 +131,8 @@ export async function POST(request: NextRequest) {
         colorCount: result.colorCount,
         size: result.size,
         advisory: result.advisory,
-        conversionsUsed: userId ? undefined : usage.used,
-        remaining: userId ? undefined : usage.remaining,
+        conversionsUsed: limit.userId ? undefined : usage.used,
+        remaining: limit.userId ? undefined : usage.remaining,
       },
       200,
       undefined,
@@ -141,7 +154,13 @@ export async function POST(request: NextRequest) {
 }
 
 async function logConversionError(request: NextRequest, error: unknown) {
-  const userId = request.headers.get("x-user-id");
+  const authHeader = request.headers.get("authorization");
+  let userId: string | null = null;
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const who = await auth(request);
+    if ("user" in who) userId = who.user.id;
+  }
+  if (!userId) userId = request.headers.get("x-user-id");
   const guestId = !userId ? ensureGuestId(request).guestId : null;
   await logConversion({
     userId,
