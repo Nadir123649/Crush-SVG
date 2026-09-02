@@ -88,10 +88,18 @@ export async function POST(request: NextRequest) {
       result = await rasterToSvg(buffer, options);
     }
 
+    let inputExt = "png";
+    if (file.name && file.name.includes(".")) {
+      inputExt = file.name.split(".").pop()?.toLowerCase() || "png";
+    } else if (file.type && file.type.includes("/")) {
+      inputExt = file.type.split("/")[1]?.toLowerCase() || "png";
+    }
+    if (inputExt === "jpeg") inputExt = "jpg";
+
     await logConversion({
       userId: request.headers.get("x-user-id"),
       guestId: limit.guestId,
-      inputFormat: file.type || "image",
+      inputFormat: inputExt,
       outputFormat: "svg",
       originalSize,
       success: true,

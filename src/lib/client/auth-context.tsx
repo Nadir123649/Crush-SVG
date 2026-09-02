@@ -110,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedUser && status === 'loading') {
           const parsed = JSON.parse(storedUser)
           setUser(parsed)
+          setSessionRestored(true)
           setStatus('authed')
         } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
           setStatus('guest')
@@ -121,9 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false
 
-    // Initialize sessionRestored based on whether we already have a user synchronously.
-    const restoredUser = !!user
-    setSessionRestored(restoredUser)
+    // Initialize sessionRestored based on whether a user snapshot exists in
+    // localStorage — do NOT use the React `user` state because useEffect closes
+    // over the initial null value even after useLayoutEffect has already set the
+    // user, causing sessionRestored to be incorrectly reset to false.
+    const hasStoredUser = typeof window !== 'undefined' && !!localStorage.getItem('crush_user')
+    setSessionRestored(hasStoredUser)
 
     setAuthExpiredHandler(() => {
       if (!cancelled) clearAuth()

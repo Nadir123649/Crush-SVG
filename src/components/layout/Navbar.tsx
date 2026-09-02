@@ -165,7 +165,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href={pathname === "/png-to-svg" ? "/" : "/png-to-svg"}
+              href={pathname === "/png-to-svg" ? "/#converter" : "/png-to-svg#converter"}
               className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
