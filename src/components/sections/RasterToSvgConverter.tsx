@@ -6,8 +6,15 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { svgToDataUrl, vectorizeRaster, type VectorizeRequest } from "@/lib/client/converter";
-import { dataUrlToFile } from "@/lib/png-to-svg";
+import { svgToDataUrl } from "@/lib/client/converter";
+import {
+  dataUrlToFile,
+  convertPngToSvg,
+  type QualityLevel,
+  type BackgroundMode,
+  type TracingMode,
+  type PaletteLevel,
+} from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
