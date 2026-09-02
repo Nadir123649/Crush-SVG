@@ -10,11 +10,6 @@ import { svgToDataUrl } from "@/lib/client/converter";
 import { convertPngToSvg, dataUrlToFile, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
-
-type QualityLevel = "low" | "standard" | "high";
-type BackgroundMode = "preserve" | "transparent" | "custom";
-type TracingMode = "auto" | "logo" | "line-art" | "photo";
-type PaletteLevel = "auto" | "8" | "24" | "48";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
@@ -317,6 +312,7 @@ export function RasterToSvgConverter() {
 
   // Conversion result
   const [converting, setConverting] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     svg: string;
@@ -339,15 +335,7 @@ export function RasterToSvgConverter() {
   const [openDropdown, setOpenDropdown] = useState<"quality" | "colors" | "mode" | "background" | null>(null);
 
   // Auth & Quota
-  const [usage, setUsage] = useState<UsageInfo | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("crush_usage_info");
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return null;
-  });
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -443,6 +431,15 @@ export function RasterToSvgConverter() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [openDropdown]);
+
+  // Smooth progress bar during conversion
+  useEffect(() => {
+    if (converting) {
+      const timer = setTimeout(() => setProgress(90), 50);
+      return () => clearTimeout(timer);
+    }
+    queueMicrotask(() => setProgress(0));
+  }, [converting]);
 
   // Restore state from sessionStorage after hydration
   useEffect(() => {
@@ -567,7 +564,6 @@ export function RasterToSvgConverter() {
     setImageName(file.name);
     setImageSize(file.size);
     setResult(null);
-    setError(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -638,54 +634,33 @@ export function RasterToSvgConverter() {
         fileToConvert = dataUrlToFile(rasterDataUrl!, imageName || "restored-image.png");
       }
 
-      const parsedColorCount = PALETTE_MAP[rasterColors];
-      const colorCountNum = parsedColorCount && parsedColorCount !== "auto" ? parseInt(parsedColorCount, 10) : undefined;
-
-      const vectorizeOptions: VectorizeRequest = {
-        mode: MODE_MAP[rasterMode] ?? "auto",
-        quality: rasterQuality || "standard",
-        colorCount: colorCountNum,
+      const res = await convertPngToSvg(fileToConvert, {
+        quality: QUALITY_MAP[rasterQuality] ?? "standard",
         background: BG_MAP[rasterBackground] ?? "preserve",
-        bgColor: rasterBackground === "Custom" ? normalizeHex(rasterBgColor) : undefined,
-      };
-
-      const res = await vectorizeRaster(fileToConvert, vectorizeOptions);
+        backgroundColor:
+          rasterBackground === "Custom"
+            ? normalizeHex(rasterBgColor)
+            : undefined,
+        tracingMode: MODE_MAP[rasterMode] ?? "auto",
+        palette: PALETTE_MAP[rasterColors] ?? "auto",
+      });
 
       setResult({
         svg: res.svg,
-        size: res.size,
-        modeUsed: res.imageClass === "photo" ? "pixel" : "vector",
-        tracingModeUsed: vectorizeOptions.mode as TracingMode,
-        resolvedTracingMode: res.imageClass as TracingMode,
-        paletteUsed: (PALETTE_MAP[rasterColors] ?? "auto") as PaletteLevel,
-        qualityUsed: QUALITY_MAP[rasterQuality] ?? "standard",
-        backgroundColorUsed: vectorizeOptions.bgColor,
+        size: res.outputSize,
+        modeUsed: res.modeUsed,
+        tracingModeUsed: res.tracingModeUsed,
+        resolvedTracingMode: res.resolvedTracingMode,
+        paletteUsed: res.paletteUsed,
+        qualityUsed: res.qualityUsed,
+        backgroundColorUsed: res.backgroundColorUsed,
         advisory: res.advisory,
-        conversionsUsed: res.conversionsUsed,
-        remaining: res.remaining,
       });
-      if (res.conversionsUsed !== undefined && res.remaining !== undefined) {
-        const updatedUsage = {
-          conversionsUsed: res.conversionsUsed,
-          remaining: res.remaining,
-          isUnlimited: false,
-          limitReached: res.remaining === 0,
-        };
-        setUsage(updatedUsage);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
-          } catch {}
-        }
-      }
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
       trackConversion("raster_vectorized", { output_format: "svg" });
     } catch (err) {
-      let msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
-      if (/failed to fetch|fetch failed|networkerror/i.test(msg)) {
-        msg = "Network connection lost or server restarting. Please try again in a moment.";
-      }
+      const msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
       setError(msg);
       showToast("error", msg);
     } finally {
@@ -739,7 +714,7 @@ export function RasterToSvgConverter() {
     <>
       <section
         id="converter"
-        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[20px] md:scroll-mt-[30px]"
+        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
         <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
@@ -787,15 +762,15 @@ export function RasterToSvgConverter() {
                     </button>
 
                     {/* Usage Counter */}
-                    <span suppressHydrationWarning className="font-body text-[12px] md:text-[14px] text-[#475569] flex-1 text-center md:text-right w-full md:w-auto">
-                      {usage
-                        ? usage.isUnlimited
+                    {usage && (
+                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                        {usage.isUnlimited
                           ? "Unlimited conversions"
                           : `${usage.conversionsUsed} of ${
                               usage.conversionsUsed + usage.remaining
-                            } free conversions used`
-                        : "0 of 3 free conversions used"}
-                    </span>
+                            } free conversions used`}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1021,7 +996,7 @@ export function RasterToSvgConverter() {
                 )}
 
                 {/* Privacy Assurance Text */}
-                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px] lg:mt-auto">
+                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
@@ -1144,7 +1119,7 @@ export function RasterToSvgConverter() {
                           <span className={`text-[11px] font-heading font-medium px-2 py-0.5 rounded shadow-xs ${
                             result.modeUsed === "vector"
                               ? "bg-emerald-600 text-white"
-                              : "bg-brand-primary text-white"
+                              : "bg-blue-600 text-white"
                           }`}>
                             {result.modeUsed === "vector" ? "Vector" : "Pixel-Perfect"}
                           </span>
@@ -1265,7 +1240,7 @@ export function RasterToSvgConverter() {
                 {error && (
                   <div
                     role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] my-[16px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
+                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
                   >
                     {error}
                   </div>
@@ -1283,11 +1258,13 @@ export function RasterToSvgConverter() {
 
                 {/* Action CTA Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] lg:mt-auto flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
-                        style={{ width: "40%" }}
+                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
+                          progress === 0 ? "duration-0" : "duration-[15000ms]"
+                        }`}
+                        style={{ width: `${progress}%` }}
                       />
                     </div>
                     <span className="font-body text-[12px] text-[#64748B]">

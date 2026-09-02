@@ -1,4 +1,4 @@
-import { apiFetch, apiBlob } from '@/lib/client/http'
+import { apiBlob, apiFetch } from '@/lib/client/http'
 
 export interface ConvertRequest {
   width?: number
@@ -47,46 +47,6 @@ export async function downloadConverted(
     method: 'POST',
     body: convertBody(svg, options),
     signal: AbortSignal.timeout(CONVERT_TIMEOUT_MS),
-  })
-}
-
-// Raster to SVG (server-side vectorization)
-export interface VectorizeRequest {
-  mode?: string
-  quality?: string
-  colorCount?: number
-  background?: string
-  bgColor?: string
-}
-
-export interface VectorizeResponse {
-  svg: string
-  width: number
-  height: number
-  imageClass: string
-  colorCount: number
-  size: number
-  advisory?: string
-  conversionsUsed: number
-  remaining: number
-}
-
-export async function vectorizeRaster(
-  file: File,
-  options: VectorizeRequest = {}
-): Promise<VectorizeResponse> {
-  const formData = new FormData()
-  formData.append('file', file)
-  if (options.mode) formData.append('mode', options.mode)
-  if (options.quality) formData.append('quality', options.quality)
-  if (options.colorCount) formData.append('colorCount', options.colorCount.toString())
-  if (options.background) formData.append('background', options.background)
-  if (options.bgColor) formData.append('bgColor', options.bgColor)
-
-  return apiFetch<VectorizeResponse>('/api/v1/vectorize', {
-    method: 'POST',
-    body: formData,
-    signal: AbortSignal.timeout(120_000),
   })
 }
 
