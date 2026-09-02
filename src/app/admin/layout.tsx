@@ -25,6 +25,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.photoURL]);
+
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartXRef = React.useRef<number | null>(null);
 
@@ -85,8 +92,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const handleLogout = () => {
+    setIsLoggingOut(true);
     logout();
-    router.push('/login');
+    router.push('/');
   };
 
   return (
@@ -95,13 +103,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {showOverlay && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FFFCFA]">
           {isLoading && (
-            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
           )}
-          {isGuest && (
+          {isGuest && !isLoggingOut && (
             <AuthCard type="login" returnTo={pathname} />
           )}
+          {isGuest && isLoggingOut && (
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
+          )}
           {isNonAdmin && (
-            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
           )}
         </div>
       )}
@@ -114,27 +131,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      {/* Desktop sidebar edge hover resizer & toggle */}
+      {/* Desktop sidebar edge hover resizer */}
       <div
         onMouseDown={(e) => {
           isMouseDownRef.current = true;
           mouseStartXRef.current = e.clientX;
         }}
-        onClick={() => {
-          setIsDesktopSidebarOpen((prev) => !prev);
-        }}
         className={`hidden md:flex fixed top-0 bottom-0 z-[60] w-4 cursor-col-resize items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
-          isDesktopSidebarOpen ? "left-[252px]" : "left-0"
+          isDesktopSidebarOpen ? "left-[256px]" : "left-[68px]"
         }`}
-        title={isDesktopSidebarOpen ? "Click or drag left to close sidebar" : "Click or drag right to open sidebar"}
+        title={isDesktopSidebarOpen ? "Drag left to close sidebar" : "Drag right to open sidebar"}
       >
-        {/* Invisible border line by default, highlighted on hover */}
-        <div className="w-[3px] h-full bg-transparent group-hover:bg-brand-primary transition-colors" />
+        {/* Hover area line */}
+        <div className="absolute inset-0 w-1 bg-transparent group-hover:bg-brand-primary/30 transition-colors" style={{ left: '1.5px' }} />
         
-        {/* Center handle indicator - only visible on hover */}
-        <div className="absolute top-1/2 -translate-y-1/2 w-5 h-10 rounded-full bg-brand-primary text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        {/* Center handle indicator - only visible on hover, properly positioned */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 rounded-full bg-brand-primary text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[70]">
           <svg
-            className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${
+            className={`w-4 h-4 text-white transition-transform duration-200 ${
               isDesktopSidebarOpen ? "" : "rotate-180"
             }`}
             viewBox="0 0 24 24"
@@ -166,25 +180,53 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}
         className={`
         fixed md:relative inset-y-0 left-0 z-50
-        flex flex-col w-[260px] h-screen py-6 bg-white border-r border-[#F2EDE8] justify-between
-        transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        flex flex-col ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between
+        transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
         ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
-        ${isDesktopSidebarOpen ? "md:translate-x-0 md:ml-0 md:shadow-none" : "md:-translate-x-full md:-ml-[260px]"}
+        md:translate-x-0 md:shadow-none
       `}>
         <div>
-          {/* Header */}
-          <Link href="/" className="px-6 mb-10 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <Image
-              src={IMAGES.logo}
-              alt="CrushSVG Logo"
-              width={26}
-              height={26}
-              className="w-[26px] h-[26px] object-contain"
-            />
-            <span className="font-heading font-bold text-2xl text-text-dark">
-              Crush<span className="text-brand-primary">SVG</span>
-            </span>
-          </Link>
+          {/* Header - Fixed height container to prevent any layout shift */}
+          <div className="mb-6 h-[40px] relative">
+            {/* Logo - Always in same position, just fade in/out */}
+            <div className={`absolute inset-0 px-6 flex items-center justify-between transition-opacity duration-200 ${isDesktopSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:pointer-events-none'}`}>
+              <Link href="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                <Image
+                  src={IMAGES.logo}
+                  alt="CrushSVG Logo"
+                  width={26}
+                  height={26}
+                  className="w-[26px] h-[26px] object-contain flex-shrink-0"
+                />
+                <span className="font-heading font-bold text-2xl text-text-dark whitespace-nowrap">
+                  Crush<span className="text-brand-primary">SVG</span>
+                </span>
+              </Link>
+              
+              {/* Close button */}
+              <button 
+                className="hidden md:flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
+                onClick={() => setIsDesktopSidebarOpen(false)}
+                title="Close sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" x2="6" y1="6" y2="18"/>
+                  <line x1="6" x2="18" y1="6" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Hamburger - Always in same position, just fade in/out */}
+            <div className={`absolute inset-0 px-3 flex items-center justify-center transition-opacity duration-200 ${!isDesktopSidebarOpen ? 'opacity-100 md:opacity-100 pointer-events-auto md:pointer-events-auto' : 'opacity-0 pointer-events-none md:opacity-0 md:pointer-events-none'}`}>
+              <button 
+                className="hidden md:flex items-center justify-center w-full rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
+                onClick={() => setIsDesktopSidebarOpen(true)}
+                title="Open sidebar"
+              >
+                <SvgMenu className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
 
           {/* Navigation Links */}
           <ul className="flex flex-col space-y-2">
@@ -195,14 +237,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <li key={link.href}>
                   <Link 
                     href={link.href}
-                    className={`flex items-center space-x-3 px-6 py-3 transition-colors border-l-4 ${
+                    className={`flex items-center py-3 transition-colors ${
+                      isDesktopSidebarOpen 
+                        ? 'space-x-3 px-6 border-l-4' 
+                        : 'md:justify-center md:px-0 md:border-l-0 md:space-x-0 space-x-3 px-6 border-l-4'
+                    } ${
                       isActive 
                         ? "text-brand-primary font-bold border-brand-primary" 
                         : "text-text-muted hover:bg-gray-50 border-transparent"
                     }`}
+                    title={!isDesktopSidebarOpen ? link.label : undefined}
                   >
-                    <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
-                    <span>{link.label}</span>
+                    <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`whitespace-nowrap overflow-hidden ${isDesktopSidebarOpen ? 'opacity-100' : 'md:opacity-0 md:w-0 md:h-0'}`}>{link.label}</span>
                   </Link>
                 </li>
               );
@@ -211,32 +258,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Profile / Logout */}
-        <div className="px-6 pb-6">
-          <div className="flex items-center space-x-3 mb-4">
-            {user?.photoURL ? (
-              <Image
+        <div className={`pb-6 ${isDesktopSidebarOpen ? 'px-6' : 'px-3 md:flex md:flex-col md:items-center'}`}>
+          <div className={`flex items-center mb-4 ${isDesktopSidebarOpen ? 'space-x-3' : 'md:justify-center md:space-x-0 space-x-3'}`}>
+            {user?.photoURL && !imageError ? (
+              <img
                 src={user.photoURL}
                 alt={user.displayName || user.email || "Admin"}
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full object-cover border border-[#F2EDE8]"
-                unoptimized
+                className="w-8 h-8 min-w-[32px] rounded-full object-cover border border-[#F2EDE8] flex-shrink-0"
+                referrerPolicy="no-referrer"
+                onError={() => setImageError(true)}
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm">
+              <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
                 {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
               </div>
             )}
-            <div className="truncate text-sm text-text-muted font-medium">
+            <div className={`truncate text-sm text-text-muted font-medium ${isDesktopSidebarOpen ? 'opacity-100 w-auto' : 'md:opacity-0 md:w-0 md:h-0'}`}>
               {user?.displayName || user?.email || "admin@example.com"}
             </div>
           </div>
           <button 
             onClick={handleLogout}
-            className="flex items-center space-x-3 text-text-muted hover:text-brand-primary transition-colors w-full text-left"
+            className={`flex items-center text-text-muted hover:text-brand-primary transition-colors w-full ${isDesktopSidebarOpen ? 'space-x-3 pl-1' : 'md:justify-center md:space-x-0 space-x-3 pl-1'}`}
+            title={!isDesktopSidebarOpen ? "Logout" : undefined}
           >
-            <SvgLogOut className="w-5 h-5" />
-            <span>Logout</span>
+            <SvgLogOut className="w-5 h-5 flex-shrink-0" />
+            <span className={`whitespace-nowrap overflow-hidden ${isDesktopSidebarOpen ? 'opacity-100 w-auto' : 'md:opacity-0 md:w-0'}`}>Logout</span>
           </button>
         </div>
       </nav>
@@ -244,19 +291,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TopAppBar (Header) */}
-        <header className="flex justify-between items-center w-full px-4 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
+        <header className="flex justify-between items-center w-full px-6 lg:px-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
           <div className="flex items-center space-x-4">
             {/* Mobile Menu Icon */}
             <button 
               className="md:hidden p-2 rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <SvgMenu className="w-6 h-6" />
-            </button>
-            {/* Desktop Menu Icon */}
-            <button 
-              className="hidden md:flex p-2 rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
-              onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
             >
               <SvgMenu className="w-6 h-6" />
             </button>

@@ -14,12 +14,11 @@ interface QualityKnobs {
 const QUALITY_KNOBS: Record<RasterQuality, QualityKnobs> = {
   draft: { pathPrecision: 3, simplify: 1, filterSpeckle: 6, colorPrecision: 6, spliceThreshold: 1 },
   standard: { pathPrecision: 2, simplify: 1, filterSpeckle: 4, colorPrecision: 8, spliceThreshold: 1 },
-  high: { pathPrecision: 1, simplify: 0, filterSpeckle: 2, colorPrecision: 11, spliceThreshold: 0 },
   max: { pathPrecision: 1, simplify: 0, filterSpeckle: 2, colorPrecision: 11, spliceThreshold: 0 },
 };
 
-const COLOR_DEFAULTS: Record<RasterQuality, number> = { draft: 16, standard: 24, high: 32, max: 32 };
-const PHOTO_COLORS: Record<RasterQuality, number> = { draft: 24, standard: 32, high: 48, max: 48 };
+const COLOR_DEFAULTS: Record<RasterQuality, number> = { draft: 16, standard: 24, max: 32 };
+const PHOTO_COLORS: Record<RasterQuality, number> = { draft: 24, standard: 32, max: 48 };
 
 export function buildVtracerOptions(
   imageClass: ImageClass,

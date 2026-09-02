@@ -4,6 +4,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { User, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { getClientIp } from '@/lib/security/ip'
+import { toUserDTO } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 
@@ -100,7 +101,16 @@ export async function PATCH(
     }
   }
 
-  if (displayName) user.displayName = displayName
+  if (displayName !== undefined) {
+    if (typeof displayName !== 'string' || displayName.trim().length === 0) {
+      return errorResponse(400, 'invalid_name', 'Display name cannot be empty', undefined, request)
+    }
+    const trimmed = displayName.trim()
+    if (trimmed.length > 16) {
+      return errorResponse(400, 'invalid_name', 'Display name cannot exceed 16 characters', undefined, request)
+    }
+    user.displayName = trimmed
+  }
   if (role) user.role = role
 
   await user.save()
@@ -111,10 +121,10 @@ export async function PATCH(
     target: uid,
     resourceType: 'user',
     resourceId: uid,
-    details: { email: user.email, newRole: role, newDisplayName: displayName },
+    details: { email: user.email, newRole: role, newDisplayName: user.displayName },
     ipAddress: getClientIp(request),
     metadata: { email: user.email },
   })
 
-  return successResponse({ updated: true, user: user.toObject() }, 200, rateLimitHeaders(rl), request)
+  return successResponse({ updated: true, user: toUserDTO(user) }, 200, rateLimitHeaders(rl), request)
 }

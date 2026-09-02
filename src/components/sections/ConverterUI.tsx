@@ -85,6 +85,11 @@ function SvgToPngConverter() {
     return null;
   });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
@@ -431,6 +436,41 @@ function SvgToPngConverter() {
   const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
 
+  let validationError: string | null = null;
+  if (isCustomWidth) {
+    if (selectedWidth.trim() === "") {
+      validationError = "Please enter a custom width value.";
+    } else {
+      let wNum = parseFloat(selectedWidth);
+      if (Number.isNaN(wNum)) {
+        validationError = `Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+      } else {
+        if (unit === "cm") wNum = wNum * PX_PER_CM;
+        if (wNum < 1 || wNum > MAX_CUSTOM_PX) {
+          validationError = `Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        }
+      }
+    }
+  }
+
+  if (!validationError && isCustomHeight) {
+    if (selectedHeight.trim() === "") {
+      validationError = "Please enter a custom height value.";
+    } else {
+      let hNum = parseFloat(selectedHeight);
+      if (Number.isNaN(hNum)) {
+        validationError = `Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+      } else {
+        if (unit === "cm") hNum = hNum * PX_PER_CM;
+        if (hNum < 1 || hNum > MAX_CUSTOM_PX) {
+          validationError = `Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        }
+      }
+    }
+  }
+
+  const displayError = validationError || error;
+
   return (
     <>
       <section
@@ -558,7 +598,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} style={{ width: "auto", height: "auto" }} className="object-contain" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={48} height={48} className="object-contain w-[40px] h-[40px] md:w-[48px] md:h-[48px]" />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">Drag &amp; Drop or </span>
                     <span className="font-medium text-brand-primary">Select SVG</span>
@@ -1039,12 +1079,12 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
-                {error && (
+                {displayError && (
                   <div
                     role="alert"
                     className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] my-[16px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
                   >
-                    {error}
+                    {displayError}
                   </div>
                 )}
 
@@ -1060,7 +1100,7 @@ function SvgToPngConverter() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
@@ -1072,7 +1112,7 @@ function SvgToPngConverter() {
                       <Button
                         className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleDownload}
-                        disabled={converting || isPlaceholderCode}
+                        disabled={converting || isPlaceholderCode || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           Download PNG
@@ -1089,7 +1129,7 @@ function SvgToPngConverter() {
                       <Button
                         className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
                         onClick={handleConvert}
-                        disabled={converting}
+                        disabled={converting || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert
