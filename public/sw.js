@@ -48,7 +48,8 @@ self.addEventListener("fetch", (event) => {
     request.url.includes("/api/") ||
     request.url.includes("/_next/static/") ||
     request.url.includes("/monitoring") ||
-    request.url.startsWith("chrome-extension://")
+    request.url.startsWith("chrome-extension://") ||
+    request.url.startsWith("data:")
   ) {
     return;
   }

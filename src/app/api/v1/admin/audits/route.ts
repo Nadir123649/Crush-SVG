@@ -33,12 +33,41 @@ export async function GET(request: NextRequest) {
 
   const filter: Record<string, unknown> = {}
   if (search) {
-    filter.$or = [
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(search);
+    
+    const filterOr: any[] = [
       { action: { $regex: search, $options: 'i' } },
       { adminId: { $regex: search, $options: 'i' } },
       { resourceType: { $regex: search, $options: 'i' } },
       { target: { $regex: search, $options: 'i' } },
-    ]
+      { ipAddress: { $regex: search, $options: 'i' } },
+      { "details.email": { $regex: search, $options: 'i' } },
+      { "details.newRole": { $regex: search, $options: 'i' } },
+      { "details.oldRole": { $regex: search, $options: 'i' } },
+      { "details.role": { $regex: search, $options: 'i' } },
+      { "details.newDisplayName": { $regex: search, $options: 'i' } },
+      { "details.message": { $regex: search, $options: 'i' } },
+      { "details.error": { $regex: search, $options: 'i' } },
+      { $expr: { $regexMatch: { input: { $toString: "$createdAt" }, regex: search, options: "i" } } }
+    ];
+
+    const searchLower = search.toLowerCase();
+    if (searchLower === 'error' || searchLower === 'fail') {
+      filterOr.push({ action: { $regex: 'fail|error', $options: 'i' } });
+    } else if (searchLower === 'warning' || searchLower === 'warn') {
+      filterOr.push({ action: { $regex: 'warn|limit|suspend|delete', $options: 'i' } });
+    } else if (searchLower === 'info') {
+      filterOr.push({ action: { $not: { $regex: 'fail|error|warn|limit|suspend|delete', $options: 'i' } } });
+    }
+    
+    if (isObjectId) {
+      filterOr.push(
+        { resourceId: search },
+        { target: search }
+      );
+    }
+    
+    filter.$or = filterOr;
   }
 
   const [total, docs] = await Promise.all([

@@ -1,6 +1,7 @@
 import { User, ConversionLog, AuditLog, VALID_USER_FILTER } from "@/lib/database/db";
 import { AnalyticsChart } from "@/components/admin/AnalyticsChart";
 import { Button } from "@/components/ui/Button";
+import { LocalTime } from "@/components/utils/LocalTime";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ const SvgRadio = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgDollarSign = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
 const SvgUserPlus = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>;
 const SvgSettings = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+const SvgImage = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>;
 
 const formatK = (num: number) => {
   return Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 })
@@ -27,6 +29,7 @@ export default async function AdminDashboard() {
     totalUsers,
     totalConversions,
     rasterConversions,
+    svgConversions,
     recentAudits,
     rawRecentConversions,
     conversionsLast7Days
@@ -34,6 +37,7 @@ export default async function AdminDashboard() {
     User.countDocuments(VALID_USER_FILTER),
     ConversionLog.countDocuments({ success: true }),
     ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
+    ConversionLog.countDocuments({ success: true, inputFormat: 'svg' }),
     AuditLog.find().sort({ createdAt: -1 }).limit(10),
     ConversionLog.find().sort({ createdAt: -1 }).limit(5),
     ConversionLog.aggregate([
@@ -82,7 +86,7 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Row 1: KPIs */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {/* KPI 1 */}
         <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
           <div className="flex justify-between items-center mb-4">
@@ -122,6 +126,20 @@ export default async function AdminDashboard() {
           <div>
             <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
+          </div>
+        </div>
+
+        {/* KPI 3.5: SVG to PNG */}
+        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">SVG → PNG</span>
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <SvgImage className="w-4 h-4 text-[#D94A1E]" />
+            </div>
+          </div>
+          <div>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions)}</span>
+            <span className="font-body text-sm text-text-muted mt-2 block">SVG to Raster requests</span>
           </div>
         </div>
 
@@ -182,7 +200,7 @@ export default async function AdminDashboard() {
                   </div>
                   <div>
                     <p className="text-text-dark"><span className="font-bold">{audit.adminId}</span> {audit.action} {audit.resourceType || ''}</p>
-                    <span className="text-xs text-text-muted">{new Date(audit.createdAt).toLocaleString()}</span>
+                    <span className="text-xs text-text-muted"><LocalTime date={audit.createdAt} format="long" /></span>
                   </div>
                 </div>
               );
@@ -231,7 +249,7 @@ export default async function AdminDashboard() {
                     )}
                   </td>
                   <td className="p-5 text-text-muted font-medium">
-                    {new Date(conv.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <LocalTime date={conv.createdAt} format="time" />
                   </td>
                 </tr>
               ))}

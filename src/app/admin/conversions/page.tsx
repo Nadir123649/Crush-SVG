@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { LocalTime } from "@/components/utils/LocalTime";
 import Link from "next/link";
 import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
@@ -133,9 +134,9 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <Button variant="solid" onClick={handleExportCSV} className="px-6 py-3 h-auto flex items-center justify-center gap-2 shadow-sm">
-          <SvgDownload className="w-5 h-5" />
-          Export CSV
+        <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
         </Button>
       </div>
 
@@ -172,11 +173,12 @@ export default function ConversionsPage() {
         {/* Status Filter */}
         <div className="md:col-span-4 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-end gap-2">
           <label className="font-body font-semibold text-sm text-text-muted">Status</label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <select 
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="flex-1 px-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer"
+              className="w-[140px] pl-3 pr-8 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23353A3E%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem top 50%', backgroundSize: '0.65rem auto' }}
             >
               <option value="all">All Statuses</option>
               <option value="success">Success</option>
@@ -185,7 +187,7 @@ export default function ConversionsPage() {
             <button 
               type="button"
               onClick={handleFilterChange}
-              className="px-4 py-2 bg-brand-primary text-white rounded-[8px] font-body font-semibold hover:bg-brand-secondary transition-colors"
+              className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-[8px] font-body font-semibold hover:bg-brand-secondary transition-colors"
             >
               Filter
             </button>
@@ -281,7 +283,7 @@ export default function ConversionsPage() {
                         )}
                       </td>
                       <td className="py-4 px-6 text-right font-body text-sm text-text-muted">
-                        {new Date(conv.createdAt).toLocaleString()}
+                        <LocalTime date={conv.createdAt} format="long" />
                       </td>
                     </tr>
                   ))}

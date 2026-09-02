@@ -75,8 +75,21 @@ function SvgToPngConverter() {
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
-  const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("crush_usage_info");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
@@ -366,12 +379,18 @@ function SvgToPngConverter() {
       });
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
-        setUsage({
+        const updatedUsage = {
           conversionsUsed: res.conversionsUsed,
           remaining: res.remaining,
           isUnlimited: false,
           limitReached: reached,
-        });
+        };
+        setUsage(updatedUsage);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
+          } catch {}
+        }
         window.dispatchEvent(
           new CustomEvent("crushUsageUpdated", {
             detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining },
@@ -421,7 +440,7 @@ function SvgToPngConverter() {
     <>
       <section
         id="converter"
-        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[20px] md:scroll-mt-[30px]"
       >
         {/* Outer Dashed Border Box */}
         <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
@@ -477,15 +496,15 @@ function SvgToPngConverter() {
                         Clear
                       </span>
                     </button>
-                    {usage && (
-                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                    <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                      {usage
+                        ? usage.isUnlimited
                           ? "Unlimited conversions"
                           : `${usage.conversionsUsed} of ${
                               usage.conversionsUsed + usage.remaining
-                            } free conversions used`}
-                      </span>
-                    )}
+                            } free conversions used`
+                        : "0 of 3 free conversions used"}
+                    </span>
                   </div>
                 </div>
 
@@ -1028,7 +1047,7 @@ function SvgToPngConverter() {
                 {error && (
                   <div
                     role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
+                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] my-[16px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
                   >
                     {error}
                   </div>
@@ -1046,7 +1065,7 @@ function SvgToPngConverter() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}

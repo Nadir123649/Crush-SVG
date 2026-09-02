@@ -291,12 +291,12 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleExportCSV} className="px-4 py-3 h-auto flex items-center justify-center gap-2 shadow-sm" disabled={loading}>
-            <SvgDownload className="w-5 h-5" />
-            Export CSV
+          <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
+            <SvgDownload className="w-4 h-4 shrink-0" />
+            Export
           </Button>
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="px-6 py-3 h-auto flex items-center justify-center gap-2 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
         </div>
