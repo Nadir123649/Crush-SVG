@@ -72,6 +72,15 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
     >
       <head>
+        {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
+            wrong auth panel on the very first frame. Reads the same
+            localStorage key AuthProvider uses — no second auth system. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
+          }}
+        />
+
         {/* Google Search Console */}
         <meta
           name="google-site-verification"

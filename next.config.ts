@@ -19,7 +19,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com https://apis.google.com https://pagead2.googlesyndication.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com",
+      "img-src 'self' data: blob: https://*.googleusercontent.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://api.crushsvg.net https://staging.api.crushsvg.net https://www.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://firebaseauth.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.googlesyndication.com",
       "frame-src 'self' https://accounts.google.com https://crushsvg-b306d.firebaseapp.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
+      { protocol: "https", hostname: "*.googleusercontent.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
@@ -57,6 +58,15 @@ const nextConfig: NextConfig = {
             value: "public, max-age=31536000, immutable",
           },
         ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/svg-to-png',
+        destination: '/',
+        permanent: true,
       },
     ];
   },

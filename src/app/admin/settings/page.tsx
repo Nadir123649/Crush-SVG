@@ -142,10 +142,10 @@ export default function SettingsPage() {
       setAdminEmail("");
       setAdminPassword("");
     } catch (err: any) {
-      if (err.message.includes("409")) {
+      if (err.status === 409) {
         showToast("error", "A user with this email already exists.");
       } else {
-        showToast("error", "Failed to add admin user.");
+        showToast("error", err.message || "Failed to add admin user.");
       }
     } finally {
       setAddingAdmin(false);
