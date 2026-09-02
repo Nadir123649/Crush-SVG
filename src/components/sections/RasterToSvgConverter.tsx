@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, dataUrlToFile, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
+import {
+  dataUrlToFile,
+  convertPngToSvg,
+  type QualityLevel,
+  type BackgroundMode,
+  type TracingMode,
+  type PaletteLevel,
+} from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -826,7 +833,7 @@ export function RasterToSvgConverter() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={converting}
-                      className={`absolute top-3 right-3 z-20 group rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
+                      className={`absolute top-3 right-3 z-20 group/btn rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
                         converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"
                       }`}
                     >
@@ -839,8 +846,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover/btn:text-white transition-colors duration-300 ease-in-out">
                         Replace Image
                       </span>
                     </button>
@@ -973,23 +980,23 @@ export function RasterToSvgConverter() {
                     <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Vector mode traces clean spline paths for logos, icons &amp; line art</span>
+                        <span>Intelligent vector tracing creates smooth, scalable paths from raster images</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Pixel-perfect mode preserves photos &amp; gradients exactly</span>
+                        <span>Advanced pixel mode for photorealistic conversions with gradient support</span>
                       </li>
                        <li className="flex items-center gap-2">
                          <span className="text-brand-primary font-bold">✓</span>
-                         <span>Auto-detects the best mode for your image</span>
+                         <span>Smart auto-detection selects optimal conversion strategy instantly</span>
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>100% client-side — your images never leave the browser</span>
+                        <span>Complete privacy protection — all processing happens in your browser</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>One-click SVG file download &amp; direct markup copy</span>
+                        <span>Instant download &amp; copy-to-clipboard for seamless workflow</span>
                       </li>
                     </ul>
                   </div>
@@ -1114,7 +1121,7 @@ export function RasterToSvgConverter() {
                         alt="Vectorized SVG output"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1.5">
                         {result.modeUsed && (
                           <span className={`text-[11px] font-heading font-medium px-2 py-0.5 rounded shadow-xs ${
                             result.modeUsed === "vector"
