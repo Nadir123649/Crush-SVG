@@ -142,19 +142,13 @@ export default function AuditsPage() {
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
-          <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
-        </div>
-        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
-          <SvgDownload className="w-4 h-4 shrink-0" />
-          Export
-        </Button>
+      <div>
+        <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
+        <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
       </div>
 
-      {/* Search */}
-      <div className="flex flex-wrap items-center gap-4">
+      {/* Search and Export */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="relative">
           <SvgSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input 
@@ -165,6 +159,10 @@ export default function AuditsPage() {
             className="pl-10 pr-4 py-2.5 bg-white border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-shadow min-w-[240px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
           />
         </div>
+        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-2.5 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
+        </Button>
       </div>
 
       {/* Main Card containing the Table */}

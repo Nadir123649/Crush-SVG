@@ -998,23 +998,23 @@ export function RasterToSvgConverter() {
                     <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Vector mode traces clean spline paths for logos, icons &amp; line art</span>
+                        <span>Intelligent vector tracing creates smooth, scalable paths from raster images</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Pixel-perfect mode preserves photos &amp; gradients exactly</span>
+                        <span>Advanced pixel mode for photorealistic conversions with gradient support</span>
                       </li>
                        <li className="flex items-center gap-2">
                          <span className="text-brand-primary font-bold">✓</span>
-                         <span>Auto-detects the best mode for your image</span>
+                         <span>Smart auto-detection selects optimal conversion strategy instantly</span>
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>100% client-side — your images never leave the browser</span>
+                        <span>Complete privacy protection — all processing happens in your browser</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>One-click SVG file download &amp; direct markup copy</span>
+                        <span>Instant download &amp; copy-to-clipboard for seamless workflow</span>
                       </li>
                     </ul>
                   </div>
