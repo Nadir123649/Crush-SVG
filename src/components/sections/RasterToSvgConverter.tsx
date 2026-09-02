@@ -6,19 +6,19 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, dataUrlToFile, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
+import { svgToDataUrl, vectorizeRaster, type VectorizeRequest } from "@/lib/client/converter";
+import { dataUrlToFile } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import type { UsageInfo } from "@/lib/shared/shared-types";
+import { showToast } from "@/lib/client/toast-bridge";
+import { trackConversion } from "@/lib/client/analytics";
+import { IMAGES } from "@/lib/shared/images";
 
 type QualityLevel = "low" | "standard" | "high";
 type BackgroundMode = "preserve" | "transparent" | "custom";
 type TracingMode = "auto" | "logo" | "line-art" | "photo";
 type PaletteLevel = "auto" | "8" | "24" | "48";
-import type { UsageInfo } from "@/lib/shared/shared-types";
-import { showToast } from "@/lib/client/toast-bridge";
-import { trackConversion } from "@/lib/client/analytics";
-import { IMAGES } from "@/lib/shared/images";
 
 const STORAGE_KEY = "crush_vectorizer_state";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -851,7 +851,7 @@ export function RasterToSvgConverter() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={converting}
-                      className={`absolute top-3 right-3 z-20 group rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
+                      className={`absolute top-3 right-3 z-20 group/btn rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
                         converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"
                       }`}
                     >
@@ -864,8 +864,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover/btn:text-white transition-colors duration-300 ease-in-out">
                         Replace Image
                       </span>
                     </button>
@@ -1139,7 +1139,7 @@ export function RasterToSvgConverter() {
                         alt="Vectorized SVG output"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1.5">
                         {result.modeUsed && (
                           <span className={`text-[11px] font-heading font-medium px-2 py-0.5 rounded shadow-xs ${
                             result.modeUsed === "vector"
