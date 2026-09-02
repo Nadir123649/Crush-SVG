@@ -104,9 +104,12 @@ export default function TeamPage() {
       {/* Team Grid */}
       <div className="w-full max-w-[1200px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {team.map((member) => (
-          <div
+          <a
             key={member.name}
-            className="flex flex-col bg-white rounded-[20px] p-6 md:p-8 border border-[#F2EDE8] relative group"
+            href={member.linkedin || "#"}
+            target={member.linkedin ? "_blank" : undefined}
+            rel={member.linkedin ? "noopener noreferrer" : undefined}
+            className="flex flex-col bg-white rounded-[20px] p-6 md:p-8 border border-[#F2EDE8] relative group cursor-pointer hover:border-brand-primary/20 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
             style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
           >
             <div className="flex items-center gap-4 mb-5">
@@ -120,9 +123,9 @@ export default function TeamPage() {
                     {member.name.replace("Muhammad ", "M. ")}
                   </h2>
                   {member.linkedin && (
-                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex-shrink-0">
+                    <div className="opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0">
                       <Image src={IMAGES.linkedin} alt="LinkedIn" width={20} height={20} className="w-[20px] h-[20px] object-contain" />
-                    </a>
+                    </div>
                   )}
                 </div>
                 <div className="h-[40px] flex flex-col justify-center">
@@ -150,7 +153,7 @@ export default function TeamPage() {
                 ))}
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
 
