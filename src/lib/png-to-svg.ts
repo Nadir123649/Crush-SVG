@@ -1,6 +1,11 @@
 import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 
 /* ── WASM panic detection ─────────────────────────────────────────── */
+// visioncortex can panic on extreme colour-cluster workloads.
+// A panic aborts the WASM module and is NOT caught by try/catch.
+// We detect it via the global error / unhandledrejection events
+// and fall back to a pixel-embed SVG so the UI never crashes.
+
 let wasmPanicked = false;
 
 if (typeof window !== "undefined") {
@@ -578,6 +583,7 @@ function runVectorTrace(
     throw new Error("Image has no visible content to trace");
   }
 
+  // Guard: if a previous call already panicked the WASM module, skip entirely
   if (wasmPanicked) {
     throw new Error("Vector engine unavailable — falling back to pixel embed");
   }
@@ -753,6 +759,8 @@ export async function convertPngToSvg(
     };
   } catch {
     // Any trace error → pixel fallback
+    // buildPixelSvg is pure string concat (no VTrace), so it's safe
+    // even if the WASM module has panicked.
     let fallbackDataUrl = dataUrl;
     if (!wasmPanicked) {
       try {

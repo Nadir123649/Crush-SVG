@@ -85,6 +85,11 @@ function SvgToPngConverter() {
     return null;
   });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
@@ -1060,7 +1065,7 @@ function SvgToPngConverter() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
