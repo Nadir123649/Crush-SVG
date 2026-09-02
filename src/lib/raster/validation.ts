@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 
 export const rasterModeSchema = z.enum(["auto", "logo", "line-art", "photo"]);
-export const rasterQualitySchema = z.enum(["draft", "standard", "high", "max"]);
+export const rasterQualitySchema = z.enum(["draft", "standard", "max"]);
 export const rasterBackgroundSchema = z.enum(["preserve", "transparent", "custom"]);
 
 const HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;

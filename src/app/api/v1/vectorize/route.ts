@@ -8,7 +8,6 @@ import { rasterOptionsSchema } from "@/lib/raster/validation";
 import { rasterToSvg, recommendQueue } from "@/lib/raster/raster-to-svg";
 import { rasterToSvgQueued, rasterQueueEnabled } from "@/lib/raster/raster-queue";
 import type { RasterOptions } from "@/lib/raster/types";
-import { z } from "zod";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -71,16 +70,10 @@ export async function POST(request: NextRequest) {
       return errorResponse(400, "file_too_large", "Image exceeds the 12MB upload limit.", undefined, request);
     }
 
-    const rawColorCount = form.get("colorCount");
-    const parsedColorCount =
-      rawColorCount && rawColorCount !== "undefined" && rawColorCount !== "auto" && !isNaN(Number(rawColorCount))
-        ? Number(rawColorCount)
-        : undefined;
-
     const options = rasterOptionsSchema.parse({
       mode: form.get("mode") ?? undefined,
       quality: form.get("quality") ?? undefined,
-      colorCount: parsedColorCount,
+      colorCount: form.get("colorCount") ?? undefined,
       background: form.get("background") ?? undefined,
       bgColor: form.get("bgColor") ?? undefined,
     }) as RasterOptions;
@@ -129,9 +122,6 @@ export async function POST(request: NextRequest) {
     if (setCookie) response.cookies.set(setCookie);
     return response;
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return errorResponse(400, "invalid_options", error.issues[0]?.message || "Invalid vectorize options", undefined, request);
-    }
     if (error instanceof RasterConversionError) {
       await logConversionError(request, error);
       return errorResponse(error.status, error.code, error.message, undefined, request);

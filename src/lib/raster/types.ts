@@ -2,7 +2,7 @@ import "server-only";
 
 export type RasterMode = "auto" | "logo" | "line-art" | "photo";
 
-export type RasterQuality = "draft" | "standard" | "high" | "max";
+export type RasterQuality = "draft" | "standard" | "max";
 
 export type RasterBackground = "preserve" | "transparent" | "custom";
 
