@@ -1,5 +1,16 @@
 import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 
+/* ── WASM panic detection ─────────────────────────────────────────── */
+let wasmPanicked = false;
+
+if (typeof window !== "undefined") {
+  const onPanic = () => {
+    wasmPanicked = true;
+  };
+  window.addEventListener("error", onPanic);
+  window.addEventListener("unhandledrejection", onPanic);
+}
+
 export type TracingMode = "auto" | "logo" | "line-art" | "photo";
 export type PaletteLevel = "auto" | "8" | "24" | "48";
 export type QualityLevel = "low" | "standard" | "high";
@@ -567,19 +578,23 @@ function runVectorTrace(
     throw new Error("Image has no visible content to trace");
   }
 
+  if (wasmPanicked) {
+    throw new Error("Vector engine unavailable — falling back to pixel embed");
+  }
+
   const vtrace = new VTrace(imageData, {
     ...vtraceOptions,
     width,
     height,
   });
 
-  const originalConsoleError = console.error;
-  console.error = () => {};
-  try {
-    return vtrace.getSVG();
-  } finally {
-    console.error = originalConsoleError;
+  const svg = vtrace.getSVG();
+
+  if (wasmPanicked) {
+    throw new Error("Vector engine crashed on this image — falling back to pixel embed");
   }
+
+  return svg;
 }
 
 function countDistinctColors(imageData: ImageData): number {
@@ -732,13 +747,19 @@ export async function convertPngToSvg(
   } catch {
     // Any trace error → pixel fallback
     let fallbackDataUrl = dataUrl;
-    if (isTransparent) {
-      const fbData = drawToCanvas(img, drawW, drawH, true);
-      const fbProcessed = removeBackground(fbData);
-      const fbDilated = dilateAlpha(fbProcessed);
-      fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
-    } else if (isCustom && customHex) {
-      fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
+    if (!wasmPanicked) {
+      try {
+        if (isTransparent) {
+          const fbData = drawToCanvas(img, drawW, drawH, true);
+          const fbProcessed = removeBackground(fbData);
+          const fbDilated = dilateAlpha(fbProcessed);
+          fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
+        } else if (isCustom && customHex) {
+          fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
+        }
+      } catch {
+        // Canvas ops failed — use the original dataUrl
+      }
     }
     const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
     return {
@@ -756,6 +777,23 @@ export async function convertPngToSvg(
       outputSize: new Blob([fallbackSvg]).size,
     };
   }
+}
+
+/**
+ * Convert a data-URL string to a File object entirely in-memory.
+ * No network request is made (unlike fetch(dataUrl) which can fail
+ * due to CSP restrictions, service-worker interception, or quota issues).
+ */
+export function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const commaIdx = dataUrl.indexOf(",");
+  if (commaIdx === -1) throw new Error("Invalid data URL — image may be corrupted. Please re-upload.");
+  const meta = dataUrl.slice(0, commaIdx);
+  const base64 = dataUrl.slice(commaIdx + 1);
+  const mime = meta.split(":")[1]?.split(";")[0] || "image/png";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], fileName, { type: mime });
 }
 
 export { ACCEPTED_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_SIZE };
