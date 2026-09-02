@@ -25,6 +25,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.photoURL]);
+
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartXRef = React.useRef<number | null>(null);
 
@@ -85,8 +92,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const handleLogout = () => {
+    setIsLoggingOut(true);
     logout();
-    router.push('/login');
+    router.push('/');
   };
 
   return (
@@ -95,13 +103,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {showOverlay && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FFFCFA]">
           {isLoading && (
-            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
           )}
-          {isGuest && (
+          {isGuest && !isLoggingOut && (
             <AuthCard type="login" returnTo={pathname} />
           )}
+          {isGuest && isLoggingOut && (
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
+          )}
           {isNonAdmin && (
-            <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+            <div className="flex flex-col items-center justify-center animate-pulse">
+              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
+            </div>
           )}
         </div>
       )}
@@ -213,14 +230,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Profile / Logout */}
         <div className="px-6 pb-6">
           <div className="flex items-center space-x-3 mb-4">
-            {user?.photoURL ? (
-              <Image
+            {user?.photoURL && !imageError ? (
+              <img
                 src={user.photoURL}
                 alt={user.displayName || user.email || "Admin"}
-                width={32}
-                height={32}
                 className="w-8 h-8 rounded-full object-cover border border-[#F2EDE8]"
-                unoptimized
+                referrerPolicy="no-referrer"
+                onError={() => setImageError(true)}
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm">
@@ -244,7 +260,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TopAppBar (Header) */}
-        <header className="flex justify-between items-center w-full px-4 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
+        <header className="flex justify-between items-center w-full px-6 lg:px-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
           <div className="flex items-center space-x-4">
             {/* Mobile Menu Icon */}
             <button 
@@ -255,7 +271,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
             {/* Desktop Menu Icon */}
             <button 
-              className="hidden md:flex p-2 rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
+              className="hidden md:flex rounded-lg hover:bg-gray-50 text-text-muted transition-colors"
               onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
             >
               <SvgMenu className="w-6 h-6" />

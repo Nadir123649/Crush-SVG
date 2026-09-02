@@ -3,6 +3,8 @@ import Link from "next/link";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
 import { Button } from "@/components/ui/Button";
+import Image from "next/image";
+import { IMAGES } from "@/lib/shared/images";
 
 export const metadata = constructMetadata({
   title: "Meet the Team | CrushSVG & The Nevon",
@@ -39,6 +41,7 @@ export default function TeamPage() {
       role: "CEO and Founder",
       bio: "Visionary entrepreneur and tech leader driving the strategic direction of The Nevon. Nadir is focused on building high-impact SaaS products and scaling teams.",
       initials: "SN",
+      linkedin: "https://www.linkedin.com/in/nadir1214/",
       skills: ["Business Strategy", "Product Vision", "Team Leadership", "Venture Growth"],
     },
     {
@@ -46,6 +49,7 @@ export default function TeamPage() {
       role: "Project Manager",
       bio: "Dedicated project manager bridging the gap between design, engineering, and business goals. Aswad oversees Agile workflows and ensures timely, high-quality delivery.",
       initials: "AK",
+      linkedin: "https://www.linkedin.com/in/muhammad-aswad-khan/",
       skills: ["Agile Management", "Sprint Planning", "Team Coordination", "Product Delivery"],
     },
     {
@@ -53,6 +57,7 @@ export default function TeamPage() {
       role: "Lead Full-Stack Developer & AI Engineer",
       bio: "Full-stack engineer focused on building secure, scalable, and high-performance digital products. Hassan turns complex requirements into polished, production-ready solutions.",
       initials: "HI",
+      linkedin: "https://www.linkedin.com/in/mhassanirfan/",
       skills: ["Full-Stack Engineering", "MERN & Next.js", "AI Engineering", "WordPress"],
     },
     {
@@ -60,6 +65,7 @@ export default function TeamPage() {
       role: "Frontend Engineer",
       bio: "Frontend Engineer focused on building responsive, high-performance, and user-friendly digital products. Abdul turns complex designs into polished, scalable interfaces.",
       initials: "AR",
+      linkedin: "https://www.linkedin.com/in/develepor-raheem/",
       skills: ["Frontend Architecture", "React & Next.js", "Responsive UI", "System Design"],
     },
     {
@@ -67,6 +73,7 @@ export default function TeamPage() {
       role: "QA & Digital Experience Specialist",
       bio: "Turning ideas into polished products through quality assurance, AI-powered automation, and digital strategy. Ali oversees product testing and UI/UX feedback across The Nevon.",
       initials: "AA",
+      linkedin: "https://www.linkedin.com/in/ali-aun/",
       skills: ["QA & Testing", "AI Automation", "Content Strategy", "UI/UX Feedback"],
     },
     {
@@ -74,7 +81,8 @@ export default function TeamPage() {
       role: "UI/UX Designer",
       bio: "Creating intuitive, engaging, and visually refined digital experiences through user-centered design. Mishal transforms product requirements into clean and functional interfaces.",
       initials: "M",
-      skills: ["UI/UX Design", "User-Centered Design", "Interface Design", "Design Systems", "Responsive Design", "Visual Design"],
+      linkedin: "https://www.linkedin.com/in/mishal-rajpoot-79323741b",
+      skills: ["UI/UX Design", "User-Centered Design", "Design Systems", "Responsive Design"],
     },
   ];
 
@@ -98,17 +106,30 @@ export default function TeamPage() {
         {team.map((member) => (
           <div
             key={member.name}
-            className="flex flex-col bg-white rounded-[20px] p-6 md:p-8 border border-[#F2EDE8]"
+            className="flex flex-col bg-white rounded-[20px] p-6 md:p-8 border border-[#F2EDE8] relative group"
             style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
           >
             <div className="flex items-center gap-4 mb-5">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-secondary text-white font-heading font-bold flex items-center justify-center text-2xl shadow-sm">
-                {member.initials}
+              <div className="w-16 h-16 rounded-2xl bg-[#FFFCFA] border border-[#F2EDE8] flex items-center justify-center shadow-sm overflow-hidden relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/10 to-brand-secondary/10"></div>
+                <span className="relative z-10 text-brand-primary font-heading font-bold text-2xl">{member.initials}</span>
               </div>
-              <div>
-                <h2 className="font-heading font-semibold text-xl text-text-dark">{member.name}</h2>
-                <p className="text-sm font-semibold text-brand-primary">{member.role}</p>
-                <p className="text-xs text-text-muted mt-0.5">The Nevon & CrushSVG</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="font-heading font-semibold text-xl text-text-dark truncate">
+                    {member.name.replace("Muhammad ", "M. ")}
+                  </h2>
+                  {member.linkedin && (
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex-shrink-0">
+                      <Image src={IMAGES.linkedin} alt="LinkedIn" width={20} height={20} className="w-[20px] h-[20px] object-contain" />
+                    </a>
+                  )}
+                </div>
+                <div className="h-[40px] flex flex-col justify-center">
+                  <p className="text-sm font-semibold text-brand-primary line-clamp-2 leading-tight">
+                    {member.role}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -134,7 +155,7 @@ export default function TeamPage() {
       </div>
 
       {/* Parent Organization Highlight */}
-      <div className="w-full max-w-[900px] flex flex-col bg-white rounded-[20px] p-6 md:p-10 border border-[#F2EDE8] mb-12" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+      <div className="w-full max-w-[1200px] flex flex-col bg-white rounded-[20px] p-6 md:p-10 border border-[#F2EDE8] mb-12" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="max-w-[550px] flex flex-col items-center text-center lg:items-start lg:text-left">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-primary block mb-1">Our Parent Studio</span>

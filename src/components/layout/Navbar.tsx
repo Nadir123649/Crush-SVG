@@ -21,6 +21,11 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.photoURL]);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -175,7 +180,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
 
             <Link
               href="/contact-us?r=1"
-              className="hidden md:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Need Help?
             </Link>
@@ -211,14 +216,15 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                 aria-label="User account menu"
                 className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
               >
-                {user?.photoURL ? (
-                  <Image
+                {user?.photoURL && !imageError ? (
+                  <img
                     src={user.photoURL}
                     alt=""
-                    width={24}
-                    height={24}
                     className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
                     referrerPolicy="no-referrer"
+                    onError={() => {
+                      setImageError(true);
+                    }}
                   />
                 ) : (
                   <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
@@ -228,7 +234,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                   </span>
                 )}
 
-                <span className="font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
+                <span className="hidden sm:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
                   {user?.displayName || user?.email}
                 </span>
 

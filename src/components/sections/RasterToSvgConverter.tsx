@@ -348,6 +348,11 @@ export function RasterToSvgConverter() {
     return null;
   });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
 
@@ -1292,7 +1297,7 @@ export function RasterToSvgConverter() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] lg:mt-auto relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
