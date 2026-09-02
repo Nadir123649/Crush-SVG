@@ -594,14 +594,20 @@ function runVectorTrace(
     height,
   });
 
-  const svg = vtrace.getSVG();
-
-  // Detect if getSVG() triggered a panic (the hook fires synchronously)
-  if (wasmPanicked) {
+  // Suppress the Rust panic hook output — it writes to console.error
+  // which Next.js intercepts to show the error overlay, crashing the app
+  // before our try/catch in convertPngToSvg can run.
+  const suppressedError = console.error;
+  console.error = () => {};
+  try {
+    const svg = vtrace.getSVG();
+    return svg;
+  } catch {
+    wasmPanicked = true;
     throw new Error("Vector engine crashed on this image — falling back to pixel embed");
+  } finally {
+    console.error = suppressedError;
   }
-
-  return svg;
 }
 
 function countDistinctColors(imageData: ImageData): number {
