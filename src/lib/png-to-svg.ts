@@ -758,4 +758,21 @@ export async function convertPngToSvg(
   }
 }
 
+/**
+ * Convert a data-URL string to a File object entirely in-memory.
+ * No network request is made (unlike fetch(dataUrl) which can fail
+ * due to CSP restrictions, service-worker interception, or quota issues).
+ */
+export function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const commaIdx = dataUrl.indexOf(",");
+  if (commaIdx === -1) throw new Error("Invalid data URL — image may be corrupted. Please re-upload.");
+  const meta = dataUrl.slice(0, commaIdx);
+  const base64 = dataUrl.slice(commaIdx + 1);
+  const mime = meta.split(":")[1]?.split(";")[0] || "image/png";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], fileName, { type: mime });
+}
+
 export { ACCEPTED_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_SIZE };

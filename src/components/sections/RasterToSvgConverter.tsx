@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { svgToDataUrl, vectorizeRaster, type VectorizeRequest, type VectorizeResponse } from "@/lib/client/converter";
+import { svgToDataUrl } from "@/lib/client/converter";
+import { convertPngToSvg, dataUrlToFile, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 
@@ -629,9 +630,7 @@ export function RasterToSvgConverter() {
       if (rasterFile) {
         fileToConvert = rasterFile;
       } else {
-        const res = await fetch(rasterDataUrl!);
-        const blob = await res.blob();
-        fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
+        fileToConvert = dataUrlToFile(rasterDataUrl!, imageName || "restored-image.png");
       }
 
       const parsedColorCount = PALETTE_MAP[rasterColors];
