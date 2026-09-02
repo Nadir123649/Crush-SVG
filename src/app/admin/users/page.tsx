@@ -26,6 +26,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -80,6 +82,10 @@ export default function UsersPage() {
         if (cancelled) return;
         if (response?.data) {
           setUsers(response.data);
+          if (response.meta) {
+            setTotalPages(response.meta.total_pages || 1);
+            setTotalItems(response.meta.total || 0);
+          }
         } else {
           setError("Failed to load users");
         }
@@ -272,10 +278,8 @@ export default function UsersPage() {
   };
 
   const prevPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
+    setPage((prev) => Math.max(1, prev - 1));
   };
-
-  const totalPages = Math.ceil(users.length / USERS_PAGE_SIZE) || 1;
 
   return (
     <div className="flex flex-col gap-8 pb-10">
@@ -465,7 +469,7 @@ export default function UsersPage() {
             {totalPages > 0 && (
               <div className="mt-auto p-5 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FFFCFA]">
                 <span className="font-body text-sm text-text-muted">
-                  Showing {((page - 1) * USERS_PAGE_SIZE) + 1} to {Math.min(page * USERS_PAGE_SIZE, users.length)} of {users.length > 0 ? users.length : 0} users
+                  Showing {((page - 1) * USERS_PAGE_SIZE) + 1} to {Math.min(page * USERS_PAGE_SIZE, totalItems)} of {totalItems} users
                 </span>
                 <div className="flex gap-1.5">
                   <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { LocalTime } from "@/components/utils/LocalTime";
 import Link from "next/link";
 import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
@@ -281,7 +282,7 @@ export default function ConversionsPage() {
                         )}
                       </td>
                       <td className="py-4 px-6 text-right font-body text-sm text-text-muted">
-                        {new Date(conv.createdAt).toLocaleString()}
+                        <LocalTime date={conv.createdAt} format="long" />
                       </td>
                     </tr>
                   ))}
