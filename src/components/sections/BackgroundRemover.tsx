@@ -351,6 +351,7 @@ export function BackgroundRemover() {
       setImageSize(null);
       setImageDims(null);
       setResult(null);
+      setStaleResult(false);
       setError(null);
       setUsage(null);
       setShowSignupPrompt(false);
@@ -363,6 +364,11 @@ export function BackgroundRemover() {
       } catch {}
     }
   }, [status]);
+
+  // ── Mark result stale when settings change ─────────────────────────────────
+  useEffect(() => {
+    if (hasResult && !processing) setStaleResult(true);
+  }, [bgOption, scale, customColor]);
 
   // ── Click outside dropdowns ────────────────────────────────────────────────
   useEffect(() => {
@@ -523,6 +529,7 @@ export function BackgroundRemover() {
     setImageName(f.name);
     setImageSize(f.size);
     setResult(null);
+    setStaleResult(false);
     setPreviewMode("before");
 
     const reader = new FileReader();
@@ -552,6 +559,7 @@ export function BackgroundRemover() {
     setImageSize(null);
     setImageDims(null);
     setResult(null);
+    setStaleResult(false);
     setError(null);
     setPreviewMode("before");
     setBgOption("Transparent");
@@ -610,6 +618,7 @@ export function BackgroundRemover() {
         conversionsUsed: payload.conversionsUsed,
         remaining: payload.remaining,
       });
+      setStaleResult(false);
       setPreviewMode("after");
       showToast("success", "Background removed! Your image is ready to download.");
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
@@ -665,6 +674,7 @@ export function BackgroundRemover() {
   // ── Derived ────────────────────────────────────────────────────────────────
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
   const hasResult = !!result?.dataUrl;
+  const [staleResult, setStaleResult] = useState(false);
   const fileExt = imageName ? imageName.split(".").pop()?.toUpperCase() : "IMAGE";
 
   const bgSwatchColor =
@@ -1170,7 +1180,7 @@ export function BackgroundRemover() {
                       >
                         Sign up for unlimited conversions
                       </button>
-                    ) : hasResult ? (
+                    ) : hasResult && !staleResult ? (
                       <>
                         <Button
                           className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
@@ -1194,6 +1204,7 @@ export function BackgroundRemover() {
                             type="button"
                             onClick={() => {
                               setResult(null);
+                              setStaleResult(false);
                               setPreviewMode("before");
                             }}
                             className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer"

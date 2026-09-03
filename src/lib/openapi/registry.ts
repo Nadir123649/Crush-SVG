@@ -464,6 +464,53 @@ registry.registerPath({
   },
 });
 
+// ── Background Remove ────────────────────────────────────────────────
+
+const backgroundRemoveBody = registry.register(
+  "BackgroundRemoveBody",
+  z.object({
+    file: z.string().describe("Image file (multipart/form-data)"),
+    scale: z.enum(["25", "50", "75", "100", "125", "150", "200"]).optional(),
+    bgOption: z.enum(["Transparent", "White", "Black", "Custom"]).optional(),
+    bgColor: z.string().optional(),
+  })
+);
+
+registry.registerPath({
+  method: "post",
+  path: "/api/v1/background-remove",
+  tags: ["Background Remove"],
+  summary: "Remove image background",
+  description:
+    "Upload a PNG/JPEG/WebP image and get a background-removed PNG. Supports transparent, white, black, or custom-colored backgrounds with configurable output scale.",
+  request: {
+    body: {
+      content: { "multipart/form-data": { schema: backgroundRemoveBody } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Background removal successful",
+      content: {
+        "application/json": {
+          schema: SuccessEnvelope(
+            z.object({
+              dataUrl: z.string().describe("Base64 data URL of the result PNG"),
+              format: z.string(),
+              size: z.number(),
+              width: z.number(),
+              height: z.number(),
+              conversionsUsed: z.number().optional(),
+              remaining: z.number().optional(),
+            })
+          ),
+        },
+      },
+    },
+    429: { description: "Rate limited or guest limit reached" },
+  },
+});
+
 // ── Upload ───────────────────────────────────────────────────────────
 
 registry.registerPath({
