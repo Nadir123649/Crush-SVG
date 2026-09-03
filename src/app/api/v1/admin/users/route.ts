@@ -144,8 +144,14 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'invalid_email', 'A valid email address is required', undefined, request)
   }
 
-  if (displayName && typeof displayName !== 'string') {
-    return errorResponse(400, 'invalid_name', 'Display name must be a string', undefined, request)
+  if (displayName) {
+    if (typeof displayName !== 'string') {
+      return errorResponse(400, 'invalid_name', 'Display name must be a string', undefined, request)
+    }
+    const trimmed = displayName.trim()
+    if (trimmed.length > 0 && (trimmed.length < 3 || trimmed.length > 16)) {
+      return errorResponse(400, 'invalid_name', 'Display name must be between 3 and 16 characters', undefined, request)
+    }
   }
 
   if (!password || password.length < 8) {

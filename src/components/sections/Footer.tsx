@@ -11,18 +11,19 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
   const isRasterToSvg = pathname === "/png-to-svg";
 
   const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
-    if (typeof window !== "undefined" && window.location.pathname === "/") {
+    const targetPath = hash.startsWith("/") ? hash.split("#")[0] : window.location.pathname;
+    const targetHash = hash.includes("#") ? hash.split("#")[1] : hash.replace("#", "");
+    
+    if (typeof window !== "undefined" && (window.location.pathname === targetPath || targetPath === "")) {
       e.preventDefault();
-      const element = document.getElementById(hash.replace("#", ""));
-      if (element) {
-        const headerOffset = window.innerWidth >= 768 ? 92 : 66;
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        // Adding 2px to ensure the border of the previous section is completely hidden
+      const el = document.getElementById(targetHash);
+      if (el) {
+        const offset = window.innerWidth >= 768 ? 96 : 70;
+        const elementPosition = el.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({
-          top: elementPosition - headerOffset + 2,
+          top: elementPosition - offset,
           behavior: "smooth"
         });
-        window.history.pushState(null, "", `/${hash}`);
       }
     }
   };
@@ -92,9 +93,17 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Explore</h4>
             {isRasterToSvg ? (
-              <Link href="/#converter" className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
+              <Link href="/#converter" onClick={(e) => {
+                if (typeof window !== "undefined" && window.location.pathname === "/") {
+                  handleHashClick(e, '#converter');
+                }
+              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">SVG Converter</Link>
             ) : (
-              <Link href="/png-to-svg#converter" className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">PNG Converter</Link>
+              <Link href="/png-to-svg#converter" onClick={(e) => {
+                if (typeof window !== "undefined" && window.location.pathname === "/png-to-svg") {
+                  handleHashClick(e, '#converter');
+                }
+              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">PNG Converter</Link>
             )}
             <Link href="/#features" onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Features</Link>
             <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">How It Works</Link>

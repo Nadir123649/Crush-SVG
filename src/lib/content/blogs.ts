@@ -88,7 +88,7 @@ Stop patching a rendering problem with screenshots and watermarked tools. Conver
 
 Try it free: [crushsvg.net](https://crushsvg.net)
 
-What's the workaround you're finally ready to retire? Tell us below.
+What's the workaround you're finally ready to retire? [Tell us &rarr;](/contact-us)
 `
   }
 ];

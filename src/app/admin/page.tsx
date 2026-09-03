@@ -1,9 +1,10 @@
-import { User, ConversionLog, AuditLog, VALID_USER_FILTER } from "@/lib/database/db";
+"use client";
+
+import { useEffect, useState } from "react";
 import { AnalyticsChart } from "@/components/admin/AnalyticsChart";
 import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
-
-export const dynamic = "force-dynamic";
+import { apiFetch } from "@/lib/client/http";
 
 // Inline SVGs to avoid dependency issues
 const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
@@ -20,49 +21,46 @@ const formatK = (num: number) => {
     .toLowerCase();
 };
 
-export default async function AdminDashboard() {
-  // Compute date for last 7 days
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+export default function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
 
-  const [
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch("/api/v1/admin/overview")
+      .then((res) => {
+        if (!cancelled) {
+          setData(res);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="text-center p-8 text-red-500">Failed to load dashboard data.</div>;
+  }
+
+  const {
     totalUsers,
     totalConversions,
     rasterConversions,
     svgConversions,
     recentAudits,
-    rawRecentConversions,
+    recentConversions,
     conversionsLast7Days
-  ] = await Promise.all([
-    User.countDocuments(VALID_USER_FILTER),
-    ConversionLog.countDocuments({ success: true }),
-    ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
-    ConversionLog.countDocuments({ success: true, inputFormat: 'svg' }),
-    AuditLog.find().sort({ createdAt: -1 }).limit(10),
-    ConversionLog.find().sort({ createdAt: -1 }).limit(5),
-    ConversionLog.aggregate([
-      { $match: { success: true, createdAt: { $gte: sevenDaysAgo } } },
-      { $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          count: { $sum: 1 }
-      }},
-      { $sort: { _id: 1 } }
-    ])
-  ]);
-
-  const userIds = [...new Set(rawRecentConversions.map((c: any) => c.userId).filter(Boolean))];
-  const conversionUsers = userIds.length > 0
-    ? await User.find({ _id: { $in: userIds } }).select('uid email displayName photoURL').lean()
-    : [];
-  const userMap = new Map(conversionUsers.map((u: any) => [u._id.toString(), u]));
-  const recentConversions = rawRecentConversions.map((c: any) => {
-    const obj = c.toObject ? c.toObject() : { ...c, _id: c._id?.toString() };
-    return {
-      ...obj,
-      _id: obj._id?.toString() || '',
-      userId: obj.userId ? userMap.get(obj.userId) || null : null,
-    };
-  });
+  } = data;
 
   // Format chart data
   const chartData = [];
@@ -73,14 +71,12 @@ export default async function AdminDashboard() {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
-    const match = conversionsLast7Days.find((c: any) => c._id === dateStr);
+    const match = conversionsLast7Days?.find((c: any) => c._id === dateStr);
     
-    // Add date for better presentation (e.g., "Mon 24")
     chartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
     chartData.push(match ? match.count : 0);
   }
 
-  // Fake MRR for visual purposes
   const mrr = "$0 / 0";
 
   return (
@@ -96,7 +92,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions)}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions || 0)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">SVG to Raster requests</span>
           </div>
         </div>
@@ -110,7 +106,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions)}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions || 0)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
           </div>
         </div>
@@ -124,7 +120,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions)}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions || 0)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">Vectorized successfully</span>
           </div>
         </div>
@@ -138,7 +134,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalUsers)}</span>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalUsers || 0)}</span>
             <span className="font-body text-sm text-text-muted mt-2 block">All active accounts</span>
           </div>
         </div>
@@ -187,12 +183,12 @@ export default async function AdminDashboard() {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-5 pr-2 brand-scrollbar">
-            {recentAudits.map((audit: any, index: number) => {
+            {recentAudits?.map((audit: any, index: number) => {
               const isUser = audit.resourceType === 'user';
               const isSettings = audit.resourceType === 'settings';
               
               return (
-                <div key={audit._id.toString() || index} className="flex items-start space-x-3 text-sm">
+                <div key={audit._id?.toString() || index} className="flex items-start space-x-3 text-sm">
                   <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center
                     ${isUser ? 'bg-blue-50 text-blue-500' : isSettings ? 'bg-orange-50 text-[#D94A1E]' : 'bg-gray-50 text-gray-500'}
                   `}>
@@ -205,7 +201,7 @@ export default async function AdminDashboard() {
                 </div>
               );
             })}
-            {recentAudits.length === 0 && (
+            {recentAudits?.length === 0 && (
               <p className="text-sm text-text-muted text-center mt-10">No recent activity</p>
             )}
           </div>
@@ -230,8 +226,8 @@ export default async function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="text-[14px]">
-              {recentConversions.map((conv: any) => (
-                <tr key={conv._id.toString()} className="border-b border-[#F2EDE8] hover:bg-[#FFFCFA] transition-colors">
+              {recentConversions?.map((conv: any) => (
+                <tr key={conv._id?.toString()} className="border-b border-[#F2EDE8] hover:bg-[#FFFCFA] transition-colors">
                   <td className="p-5 text-text-dark font-medium truncate max-w-[200px]">
                     {conv.userId?.email || conv.userId || 'Guest'}
                   </td>
@@ -253,7 +249,7 @@ export default async function AdminDashboard() {
                   </td>
                 </tr>
               ))}
-              {recentConversions.length === 0 && (
+              {recentConversions?.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-10 text-center text-text-muted font-medium">No recent conversions found.</td>
                 </tr>

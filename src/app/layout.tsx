@@ -4,7 +4,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { Header } from "@/components/layout/Header";
-import { ScrollToTop } from "@/components/utils/ScrollToTop";
 import { Footer } from "@/components/sections/Footer";
 import { AuthProvider } from "@/lib/client/auth-context";
 import {
@@ -17,7 +16,6 @@ import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
-import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Settings } from "@/lib/database/db";
 import "./globals.css";
 
@@ -224,11 +222,9 @@ export default async function RootLayout({
         </a>
 
         <AuthProvider>
-          <QueryProvider>
-            <ClientLayoutWrapper logoUrl={logoUrl}>
-              {children}
-            </ClientLayoutWrapper>
-          </QueryProvider>
+          <ClientLayoutWrapper logoUrl={logoUrl}>
+            {children}
+          </ClientLayoutWrapper>
         </AuthProvider>
 
         <ToastProvider />

@@ -17,13 +17,9 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   useEffect(() => {
     if (status === "authed" && !redirectedRef.current) {
       redirectedRef.current = true;
-      if (user?.role === "admin") {
-        router.replace("/admin");
-      } else {
-        router.replace("/");
-      }
+      router.replace("/");
     }
-  }, [status, user, router]);
+  }, [status, router]);
 
   if (status === "loading") {
     return null;
