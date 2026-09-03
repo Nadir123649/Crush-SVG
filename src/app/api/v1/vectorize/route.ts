@@ -4,6 +4,7 @@ import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
 import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
+import { rasterOptionsSchema } from "@/lib/raster/validation";
 import { rasterToSvg } from "@/lib/raster/raster-to-svg";
 import type { RasterOptions } from "@/lib/raster/types";
 import { z } from "zod";
