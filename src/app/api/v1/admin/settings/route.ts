@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { auth } from '@/lib/middleware/auth-middleware'
+import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { Settings, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { getClientIp } from '@/lib/security/ip'
@@ -15,22 +15,17 @@ async function getOrCreateSettings() {
 } 
 
 export async function GET(request: NextRequest) {
-  const who = await auth(request)
-  if ('error' in who) return who.error
-  if (who.user.role !== 'admin') {
-    return errorResponse(403, 'forbidden', 'Admin access required', undefined, request)
-  }
+  const adminCheck = await requireAdmin(request)
+  if ('error' in adminCheck) return adminCheck.error
 
   const settings = await getOrCreateSettings()
   return successResponse({ settings: settings.toObject() }, 200, undefined, request)
 }
 
 export async function PATCH(request: NextRequest) {
-  const who = await auth(request)
-  if ('error' in who) return who.error
-  if (who.user.role !== 'admin') {
-    return errorResponse(403, 'forbidden', 'Admin access required', undefined, request)
-  }
+  const adminCheck = await requireAdmin(request)
+  if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   let body: any
   try {

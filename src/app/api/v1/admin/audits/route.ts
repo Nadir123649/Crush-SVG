@@ -1,19 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { auth } from '@/lib/middleware/auth-middleware'
+import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
-
-async function requireAdmin(who: { user: { id: string; role: string } } | { error: Response }): Promise<{ user: { id: string; role: string } } | { error: Response }> {
-  if ('error' in who) return who
-  if (who.user.role !== 'admin') {
-    return { error: NextResponse.json({ error: { code: 'forbidden', message: 'Admin access required' } }, { status: 403 }) }
-  }
-  return who
-}
 
 export async function GET(request: NextRequest) {
   const rl = await checkRateLimit(request, 'admin:audits:list', 30, 60_000)
@@ -21,9 +13,9 @@ export async function GET(request: NextRequest) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
-  const who = await auth(request)
-  const adminCheck = await requireAdmin(who)
+  const adminCheck = await requireAdmin(request)
   if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   const { searchParams } = new URL(request.url)
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
