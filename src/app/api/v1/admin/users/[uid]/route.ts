@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { auth } from '@/lib/middleware/auth-middleware'
+import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { User, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
@@ -17,11 +17,9 @@ export async function DELETE(
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
-  const who = await auth(request)
-  if ('error' in who) return who.error
-  if (who.user.role !== 'admin') {
-    return errorResponse(403, 'forbidden', 'Admin access required', undefined, request)
-  }
+  const adminCheck = await requireAdmin(request)
+  if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   const { uid } = await params
 
@@ -66,11 +64,9 @@ export async function PATCH(
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
-  const who = await auth(request)
-  if ('error' in who) return who.error
-  if (who.user.role !== 'admin') {
-    return errorResponse(403, 'forbidden', 'Admin access required', undefined, request)
-  }
+  const adminCheck = await requireAdmin(request)
+  if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   const { uid } = await params
   if (!uid) {

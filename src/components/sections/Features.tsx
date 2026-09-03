@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
-export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" }) {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
@@ -17,10 +17,16 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       {/* Heading & Description */} 
       <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">
         <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[60px] tracking-[0.04em] text-center text-text-dark">
-          Stop <span className="text-[#DA582D]">juggling design tools</span> and<br className="hidden md:inline" /> unreliable converters
+          {mode === "background-remover" ? (
+            <>Stop <span className="text-[#DA582D]">struggling with</span><br className="hidden md:inline" /> complex editing tools</>
+          ) : (
+            <>Stop <span className="text-[#DA582D]">juggling design tools</span> and<br className="hidden md:inline" /> unreliable converters</>
+          )}
         </h2>
         <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-center text-text-muted">
-          {mode === "svg-to-png" ? (
+          {mode === "background-remover" ? (
+            <>Simply upload any image and let our tool handle the rest.<br className="hidden md:inline" /> Perfect for product photos, social media, headshots, and design assets.</>
+          ) : mode === "svg-to-png" ? (
             <>Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds<br className="hidden md:inline" /> perfect for Gmail, Outlook, Canva, websites, newsletters, and more.</>
           ) : (
             <>Simply upload a PNG or JPG, or drag and drop it to create a crisp, scalable SVG in seconds<br className="hidden md:inline" /> perfect for logos, icons, vector graphics, websites, and more.</>
@@ -31,9 +37,10 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       {/* Badges Row */}
       <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[30px] md:mt-[62px] max-w-[361px] md:max-w-[1000px]">
         <Badge text="Free" />
-        <Badge text={mode === "raster-to-svg" ? "Scalable Vector Output" : "Multiple export sizes"} />
-        <Badge text="Transparent background" />
+        <Badge text={mode === "background-remover" ? "Transparent PNG output" : mode === "raster-to-svg" ? "Scalable Vector Output" : "Multiple export sizes"} />
+        <Badge text={mode === "background-remover" ? "100% private & secure" : "Transparent background"} />
         {mode === "raster-to-svg" && <Badge text="Color & detail controls" />}
+        {mode === "background-remover" && <Badge text="No software install required" />}
         {(!mounted || !user) && <Badge text="3 free conversions, no login required" />}
       </div>
 
