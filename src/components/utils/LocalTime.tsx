@@ -23,19 +23,18 @@ export function LocalTime({
   const d = new Date(date);
   
   if (format === "time") {
-    return <span>{d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>;
+    return <span>{d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>;
   }
   
   if (format === "long") {
-    return <span>{d.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })}</span>;
+    const day = d.getDate();
+    const month = d.toLocaleString('en-GB', { month: 'short' });
+    const year = d.getFullYear();
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return <span>{`${day} ${month}, ${year} ${time}`}</span>;
   }
 
-  return <span>{d.toLocaleString()}</span>;
+  const day = d.getDate();
+  const month = d.toLocaleString('en-GB', { month: 'short' });
+  return <span>{`${day} ${month}`}</span>;
 }
