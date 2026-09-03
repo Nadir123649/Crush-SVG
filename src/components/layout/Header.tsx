@@ -186,6 +186,21 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
               href={lastConverter === "/png-to-svg" ? "/#converter" : "/png-to-svg#converter"}
+              onClick={(e) => {
+                const targetPath = lastConverter === "/png-to-svg" ? "/" : "/png-to-svg";
+                if (typeof window !== "undefined" && window.location.pathname === targetPath) {
+                  e.preventDefault();
+                  const el = document.getElementById("converter");
+                  if (el) {
+                    const offset = window.innerWidth >= 768 ? 96 : 70;
+                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({
+                      top: elementPosition - offset,
+                      behavior: "smooth"
+                    });
+                  }
+                }
+              }}
               suppressHydrationWarning
               className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >

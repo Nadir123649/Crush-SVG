@@ -696,12 +696,11 @@ export async function convertPngToSvg(
   }
 
   /* ── Step 4: Build background color for vtrace ─────────────────── */
-  const bgColor =
-    isTransparent
-      ? VTrace.COLOR_TRANSPARENT
-      : isCustom && customHex
-        ? customHex
-        : VTrace.COLOR_TRANSPARENT;
+  // MUST always use COLOR_TRANSPARENT for custom backgrounds!
+  // In the backend branch, trace.ts does NOT pass the custom bgColor to vtracer.
+  // Instead, the background is baked into the image, and traced as solid paths.
+  // Passing customHex here causes a Rust WASM panic in runner.rs.
+  const bgColor = VTrace.COLOR_TRANSPARENT;
 
   /* ── Step 5: Build vtrace options ──────────────────────────────── */
   const vtraceOptions = buildVtraceOptions(resolvedMode, quality, bgColor);

@@ -16,7 +16,7 @@ import {
   type PaletteLevel,
 } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
-import { getUsage } from "@/lib/client/sessions";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
@@ -666,10 +666,31 @@ export function RasterToSvgConverter() {
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
       trackConversion("raster_vectorized", { output_format: "svg" });
+      
+      try {
+        const u = await trackConversionUsage({
+          inputFormat: fileToConvert.name.split('.').pop()?.toLowerCase() || 'png',
+          outputFormat: 'svg',
+          originalSize: fileToConvert.size,
+          success: true,
+        });
+        setUsage(u);
+      } catch (e) {
+        console.error("Failed to track usage", e);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
       setError(msg);
       showToast("error", msg);
+      
+      try {
+        await trackConversionUsage({
+          inputFormat: (rasterFile?.name || imageName || "").split('.').pop()?.toLowerCase() || 'png',
+          outputFormat: 'svg',
+          success: false,
+          errorReason: msg,
+        });
+      } catch (e) {}
     } finally {
       setConverting(false);
     }
@@ -1121,20 +1142,6 @@ export function RasterToSvgConverter() {
                         alt="Vectorized SVG output"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1.5">
-                        {result.modeUsed && (
-                          <span className={`text-[11px] font-heading font-medium px-2 py-0.5 rounded shadow-xs ${
-                            result.modeUsed === "vector"
-                              ? "bg-emerald-600 text-white"
-                              : "bg-blue-600 text-white"
-                          }`}>
-                            {result.modeUsed === "vector" ? "Vector" : "Pixel-Perfect"}
-                          </span>
-                        )}
-                        <span className="bg-brand-primary text-white text-[12px] font-heading font-semibold px-2 py-0.5 rounded shadow-xs">
-                          Scalable SVG
-                        </span>
-                      </div>
                     </div>
                   ) : rasterDataUrl ? (
                     /* Image Uploaded, Ready to Convert State */
@@ -1156,7 +1163,7 @@ export function RasterToSvgConverter() {
                       <img
                         src={IMAGES.uploadImage}
                         alt="Upload placeholder"
-                        className="w-[64px] h-[64px] object-contain"
+                        className="w-[83px] h-[83px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
                         Vector preview will appear here
@@ -1169,7 +1176,7 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full h-auto min-h-[176px] md:h-[180px] mt-[16px] transition-all duration-300 flex flex-col justify-between ${
+                  className={`w-full h-auto mt-[16px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
@@ -1268,18 +1275,13 @@ export function RasterToSvgConverter() {
                   <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
-                    <span className="font-body text-[12px] text-[#64748B]">
-                      Tracing vector paths...
-                    </span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] lg:mt-auto relative">
+                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"

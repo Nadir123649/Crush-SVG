@@ -34,36 +34,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartXRef = React.useRef<number | null>(null);
-
-  const isMouseDownRef = React.useRef(false);
-  const mouseStartXRef = React.useRef<number | null>(null);
+  const dragInfoRef = React.useRef({ startX: 0, hasDragged: false });
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isMouseDownRef.current || mouseStartXRef.current === null) return;
-      const diff = e.clientX - mouseStartXRef.current;
-      if (diff < -30 && isDesktopSidebarOpen) {
-        setIsDesktopSidebarOpen(false);
-        isMouseDownRef.current = false;
-        mouseStartXRef.current = null;
-      } else if (diff > 30 && !isDesktopSidebarOpen) {
-        setIsDesktopSidebarOpen(true);
-        isMouseDownRef.current = false;
-        mouseStartXRef.current = null;
-      }
-    };
-
-    const handleMouseUp = () => {
-      isMouseDownRef.current = false;
-      mouseStartXRef.current = null;
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
+    // Drag behavior removed per user request: click only.
   }, [isDesktopSidebarOpen]);
 
   useEffect(() => {
@@ -131,24 +105,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      {/* Desktop sidebar edge hover resizer */}
+      {/* Desktop sidebar edge toggle */}
       <div
         onMouseDown={(e) => {
-          isMouseDownRef.current = true;
-          mouseStartXRef.current = e.clientX;
+          dragInfoRef.current = { startX: e.clientX, hasDragged: false };
+          const handleMouseMove = (moveEvent: MouseEvent) => {
+            const diff = dragInfoRef.current.startX - moveEvent.clientX;
+            if (Math.abs(diff) > 10) {
+              dragInfoRef.current.hasDragged = true;
+            }
+            if (isDesktopSidebarOpen && diff > 50) {
+              setIsDesktopSidebarOpen(false);
+              cleanup();
+            } else if (!isDesktopSidebarOpen && diff < -50) {
+              setIsDesktopSidebarOpen(true);
+              cleanup();
+            }
+          };
+          
+          const cleanup = () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", cleanup);
+          };
+          
+          window.addEventListener("mousemove", handleMouseMove);
+          window.addEventListener("mouseup", cleanup);
+          e.preventDefault();
         }}
-        className={`hidden md:flex fixed top-0 bottom-0 z-[60] w-4 cursor-col-resize items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
+        onClick={() => {
+          if (!dragInfoRef.current.hasDragged) {
+            setIsDesktopSidebarOpen(!isDesktopSidebarOpen);
+          }
+        }}
+        className={`hidden md:flex fixed top-0 bottom-0 z-40 w-4 cursor-pointer items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
           isDesktopSidebarOpen ? "left-[256px]" : "left-[68px]"
         }`}
-        title={isDesktopSidebarOpen ? "Drag left to close sidebar" : "Drag right to open sidebar"}
+        title={isDesktopSidebarOpen ? "Click to close sidebar" : "Click to open sidebar"}
       >
         {/* Hover area line */}
         <div className="absolute inset-0 w-1 bg-transparent group-hover:bg-brand-primary/30 transition-colors" style={{ left: '1.5px' }} />
         
-        {/* Center handle indicator - only visible on hover, properly positioned */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 rounded-full bg-brand-primary text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[70]">
+        {/* Center handle indicator - visible on hover */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-10 rounded-full bg-brand-primary text-white shadow-lg opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center z-30 group-hover:scale-110">
           <svg
-            className={`w-4 h-4 text-white transition-transform duration-200 ${
+            className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${
               isDesktopSidebarOpen ? "" : "rotate-180"
             }`}
             viewBox="0 0 24 24"
@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           touchStartXRef.current = null;
         }}
         className={`
-        fixed md:relative inset-y-0 left-0 z-50
+        fixed md:relative inset-y-0 left-0 z-50 md:z-30
         flex flex-col ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between
         transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
         ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}

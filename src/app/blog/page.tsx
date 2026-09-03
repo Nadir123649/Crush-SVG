@@ -74,7 +74,7 @@ export default function BlogPage() {
           [&>ol]:list-decimal [&>ol]:pl-[24px] [&>ol]:space-y-[8px] [&>ol]:mb-[24px]
           [&>li>strong]:font-semibold [&>li>strong]:text-text-dark
           [&>p>strong]:font-semibold [&>p>strong]:text-text-dark
-          [&>a]:text-brand-primary [&>a]:font-medium hover:[&>a]:underline
+          [&_a]:text-brand-primary [&_a]:font-medium hover:[&_a]:underline
           [&>blockquote]:border-l-4 [&>blockquote]:border-brand-primary [&>blockquote]:pl-[16px] [&>blockquote]:italic [&>blockquote]:text-text-muted [&>blockquote]:my-[32px]
         ">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
