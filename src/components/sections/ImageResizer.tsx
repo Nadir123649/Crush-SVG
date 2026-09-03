@@ -1018,34 +1018,35 @@ export function ImageResizer() {
                 </div>
 
                 {/* ========================================================== */}
-                {/* Resize Settings (3-col grid)                               */}
+                {/* Resize Settings                                           */}
                 {/* ========================================================== */}
                 <div
                   className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${
                     resizing ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="flex items-stretch gap-[8px] w-full">
-                    <DimensionInput
-                      label="Width"
-                      value={targetWidth}
-                      onChange={handleWidthChange}
-                      disabled={resizing}
-                    />
-                    <AspectLock
-                      locked={lockAspect}
-                      onToggle={() => setLockAspect(!lockAspect)}
-                      disabled={resizing}
-                    />
-                    <DimensionInput
-                      label="Height"
-                      value={targetHeight}
-                      onChange={handleHeightChange}
-                      disabled={resizing}
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                    {/* Dimension Inputs Row */}
+                    <div className="flex items-stretch gap-[8px] sm:col-span-2">
+                      <DimensionInput
+                        label="Width"
+                        value={targetWidth}
+                        onChange={handleWidthChange}
+                        disabled={resizing}
+                      />
+                      <AspectLock
+                        locked={lockAspect}
+                        onToggle={() => setLockAspect(!lockAspect)}
+                        disabled={resizing}
+                      />
+                      <DimensionInput
+                        label="Height"
+                        value={targetHeight}
+                        onChange={handleHeightChange}
+                        disabled={resizing}
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full mt-[12px]">
                     {/* Scale Dropdown */}
                     <Dropdown
                       label="Scale"
