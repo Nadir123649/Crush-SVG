@@ -196,10 +196,14 @@ function BgRemoverDropdown({
                           backgroundColor: "#fff",
                         }}
                       />
-                    ) : swatch === "custom" && customColor ? (
+                    ) : swatch === "custom" ? (
                       <span
-                        className="w-[14px] h-[14px] rounded-full border border-gray-300 shrink-0"
-                        style={{ backgroundColor: customColor }}
+                        className="w-[14px] h-[14px] rounded-[4px] border border-gray-300 shrink-0"
+                        style={{
+                          backgroundImage:
+                            "linear-gradient(135deg, #FF0080 0%, #FF8C00 20%, #FFD700 40%, #00C853 60%, #00B0FF 80%, #7C4DFF 100%)",
+                          backgroundColor: customColor || "#FFFFFF",
+                        }}
                       />
                     ) : swatch ? (
                       <span
@@ -677,7 +681,7 @@ export function BackgroundRemover() {
           {/* Inner Dashed Border Box */}
           <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col px-0 md:px-[40px] py-[20px] md:py-[32px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row items-start justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
@@ -849,79 +853,67 @@ export function BackgroundRemover() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {dataUrl ? (
-                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                  <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
-                        <div className="w-[28px] h-[28px] rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
-                          <span className="font-heading font-bold text-[10px] text-brand-primary">
+                        <div className="w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                          <span className="font-heading font-bold text-[9px] text-brand-primary">
                             {fileExt}
                           </span>
                         </div>
-                        <span className="font-body font-semibold text-[13px] md:text-[14px] text-[#202427] truncate">
+                        <span className="font-body font-semibold text-[12px] md:text-[13px] text-[#202427] truncate">
                           {imageName || "image.png"}
                         </span>
                       </div>
-                      <span className="font-body text-[11px] md:text-[12px] text-[#64748B] bg-white border border-gray-200 px-2 py-0.5 rounded-md shrink-0 font-medium font-mono">
+                      <span className="font-body text-[10px] md:text-[11px] text-[#64748B] font-mono shrink-0">
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
-                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Dimensions</span>
-                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
-                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "..."}
+                    <div className="flex items-stretch gap-[6px]">
+                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
+                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Dimensions</span>
+                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
+                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}
                         </strong>
                       </div>
-                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Aspect Ratio</span>
-                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
+                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
+                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Aspect</span>
+                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
                           {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
                         </strong>
                       </div>
-                      <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Input Format</span>
-                        <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
-                          {fileExt} Bitmap
-                        </strong>
-                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] md:text-[12px] text-[#64748B] border-t border-gray-200/80 pt-[6px]">
+                    <div className="flex items-center justify-between text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
                       <span className="truncate">
-                        Background: <strong className="text-[#202427] font-medium">
-                          {bgOption === "Custom" ? customColor : bgOption}
-                        </strong> &bull; Scale: <strong className="text-[#202427] font-medium">{scale}%</strong>
+                        {bgOption === "Custom" ? customColor : bgOption} &middot; {scale}%
                       </span>
                       <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
-                    <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
+                  <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
+                    <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex items-center justify-between mb-[6px]">
                       <span>AI Background Removal</span>
-                      <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
-                        PNG &amp; JPG Supported
+                      <span className="text-[10px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
+                        PNG &amp; JPG
                       </span>
                     </div>
-                    <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>Automatically detects and removes image backgrounds</span>
+                    <ul className="text-[11px] md:text-[12px] text-[#64748B] flex flex-col gap-[4px]">
+                      <li className="flex items-start gap-2">
+                        <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
+                        <span className="leading-[1.3]">Auto-detects and removes image backgrounds</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>Produces clean, transparent PNG output</span>
+                      <li className="flex items-start gap-2">
+                        <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
+                        <span className="leading-[1.3]">Clean transparent PNG output</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>Works with product photos, headshots, and design assets</span>
+                      <li className="flex items-start gap-2">
+                        <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
+                        <span className="leading-[1.3]">Works with photos, headshots, and designs</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>100% private &mdash; your images never leave the browser</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-brand-primary font-bold">✓</span>
-                        <span>One-click download as transparent PNG</span>
+                      <li className="flex items-start gap-2">
+                        <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
+                        <span className="leading-[1.3]">100% private — images stay in your browser</span>
                       </li>
                     </ul>
                   </div>
@@ -944,7 +936,8 @@ export function BackgroundRemover() {
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Controls                       */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full lg:w-[537px] flex flex-col justify-between">
+                <div className="flex flex-col">
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
@@ -1065,7 +1058,9 @@ export function BackgroundRemover() {
                       options={BG_OPTIONS}
                       onChange={(val) => {
                         setBgOption(val);
-                        setOpenDropdown(null);
+                        if (val !== "Custom") {
+                          setOpenDropdown(null);
+                        }
                       }}
                       isOpen={openDropdown === "bg"}
                       onToggle={() => setOpenDropdown(openDropdown === "bg" ? null : "bg")}
@@ -1148,6 +1143,7 @@ export function BackgroundRemover() {
                     {error}
                   </div>
                 )}
+                </div>
 
                 {/* Action CTA Buttons Row */}
                 {processing ? (
