@@ -151,9 +151,9 @@ export default function ConversionsPage() {
       </div>
 
       {/* Interactive Filters Area (Client-side controlled) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-20">
         {/* Date Range Filter */}
-        <div className="md:col-span-8 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row items-end gap-4">
+        <div className="md:col-span-8 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row items-start gap-4">
           <div className="w-full sm:w-1/2 flex flex-col gap-2">
             <label className="font-body font-semibold text-sm text-text-muted">Start Date</label>
             <div className="relative">

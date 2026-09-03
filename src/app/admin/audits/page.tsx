@@ -223,9 +223,13 @@ export default function AuditsPage() {
                           )}
                         </td>
                         <td className="p-5 text-text-muted whitespace-nowrap">
-                          {new Date(audit.createdAt).toLocaleString(undefined, {
-                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-                          })}
+                          {(() => {
+                            const d = new Date(audit.createdAt);
+                            const day = d.getDate();
+                            const month = d.toLocaleString('en-GB', { month: 'short' });
+                            const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                            return `${day} ${month}, ${time}`;
+                          })()}
                         </td>
                         <td className="p-5 font-semibold capitalize">{audit.action} {audit.resourceType || ''}</td>
                         <td className="p-5 text-text-muted">
