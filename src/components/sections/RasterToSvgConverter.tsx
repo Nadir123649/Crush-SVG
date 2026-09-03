@@ -7,14 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import {
-  dataUrlToFile,
-  convertPngToSvg,
-  type QualityLevel,
-  type BackgroundMode,
-  type TracingMode,
-  type PaletteLevel,
-} from "@/lib/png-to-svg";
+import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -638,7 +631,9 @@ export function RasterToSvgConverter() {
       if (rasterFile) {
         fileToConvert = rasterFile;
       } else {
-        fileToConvert = dataUrlToFile(rasterDataUrl!, imageName || "restored-image.png");
+        const res = await fetch(rasterDataUrl!);
+        const blob = await res.blob();
+        fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
       }
 
       const res = await convertPngToSvg(fileToConvert, {

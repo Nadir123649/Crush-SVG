@@ -6,13 +6,40 @@ import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
 
-export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" }) {
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   let faqs = [];
 
-  if (mode === "raster-to-svg") {
+  if (mode === "background-remover") {
+    faqs = [
+      {
+        question: "What image formats are supported?",
+        answer: "You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG.",
+      },
+      {
+        question: "Is my image data kept private?",
+        answer: "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.",
+      },
+      {
+        question: "Do I need to install any software?",
+        answer: "No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees.",
+      },
+      {
+        question: "What types of images work best?",
+        answer: "Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up.",
+      },
+      {
+        question: "What is the maximum image size?",
+        answer: "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.",
+      },
+    ];
+  } else if (mode === "raster-to-svg") {
     faqs = [
       {
         question: "Can I control the quality of the vectorized SVG?",
