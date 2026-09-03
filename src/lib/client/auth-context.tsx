@@ -35,6 +35,7 @@ interface AuthContextValue {
   logout: () => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
+  updateUser: (updates: Partial<UserDTO>) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -280,6 +281,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const updateUser = useCallback((updates: Partial<UserDTO>) => {
+    setUser((prev) => {
+      if (!prev) return null
+      const updated = { ...prev, ...updates }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('crush_user', JSON.stringify(updated))
+      }
+      return updated
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -292,8 +304,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       changePassword,
       resendVerification,
+      updateUser,
     }),
-    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification]
+    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification, updateUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

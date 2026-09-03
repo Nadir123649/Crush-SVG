@@ -71,9 +71,9 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
         </div>
 
         {/* Vertical dashed line — follows mouse X exactly */}
-        {mouseX !== null && (
+        {mouseX !== null && hoverIndex !== null && (
           <div
-            className="absolute top-0 bottom-[24px] w-[2px] border-l-2 border-dashed border-brand-primary/50 pointer-events-none z-20"
+            className="absolute top-[-30px] bottom-[24px] w-[2px] border-l-2 border-dashed border-brand-primary/50 pointer-events-none z-20"
             style={{ left: `${mouseX}px` }}
           />
         )}
@@ -84,7 +84,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
             className="absolute pointer-events-none z-30 flex flex-col items-center"
             style={{
               left: `${mouseX}px`,
-              top: `${Math.max(4, mouseY - 72)}px`,
+              top: `${mouseY - 72}px`,
               transform: 'translateX(-50%)',
             }}
           >
@@ -110,12 +110,14 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
                 key={`bar-group-${i}`}
                 className="relative flex flex-col items-center justify-end h-full group"
                 style={{ width: `${100 / chartData.length}%` }}
-                onMouseEnter={() => setHoverIndex(i)}
-                onMouseLeave={() => setHoverIndex(null)}
                 title={`${chartLabels[i]}: ${val} ${val === 1 ? 'conversion' : 'conversions'}`}
               >
                 {/* Bar */}
-                <div className="relative w-full max-w-[24px] sm:max-w-[40px] md:max-w-[48px] h-full flex items-end justify-center cursor-pointer">
+                <div 
+                  className="relative w-full max-w-[24px] sm:max-w-[40px] md:max-w-[48px] h-full flex items-end justify-center cursor-pointer"
+                  onMouseEnter={() => setHoverIndex(i)}
+                  onMouseLeave={() => setHoverIndex(null)}
+                >
                   {/* Invisible full-height hover area */}
                   <div className="absolute inset-0 z-20" />
 

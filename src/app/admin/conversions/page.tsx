@@ -27,6 +27,8 @@ export default function ConversionsPage() {
   const [conversions, setConversions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -51,7 +53,11 @@ export default function ConversionsPage() {
       if (response?.data) {
         const { data, meta } = response;
         setConversions(data);
-        setPage(meta.page);
+        if (meta) {
+          setPage(meta.page);
+          setTotalPages(meta.total_pages || 1);
+          setTotalItems(meta.total || 0);
+        }
       } else {
         setError("Failed to load conversions");
       }
@@ -151,24 +157,56 @@ export default function ConversionsPage() {
           <div className="w-full sm:w-1/2 flex flex-col gap-2">
             <label className="font-body font-semibold text-sm text-text-muted">Start Date</label>
             <div className="relative">
-              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input 
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none" 
+                onClick={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  try {
+                    if (document.activeElement === target && target.dataset.open === 'true') {
+                      target.blur();
+                      target.dataset.open = 'false';
+                    } else {
+                      target.focus();
+                      if ('showPicker' in HTMLInputElement.prototype) {
+                        target.showPicker();
+                      }
+                      target.dataset.open = 'true';
+                    }
+                  } catch (err) {}
+                }}
+                onBlur={(e) => { e.target.dataset.open = 'false'; }}
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer" 
               />
             </div>
           </div>
           <div className="w-full sm:w-1/2 flex flex-col gap-2">
             <label className="font-body font-semibold text-sm text-text-muted">End Date</label>
             <div className="relative">
-              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input 
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none" 
+                onClick={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  try {
+                    if (document.activeElement === target && target.dataset.open === 'true') {
+                      target.blur();
+                      target.dataset.open = 'false';
+                    } else {
+                      target.focus();
+                      if ('showPicker' in HTMLInputElement.prototype) {
+                        target.showPicker();
+                      }
+                      target.dataset.open = 'true';
+                    }
+                  } catch (err) {}
+                }}
+                onBlur={(e) => { e.target.dataset.open = 'false'; }}
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer" 
               />
             </div>
           </div>
@@ -303,27 +341,35 @@ export default function ConversionsPage() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="bg-[#FFFCFA] border-t border-[#F2EDE8] p-4 flex items-center justify-between">
-              <span className="font-body text-sm text-text-muted">
-                Showing {((page - 1) * CONVERSIONS_PAGE_SIZE) + 1} to {Math.min(page * CONVERSIONS_PAGE_SIZE, conversions.length)} of {conversions.length > 0 ? conversions.length : 0} entries
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={!conversions.length || conversions.length < CONVERSIONS_PAGE_SIZE}
-                  className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${!conversions.length || conversions.length < CONVERSIONS_PAGE_SIZE ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  Next
-                </button>
+            {totalPages > 0 && (
+              <div className="bg-[#FFFCFA] border-t border-[#F2EDE8] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="font-body text-sm text-text-muted">
+                  Showing {((page - 1) * CONVERSIONS_PAGE_SIZE) + 1} to {Math.min(page * CONVERSIONS_PAGE_SIZE, totalItems)} of {totalItems} entries
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(page - 1)}
+                    className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Current page display */}
+                  <div className="flex items-center px-2 font-body font-bold text-brand-primary text-sm">
+                    {page} / {totalPages}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(page + 1)}
+                    className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === totalPages ? 'opacity-50 pointer-events-none' : ''}`}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </section>

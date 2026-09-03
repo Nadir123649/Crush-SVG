@@ -18,7 +18,7 @@ const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
 export default function UsersPage() {
-  const { status: authStatus } = useAuth();
+  const { status: authStatus, user: currentUser, updateUser } = useAuth();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
@@ -146,6 +146,10 @@ export default function UsersPage() {
       showToast("error", "Display name is required");
       return;
     }
+    if (trimmedName.length < 3) {
+      showToast("error", "Display name must be at least 3 characters");
+      return;
+    }
     if (trimmedName.length > 16) {
       showToast("error", "Display name cannot exceed 16 characters");
       return;
@@ -195,6 +199,10 @@ export default function UsersPage() {
       showToast("error", "Display name is required");
       return;
     }
+    if (trimmedName.length < 3) {
+      showToast("error", "Display name must be at least 3 characters");
+      return;
+    }
     if (trimmedName.length > 16) {
       showToast("error", "Display name cannot exceed 16 characters");
       return;
@@ -210,6 +218,9 @@ export default function UsersPage() {
       });
       if (response?.user) {
         setUsers((prev) => prev.map((u) => u.uid === response.user.uid ? response.user : u));
+        if (currentUser && currentUser.uid === response.user.uid) {
+          updateUser({ displayName: response.user.displayName, role: response.user.role });
+        }
         setEditUserModalOpen(false);
         setUserToEdit(null);
         showToast("success", "User updated successfully");
@@ -376,7 +387,7 @@ export default function UsersPage() {
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">User</th>
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">Role</th>
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">Provider</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Usage (SVGs)</th>
+                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Usage</th>
                      <th
                        className="p-5 font-body font-semibold text-sm text-text-muted cursor-pointer select-none hover:text-brand-primary transition-colors"
                        onClick={handleStatusSort}
@@ -568,12 +579,15 @@ export default function UsersPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
-                  <span className="font-body text-xs text-text-muted">{editUserName.length}/16</span>
+                  <span className={`font-body text-xs font-semibold ${editUserName.length < 3 || editUserName.length > 16 ? 'text-red-500' : 'text-text-muted'}`}>
+                    {editUserName.length}/16
+                  </span>
                 </div>
                 <input
                   type="text"
                   value={editUserName}
                   onChange={(e) => setEditUserName(e.target.value)}
+                  minLength={3}
                   maxLength={16}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                   required
@@ -628,14 +642,16 @@ export default function UsersPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
-                  <span className={`font-body text-xs font-semibold ${newUserName.length >= 16 ? 'text-red-500' : 'text-text-muted'}`}>
+                  <span className={`font-body text-xs font-semibold ${newUserName.length < 3 || newUserName.length >= 16 ? 'text-red-500' : 'text-text-muted'}`}>
                     {newUserName.length}/16
                   </span>
                 </div>
                 <input
                   type="text"
-                  value={newUserName.slice(0, 16)}
+                  value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value.slice(0, 16))}
+                  minLength={3}
+                  maxLength={16}
                   onInput={(e) => {
                     const target = e.target as HTMLInputElement;
                     if (target.value.length > 16) {

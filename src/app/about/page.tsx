@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { IMAGES } from "@/lib/shared/images";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
 
@@ -44,12 +46,14 @@ export default function AboutUsPage() {
       role: "CEO and Founder",
       bio: "Visionary entrepreneur and tech leader driving the strategic direction of The Nevon. Nadir is focused on building high-impact SaaS products and scaling teams.",
       initials: "SN",
+      linkedin: "https://www.linkedin.com/in/nadir1214/",
     },
     {
       name: "Muhammad Aswad Khan",
       role: "Project Manager",
       bio: "Dedicated project manager bridging the gap between design, engineering, and business goals. Aswad oversees Agile workflows and ensures timely, high-quality delivery.",
       initials: "AK",
+      linkedin: "https://www.linkedin.com/in/muhammad-aswad-khan/",
     },
   ];
 
@@ -126,18 +130,33 @@ export default function AboutUsPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {teamMembers.map((member) => (
-              <div key={member.name} className="flex flex-col p-5 rounded-[12px] bg-[#FCFBF9] border border-[#F2EDE8]">
+              <a
+                key={member.name}
+                href={member.linkedin || "#"}
+                target={member.linkedin ? "_blank" : undefined}
+                rel={member.linkedin ? "noopener noreferrer" : undefined}
+                className="flex flex-col p-5 rounded-[12px] bg-[#FCFBF9] border border-[#F2EDE8] group cursor-pointer hover:border-brand-primary/20 hover:shadow-md transition-all duration-300"
+              >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-primary to-brand-secondary text-white font-heading font-semibold flex items-center justify-center text-lg shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-primary to-brand-secondary text-white font-heading font-semibold flex items-center justify-center text-lg shadow-sm flex-shrink-0">
                     {member.initials}
                   </div>
-                  <div>
-                    <h3 className="font-heading font-semibold text-text-dark text-base md:text-lg">{member.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-heading font-semibold text-text-dark text-base md:text-lg truncate">
+                        {member.name.replace("Muhammad ", "M. ")}
+                      </h3>
+                      {member.linkedin && (
+                        <div className="opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <Image src={IMAGES.linkedin} alt="LinkedIn" width={20} height={20} className="w-[20px] h-[20px] object-contain" />
+                        </div>
+                      )}
+                    </div>
                     <p className="text-xs md:text-sm font-medium text-brand-primary">{member.role}</p>
                   </div>
                 </div>
                 <p className="font-afacad text-sm text-text-muted leading-relaxed">{member.bio}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>

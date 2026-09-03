@@ -102,8 +102,8 @@ export async function PATCH(
       return errorResponse(400, 'invalid_name', 'Display name cannot be empty', undefined, request)
     }
     const trimmed = displayName.trim()
-    if (trimmed.length > 16) {
-      return errorResponse(400, 'invalid_name', 'Display name cannot exceed 16 characters', undefined, request)
+    if (trimmed.length < 3 || trimmed.length > 16) {
+      return errorResponse(400, 'invalid_name', 'Display name must be between 3 and 16 characters', undefined, request)
     }
     user.displayName = trimmed
   }
