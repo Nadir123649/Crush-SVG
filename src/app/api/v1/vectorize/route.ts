@@ -5,10 +5,9 @@ import { checkRateLimit } from "@/lib/security/rate-limit";
 import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
 import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
 import { rasterOptionsSchema } from "@/lib/raster/validation";
-import { rasterToSvg, recommendQueue } from "@/lib/raster/raster-to-svg";
-import { rasterToSvgQueued, rasterQueueEnabled } from "@/lib/raster/raster-queue";
-import { auth } from "@/lib/middleware/auth-middleware";
+import { rasterToSvg } from "@/lib/raster/raster-to-svg";
 import type { RasterOptions } from "@/lib/raster/types";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -27,21 +26,8 @@ async function getUsage(request: NextRequest) {
   }
 }
 
-async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number; userId?: string }> {
-  // Check Bearer token for authenticated users (client sends Authorization header, not x-user-id)
-  const authHeader = request.headers.get("authorization");
-  if (authHeader?.toLowerCase().startsWith("bearer ")) {
-    const who = await auth(request);
-    if ("user" in who) {
-      // Authenticated user — unlimited conversions, skip guest limit
-      return { guestId: "", maxConversions: Infinity, used: 0, remaining: Infinity, userId: who.user.id };
-    }
-    // Token present but invalid/expired — fall through to guest path
-  }
-
-  // Legacy x-user-id header check (for any external callers)
+async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
   if (request.headers.get("x-user-id")) return getUsage(request);
-
   const usage = await getUsage(request);
   if (usage.remaining <= 0) {
     return errorResponse(
@@ -95,33 +81,21 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const originalSize = file.size;
 
-    let result;
-    if (rasterQueueEnabled() && (await recommendQueue(buffer))) {
-      result = await rasterToSvgQueued(buffer, options);
-    } else {
-      result = await rasterToSvg(buffer, options);
-    }
-
-    let inputExt = "png";
-    if (file.name && file.name.includes(".")) {
-      inputExt = file.name.split(".").pop()?.toLowerCase() || "png";
-    } else if (file.type && file.type.includes("/")) {
-      inputExt = file.type.split("/")[1]?.toLowerCase() || "png";
-    }
-    if (inputExt === "jpeg") inputExt = "jpg";
+    const result = await rasterToSvg(buffer, options);
 
     await logConversion({
-      userId: limit.userId ?? request.headers.get("x-user-id"),
-      guestId: limit.userId ? undefined : limit.guestId,
+      userId: request.headers.get("x-user-id"),
+      guestId: limit.guestId,
       inputFormat: file.type || "image",
       outputFormat: "svg",
       originalSize,
       success: true,
     });
 
-    if (!limit.userId) await incrementUsage(limit.guestId);
+    const userId = request.headers.get("x-user-id");
+    if (!userId) await incrementUsage(limit.guestId);
 
-    const usage = limit.userId ? { used: 0, remaining: Infinity } : await getUsage(request);
+    const usage = await getUsage(request);
     const response = successResponse(
       {
         svg: result.svg,
@@ -131,8 +105,8 @@ export async function POST(request: NextRequest) {
         colorCount: result.colorCount,
         size: result.size,
         advisory: result.advisory,
-        conversionsUsed: limit.userId ? undefined : usage.used,
-        remaining: limit.userId ? undefined : usage.remaining,
+        conversionsUsed: userId ? undefined : usage.used,
+        remaining: userId ? undefined : usage.remaining,
       },
       200,
       undefined,
@@ -143,6 +117,9 @@ export async function POST(request: NextRequest) {
     if (setCookie) response.cookies.set(setCookie);
     return response;
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errorResponse(400, "invalid_options", error.issues[0]?.message || "Invalid vectorize options", undefined, request);
+    }
     if (error instanceof RasterConversionError) {
       await logConversionError(request, error);
       return errorResponse(error.status, error.code, error.message, undefined, request);
@@ -154,13 +131,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function logConversionError(request: NextRequest, error: unknown) {
-  const authHeader = request.headers.get("authorization");
-  let userId: string | null = null;
-  if (authHeader?.toLowerCase().startsWith("bearer ")) {
-    const who = await auth(request);
-    if ("user" in who) userId = who.user.id;
-  }
-  if (!userId) userId = request.headers.get("x-user-id");
+  const userId = request.headers.get("x-user-id");
   const guestId = !userId ? ensureGuestId(request).guestId : null;
   await logConversion({
     userId,
