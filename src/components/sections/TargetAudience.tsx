@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { IMAGES } from "@/lib/shared/images";
 
-export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "image-resizer" }) {
   const cards = mode === "raster-to-svg" ? [
     {
       icon: IMAGES.message,
@@ -34,6 +34,35 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
       description: "Transform bitmap sketches and icons into editable vector paths ready for Figma, Sketch, and Illustrator.",
       href: "/svg-guides",
       linkText: "Figma Vector Guide",
+    },
+  ] : mode === "image-resizer" ? [
+    {
+      icon: IMAGES.message,
+      title: "Content Creators",
+      description: "Resize photos and graphics to exact platform dimensions for Instagram, YouTube thumbnails, and blog posts.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Your Images",
+    },
+    {
+      icon: IMAGES.marketing,
+      title: "Marketers",
+      description: "Quickly resize campaign visuals to fit every ad placement and social media format without design tools.",
+      href: "/image-resizer#converter",
+      linkText: "Resize for Campaigns",
+    },
+    {
+      icon: IMAGES.agencies,
+      title: "Agencies",
+      description: "Deliver correctly sized assets to clients in seconds. No more back-and-forth about image dimensions.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Client Assets",
+    },
+    {
+      icon: IMAGES.designers,
+      title: "UI Designers",
+      description: "Export images at exact pixel dimensions for web, mobile, and print with aspect ratio lock to prevent distortion.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Design Assets",
     },
   ] : [
     {

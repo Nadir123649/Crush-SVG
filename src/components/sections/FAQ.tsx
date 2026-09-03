@@ -6,7 +6,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
 
-export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" }) {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -37,6 +37,33 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
       {
         question: "What is the maximum image size?",
         answer: "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.",
+      },
+    ];
+  } else if (mode === "image-resizer") {
+    faqs = [
+      {
+        question: "What image formats can I resize?",
+        answer: "You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.",
+      },
+      {
+        question: "Is my image data kept private?",
+        answer: "Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.",
+      },
+      {
+        question: "What is the maximum image size I can resize?",
+        answer: "You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.",
+      },
+      {
+        question: "Can I maintain the aspect ratio while resizing?",
+        answer: "Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.",
+      },
+      {
+        question: "When should I use JPG vs PNG vs WebP?",
+        answer: "Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.",
       },
     ];
   } else if (mode === "raster-to-svg") {
