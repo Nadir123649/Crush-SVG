@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/client/auth-context";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,6 @@ const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgArrowForward = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" x2="19" y1="12" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
 
 export default function ConversionsPage() {
-  const { status: authStatus } = useAuth();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
@@ -63,10 +61,8 @@ export default function ConversionsPage() {
   };
 
   useEffect(() => {
-    if (authStatus === "authed") {
-      loadConversions(page);
-    }
-  }, [authStatus, status, startDate, endDate]);
+    loadConversions(page);
+  }, [status, startDate, endDate]);
 
   const handleFilterChange = () => {
     setPage(1);
@@ -138,7 +134,7 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+        <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
           <SvgDownload className="w-4 h-4 shrink-0" />
           Export
         </Button>

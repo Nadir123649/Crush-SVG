@@ -6,7 +6,6 @@ import { UserFilters } from "./UserFilters";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/lib/client/auth-context";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +17,6 @@ const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
 export default function UsersPage() {
-  const { status: authStatus } = useAuth();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
@@ -50,13 +48,6 @@ export default function UsersPage() {
 
   const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // Enforce 16 character limit on newUserName
-  useEffect(() => {
-    if (newUserName.length > 16) {
-      setNewUserName(newUserName.slice(0, 16));
-    }
-  }, [newUserName]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -104,11 +95,9 @@ export default function UsersPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    if (authStatus === "authed") {
-      loadUsers();
-    }
+    loadUsers();
     return () => { cancelled = true; };
-  }, [authStatus, search, role, status, page, sortBy, sortOrder]);
+  }, [search, role, status, page, sortBy, sortOrder]);
 
   // Delete user
   const handleDeleteUser = async (user: any) => {
@@ -138,26 +127,16 @@ export default function UsersPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserEmail || !newUserName || !newUserPassword) {
-      showToast("error", "Email, name, and password are required");
-      return;
-    }
-    const trimmedName = newUserName.trim();
-    if (!trimmedName) {
-      showToast("error", "Display name is required");
-      return;
-    }
-    if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
+      setError("Email, name, and password are required");
       return;
     }
     setAddingUser(true);
-    setError(null);
     try {
       const response = await apiFetch<{ user: any }>("/api/v1/admin/users", {
         method: "POST",
         body: JSON.stringify({ 
           email: newUserEmail, 
-          displayName: trimmedName, 
+          displayName: newUserName, 
           password: newUserPassword, 
           role: newUserRole 
         }),
@@ -190,13 +169,8 @@ export default function UsersPage() {
   const confirmEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userToEdit) return;
-    const trimmedName = editUserName.trim();
-    if (!trimmedName) {
+    if (!editUserName.trim()) {
       showToast("error", "Display name is required");
-      return;
-    }
-    if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
       return;
     }
     setEditingUser(true);
@@ -204,7 +178,7 @@ export default function UsersPage() {
       const response = await apiFetch<{ user: any }>(`/api/v1/admin/users/${userToEdit.uid}`, {
         method: "PATCH",
         body: JSON.stringify({
-          displayName: trimmedName,
+          displayName: editUserName,
           role: editUserRole
         }),
       });
@@ -317,11 +291,11 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
+          <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
             <SvgDownload className="w-4 h-4 shrink-0" />
             Export
           </Button>
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
@@ -566,15 +540,11 @@ export default function UsersPage() {
             </div>
             <form onSubmit={confirmEditUser} className="flex flex-col gap-4">
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
-                  <span className="font-body text-xs text-text-muted">{editUserName.length}/16</span>
-                </div>
+                <label className="block font-body text-sm font-medium text-text-dark mb-1">Display Name *</label>
                 <input
                   type="text"
                   value={editUserName}
                   onChange={(e) => setEditUserName(e.target.value)}
-                  maxLength={16}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                   required
                 />
@@ -626,34 +596,13 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
-                  <span className={`font-body text-xs font-semibold ${newUserName.length >= 16 ? 'text-red-500' : 'text-text-muted'}`}>
-                    {newUserName.length}/16
-                  </span>
-                </div>
+                <label className="block font-body text-sm font-medium text-text-dark mb-1">Display Name *</label>
                 <input
                   type="text"
-                  value={newUserName.slice(0, 16)}
-                  onChange={(e) => setNewUserName(e.target.value.slice(0, 16))}
-                  onInput={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value.length > 16) {
-                      target.value = target.value.slice(0, 16);
-                      setNewUserName(target.value);
-                    }
-                  }}
-                  onPaste={(e) => {
-                    e.preventDefault();
-                    const pastedText = e.clipboardData.getData('text').slice(0, 16);
-                    setNewUserName(pastedText);
-                    if (e.clipboardData.getData('text').length > 16) {
-                      showToast("error", "Display name limited to 16 characters");
-                    }
-                  }}
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                   placeholder="John Doe"
-                  autoComplete="off"
                   required
                 />
               </div>

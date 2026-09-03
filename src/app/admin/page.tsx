@@ -87,49 +87,7 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       {/* Row 1: KPIs */}
       <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {/* KPI 1: SVG → PNG */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">SVG → PNG</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgImage className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">SVG to Raster requests</span>
-          </div>
-        </div>
-
-        {/* KPI 2: Raster Conversions */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Raster Conversions</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgRadio className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
-          </div>
-        </div>
-
-        {/* KPI 3: Total Conversions */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Total Conversions</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgActivity className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">Vectorized successfully</span>
-          </div>
-        </div>
-
-        {/* KPI 4: Total Registered Users */}
+        {/* KPI 1 */}
         <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
           <div className="flex justify-between items-center mb-4">
             <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Total Registered Users</span>
@@ -143,7 +101,49 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* KPI 5: Monthly Revenue */}
+        {/* KPI 2 */}
+        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Total Conversions</span>
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <SvgActivity className="w-4 h-4 text-[#D94A1E]" />
+            </div>
+          </div>
+          <div>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions)}</span>
+            <span className="font-body text-sm text-text-muted mt-2 block">Vectorized successfully</span>
+          </div>
+        </div>
+
+        {/* KPI 3 */}
+        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Raster Conversions</span>
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <SvgRadio className="w-4 h-4 text-[#D94A1E]" />
+            </div>
+          </div>
+          <div>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions)}</span>
+            <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
+          </div>
+        </div>
+
+        {/* KPI 3.5: SVG to PNG */}
+        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">SVG → PNG</span>
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <SvgImage className="w-4 h-4 text-[#D94A1E]" />
+            </div>
+          </div>
+          <div>
+            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions)}</span>
+            <span className="font-body text-sm text-text-muted mt-2 block">SVG to Raster requests</span>
+          </div>
+        </div>
+
+        {/* KPI 4 */}
         <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
           <div className="flex justify-between items-center mb-4">
             <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Monthly Revenue</span>

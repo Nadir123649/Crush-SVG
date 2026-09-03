@@ -9,7 +9,7 @@ interface GuestOnlyProps {
 }
 
 export function GuestOnly({ children }: GuestOnlyProps) {
-  const { status, user } = useAuth();
+  const { status } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const redirectedRef = useRef(false);
@@ -17,27 +17,21 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   useEffect(() => {
     if (status === "authed" && !redirectedRef.current) {
       redirectedRef.current = true;
-      if (user?.role === "admin") {
-        router.replace("/admin");
-      } else {
-        router.replace("/");
-      }
+      router.replace("/");
     }
-  }, [status, user, router]);
+  }, [status, router]);
 
   if (status === "loading") {
     return null;
   }
 
   if (status === "authed") {
-    // Show a loading state instead of the login card while redirecting
-    return (
-      <div className="w-full flex justify-center py-[60px]">
-        <div className="animate-pulse flex items-center gap-2 font-heading font-medium text-text-muted">
-          Redirecting...
-        </div>
-      </div>
-    );
+    // On the login page, keep rendering children during the redirect so the
+    // user does not see a blank page while navigation completes.
+    if (pathname === "/login" || pathname === "/signup") {
+      return <>{children}</>;
+    }
+    return null;
   }
 
   return <>{children}</>;

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/client/auth-context";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,6 @@ const SvgChevronLeft = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg
 const SvgChevronRight = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
 export default function AuditsPage() {
-  const { status: authStatus } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [audits, setAudits] = useState<any[]>([]);
@@ -60,10 +58,8 @@ export default function AuditsPage() {
   };
 
   useEffect(() => {
-    if (authStatus === "authed") {
-      loadAudits(page);
-    }
-  }, [authStatus, search]);
+    loadAudits(page);
+  }, [search]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -142,13 +138,19 @@ export default function AuditsPage() {
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Header Section */}
-      <div>
-        <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
-        <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
+          <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
+        </div>
+        <Button variant="outline" onClick={handleExportCSV} className="w-[120px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
+        </Button>
       </div>
 
-      {/* Search and Export */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Search & Filter */}
+      <div className="flex flex-wrap items-center gap-4">
         <div className="relative">
           <SvgSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input 
@@ -159,10 +161,14 @@ export default function AuditsPage() {
             className="pl-10 pr-4 py-2.5 bg-white border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-shadow min-w-[240px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
           />
         </div>
-        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-2.5 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
-          <SvgDownload className="w-4 h-4 shrink-0" />
-          Export
-        </Button>
+        <button 
+          type="button"
+          onClick={() => loadAudits(1)}
+          className="min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 border border-[#F2EDE8] bg-white rounded-[8px] text-text-dark font-body font-medium hover:bg-gray-50 transition-colors shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
+        >
+          <SvgFilter className="w-4 h-4" />
+          Filter
+        </button>
       </div>
 
       {/* Main Card containing the Table */}

@@ -5,9 +5,9 @@ import { checkRateLimit } from "@/lib/security/rate-limit";
 import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
 import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
 import { rasterOptionsSchema } from "@/lib/raster/validation";
-import { rasterToSvg } from "@/lib/raster/raster-to-svg";
+import { rasterToSvg, recommendQueue } from "@/lib/raster/raster-to-svg";
+import { rasterToSvgQueued, rasterQueueEnabled } from "@/lib/raster/raster-queue";
 import type { RasterOptions } from "@/lib/raster/types";
-import { z } from "zod";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -81,7 +81,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const originalSize = file.size;
 
-    const result = await rasterToSvg(buffer, options);
+    let result;
+    if (rasterQueueEnabled() && (await recommendQueue(buffer))) {
+      result = await rasterToSvgQueued(buffer, options);
+    } else {
+      result = await rasterToSvg(buffer, options);
+    }
 
     await logConversion({
       userId: request.headers.get("x-user-id"),
@@ -117,9 +122,6 @@ export async function POST(request: NextRequest) {
     if (setCookie) response.cookies.set(setCookie);
     return response;
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return errorResponse(400, "invalid_options", error.issues[0]?.message || "Invalid vectorize options", undefined, request);
-    }
     if (error instanceof RasterConversionError) {
       await logConversionError(request, error);
       return errorResponse(error.status, error.code, error.message, undefined, request);
