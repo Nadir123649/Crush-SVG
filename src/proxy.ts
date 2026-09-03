@@ -178,13 +178,8 @@ export function proxy(request: NextRequest): NextResponse {
 
   const hasToken = hasBearerToken(request)
 
-  // Admin pages — require token (full JWT + role check done client-side by admin/layout.tsx)
+  // Admin pages — pass through (full auth + role check done client-side by admin/layout.tsx)
   if (isAdminPage(pathname)) {
-    if (!hasToken) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
     const response = NextResponse.next()
     response.headers.set('x-request-id', getRequestId(request))
     return response
