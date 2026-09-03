@@ -54,10 +54,10 @@ export default function TeamPage() {
     },
     {
       name: "Muhammad Hassan Irfan",
-      role: "Lead Full-Stack Developer & AI Engineer",
+      role: "Lead Full-Stack Developer",
       bio: "Full-stack engineer focused on building secure, scalable, and high-performance digital products. Hassan turns complex requirements into polished, production-ready solutions.",
       initials: "HI",
-      linkedin: "https://www.linkedin.com/in/mhassanirfan/",
+      linkedin: "https://www.linkedin.com/in/muhammad-hassan-irfan-a97059421/",
       skills: ["Full-Stack Engineering", "MERN & Next.js", "AI Engineering", "WordPress"],
     },
     {
