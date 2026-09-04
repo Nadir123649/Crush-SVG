@@ -7,6 +7,7 @@ import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
 import type { BgRemoveOptionsParsed } from "./validation";
 import { shouldUseModnetEngine } from "./feature-flag";
+import { classifyImage } from "./classify";
 
 let modnetProcessor: typeof import("./modnet").processWithModnet | null = null;
 
@@ -19,19 +20,47 @@ async function getModnetProcessor() {
 }
 
 /**
- * Full background-removal pipeline: decode → detect → remove/replace → scale → encode.
- * Routes to MODNet when BG_REMOVE_USE_MODNET=true, otherwise uses the legacy
- * color-distance engine.
+ * Full background-removal pipeline: decode → classify → route → process → encode.
+ *
+ * Routing logic:
+ * - BG_REMOVE_USE_MODNET=false → always legacy
+ * - BG_REMOVE_USE_MODNET=true (default) → classifier decides per image:
+ *   - "photo" → MODNet (photographic subjects, portraits)
+ *   - "graphic" → legacy (logos, text, flat artwork)
+ *
+ * The classifier is cheap (pixel statistics only) and runs before the
+ * expensive model inference, so it adds negligible overhead.
  */
 export async function processBackgroundRemove(
   buffer: Buffer,
   options: BgRemoveOptionsParsed,
 ): Promise<BgRemoveResult> {
-  if (shouldUseModnetEngine()) {
+  if (!shouldUseModnetEngine()) {
+    return processLegacy(buffer, options);
+  }
+
+  // Decode to raw pixels for classification (cheap, ~64k samples max)
+  const decoded = await sharp(buffer, { animated: false })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const rawData = new Uint8ClampedArray(
+    decoded.data.buffer,
+    decoded.data.byteOffset,
+    decoded.data.byteLength,
+  );
+  const w = decoded.info.width;
+  const h = decoded.info.height;
+
+  const classification = classifyImage(rawData, w, h);
+
+  if (classification === "photo") {
     const processModnet = await getModnetProcessor();
     return processModnet(buffer, options);
   }
 
+  // graphic → legacy engine
   return processLegacy(buffer, options);
 }
 
