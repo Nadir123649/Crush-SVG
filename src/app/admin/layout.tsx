@@ -47,10 +47,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   useEffect(() => {
-    if (status === "authed" && user?.role !== "admin") {
+    if (status === "guest") {
+      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
+    } else if (status === "authed" && user?.role !== "admin") {
       router.push("/");
     }
-  }, [status, user, router]);
+  }, [status, user, router, pathname]);
 
   const isLoading = status === "loading";
   const isGuest = status === "guest";
