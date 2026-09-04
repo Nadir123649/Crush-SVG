@@ -8,8 +8,6 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 
-export const dynamic = "force-dynamic";
-
 const USERS_PAGE_SIZE = 15;
 
 const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
@@ -157,7 +155,7 @@ export default function UsersPage() {
     setAddingUser(true);
     setError(null);
     try {
-      const response = await apiFetch<{ user: any }>("/api/v1/admin/users", {
+      const response = await apiFetch<{ user: any; message?: string }>("/api/v1/admin/users", {
         method: "POST",
         body: JSON.stringify({ 
           email: newUserEmail, 
@@ -169,11 +167,12 @@ export default function UsersPage() {
       if (response?.user) {
         setUsers((prev) => [response.user, ...prev]);
         setAddUserModalOpen(false);
+        const emailSent = newUserEmail;
         setNewUserEmail("");
         setNewUserName("");
         setNewUserPassword("");
         setNewUserRole("user");
-        showToast("success", "User created successfully");
+        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`);
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to add user";
@@ -194,6 +193,14 @@ export default function UsersPage() {
   const confirmEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userToEdit) return;
+    const isGoogle = Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com');
+    const isVerified = userToEdit.isVerified === true || userToEdit.status === 'verified' || userToEdit.emailVerified === true || isGoogle;
+    
+    if (editUserRole === "admin" && !isVerified) {
+      showToast("error", "User is unverified");
+      return;
+    }
+
     const trimmedName = editUserName.trim();
     if (!trimmedName) {
       showToast("error", "Display name is required");
@@ -235,45 +242,51 @@ export default function UsersPage() {
 
   const handleExportCSV = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.set("page", "1");
-      queryParams.set("limit", "10000");
-      if (search) queryParams.set("search", search);
-      if (role !== "all") queryParams.set("role", role);
-      if (status !== "all") queryParams.set("status", status);
+      let data = users && users.length > 0 ? users : [];
+      if (data.length === 0) {
+        const queryParams = new URLSearchParams();
+        queryParams.set("page", "1");
+        queryParams.set("limit", "100");
+        if (search) queryParams.set("search", search);
+        if (role !== "all") queryParams.set("role", role);
+        if (status !== "all") queryParams.set("status", status);
 
-      const response = await apiFetch<{ data: any[] }>(`/api/v1/admin/users?${queryParams.toString()}`);
-      if (response?.data) {
-        const { data } = response;
-        if (data.length === 0) { setError("No users to export"); return; }
-
-        const isGoogleUser = (u: any) => Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
-        const isVerifiedUser = (u: any) => u.isVerified === true || isGoogleUser(u);
-
-        const headers = ["ID", "Email", "Display Name", "Role", "Status", "Provider", "Conversions Used", "Created At"];
-        const rows = data.map((u: any) => [
-          u.uid,
-          u.email || "",
-          u.displayName || "",
-          u.role || "user",
-          isVerifiedUser(u) ? "Verified" : "Unverified",
-          isGoogleUser(u) ? "Google" : "Email",
-          u.conversionsUsed?.toString() || "0",
-          new Date(u.createdAt).toLocaleString()
-        ]);
-
-        const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `users-export-${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const response = await apiFetch<{ data: any[] }>(`/api/v1/admin/users?${queryParams.toString()}`);
+        if (response?.data) data = response.data;
       }
+
+      if (!data || data.length === 0) {
+        setError("No users to export");
+        return;
+      }
+
+      const isGoogleUser = (u: any) => Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
+      const isVerifiedUser = (u: any) => u.isVerified === true || isGoogleUser(u);
+
+      const headers = ["ID", "Email", "Display Name", "Role", "Status", "Provider", "Conversions Used", "Created At"];
+      const rows = data.map((u: any) => [
+        u.uid || u.id,
+        u.email || "",
+        u.displayName || "",
+        u.role || "user",
+        isVerifiedUser(u) ? "Verified" : "Unverified",
+        isGoogleUser(u) ? "Google" : "Email",
+        u.conversionsUsed?.toString() || "0",
+        new Date(u.createdAt).toLocaleString()
+      ]);
+
+      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("success", "Users exported successfully!");
     } catch (err) {
       setError("Failed to export users");
     }
@@ -357,8 +370,9 @@ export default function UsersPage() {
           {/* Table Loading/Empty/Error States */}
           {loading && (
             <div className="p-8">
-              <div className="flex justify-center my-8">
+              <div className="flex flex-col items-center justify-center my-8 gap-3">
                 <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+                <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading users...</span>
               </div>
             </div>
           )}
@@ -410,7 +424,7 @@ export default function UsersPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
                               {u.photoURL ? (
-                                <Image src={u.photoURL} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                                <img src={u.photoURL} alt="User avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               ) : (
                                 initials
                               )}
@@ -598,11 +612,17 @@ export default function UsersPage() {
                 <select
                   value={editUserRole}
                   onChange={(e) => setEditUserRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white"
+                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white cursor-pointer"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
+                {editUserRole === "admin" && !(userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'))) && (
+                  <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                    <SvgError className="w-3.5 h-3.5 shrink-0" />
+                    <span>User is unverified</span>
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-3 mt-2">
                 <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser} className="px-4 py-2">
