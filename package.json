@@ -17,6 +17,7 @@
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@buzz-dee/vtrace": "^1.2.0",
+    "@huggingface/transformers": "^4.2.0",
     "@react-email/components": "^1.0.12",
     "@sentry/nextjs": "^10.70.0",
     "@tailwindcss/postcss": "^4",
@@ -45,10 +46,21 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "resend": "^6.19.0",
+    "@img/sharp-linux-x64": "^0.35.4",
     "sharp": "^0.35.3",
     "swagger-ui-react": "^5.32.14",
     "tailwindcss": "^4",
     "zod": "^4.4.3"
+  },
+  "overrides": {
+    "sharp": "^0.35.4",
+    "@img/sharp-libvips-darwin-arm64": "npm:@img/sharp-libvips-darwin-arm64@0.35.4",
+    "@img/sharp-libvips-darwin-x64": "npm:@img/sharp-libvips-darwin-x64@0.35.4",
+    "@img/sharp-libvips-linux-arm64": "npm:@img/sharp-libvips-linux-arm64@0.35.4",
+    "@img/sharp-libvips-linuxmusl-arm64": "npm:@img/sharp-libvips-linuxmusl-arm64@0.35.4",
+    "@img/sharp-libvips-linuxmusl-x64": "npm:@img/sharp-libvips-linuxmusl-x64@0.35.4",
+    "@img/sharp-libvips-linux-x64": "npm:@img/sharp-libvips-linux-x64@0.35.4",
+    "@img/sharp-win32-x64": "npm:@img/sharp-win32-x64@0.35.4"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
