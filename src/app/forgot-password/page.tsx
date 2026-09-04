@@ -1,5 +1,6 @@
 import React from "react";
 import { ForgotPasswordCard } from "@/components/auth/ForgotPasswordCard";
+import { GuestOnly } from "@/components/auth/GuestOnly";
 import { constructMetadata } from "@/lib/seo";
 
 export const metadata = constructMetadata({
@@ -10,8 +11,10 @@ export const metadata = constructMetadata({
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-      <ForgotPasswordCard />
-    </div>
+    <GuestOnly>
+      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+        <ForgotPasswordCard />
+      </div>
+    </GuestOnly>
   );
 }
