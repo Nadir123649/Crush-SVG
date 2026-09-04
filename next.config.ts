@@ -34,7 +34,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["@visioncortex/vtracer"],
+  serverExternalPackages: ["@visioncortex/vtracer", "sharp", "onnxruntime-node"],
   images: {
     unoptimized: true,
     formats: ["image/avif", "image/webp"],
