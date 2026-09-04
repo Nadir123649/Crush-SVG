@@ -9,6 +9,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 export default function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [addingAdmin, setAddingAdmin] = useState(false);
   
   const [loading, setLoading] = useState(true);
@@ -134,11 +135,11 @@ export default function SettingsPage() {
     }
     setAddingAdmin(true);
     try {
-      await apiFetch("/api/v1/admin/users", {
+      const res = await apiFetch<{ message?: string }>("/api/v1/admin/users", {
         method: "POST",
         body: JSON.stringify({ email: adminEmail, password: adminPassword, role: "admin" })
       });
-      showToast("success", "Admin user added successfully!");
+      showToast("success", res?.message || `Admin created! Verification email sent to ${adminEmail}`);
       setAdminEmail("");
       setAdminPassword("");
     } catch (err: any) {
@@ -287,13 +288,32 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <label className="font-body font-semibold text-sm text-text-muted">Password</label>
-                <input 
-                  type="password" 
-                  placeholder="••••••••"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
-                />
+                <div className="relative w-full">
+                  <input 
+                    type={showAdminPassword ? "text" : "password"} 
+                    placeholder="••••••••"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] px-3 py-2.5 pr-10 font-body text-text-dark focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 outline-none transition-all" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminPassword((v) => !v)}
+                    className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black flex items-center justify-center w-[20px] h-[20px]"
+                    aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                  >
+                    {!showAdminPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[16px] h-[16px]">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[16px] h-[16px]">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
             

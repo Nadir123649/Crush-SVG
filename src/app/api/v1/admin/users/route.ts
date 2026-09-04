@@ -3,9 +3,10 @@ import { NextRequest } from 'next/server'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
-import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
-import { hashPassword } from '@/lib/auth/passwords'
+import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
+import { sendVerificationEmail } from '@/lib/integrations/email'
 import { getClientIp } from '@/lib/security/ip'
 
 export const runtime = 'nodejs'
@@ -167,19 +168,26 @@ export async function POST(request: NextRequest) {
     return errorResponse(409, 'email_taken', 'A user with this email already exists', undefined, request)
   }
 
+  const token = generateToken()
+  const now = Date.now()
+  const targetEmail = email.toLowerCase().trim()
+
   let created
   try {
     created = await User.create({
-      uid: `admin_${email}`,
-      email: email.toLowerCase().trim(),
-      displayName: (displayName && displayName.trim()) ? displayName.trim() : email.split('@')[0],
+      uid: `admin_${targetEmail}`,
+      email: targetEmail,
+      displayName: (displayName && displayName.trim()) ? displayName.trim() : targetEmail.split('@')[0],
       photoURL: null,
       role,
-      isVerified: true,
+      isVerified: false,
+      emailVerificationToken: hashToken(token),
+      emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
       password: password ? await hashPassword(password) : undefined,
-      providers: ['admin'],
+      providers: ['email'],
+      linkedProviders: ['email'],
       conversionsUsed: 0,
-      lastLoginAt: new Date(),
+      lastLoginAt: new Date(now),
     })
   } catch (error) {
     if (isDuplicateKeyError(error)) {
@@ -188,16 +196,29 @@ export async function POST(request: NextRequest) {
     throw error
   }
 
+  const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+  try {
+    await sendVerificationEmail(targetEmail, verifyUrl)
+  } catch (e) {
+    console.error('Verification email failed to send:', e)
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[dev] Admin created verification email for ${targetEmail}: ${verifyUrl}`)
+  }
+
   await AuditLog.create({
     adminId: adminCheck.user.id,
     action: 'user_created',
     target: created._id.toString(),
     resourceType: 'user',
     resourceId: created.uid,
-    details: { email: created.email, role: created.role },
+    details: { email: created.email, role: created.role, isVerified: false },
     ipAddress: getClientIp(request),
     metadata: { email: created.email, role: created.role },
   })
 
-  return successResponse({ user: toUserDTO(created) }, 201, rateLimitHeaders(rl), request)
+  return successResponse({ 
+    user: toUserDTO(created), 
+    message: `Account created successfully! Verification email sent to ${targetEmail}.` 
+  }, 201, rateLimitHeaders(rl), request)
 }

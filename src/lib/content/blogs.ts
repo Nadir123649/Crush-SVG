@@ -86,7 +86,7 @@ No. It's only used to generate your PNG and never stored beyond that.
 
 Stop patching a rendering problem with screenshots and watermarked tools. Convert SVG to PNG properly, and send emails that actually render, everywhere.
 
-Try it free: [crushsvg.net](https://crushsvg.net)
+[Try it free](/)
 
 What's the workaround you're finally ready to retire? [Tell us &rarr;](/contact-us)
 `

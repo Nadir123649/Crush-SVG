@@ -95,6 +95,7 @@ function SvgToPngConverter() {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
@@ -290,6 +291,22 @@ function SvgToPngConverter() {
       showToast("success", "SVG code formatted");
     } catch {
       showToast("error", "We couldn't format this SVG. Please check that the code is valid.");
+    }
+  }
+
+  async function handleCopySvgCode() {
+    const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
+    if (!textToCopy) {
+      showToast("error", "No custom SVG code to copy");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", "SVG code copied to clipboard!");
+    } catch {
+      showToast("error", "Failed to copy SVG code");
     }
   }
 
@@ -562,6 +579,19 @@ function SvgToPngConverter() {
                     className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+                  <button
+                    type="button"
+                    onClick={handleCopySvgCode}
+                    disabled={svgCode === SAMPLE_SVG || !svgCode}
+                    aria-label="Copy SVG code"
+                    className="absolute top-[12px] right-[12px] md:top-[16px] md:right-[16px] bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[8px] px-[10px] py-[6px] font-body text-[12px] font-medium transition-colors flex items-center gap-1.5 z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    {copiedCode ? "Copied!" : "Copy Code"}
+                  </button>
                 </div>
 
                 <input
@@ -598,7 +628,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={48} height={48} className="object-contain w-[40px] h-[40px] md:w-[48px] md:h-[48px]" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">Drag &amp; Drop or </span>
                     <span className="font-medium text-brand-primary">Select SVG</span>
@@ -664,10 +694,10 @@ function SvgToPngConverter() {
                 </div>
 
                 {/* Settings & Controls */}
-                <div className="w-full mt-[16px] md:mt-[20px]">
+                <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col">
                   <div
-                    className={`w-full transition-all duration-300 ${
-                      converting ? "hidden md:block pointer-events-none opacity-50" : ""
+                    className={`w-full h-full flex flex-col justify-between transition-all duration-300 ${
+                      converting ? "hidden md:flex md:pointer-events-none opacity-50" : ""
                     }`}
                   >
                     {/* Dropdowns Row */}
@@ -1090,7 +1120,7 @@ function SvgToPngConverter() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] lg:mt-auto flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[42px] mt-[16px] md:mt-[24px] flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
@@ -1099,7 +1129,7 @@ function SvgToPngConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] lg:mt-auto relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] md:mt-[24px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
@@ -1110,7 +1140,7 @@ function SvgToPngConverter() {
                       </button>
                     ) : result?.data ? (
                       <Button
-                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleDownload}
                         disabled={converting || isPlaceholderCode || !!validationError}
                       >
@@ -1127,9 +1157,9 @@ function SvgToPngConverter() {
                       </Button>
                     ) : (
                       <Button
-                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleConvert}
-                        disabled={converting || !!validationError}
+                        disabled={converting || isPlaceholderCode || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert

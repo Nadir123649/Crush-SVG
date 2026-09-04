@@ -866,7 +866,7 @@ export function BackgroundRemover() {
                   <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
-                        <div className="w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                        <div className="px-1.5 min-w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
                           <span className="font-heading font-bold text-[9px] text-brand-primary">
                             {fileExt}
                           </span>
@@ -1199,19 +1199,7 @@ export function BackgroundRemover() {
                           </span>
                         </Button>
 
-                        <div className="flex items-center gap-[16px] mt-[2px]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setResult(null);
-                              setStaleResult(false);
-                              setPreviewMode("before");
-                            }}
-                            className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer"
-                          >
-                            New Image
-                          </button>
-                        </div>
+
                       </>
                     ) : (
                       <Button

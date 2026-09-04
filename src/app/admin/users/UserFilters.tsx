@@ -42,7 +42,7 @@ export function UserFilters({
     <div className="flex flex-col gap-6">
       {/* Search Card */}
       <div className="bg-white border border-[#F2EDE8] p-6 rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)]">
-        <label className="font-body font-semibold text-sm text-text-dark mb-3 block">Search Users</label>
+        <label className="font-body font-semibold text-[16px] text-text-dark mb-3 block">Search Users</label>
         <div className="relative flex items-center">
           <SvgSearch className="absolute left-3 text-text-muted w-5 h-5" />
           <input 
