@@ -6,11 +6,39 @@ import { removeBackground, replaceBackgroundWithColor } from "./remove";
 import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
 import type { BgRemoveOptionsParsed } from "./validation";
+import { shouldUseModnetEngine } from "./feature-flag";
+
+let modnetProcessor: typeof import("./modnet").processWithModnet | null = null;
+
+async function getModnetProcessor() {
+  if (!modnetProcessor) {
+    const modnet = await import("./modnet");
+    modnetProcessor = modnet.processWithModnet;
+  }
+  return modnetProcessor;
+}
 
 /**
  * Full background-removal pipeline: decode → detect → remove/replace → scale → encode.
+ * Routes to MODNet when BG_REMOVE_USE_MODNET=true, otherwise uses the legacy
+ * color-distance engine.
  */
 export async function processBackgroundRemove(
+  buffer: Buffer,
+  options: BgRemoveOptionsParsed,
+): Promise<BgRemoveResult> {
+  if (shouldUseModnetEngine()) {
+    const processModnet = await getModnetProcessor();
+    return processModnet(buffer, options);
+  }
+
+  return processLegacy(buffer, options);
+}
+
+/**
+ * Legacy color-distance background removal.
+ */
+async function processLegacy(
   buffer: Buffer,
   options: BgRemoveOptionsParsed,
 ): Promise<BgRemoveResult> {
