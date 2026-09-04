@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { VerificationModal } from "@/components/modals/VerificationModal";
+import { GuestOnly } from "@/components/auth/GuestOnly";
 
 type TokenState = "checking" | "valid" | "invalid";
 
@@ -90,7 +91,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <>
+    <GuestOnly>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
@@ -232,6 +233,6 @@ export default function ResetPasswordPage() {
         </div>
       </div>
       </div>
-    </>
+    </GuestOnly>
   );
 }

@@ -178,8 +178,14 @@ export function proxy(request: NextRequest): NextResponse {
 
   const hasToken = hasBearerToken(request)
 
-  // Admin pages — pass through (full auth + role check done client-side by admin/layout.tsx)
+  // Admin pages — require auth cookie or redirect to /login
   if (isAdminPage(pathname)) {
+    const refreshToken = request.cookies.get('crushsvg_refresh')?.value
+    if (!refreshToken) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('returnTo', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
     const response = NextResponse.next()
     response.headers.set('x-request-id', getRequestId(request))
     return response
