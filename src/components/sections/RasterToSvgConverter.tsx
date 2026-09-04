@@ -742,7 +742,7 @@ export function RasterToSvgConverter() {
         {/* Outer Dashed Border Box */}
         <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[32px] transition-all duration-300">
+          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
             <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
@@ -831,7 +831,7 @@ export function RasterToSvgConverter() {
                     <img
                       src={rasterDataUrl}
                       alt={imageName || "Selected raster image"}
-                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
+                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200"
                     />
 
                     {/* Format Pill Badge */}
@@ -922,20 +922,9 @@ export function RasterToSvgConverter() {
                         </kbd>{" "}
                         paste clipboard image
                       </span>
-                      <span className="text-[#CBD5E1]">&bull;</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void handleLoadSample();
-                        }}
-                        className="text-[11px] font-medium text-brand-primary hover:underline cursor-pointer"
-                      >
-                        Try sample icon
-                      </button>
                     </div>
-                  </div>
-                )}
+                  </div> 
+                )} 
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
@@ -943,7 +932,7 @@ export function RasterToSvgConverter() {
                     {/* Row 1: File Info */}
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
-                        <div className="w-[28px] h-[28px] rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                        <div className="px-2 min-w-[28px] h-[28px] rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
                           <span className="font-heading font-bold text-[10px] text-brand-primary">
                             {fileExt}
                           </span>
@@ -1023,6 +1012,24 @@ export function RasterToSvgConverter() {
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
+
+                {/* Result Details */}
+                {result && result.size > 0 && (
+                  <p className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B] mt-[10px]">
+                    {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
+                    {result.tracingModeUsed === "auto" && result.resolvedTracingMode
+                      ? ` · Auto → ${result.resolvedTracingMode.charAt(0).toUpperCase()}${result.resolvedTracingMode.slice(1)}`
+                      : result.tracingModeUsed
+                        ? ` · ${result.tracingModeUsed.charAt(0).toUpperCase()}${result.tracingModeUsed.slice(1)}`
+                        : ""}
+                    {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
+                    {result.resolvedTracingMode === "line-art" ? " · Palette N/A" : result.paletteUsed && result.paletteUsed !== "auto" ? ` · ${result.paletteUsed} Colors` : ""}
+                    {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
+                    {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
+                    {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
+                    {" · "}{formatFileSize(result.size)} · Infinitely Scalable
+                  </p>
+                )}
               </div>
 
               {/* ============================================================ */}
@@ -1354,23 +1361,6 @@ export function RasterToSvgConverter() {
                       </Button>
                     )}
 
-                    {/* Result Details */}
-                    {result && result.size > 0 && (
-                      <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
-                        {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
-                        {result.tracingModeUsed === "auto" && result.resolvedTracingMode
-                          ? ` · Auto → ${result.resolvedTracingMode.charAt(0).toUpperCase()}${result.resolvedTracingMode.slice(1)}`
-                          : result.tracingModeUsed
-                            ? ` · ${result.tracingModeUsed.charAt(0).toUpperCase()}${result.tracingModeUsed.slice(1)}`
-                            : ""}
-                        {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
-                        {result.resolvedTracingMode === "line-art" ? " · Palette N/A" : result.paletteUsed && result.paletteUsed !== "auto" ? ` · ${result.paletteUsed} Colors` : ""}
-                        {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
-                        {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
-                        {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
-                        {" · "}{formatFileSize(result.size)} · Infinitely Scalable
-                      </p>
-                    )}
                   </div>
                 )}
               </div>

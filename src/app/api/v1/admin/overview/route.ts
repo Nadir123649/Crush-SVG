@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
       return errorResponse(403, "forbidden", "Admin access required", undefined, request);
     }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
     const [
       totalUsers,
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       svgConversions,
       recentAudits,
       rawRecentConversions,
-      conversionsLast7Days
+      conversionsLast10Days
     ] = await Promise.all([
       User.countDocuments(VALID_USER_FILTER),
       ConversionLog.countDocuments({ success: true }),
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       AuditLog.find().sort({ createdAt: -1 }).limit(10),
       ConversionLog.find().sort({ createdAt: -1 }).limit(5),
       ConversionLog.aggregate([
-        { $match: { success: true, createdAt: { $gte: sevenDaysAgo } } },
+        { $match: { success: true, createdAt: { $gte: tenDaysAgo } } },
         { $group: {
             _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             count: { $sum: 1 }
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       svgConversions,
       recentAudits,
       recentConversions,
-      conversionsLast7Days
+      conversionsLast10Days
     });
   } catch (error: any) {
     console.error("Dashboard overview error:", error);

@@ -5,6 +5,7 @@ import { AnalyticsChart } from "@/components/admin/AnalyticsChart";
 import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
+import { KpiCard } from "@/components/admin/KpiCard";
 
 // Inline SVGs to avoid dependency issues
 const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
@@ -42,8 +43,9 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex flex-col justify-center items-center h-64 gap-3">
         <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+        <span className="font-body text-sm font-medium text-text-muted">Loading dashboard...</span>
       </div>
     );
   }
@@ -59,7 +61,7 @@ export default function AdminDashboard() {
     svgConversions,
     recentAudits,
     recentConversions,
-    conversionsLast7Days
+    conversionsLast10Days
   } = data;
 
   // Format chart data
@@ -67,11 +69,11 @@ export default function AdminDashboard() {
   const chartLabels = [];
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   
-  for (let i = 6; i >= 0; i--) {
+  for (let i = 9; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
-    const match = conversionsLast7Days?.find((c: any) => c._id === dateStr);
+    const match = conversionsLast10Days?.find((c: any) => c._id === dateStr);
     
     chartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
     chartData.push(match ? match.count : 0);
@@ -83,75 +85,36 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* Row 1: KPIs */}
       <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {/* KPI 1: SVG → PNG */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">SVG → PNG</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgImage className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(svgConversions || 0)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">SVG to Raster requests</span>
-          </div>
-        </div>
-
-        {/* KPI 2: Raster Conversions */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Raster Conversions</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgRadio className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(rasterConversions || 0)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">Raster to SVG requests</span>
-          </div>
-        </div>
-
-        {/* KPI 3: Total Conversions */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Total Conversions</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgActivity className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalConversions || 0)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">Vectorized successfully</span>
-          </div>
-        </div>
-
-        {/* KPI 4: Total Registered Users */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Total Registered Users</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgUsers className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{formatK(totalUsers || 0)}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">All active accounts</span>
-          </div>
-        </div>
-
-        {/* KPI 5: Monthly Revenue */}
-        <div className="bg-[#FFFCFA] border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-between hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)] transition-shadow duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-heading font-semibold text-[14px] text-text-muted uppercase tracking-wider">Monthly Revenue</span>
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <SvgDollarSign className="w-4 h-4 text-[#D94A1E]" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-4xl text-text-dark block">{mrr}</span>
-            <span className="font-body text-sm text-text-muted mt-2 block">No revenue recorded yet</span>
-          </div>
-        </div>
+        <KpiCard 
+          title="Total Registered Users" 
+          icon={SvgUsers} 
+          value={formatK(totalUsers || 0)} 
+          description="All active accounts" 
+        />
+        <KpiCard 
+          title="SVG → PNG" 
+          icon={SvgImage} 
+          value={formatK(svgConversions || 0)} 
+          description="SVG to Raster requests" 
+        />
+        <KpiCard 
+          title="Raster Conversions" 
+          icon={SvgRadio} 
+          value={formatK(rasterConversions || 0)} 
+          description="Raster to SVG requests" 
+        />
+        <KpiCard 
+          title="Total Conversions" 
+          icon={SvgActivity} 
+          value={formatK(totalConversions || 0)} 
+          description="Vectorized successfully" 
+        />
+        <KpiCard 
+          title="Monthly Revenue" 
+          icon={SvgDollarSign} 
+          value={mrr} 
+          description="No revenue recorded yet" 
+        />
       </section>
 
       {/* Row 2: Overview Chart & Live Feed */}
@@ -161,7 +124,7 @@ export default function AdminDashboard() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="font-heading font-bold text-2xl text-text-dark">Analytics Overview</h2>
-              <p className="font-body text-[16px] text-text-muted mt-1">Last 7 days performance metrics</p>
+              <p className="font-body text-[16px] text-text-muted mt-1">Last 10 days performance metrics</p>
             </div>
           </div>
 

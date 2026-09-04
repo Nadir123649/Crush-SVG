@@ -90,6 +90,12 @@ export async function PATCH(
     return errorResponse(404, 'not_found', 'User not found', undefined, request)
   }
 
+  // Prevent granting Admin role to unverified users
+  const isVerified = user.isVerified === true || user.status === 'verified' || user.emailVerified === true || (Array.isArray(user.providers) && user.providers.some((p: string) => p === 'google' || p === 'google.com'))
+  if (role === 'admin' && !isVerified) {
+    return errorResponse(400, 'unverified_user', 'User is unverified', undefined, request)
+  }
+
   if (role === 'user' && user.role === 'admin') {
     const adminCount = await User.countDocuments({ role: 'admin' })
     if (adminCount <= 1) {
