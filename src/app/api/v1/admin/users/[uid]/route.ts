@@ -91,7 +91,7 @@ export async function PATCH(
   }
 
   // Prevent granting Admin role to unverified users
-  const isVerified = user.isVerified === true || user.status === 'verified' || user.emailVerified === true || (Array.isArray(user.providers) && user.providers.some((p: string) => p === 'google' || p === 'google.com'))
+  const isVerified = user.isVerified === true || (Array.isArray(user.providers) && user.providers.some((p: string) => p === 'google' || p === 'google.com'))
   if (role === 'admin' && !isVerified) {
     return errorResponse(400, 'unverified_user', 'User is unverified', undefined, request)
   }

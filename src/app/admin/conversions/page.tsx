@@ -7,6 +7,7 @@ import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { showToast } from "@/lib/client/toast-bridge";
 
 const CONVERSIONS_PAGE_SIZE = 15;
 
