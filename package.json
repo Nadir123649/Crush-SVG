@@ -75,5 +75,9 @@
     "eslint-config-next": "16.3.0",
     "server-only": "^0.0.1",
     "tsx": "^4.23.12"
+  },
+  "optionalDependencies": {
+    "@img/sharp-linux-x64": "0.35.4",
+    "@img/sharp-libvips-linux-x64": "0.35.4"
   }
 }
