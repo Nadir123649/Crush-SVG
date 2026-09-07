@@ -911,7 +911,7 @@ export function ImageResizer() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                      <span className="leading-[1.3]">100% private — images stay in your browser</span>
+                      <span className="leading-[1.3]">100% private images stay in your browser</span>
                     </li>
                   </ul>
                 </div>

@@ -918,7 +918,7 @@ export function BackgroundRemover() {
                     <ul className="text-[11px] md:text-[12px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">Auto-detects and removes image backgrounds</span>
+                        <span className="leading-[1.3]">Auto detects and removes image backgrounds</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
@@ -930,7 +930,7 @@ export function BackgroundRemover() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">100% private — images stay in your browser</span>
+                        <span className="leading-[1.3]">100% private images stay in your browser</span>
                       </li>
                     </ul>
                   </div>

@@ -900,10 +900,10 @@ export function RasterToSvgConverter() {
                     <Image
                       src={IMAGES.drag}
                       alt="Upload Image"
-                      width={72}
-                      height={72}
+                      width={36}
+                      height={36}
                       style={{ width: "auto", height: "auto" }}
-                      className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      className="w-[28px] h-[28px] md:w-[36px] md:h-[36px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
 
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
@@ -1098,7 +1098,7 @@ export function RasterToSvgConverter() {
                     /* SVG Code Viewer State */
                     <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
                       <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
-                        <span className="text-[12px] font-mono text-[#64748B]">
+                        <span className="text-[12px] font-mono text-[#353A3E]">
                           SVG Markup ({formatFileSize(result.size)})
                         </span>
                         <button
