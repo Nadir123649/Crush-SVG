@@ -3,11 +3,37 @@ import { successResponse, errorResponse } from "@/lib/http/api-response";
 import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
+import { auth } from "@/lib/middleware/auth-middleware";
 import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
 import { rasterOptionsSchema } from "@/lib/raster/validation";
 import { rasterToSvg } from "@/lib/raster/raster-to-svg";
 import type { RasterOptions } from "@/lib/raster/types";
+import { processBackgroundRemove } from "@/lib/bg-remove/process";
+import { classifyBgRemoveError, BgRemoveError } from "@/lib/bg-remove/errors";
 import { z } from "zod";
+
+async function preprocessBackground(
+  buffer: Buffer,
+  options: RasterOptions,
+): Promise<Buffer> {
+  if (options.background === "preserve") return buffer;
+  if (options.background === "custom" && !options.bgColor) return buffer;
+
+  const bgOption: "Transparent" | "Custom" =
+    options.background === "transparent" ? "Transparent" : "Custom";
+
+  const result = await processBackgroundRemove(buffer, {
+    scale: 100,
+    bgOption,
+    ...(bgOption === "Custom" && options.bgColor ? { bgColor: options.bgColor } : {}),
+  });
+
+  const commaIdx = result.dataUrl.indexOf(",");
+  if (commaIdx < 0) {
+    throw new BgRemoveError("processing_failed", "Background removal produced an invalid data URL.");
+  }
+  return Buffer.from(result.dataUrl.slice(commaIdx + 1), "base64");
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -26,8 +52,8 @@ async function getUsage(request: NextRequest) {
   }
 }
 
-async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
-  if (request.headers.get("x-user-id")) return getUsage(request);
+async function enforceGuestLimit(request: NextRequest, userId: string | null): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
+  if (userId) return getUsage(request);
   const usage = await getUsage(request);
   if (usage.remaining <= 0) {
     return errorResponse(
@@ -56,7 +82,9 @@ export async function POST(request: NextRequest) {
       return errorResponse(429, "rate_limited", "Too many requests. Slow down and retry.", undefined, request);
     }
 
-    const limitOrResponse = await enforceGuestLimit(request);
+    const who = await auth(request);
+    const userId = "user" in who ? who.user.id : null;
+    const limitOrResponse = await enforceGuestLimit(request, userId);
     if (limitOrResponse instanceof NextResponse) return limitOrResponse;
     const limit = limitOrResponse;
 
@@ -81,10 +109,24 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const originalSize = file.size;
 
-    const result = await rasterToSvg(buffer, options);
+    let processedBuffer: Buffer;
+    try {
+      processedBuffer = await preprocessBackground(buffer, options);
+    } catch (bgError) {
+      if (bgError instanceof BgRemoveError) {
+        await logConversionError(request, bgError);
+        return errorResponse(bgError.status, bgError.code, bgError.message, undefined, request);
+      }
+      const failure = classifyBgRemoveError(bgError);
+      const err = new BgRemoveError(failure.code, failure.message, failure.status);
+      await logConversionError(request, err);
+      return errorResponse(failure.status, failure.code, failure.message, undefined, request);
+    }
+
+    const result = await rasterToSvg(processedBuffer, options);
 
     await logConversion({
-      userId: request.headers.get("x-user-id"),
+      userId,
       guestId: limit.guestId,
       inputFormat: file.type || "image",
       outputFormat: "svg",
@@ -92,7 +134,6 @@ export async function POST(request: NextRequest) {
       success: true,
     });
 
-    const userId = request.headers.get("x-user-id");
     if (!userId) await incrementUsage(limit.guestId);
 
     const usage = await getUsage(request);

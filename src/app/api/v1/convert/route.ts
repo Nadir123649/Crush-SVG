@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import sharp from 'sharp'
 
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
@@ -8,6 +9,8 @@ import { logConversion } from '@/lib/usage/conversion-logger'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { classifySvgError } from '@/lib/svg/svg-errors'
+import { processBackgroundRemove } from '@/lib/bg-remove/process'
+import { classifyBgRemoveError, BgRemoveError } from '@/lib/bg-remove/errors'
 
 export const runtime = 'nodejs'
 
@@ -48,7 +51,52 @@ export async function POST(request: NextRequest) {
   const { svg, width, height, scale, transparent, quality } = parsed.data
 
   try {
-    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality })
+    let result = await convertSvgQueued(svg, { width, height, scale, transparent, quality })
+
+    // When the user requests a transparent background, run the rasterized PNG
+    // through the shared background-removal engine so SVG→PNG produces a true
+    // cut-out (not just a sharp alpha pass). The engine is the only allowed
+    // background-removal implementation; no color-distance fallback here.
+    //
+    // The engine expects an opaque raster — the same kind of PNG a user would
+    // upload to the Dedicated Background Remover. convertSvg() rasterizes the
+    // SVG with a white-transparent fill for any resize padding, which leaves
+    // alpha=0 regions whose RGB the engine's detectBackgroundColor() would
+    // mistake for the background (it does not check alpha). Flatten the
+    // raster onto opaque white so the engine receives the same input it would
+    // receive from the Dedicated route for an equivalent "SVG exported with a
+    // white background" PNG.
+    if (transparent !== false) {
+      try {
+        const opaqueForEngine = await sharp(result.buffer)
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .png()
+          .toBuffer()
+        const removed = await processBackgroundRemove(opaqueForEngine, {
+          scale: 100,
+          bgOption: 'Transparent',
+        })
+        const commaIdx = removed.dataUrl.indexOf(',')
+        if (commaIdx < 0) {
+          throw new BgRemoveError('processing_failed', 'Background removal produced an invalid data URL.')
+        }
+        const base64FromEngine = removed.dataUrl.slice(commaIdx + 1)
+        const engineBuffer = Buffer.from(base64FromEngine, 'base64')
+        result = {
+          ...result,
+          buffer: engineBuffer,
+          width: removed.width,
+          height: removed.height,
+        }
+      } catch (bgError) {
+        if (bgError instanceof BgRemoveError) {
+          throw bgError
+        }
+        const failure = classifyBgRemoveError(bgError)
+        throw new BgRemoveError(failure.code, failure.message, failure.status)
+      }
+    }
+
     const base64 = result.buffer.toString('base64')
     const mimeType = 'image/png'
 

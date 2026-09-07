@@ -7,13 +7,17 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
-import { getAccessToken } from "@/lib/client/http";
+import { apiFetch, getAccessToken } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
+
+type TracingMode = "auto" | "logo" | "line-art" | "photo";
+type PaletteLevel = "auto" | "8" | "24" | "48";
+type QualityLevel = "low" | "standard" | "high";
+type BackgroundMode = "preserve" | "transparent" | "custom";
 
 const STORAGE_KEY = "crush_vectorizer_state";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -31,12 +35,6 @@ const QUALITY_OPTIONS: DropdownOption[] = [
   { value: "draft", label: "Low", desc: "Smooth, lightweight paths" },
 ];
 
-const QUALITY_MAP: Record<string, QualityLevel> = {
-  draft: "low",
-  standard: "standard",
-  max: "high",
-};
-
 const BG_MAP: Record<string, BackgroundMode> = {
   Preserve: "preserve",
   Transparent: "transparent",
@@ -48,13 +46,6 @@ const MODE_MAP: Record<string, TracingMode> = {
   logo: "logo",
   "line-art": "line-art",
   photo: "photo",
-};
-
-const PALETTE_MAP: Record<string, PaletteLevel> = {
-  Auto: "auto",
-  "8": "8",
-  "24": "24",
-  "48": "48",
 };
 
 function normalizeHex(input: string): string {
@@ -636,36 +627,73 @@ export function RasterToSvgConverter() {
         fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
       }
 
-      const res = await convertPngToSvg(fileToConvert, {
-        quality: QUALITY_MAP[rasterQuality] ?? "standard",
-        background: BG_MAP[rasterBackground] ?? "preserve",
-        backgroundColor:
-          rasterBackground === "Custom"
-            ? normalizeHex(rasterBgColor)
-            : undefined,
-        tracingMode: MODE_MAP[rasterMode] ?? "auto",
-        palette: PALETTE_MAP[rasterColors] ?? "auto",
+      const quality = rasterQuality;
+      const tracingMode = MODE_MAP[rasterMode] ?? "auto";
+      const background = BG_MAP[rasterBackground] ?? "preserve";
+      const backgroundColor =
+        rasterBackground === "Custom"
+          ? normalizeHex(rasterBgColor)
+          : undefined;
+      const colorCountValue =
+        rasterColors !== "Auto" ? rasterColors : undefined;
+
+      const formData = new FormData();
+      formData.append("file", fileToConvert);
+      formData.append("mode", tracingMode);
+      formData.append("quality", quality);
+      if (colorCountValue) {
+        formData.append("colorCount", colorCountValue);
+      }
+      formData.append("background", background);      if (background === "custom" && backgroundColor) {
+        formData.append("bgColor", backgroundColor);
+      }
+
+      const headers: Record<string, string> = {};
+      const token = getAccessToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await apiFetch<{
+        svg: string;
+        width: number;
+        height: number;
+        imageClass: "mono" | "line-art" | "color-logo" | "photo";
+        colorCount: number;
+        size: number;
+        advisory?: string;
+        conversionsUsed?: number;
+        remaining?: number;
+      }>("/api/v1/vectorize", {
+        method: "POST",
+        body: formData,
+        headers,
       });
+
+      const resolvedTracingMode: TracingMode =
+        res.imageClass === "color-logo"
+          ? "logo"
+          : (res.imageClass as TracingMode);
 
       setResult({
         svg: res.svg,
-        size: res.outputSize,
-        modeUsed: res.modeUsed,
-        tracingModeUsed: res.tracingModeUsed,
-        resolvedTracingMode: res.resolvedTracingMode,
-        paletteUsed: res.paletteUsed,
-        qualityUsed: res.qualityUsed,
-        backgroundColorUsed: res.backgroundColorUsed,
+        size: res.size,
+        modeUsed: "vector",
+        tracingModeUsed: tracingMode,
+        resolvedTracingMode,
+        paletteUsed: rasterColors as PaletteLevel,
+        qualityUsed: quality as QualityLevel,
+        backgroundColorUsed: backgroundColor,
         advisory: res.advisory,
+        conversionsUsed: res.conversionsUsed,
+        remaining: res.remaining,
       });
       setPreviewMode("vector");
       showToast("success", "Vectorization complete! Ready to download.");
       trackConversion("raster_vectorized", { output_format: "svg" });
-      
+
       try {
         const u = await trackConversionUsage({
-          inputFormat: fileToConvert.name.split('.').pop()?.toLowerCase() || 'png',
-          outputFormat: 'svg',
+          inputFormat: fileToConvert.name.split(".").pop()?.toLowerCase() || "png",
+          outputFormat: "svg",
           originalSize: fileToConvert.size,
           success: true,
         });
@@ -677,11 +705,11 @@ export function RasterToSvgConverter() {
       const msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
       setError(msg);
       showToast("error", msg);
-      
+
       try {
         await trackConversionUsage({
-          inputFormat: (rasterFile?.name || imageName || "").split('.').pop()?.toLowerCase() || 'png',
-          outputFormat: 'svg',
+          inputFormat: (rasterFile?.name || imageName || "").split(".").pop()?.toLowerCase() || "png",
+          outputFormat: "svg",
           success: false,
           errorReason: msg,
         });
@@ -1023,7 +1051,7 @@ export function RasterToSvgConverter() {
                         ? ` · ${result.tracingModeUsed.charAt(0).toUpperCase()}${result.tracingModeUsed.slice(1)}`
                         : ""}
                     {result.qualityUsed ? ` · ${result.qualityUsed.charAt(0).toUpperCase()}${result.qualityUsed.slice(1)}` : ""}
-                    {result.resolvedTracingMode === "line-art" ? " · Palette N/A" : result.paletteUsed && result.paletteUsed !== "auto" ? ` · ${result.paletteUsed} Colors` : ""}
+                    {result.resolvedTracingMode === "line-art" ? " · Palette N/A" : result.paletteUsed && result.paletteUsed.toLowerCase() !== "auto" ? ` · ${result.paletteUsed} Colors` : ""}
                     {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
                     {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
                     {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
