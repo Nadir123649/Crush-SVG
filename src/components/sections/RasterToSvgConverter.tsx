@@ -900,10 +900,9 @@ export function RasterToSvgConverter() {
                     <Image
                       src={IMAGES.drag}
                       alt="Upload Image"
-                      width={72}
-                      height={72}
-                      style={{ width: "auto", height: "auto" }}
-                      className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      width={36}
+                      height={36}
+                      className="w-[28px] h-[28px] md:w-[36px] md:h-[36px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
 
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
@@ -997,11 +996,11 @@ export function RasterToSvgConverter() {
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Complete privacy protection — all processing happens in your browser</span>
+                        <span>Complete privacy protection to all processing happens in your browser</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Instant download &amp; copy-to-clipboard for seamless workflow</span>
+                        <span>Instant download &amp; copy to clipboard for seamless workflow</span>
                       </li>
                     </ul>
                   </div>
@@ -1009,7 +1008,7 @@ export function RasterToSvgConverter() {
 
                 {/* Privacy Assurance Text */}
                 <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
+                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
 
@@ -1098,7 +1097,7 @@ export function RasterToSvgConverter() {
                     /* SVG Code Viewer State */
                     <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
                       <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
-                        <span className="text-[12px] font-mono text-[#64748B]">
+                        <span className="text-[12px] font-mono text-[#353A3E]">
                           SVG Markup ({formatFileSize(result.size)})
                         </span>
                         <button
@@ -1121,7 +1120,9 @@ export function RasterToSvgConverter() {
                         </button>
                       </div>
                       <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
-                        {result.svg}
+                        {result.svg.length > 3000
+                          ? result.svg.slice(0, 3000) + "\n\n... [Code truncated for performance. Use 'Copy Code' or Download to get the full SVG]"
+                          : result.svg}
                       </pre>
                     </div>
                   ) : previewMode === "source" && rasterDataUrl ? (

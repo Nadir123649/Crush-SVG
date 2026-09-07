@@ -16,5 +16,5 @@ export const BRAND = {
   radius: "12px",
   radiusPill: "50px",
   appName: "CrushSVG",
-  appUrl: process.env.APP_URL ?? "https://crushsvg.net",
+  appUrl: process.env.APP_URL ?? "https://www.crushsvg.net",
 } as const;

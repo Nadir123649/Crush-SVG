@@ -8,6 +8,7 @@ import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
 import { TargetAudience } from "@/components/sections/TargetAudience";
 import { FAQ } from "@/components/sections/FAQ";
+import { AdBanner } from "@/components/ui/AdBanner";
 
 export const metadata: Metadata = constructMetadata({
   title: "CrushSVG – Free SVG to PNG Converter Online",
@@ -79,6 +80,7 @@ export default function Home() {
 
       <StepsSection />
       <TargetAudience />
+      <AdBanner />
       <FAQ />
     </div>
   );

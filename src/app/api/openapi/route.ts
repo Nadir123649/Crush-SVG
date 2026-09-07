@@ -14,10 +14,10 @@ export async function GET() {
       version: "1.0.0",
       description:
         "SVG to PNG conversion, raster to SVG vectorization, and account management API.",
-      contact: { name: "CrushSVG", url: "https://crushsvg.net" },
+      contact: { name: "CrushSVG", url: "https://www.crushsvg.net" },
     },
     servers: [
-      { url: "https://crushsvg.net", description: "Production" },
+      { url: "https://www.crushsvg.net", description: "Production" },
       { url: "http://localhost:3000", description: "Development" },
     ],
     security: [],

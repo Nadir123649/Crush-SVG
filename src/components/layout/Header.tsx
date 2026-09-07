@@ -259,19 +259,31 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 {mobileMenuOpen && (
                   <div className="fixed top-[66px] left-0 w-full bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-lg py-6 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
                     <div className="flex flex-col gap-2">
-                      <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-lg text-text-dark text-center py-3 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        Guides
+                      <Link href="/" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        SVG to PNG Converter
                       </Link>
-                      <Link href="/contact-us?r=1" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-lg text-text-dark text-center py-3 hover:text-brand-primary">
+                      <Link href="/png-to-svg" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        PNG to SVG (Vectorize)
+                      </Link>
+                      <Link href="/background-remover" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        Background Remover
+                      </Link>
+                      <Link href="/image-resizer" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        Image Resizer
+                      </Link>
+                      <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        SVG Guides & Tutorials
+                      </Link>
+                      <Link href="/contact-us?r=1" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 hover:text-brand-primary">
                         Need Help?
                       </Link>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center gap-3 mt-4">
-                      <Button href="/login" variant="outline" className="w-full max-w-[200px] h-[40px] rounded-[8px] bg-[#FFFFFF] text-[14px]" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center justify-center gap-3 mt-2">
+                      <Button href="/login" variant="outline" className="w-full max-w-[240px] h-[42px] rounded-[10px] bg-[#FFFFFF] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
                         Log In
                       </Button>
-                      <Button href="/signup" variant="solid" className="w-full max-w-[200px] h-[40px] rounded-[8px] text-[14px]" onClick={() => setMobileMenuOpen(false)}>
+                      <Button href="/signup" variant="solid" className="w-full max-w-[240px] h-[42px] rounded-[10px] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
                         Sign Up
                       </Button>
                     </div>

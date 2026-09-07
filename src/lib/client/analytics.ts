@@ -24,12 +24,12 @@ export function trackConversion(
   trackEvent(eventName, params);
 }
 
-/** Update GA4 consent state (called by the cookie banner). */
+/** Update GA4 and AdSense consent state (called by the cookie banner). */
 export function updateConsentGranted() {
   if (typeof window === "undefined" || typeof window.gtag !== "function") return;
   window.gtag("consent", "update", {
     analytics_storage: "granted",
-    ad_storage: "denied",
+    ad_storage: "granted",
   });
 }
 
