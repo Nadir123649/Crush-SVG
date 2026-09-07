@@ -4,6 +4,7 @@ import { ensureFontConfig } from "@/lib/svg/font-config";
 import { sanitizeSvg } from "@/lib/svg/svg-sanitize";
 import { computeTargetSize, parseSvgDimensions, type SvgDimensions, type TargetSize } from "@/lib/svg/svg-dims";
 import { ConversionTimeoutError } from "@/lib/svg/svg-errors";
+import { processSvgBackgroundRemove } from "@/lib/svg/svg-bg-remove";
 const BASE_DPI = 72;
 const INPUT_PIXEL_BUDGET = 50000000;
 function computeSvgDensity(dims: SvgDimensions, target: TargetSize): number {
@@ -79,5 +80,20 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
         adaptiveFiltering: true,
     });
     const { data: buffer, info } = await withTimeout(pipeline.toBuffer({ resolveWithObject: true }), CONVERSION_TIMEOUT_MS);
+
+    if (options.transparent !== false) {
+        const removed = await withTimeout(
+            processSvgBackgroundRemove(buffer),
+            CONVERSION_TIMEOUT_MS,
+        );
+        return {
+            buffer: removed.buffer,
+            width: removed.width,
+            height: removed.height,
+            format: "png",
+            warnings,
+        };
+    }
+
     return { buffer, width: info.width, height: info.height, format: "png", warnings };
 }

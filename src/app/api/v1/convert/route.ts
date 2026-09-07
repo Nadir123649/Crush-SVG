@@ -10,6 +10,7 @@ import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { classifySvgError } from '@/lib/svg/svg-errors'
 
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
 export async function POST(request: NextRequest) {
   const rl = await checkRateLimit(request, 'convert:svg', 30, 60_000)
