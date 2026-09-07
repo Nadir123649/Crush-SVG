@@ -1,6 +1,7 @@
 {
   "framework": "nextjs",
   "cleanUrls": true,
+  "installCommand": "npm install --include=optional",
   "functions": {
     "src/app/api/v1/convert/route.ts": {
       "maxDuration": 30
