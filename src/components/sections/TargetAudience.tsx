@@ -1,9 +1,11 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IMAGES } from "@/lib/shared/images";
 
-export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "image-resizer" }) {
   const cards = mode === "raster-to-svg" ? [
     {
       icon: IMAGES.message,
@@ -32,6 +34,35 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
       description: "Transform bitmap sketches and icons into editable vector paths ready for Figma, Sketch, and Illustrator.",
       href: "/svg-guides",
       linkText: "Figma Vector Guide",
+    },
+  ] : mode === "image-resizer" ? [
+    {
+      icon: IMAGES.message,
+      title: "Content Creators",
+      description: "Resize photos and graphics to exact platform dimensions for Instagram, YouTube thumbnails, and blog posts.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Your Images",
+    },
+    {
+      icon: IMAGES.marketing,
+      title: "Marketers",
+      description: "Quickly resize campaign visuals to fit every ad placement and social media format without design tools.",
+      href: "/image-resizer#converter",
+      linkText: "Resize for Campaigns",
+    },
+    {
+      icon: IMAGES.agencies,
+      title: "Agencies",
+      description: "Deliver correctly sized assets to clients in seconds. No more back-and-forth about image dimensions.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Client Assets",
+    },
+    {
+      icon: IMAGES.designers,
+      title: "UI Designers",
+      description: "Export images at exact pixel dimensions for web, mobile, and print with aspect ratio lock to prevent distortion.",
+      href: "/image-resizer#converter",
+      linkText: "Resize Design Assets",
     },
   ] : [
     {
@@ -64,6 +95,33 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     },
   ];
 
+  const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (typeof window !== "undefined" && href.includes("#")) {
+      const [path, hash] = href.split("#");
+      const currentPath = window.location.pathname;
+
+      const isCurrentPage =
+        path === "" ||
+        currentPath === path ||
+        (path === "/" && currentPath === "/") ||
+        (path === "" && currentPath === "/");
+
+      if (isCurrentPage) {
+        const element = document.getElementById(hash);
+        if (element) {
+          e.preventDefault();
+          const headerOffset = window.innerWidth >= 768 ? 92 : 66;
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: elementPosition - headerOffset + 2,
+            behavior: "smooth"
+          });
+          window.history.pushState(null, "", `${path || currentPath}#${hash}`);
+        }
+      }
+    }
+  };
+
   return (
     <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[20px] md:mt-[30px]">
       {/* Heading */}
@@ -77,6 +135,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
           <Link
             href={card.href}
             key={index} 
+            onClick={(e) => handleCardClick(e, card.href)}
             aria-label={card.linkText}
             className="flex flex-row md:flex-col w-full bg-white rounded-[12px] md:rounded-[24px] border border-[#F4F4F4] p-[10px] md:p-[24px] gap-[12px] md:gap-0 transition-all duration-300 hover:shadow-[0_10px_40px_-10px_rgba(217,74,30,0.2)] hover:-translate-y-2 cursor-pointer items-center md:items-stretch group"
           >

@@ -28,7 +28,7 @@ export function mapTokenPayload(payload: JWTPayload): DecodedIdToken {
         email: typeof payload.email === "string" ? payload.email : null,
         email_verified: payload.email_verified === true,
         name: typeof payload.name === "string" ? payload.name : null,
-        picture: typeof payload.picture === "string" ? payload.picture : null,
+        picture: typeof payload.picture === "string" && payload.picture ? payload.picture : null,
         firebase: {
             sign_in_provider: signInProvider,
             identities: firebaseClaim.identities && typeof firebaseClaim.identities === "object"

@@ -1,12 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { LocalTime } from "@/components/utils/LocalTime";
 import Link from "next/link";
 import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
-
-export const dynamic = "force-dynamic";
+import { useAuth } from "@/lib/client/auth-context";
+import { showToast } from "@/lib/client/toast-bridge";
 
 const CONVERSIONS_PAGE_SIZE = 15;
 
@@ -17,6 +18,7 @@ const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgArrowForward = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" x2="19" y1="12" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
 
 export default function ConversionsPage() {
+  const { status: authStatus } = useAuth();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
@@ -24,6 +26,8 @@ export default function ConversionsPage() {
   const [conversions, setConversions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -48,7 +52,11 @@ export default function ConversionsPage() {
       if (response?.data) {
         const { data, meta } = response;
         setConversions(data);
-        setPage(meta.page);
+        if (meta) {
+          setPage(meta.page);
+          setTotalPages(meta.total_pages || 1);
+          setTotalItems(meta.total || 0);
+        }
       } else {
         setError("Failed to load conversions");
       }
@@ -60,13 +68,10 @@ export default function ConversionsPage() {
   };
 
   useEffect(() => {
-    loadConversions(page);
-  }, [status, startDate, endDate]);
-
-  const handleFilterChange = () => {
-    setPage(1);
-    loadConversions(1);
-  };
+    if (authStatus === "authed") {
+      loadConversions(page);
+    }
+  }, [authStatus, status, startDate, endDate]);
 
   const handlePageChange = (targetPage: number) => {
     setPage(targetPage);
@@ -75,50 +80,52 @@ export default function ConversionsPage() {
 
   const handleExportCSV = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.set("page", "1");
-      queryParams.set("limit", "10000");
-      if (status !== "all") queryParams.set("status", status);
-      if (startDate) queryParams.set("startDate", startDate);
-      if (endDate) queryParams.set("endDate", endDate);
+      let data = conversions && conversions.length > 0 ? conversions : [];
+      if (data.length === 0) {
+        const queryParams = new URLSearchParams();
+        queryParams.set("page", "1");
+        queryParams.set("limit", "100");
+        if (status !== "all") queryParams.set("status", status);
+        if (startDate) queryParams.set("startDate", startDate);
+        if (endDate) queryParams.set("endDate", endDate);
 
-      const response = await apiFetch<{
-        data: any[];
-        meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-      }>(`/api/v1/admin/conversions?${queryParams.toString()}`);
-
-      if (response?.data) {
-        const { data } = response;
-        if (data.length === 0) {
-          setError("No conversions to export");
-          return;
-        }
-
-        const headers = ["File ID", "User", "Email", "Input Format", "Output Format", "File Size (KB)", "Status", "Timestamp"];
-        const rows = data.map((conv: any) => [
-          conv._id.toString(),
-          conv.userId?.displayName || 'Guest User',
-          conv.userId?.email || conv.guestId || 'Anonymous',
-          conv.inputFormat,
-          conv.outputFormat,
-          conv.originalSize != null ? (conv.originalSize / 1024).toFixed(1) : 'N/A',
-          conv.success ? "Success" : "Failed",
-          new Date(conv.createdAt).toLocaleString()
-        ]);
-
-        const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-        
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `conversions-export-${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const response = await apiFetch<{
+          data: any[];
+          meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+        }>(`/api/v1/admin/conversions?${queryParams.toString()}`);
+        if (response?.data) data = response.data;
       }
+
+      if (!data || data.length === 0) {
+        setError("No conversions to export");
+        return;
+      }
+
+      const headers = ["File ID", "User", "Email", "Input Format", "Output Format", "File Size (KB)", "Status", "Timestamp"];
+      const rows = data.map((conv: any) => [
+        conv._id.toString(),
+        conv.userId?.displayName || 'Guest User',
+        conv.userId?.email || conv.guestId || 'Anonymous',
+        conv.inputFormat,
+        conv.outputFormat,
+        conv.originalSize != null ? (conv.originalSize / 1024).toFixed(1) : 'N/A',
+        conv.success ? "Success" : "Failed",
+        new Date(conv.createdAt).toLocaleString()
+      ]);
+
+      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
+      
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `conversions-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("success", "Conversions report exported successfully!");
     } catch (err) {
       setError("Failed to export conversions");
     }
@@ -133,37 +140,75 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <Button variant="solid" onClick={handleExportCSV} className="px-6 py-3 h-auto flex items-center justify-center gap-2 shadow-sm">
-          <SvgDownload className="w-5 h-5" />
-          Export CSV
+        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
         </Button>
       </div>
 
       {/* Interactive Filters Area (Client-side controlled) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-20">
         {/* Date Range Filter */}
-        <div className="md:col-span-8 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row items-end gap-4">
+        <div className="md:col-span-8 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row items-start gap-4">
           <div className="w-full sm:w-1/2 flex flex-col gap-2">
             <label className="font-body font-semibold text-sm text-text-muted">Start Date</label>
             <div className="relative">
-              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input 
                 type="date" 
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none" 
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPage(1);
+                }}
+                onClick={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  try {
+                    if (document.activeElement === target && target.dataset.open === 'true') {
+                      target.blur();
+                      target.dataset.open = 'false';
+                    } else {
+                      target.focus();
+                      if ('showPicker' in HTMLInputElement.prototype) {
+                        target.showPicker();
+                      }
+                      target.dataset.open = 'true';
+                    }
+                  } catch (err) {}
+                }}
+                onBlur={(e) => { e.target.dataset.open = 'false'; }}
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer" 
               />
             </div>
           </div>
           <div className="w-full sm:w-1/2 flex flex-col gap-2">
             <label className="font-body font-semibold text-sm text-text-muted">End Date</label>
             <div className="relative">
-              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <SvgCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input 
                 type="date" 
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none" 
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPage(1);
+                }}
+                onClick={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  try {
+                    if (document.activeElement === target && target.dataset.open === 'true') {
+                      target.blur();
+                      target.dataset.open = 'false';
+                    } else {
+                      target.focus();
+                      if ('showPicker' in HTMLInputElement.prototype) {
+                        target.showPicker();
+                      }
+                      target.dataset.open = 'true';
+                    }
+                  } catch (err) {}
+                }}
+                onBlur={(e) => { e.target.dataset.open = 'false'; }}
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer" 
               />
             </div>
           </div>
@@ -172,23 +217,20 @@ export default function ConversionsPage() {
         {/* Status Filter */}
         <div className="md:col-span-4 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-end gap-2">
           <label className="font-body font-semibold text-sm text-text-muted">Status</label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <select 
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="flex-1 px-3 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer"
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-3 pr-8 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23353A3E%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem top 50%', backgroundSize: '0.65rem auto' }}
             >
               <option value="all">All Statuses</option>
               <option value="success">Success</option>
               <option value="failed">Failed</option>
             </select>
-            <button 
-              type="button"
-              onClick={handleFilterChange}
-              className="px-4 py-2 bg-brand-primary text-white rounded-[8px] font-body font-semibold hover:bg-brand-secondary transition-colors"
-            >
-              Filter
-            </button>
           </div>
         </div>
       </div>
@@ -197,10 +239,10 @@ export default function ConversionsPage() {
       <section className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
         {loading && (
           <div className="p-8">
-            <div className="flex justify-center my-8">
-              <svg className="w-8 h-8 text-brand-primary animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2v4M12 12v4M12 22v4" strokeWidth="2" strokeLinecap="round"/></svg>
+            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
+              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+              <span className="font-body text-text-muted">Loading conversions...</span>
             </div>
-            <span className="font-body text-text-muted">Loading conversions...</span>
           </div>
         )}
 
@@ -238,7 +280,7 @@ export default function ConversionsPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center font-bold text-sm text-brand-primary overflow-hidden border border-[#F2EDE8]">
                             {conv.userId?.photoURL ? (
-                              <Image src={conv.userId.photoURL} alt="User" width={32} height={32} className="w-full h-full object-cover" />
+                              <img src={conv.userId.photoURL} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             ) : (
                               (conv.userId?.displayName?.[0] || conv.userId?.email?.[0] || "G").toUpperCase()
                             )}
@@ -281,7 +323,7 @@ export default function ConversionsPage() {
                         )}
                       </td>
                       <td className="py-4 px-6 text-right font-body text-sm text-text-muted">
-                        {new Date(conv.createdAt).toLocaleString()}
+                        <LocalTime date={conv.createdAt} format="long" />
                       </td>
                     </tr>
                   ))}
@@ -297,27 +339,35 @@ export default function ConversionsPage() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="bg-[#FFFCFA] border-t border-[#F2EDE8] p-4 flex items-center justify-between">
-              <span className="font-body text-sm text-text-muted">
-                Showing {((page - 1) * CONVERSIONS_PAGE_SIZE) + 1} to {Math.min(page * CONVERSIONS_PAGE_SIZE, conversions.length)} of {conversions.length > 0 ? conversions.length : 0} entries
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={!conversions.length || conversions.length < CONVERSIONS_PAGE_SIZE}
-                  className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${!conversions.length || conversions.length < CONVERSIONS_PAGE_SIZE ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  Next
-                </button>
+            {totalPages > 0 && (
+              <div className="bg-[#FFFCFA] border-t border-[#F2EDE8] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="font-body text-sm text-text-muted">
+                  Showing {((page - 1) * CONVERSIONS_PAGE_SIZE) + 1} to {Math.min(page * CONVERSIONS_PAGE_SIZE, totalItems)} of {totalItems} entries
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(page - 1)}
+                    className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Current page display */}
+                  <div className="flex items-center px-2 font-body font-bold text-brand-primary text-sm">
+                    {page} / {totalPages}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(page + 1)}
+                    className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === totalPages ? 'opacity-50 pointer-events-none' : ''}`}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </section>

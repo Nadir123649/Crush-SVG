@@ -35,30 +35,15 @@ interface AuthContextValue {
   logout: () => void
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
+  updateUser: (updates: Partial<UserDTO>) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserDTO | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUser = localStorage.getItem('crush_user')
-        if (storedUser) return JSON.parse(storedUser)
-      } catch {}
-    }
-    return null
-  })
+  const [user, setUser] = useState<UserDTO | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        if (localStorage.getItem('crush_user')) return 'authed'
-        if (sessionStorage.getItem('crush_auth_status') === 'guest') return 'guest'
-      } catch {}
-    }
-    return 'loading'
-  })
+  const [status, setStatus] = useState<AuthStatus>('loading')
   // Bumped whenever the access token is applied or cleared. Lets consumers
   // (e.g. usage fetching) react to the token actually being attached, which is
   // not guaranteed by `status` alone when a session is restored from storage.
@@ -69,7 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionRestored(true)
     setSessionId(payload.sessionId ?? null)
     setSessionRemember(payload.remember ?? null)
-    setUser(payload.user)
+    // Only update user state when the data actually changed.  On page
+    // refresh the useLayoutEffect above already restored the user from
+    // localStorage, so the refresh API returning the same snapshot would
+    // otherwise trigger an unnecessary re-render (new object reference)
+    // that briefly flickers the profile UI.
+    setUser((prev) => {
+      if (prev && payload.user && prev.uid === payload.user.uid
+        && prev.displayName === payload.user.displayName
+        && prev.photoURL === payload.user.photoURL
+        && prev.email === payload.user.email
+        && prev.role === payload.user.role) {
+        return prev
+      }
+      return payload.user
+    })
     setStatus((prevStatus) => {
       if (prevStatus === 'guest' && typeof window !== 'undefined') {
         sessionStorage.removeItem('crush_converter_state')
@@ -80,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
-      localStorage.removeItem('crush_usage')
+      localStorage.removeItem('crush_usage_info')
       sessionStorage.setItem('crush_auth_status', 'authed')
     }
   }, [])
@@ -95,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionVersion((v) => v + 1)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('crush_user')
-      localStorage.removeItem('crush_usage')
+      localStorage.removeItem('crush_usage_info')
       // A logged-out user must not carry the previous user's editor contents
       // to the next session.
       sessionStorage.removeItem('crush_converter_state')
@@ -104,12 +103,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Synchronously restore state on client mount to prevent auth UI blinking
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('crush_user')
+        if (storedUser && status === 'loading') {
+          const parsed = JSON.parse(storedUser)
+          setUser(parsed)
+          setSessionRestored(true)
+          setStatus('authed')
+        } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
+          setStatus('guest')
+        }
+      } catch { }
+    }
+  }, [status])
+
   useEffect(() => {
     let cancelled = false
 
-    // Initialize sessionRestored based on whether we already have a user synchronously.
-    const restoredUser = !!user
-    setSessionRestored(restoredUser)
+    // Initialize sessionRestored based on whether a user snapshot exists in
+    // localStorage — do NOT use the React `user` state because useEffect closes
+    // over the initial null value even after useLayoutEffect has already set the
+    // user, causing sessionRestored to be incorrectly reset to false.
+    const hasStoredUser = typeof window !== 'undefined' && !!localStorage.getItem('crush_user')
+    setSessionRestored(hasStoredUser)
 
     setAuthExpiredHandler(() => {
       if (!cancelled) clearAuth()
@@ -153,9 +172,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let marker: string | null = null
         try {
           marker = sessionStorage.getItem('crush_session_only')
-        } catch {}
+        } catch { }
         if (!marker) {
-          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+          void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
           clearAuth()
           return
         }
@@ -195,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
-        } catch {}
+        } catch { }
       }
       showToast('success', 'Signed in successfully. Welcome back!')
     },
@@ -228,7 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
-        } catch {}
+        } catch { }
       }
       showToast('success', 'Signed in successfully. Welcome back!')
     },
@@ -236,19 +255,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
-    // Clear storage so the fresh /login page loads cleanly as a guest
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('crush_user')
-      localStorage.removeItem('crush_usage')
-      localStorage.removeItem('crush_converter_state')
-      sessionStorage.setItem('crush_auth_status', 'guest')
-    }
-    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+    clearAuth()
+    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
     void import('@/lib/firebase/firebase-client')
       .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
-      .catch(() => {})
-    window.location.href = '/'
-  }, [])
+      .catch(() => { })
+  }, [clearAuth])
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {
@@ -269,6 +281,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const updateUser = useCallback((updates: Partial<UserDTO>) => {
+    setUser((prev) => {
+      if (!prev) return null
+      const updated = { ...prev, ...updates }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('crush_user', JSON.stringify(updated))
+      }
+      return updated
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -281,8 +304,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       changePassword,
       resendVerification,
+      updateUser,
     }),
-    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification]
+    [user, status, sessionId, sessionVersion, login, register, loginWithOAuth, logout, changePassword, resendVerification, updateUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -6,60 +6,121 @@ import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
 
-export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const baseFaqs = [
-    {
-      question: "Is CrushSVG really free?",
-      answer: "Yes. You can convert up to three files without creating an account. After that, a free account lets you continue converting no credit card, subscriptions, or hidden fees.",
-    },
-    {
-      question: "What happens after my 3 free conversions?",
-      answer: "You can create a free account to unlock unlimited conversions. There are no hidden fees or subscriptions required.",
-    },
-    {
-      question: "Do I need to install anything?",
-      answer: "No, CrushSVG is entirely web-based. You don't need to install any software or plugins. Simply upload your file directly in your browser.",
-    },
-  ];
+  let faqs = [];
 
-  if (mode === "raster-to-svg") {
-    baseFaqs.push({
-      question: "Are my PNG and JPG files secure?",
-      answer: "Absolutely. Your privacy is our priority. Your images are processed securely and we never store, share, or use your uploaded files for any other purposes.",
-    });
-    baseFaqs.push({
-      question: "What image formats can I convert?",
-      answer: "CrushSVG supports PNG, JPG, and JPEG raster images up to 10MB in file size.",
-    });
-    baseFaqs.push({
-      question: "Can I control the SVG output quality?",
-      answer: "Yes! You can adjust the quality presets (Low, Medium, High), color quantization (Auto, Limited, Full), background handling, and path smoothing.",
-    });
-    baseFaqs.push({
-      question: "Can I copy the SVG vector code directly?",
-      answer: "Yes! You can toggle between the visual Vector Preview and the SVG Code view, or click 'Copy SVG Code' to copy the markup directly into your clipboard.",
-    });
+  if (mode === "background-remover") {
+    faqs = [
+      {
+        question: "What image formats are supported?",
+        answer: "You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG.",
+      },
+      {
+        question: "Is my image data kept private?",
+        answer: "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.",
+      },
+      {
+        question: "Do I need to install any software?",
+        answer: "No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees.",
+      },
+      {
+        question: "What types of images work best?",
+        answer: "Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up.",
+      },
+      {
+        question: "What is the maximum image size?",
+        answer: "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.",
+      },
+    ];
+  } else if (mode === "image-resizer") {
+    faqs = [
+      {
+        question: "What image formats can I resize?",
+        answer: "You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.",
+      },
+      {
+        question: "Is my image data kept private?",
+        answer: "Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.",
+      },
+      {
+        question: "What is the maximum image size I can resize?",
+        answer: "You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.",
+      },
+      {
+        question: "Can I maintain the aspect ratio while resizing?",
+        answer: "Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.",
+      },
+      {
+        question: "When should I use JPG vs PNG vs WebP?",
+        answer: "Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.",
+      },
+    ];
+  } else if (mode === "raster-to-svg") {
+    faqs = [
+      {
+        question: "Can I control the quality of the vectorized SVG?",
+        answer: "Yes! You can adjust presets (Low, Medium, High), color quantization, background handling, and path smoothing.",
+      },
+      {
+        question: "Are my uploaded PNG and JPG images secure?",
+        answer: "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.",
+      },
+      {
+        question: "Does this tool support removing backgrounds?",
+        answer: "Yes, you can enable the 'Ignore Background' feature to automatically remove solid backgrounds during vectorization.",
+      },
+      {
+        question: "Do I need to install any software?",
+        answer: "No, CrushSVG is entirely web-based. You can vectorize images directly in your browser without any plugins.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can vectorize images for free. Creating an account unlocks unlimited conversions without any hidden fees.",
+      },
+      {
+        question: "What image formats can I vectorize?",
+        answer: "You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors.",
+      }
+    ];
   } else {
-    baseFaqs.push({
-      question: "Is my SVG code stored or shared?",
-      answer: "Your privacy is our priority. Your SVG code is processed securely and is never stored, shared, or used for any other purposes.",
-    });
-    baseFaqs.push({
-      question: "Can I choose the output size?",
-      answer: "Yes! You can specify the exact width in pixels or select a scale multiplier (1x to 16x) before downloading your PNG.",
-    });
+    faqs = [
+      {
+        question: "What is the maximum resolution for PNG exports?",
+        answer: "You can export PNGs at up to 4000x4000 pixels while maintaining perfect, crisp quality.",
+      },
+      {
+        question: "Are my SVG files stored on your servers?",
+        answer: "No, your privacy is our priority. Your SVG code is processed securely and is never stored or shared anywhere.",
+      },
+      {
+        question: "Can I export PNGs with transparent backgrounds?",
+        answer: "Yes, CrushSVG perfectly supports transparent backgrounds for logos, icons, and transparent vectors.",
+      },
+      {
+        question: "Do I need to install any software?",
+        answer: "No, CrushSVG is entirely web-based. You can convert files directly in your browser without any plugins.",
+      },
+      {
+        question: "Is CrushSVG free to use?",
+        answer: "Yes! You can convert files for free. Creating an account unlocks unlimited conversions without any hidden fees.",
+      },
+      {
+        question: "Does the conversion maintain the original aspect ratio?",
+        answer: "Yes, our converter automatically locks and maintains the perfect aspect ratio of your original SVG file to prevent distortion.",
+      }
+    ];
   }
-
-  const faqs = baseFaqs.filter(faq => {
-    // Hide this specific question for logged-in users
-    if (status === "authed" && faq.question === "What happens after my 3 free conversions?") {
-      return false;
-    }
-    return true;
-  });
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);

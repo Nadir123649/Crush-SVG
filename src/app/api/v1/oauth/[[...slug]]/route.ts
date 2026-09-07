@@ -126,6 +126,7 @@ export async function POST(
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
       maxAge: remember ? 7 * 24 * 60 * 60 : undefined,
     })
     return res

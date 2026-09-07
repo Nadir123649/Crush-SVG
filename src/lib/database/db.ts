@@ -1,12 +1,13 @@
 import "server-only";
 import dns from "node:dns";
 import { connect, type Connection } from "mongoose";
-import { User } from "@/lib/database/models/user";
+import { User, VALID_USER_FILTER } from "@/lib/database/models/user";
 import { Session } from "@/lib/database/models/session";
 import { GuestUsage } from "@/lib/database/models/guest-usage";
 import { ConversionLog } from "@/lib/database/models/conversion-log";
 import { AuditLog } from "@/lib/database/models/audit-log";
-export { User, Session, GuestUsage, ConversionLog, AuditLog };
+import { Settings } from "@/lib/database/models/settings";
+export { User, VALID_USER_FILTER, Session, GuestUsage, ConversionLog, AuditLog, Settings };
 export type { UserDoc } from "@/lib/database/models/user";
 export type { SessionDoc, SessionStatus } from "@/lib/database/models/session";
 export type { GuestUsageDoc } from "@/lib/database/models/guest-usage";

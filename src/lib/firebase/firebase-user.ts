@@ -42,7 +42,7 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
         const updateData: any = {
             email: email ?? user.email,
             displayName: token.name ?? user.displayName,
-            photoURL: token.picture ?? user.photoURL,
+            photoURL: token.picture || user.photoURL,
             lastLoginAt: now,
         };
         if (token.email_verified) {

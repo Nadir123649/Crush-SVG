@@ -6,6 +6,13 @@ export const oauthSchema = z.object({
 export const trackUsageSchema = z.object({
     guestId: z.string().optional(),
     isAuthenticated: z.boolean().optional(),
+    metadata: z.object({
+        inputFormat: z.string(),
+        outputFormat: z.string(),
+        originalSize: z.number().optional(),
+        success: z.boolean(),
+        errorReason: z.string().optional(),
+    }).optional(),
 });
 export const svgValidationSchema = z.object({
     svg: z.string().min(1, "SVG content is required"),

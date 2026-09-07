@@ -6,6 +6,7 @@ import { trackUsageSchema } from '@/lib/shared/validation'
 import { User } from '@/lib/database/db'
 import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME, GUEST_CONVERSION_LIMIT } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { logConversion } from '@/lib/usage/conversion-logger'
 
 export const runtime = 'nodejs'
 
@@ -46,6 +47,13 @@ export async function POST(request: NextRequest) {
       return errorResponse(404, '', '', undefined, request)
     }
 
+    if (parsed.data.metadata) {
+      await logConversion({
+        userId: user.id,
+        ...parsed.data.metadata
+      }).catch(() => {});
+    }
+
     return successResponse({
       conversionsUsed: user.conversionsUsed,
       remaining: null,
@@ -59,6 +67,13 @@ export async function POST(request: NextRequest) {
   }
   const usage = await incrementGuestUsage(guestId)
   const remaining = Math.max(0, GUEST_CONVERSION_LIMIT - usage)
+
+  if (parsed.data.metadata) {
+    await logConversion({
+      guestId,
+      ...parsed.data.metadata
+    }).catch(() => {});
+  }
 
   const res = successResponse({
     conversionsUsed: usage,

@@ -1,107 +1,87 @@
-import Link from 'next/link';
-import { getAllPosts } from '@/lib/blog';
+import { getBlogBySlug } from '@/lib/content/blogs';
 import { constructMetadata } from '@/lib/seo';
-import { Hero } from '@/components/sections/Hero';
-import { Button } from '@/components/ui/Button';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import type { Metadata } from 'next';
+import Image from 'next/image';
 
-export const metadata = constructMetadata({
-  title: 'Blog & Guides – CrushSVG',
-  description: 'Read the latest tutorials, guides, and tips about SVG, PNG conversion, and web design from the CrushSVG team.',
+const MAIN_BLOG_SLUG = "svg-to-png-converter-email-marketer";
+
+export const metadata: Metadata = constructMetadata({
+  title: 'SVG to PNG Converter: The Tool Every Email Marketer Actually Needs - CrushSVG',
+  description: 'Canva exports. Photoshop conversions. Screenshots and cropping. Watermarked online converters. Every workaround for broken email images, tried and rejected.',
   canonicalPath: '/blog',
 });
 
-export default function BlogIndex() {
-  const posts = getAllPosts();
+export default function BlogPage() {
+  const post = getBlogBySlug(MAIN_BLOG_SLUG);
+
+  if (!post) {
+    return <div className="text-center py-20">Blog post not found</div>;
+  }
 
   return (
-    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
-
-      {/* Hero */}
-      <Hero
-        badge="From The CrushSVG Team"
-        title={<>Blog &amp; <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">Guides</span></>}
-        subtitle="Tutorials, tips, and deep dives on SVG, PNG conversion, web design, and everything in between."
-        className="mb-[24px] md:mb-[40px]"
-      />
-
-      {/* Posts */}
-      <div className="w-full max-w-[980px] flex flex-col gap-[20px] md:gap-[28px]">
-
-        {posts.length === 0 ? (
-          <div className="w-full flex flex-col bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]" style={{ boxShadow: '6px 1px 50px 0px rgba(0, 0, 0, 0.04)' }}>
-            <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6] text-center">
-              No articles yet. Check back soon!
-            </p>
+    <main className="w-full flex flex-col items-center min-h-screen bg-background">
+      {/* Blog Article Container */}
+      <article className="w-full max-w-[800px] px-[16px] md:px-[40px] py-[40px] md:py-[80px]">
+        
+        {/* Header Section */}
+        <header className="flex flex-col gap-[16px] mb-[40px] md:mb-[60px] items-center text-center">
+          <div 
+            style={{ 
+              border: "1px solid transparent",
+              background: "linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box"
+            }}
+            className="inline-flex items-center gap-[6px] md:gap-[10px] h-[24px] md:h-[29px] rounded-[30px] px-[12px] md:px-[16px] max-w-max"
+          >
+            <div className="relative flex w-[6px] h-[6px] shrink-0">
+              <span className="animate-soft-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-80"></span>
+              <span className="relative inline-flex rounded-full h-[6px] w-[6px] bg-brand-primary"></span>
+            </div>
+            <span className="font-body font-medium text-[12px] md:text-[14px] leading-[14px] md:leading-[18.67px] text-text-dark whitespace-nowrap">
+              Featured Article
+            </span>
           </div>
-        ) : (
-          posts.map((post) => (
-            <article
-              key={post.slug}
-              className="group w-full flex flex-col bg-white rounded-[12px] p-[24px] md:p-[36px] border border-[#F2EDE8] transition-colors hover:border-[#D94A1E]/40"
-              style={{ boxShadow: '6px 1px 50px 0px rgba(0, 0, 0, 0.04)' }}
-            >
-              {/* Meta */}
-              <div className="flex items-center gap-[12px] flex-wrap mb-[16px]">
-                <div
-                  style={{
-                    border: '1px solid transparent',
-                    background: 'linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box',
-                  }}
-                  className="flex items-center gap-[6px] h-[24px] rounded-[30px] px-[12px]"
-                >
-                  <div className="w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0" />
-                  <span className="font-body font-medium text-[12px] text-text-dark">{post.author}</span>
-                </div>
-                <time dateTime={post.date} className="font-afacad text-[14px] text-text-muted">
-                  {new Date(post.date).toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                  })}
-                </time>
-              </div>
 
-              {/* Title */}
-              <Link href={`/blog/${post.slug}`} className="w-fit max-w-full">
-                <h2 className="font-heading font-semibold text-[24px] md:text-[30px] text-text-dark mb-[12px] group-hover:text-brand-primary transition-colors leading-[1.25]">
-                  {post.title}
-                </h2>
-              </Link>
-
-              {/* Description */}
-              <p className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.65] mb-[24px] max-w-[760px]">
-                {post.description}
-              </p>
-
-              {/* Read More */}
-              <div className="flex">
-                <Button href={`/blog/${post.slug}`} variant="outline" className="px-5 py-2.5 h-[40px] rounded-lg text-sm font-semibold border border-[#E5DFDA]">
-                  Read Article <span aria-hidden="true">&rarr;</span>
-                </Button>
-              </div>
-            </article>
-          ))
-        )}
-
-        {/* Bottom CTA Banner */}
-        <div className="w-full mt-4 p-8 bg-[#FCF1ED] rounded-[24px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-          <div>
-            <h3 className="font-heading font-semibold text-xl text-text-dark mb-1">
-              Ready to convert your SVGs?
-            </h3>
-            <p className="font-afacad text-sm text-text-muted">
-              Free, browser-based, and pixel-perfect. No install needed.
-            </p>
+          <div className="flex items-center gap-[12px] font-body text-[14px] text-text-muted mt-[4px]">
+            <span className="font-semibold text-brand-primary">{post.category}</span>
+            <span className="w-[4px] h-[4px] rounded-full bg-[#D1D5DB]"></span>
+            <span>{post.readTime}</span>
           </div>
-          <div className="flex gap-3 shrink-0">
-            <Button href="/help" variant="outline" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold border border-[#E5DFDA]">
-              SVG Guides
-            </Button>
-            <Button href="/" variant="solid" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold">
-              Start Converting
-            </Button>
-          </div>
+          
+          <h1 className="font-heading font-semibold text-[32px] md:text-[48px] leading-[1.2] tracking-[0.02em] text-text-dark max-w-[800px]">
+            {post.title}
+          </h1>
+        </header>
+
+        {/* Featured Image Placeholder */}
+        <div className="w-full aspect-video rounded-[12px] md:rounded-[24px] bg-[#FCF1ED] flex items-center justify-center mb-[40px] md:mb-[60px] overflow-hidden relative">
+          <Image 
+            src="/blog.png" 
+            alt="Blog Featured Image" 
+            fill 
+            className="object-cover"
+            priority
+          />
         </div>
 
-      </div>
-    </div>
+        {/* Content Section with custom markdown styling */}
+        <div className="w-full font-body text-[16px] md:text-[18px] leading-[1.8] text-text-body space-y-[24px]
+          [&>h2]:font-heading [&>h2]:font-semibold [&>h2]:text-[24px] [&>h2]:md:text-[32px] [&>h2]:text-text-dark [&>h2]:mt-[48px] [&>h2]:mb-[16px]
+          [&>h3]:font-heading [&>h3]:font-medium [&>h3]:text-[20px] [&>h3]:md:text-[24px] [&>h3]:text-text-dark [&>h3]:mt-[32px] [&>h3]:mb-[12px]
+          [&>p]:mb-[24px]
+          [&>ul]:list-disc [&>ul]:pl-[24px] [&>ul]:space-y-[8px] [&>ul]:mb-[24px]
+          [&>ol]:list-decimal [&>ol]:pl-[24px] [&>ol]:space-y-[8px] [&>ol]:mb-[24px]
+          [&>li>strong]:font-semibold [&>li>strong]:text-text-dark
+          [&>p>strong]:font-semibold [&>p>strong]:text-text-dark
+          [&_a]:text-brand-primary [&_a]:font-medium hover:[&_a]:underline
+          [&>blockquote]:border-l-4 [&>blockquote]:border-brand-primary [&>blockquote]:pl-[16px] [&>blockquote]:italic [&>blockquote]:text-text-muted [&>blockquote]:my-[32px]
+        ">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {post.content}
+          </ReactMarkdown>
+        </div>
+      </article>
+    </main>
   );
 }

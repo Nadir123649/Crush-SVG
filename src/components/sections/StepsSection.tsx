@@ -2,8 +2,46 @@ import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 
-export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" }) {
-  const steps = [
+export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+  const steps = mode === "background-remover" ? [
+    {
+      icon: IMAGES.uploadImage,
+      title: "Upload Your Image",
+      description: "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB.",
+      imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
+    },
+    {
+      icon: IMAGES.exportIcon,
+      title: "Remove Background",
+      description: "Click one button and watch the background disappear instantly.",
+      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+    },
+    {
+      icon: IMAGES.downloadImage,
+      title: "Download Result",
+      description: "Get a clean, transparent PNG ready for any project or platform.",
+      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+    },
+  ] : mode === "image-resizer" ? [
+    {
+      icon: IMAGES.uploadImage,
+      title: "Upload Your Image",
+      description: "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB.",
+      imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
+    },
+    {
+      icon: IMAGES.exportIcon,
+      title: "Set Dimensions",
+      description: "Enter exact pixel width and height, or use scale presets. Aspect ratio lock prevents distortion.",
+      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+    },
+    {
+      icon: IMAGES.downloadImage,
+      title: "Download Result",
+      description: "Export as PNG, JPG, or WebP with quality control. Your resized image is ready for any platform.",
+      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+    },
+  ] : [
     {
       icon: IMAGES.uploadImage,
       title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Paste or Upload",
@@ -28,7 +66,13 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     <section id="how-it-works" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
-        One File. <span className="text-[#D94A1E]">Three Simple Steps.</span>
+        {mode === "background-remover" ? (
+          <>One Image. <span className="text-[#D94A1E]">Three Simple Steps.</span></>
+        ) : mode === "image-resizer" ? (
+          <>One Image. <span className="text-[#D94A1E]">Perfectly Sized.</span></>
+        ) : (
+          <>One File. <span className="text-[#D94A1E]">Three Simple Steps.</span></>
+        )}
       </h2>
 
       {/* Steps Container */}

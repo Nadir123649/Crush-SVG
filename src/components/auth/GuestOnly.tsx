@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, type ReactNode } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/client/auth-context";
 
 interface GuestOnlyProps {
@@ -9,17 +9,31 @@ interface GuestOnlyProps {
 }
 
 export function GuestOnly({ children }: GuestOnlyProps) {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
-    if (status === "authed") {
+    if (status === "authed" && !redirectedRef.current) {
+      redirectedRef.current = true;
       router.replace("/");
     }
   }, [status, router]);
 
-  if (status === "authed" || status === "loading") {
+  if (status === "loading") {
     return null;
+  }
+
+  if (status === "authed") {
+    // Show a loading state instead of the login card while redirecting
+    return (
+      <div className="w-full flex justify-center py-[60px]">
+        <div className="animate-pulse flex items-center gap-2 font-heading font-medium text-text-muted">
+          Redirecting...
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

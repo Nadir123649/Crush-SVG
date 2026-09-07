@@ -6,8 +6,7 @@ import { UserFilters } from "./UserFilters";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
-
-export const dynamic = "force-dynamic";
+import { useAuth } from "@/lib/client/auth-context";
 
 const USERS_PAGE_SIZE = 15;
 
@@ -17,13 +16,18 @@ const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
 export default function UsersPage() {
+  const { status: authStatus, user: currentUser, updateUser } = useAuth();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -36,8 +40,21 @@ export default function UsersPage() {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState("user");
   const [addingUser, setAddingUser] = useState(false);
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<any | null>(null);
+  const [editUserName, setEditUserName] = useState("");
+  const [editUserRole, setEditUserRole] = useState("user");
+  const [editingUser, setEditingUser] = useState(false);
+
   const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Enforce 16 character limit on newUserName
+  useEffect(() => {
+    if (newUserName.length > 16) {
+      setNewUserName(newUserName.slice(0, 16));
+    }
+  }, [newUserName]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -61,6 +78,8 @@ export default function UsersPage() {
         if (search) queryParams.set("search", search);
         if (role !== "all") queryParams.set("role", role);
         if (status !== "all") queryParams.set("status", status);
+        if (sortBy) queryParams.set("sortBy", sortBy);
+        if (sortOrder) queryParams.set("sortOrder", sortOrder);
 
         const response = await apiFetch<{
           data: any[];
@@ -70,6 +89,10 @@ export default function UsersPage() {
         if (cancelled) return;
         if (response?.data) {
           setUsers(response.data);
+          if (response.meta) {
+            setTotalPages(response.meta.total_pages || 1);
+            setTotalItems(response.meta.total || 0);
+          }
         } else {
           setError("Failed to load users");
         }
@@ -79,9 +102,11 @@ export default function UsersPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    loadUsers();
+    if (authStatus === "authed") {
+      loadUsers();
+    }
     return () => { cancelled = true; };
-  }, [search, role, status, page]);
+  }, [authStatus, search, role, status, page, sortBy, sortOrder]);
 
   // Delete user
   const handleDeleteUser = async (user: any) => {
@@ -111,16 +136,30 @@ export default function UsersPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserEmail || !newUserName || !newUserPassword) {
-      setError("Email, name, and password are required");
+      showToast("error", "Email, name, and password are required");
+      return;
+    }
+    const trimmedName = newUserName.trim();
+    if (!trimmedName) {
+      showToast("error", "Display name is required");
+      return;
+    }
+    if (trimmedName.length < 3) {
+      showToast("error", "Display name must be at least 3 characters");
+      return;
+    }
+    if (trimmedName.length > 16) {
+      showToast("error", "Display name cannot exceed 16 characters");
       return;
     }
     setAddingUser(true);
+    setError(null);
     try {
-      const response = await apiFetch<{ user: any }>("/api/v1/admin/users", {
+      const response = await apiFetch<{ user: any; message?: string }>("/api/v1/admin/users", {
         method: "POST",
         body: JSON.stringify({ 
           email: newUserEmail, 
-          displayName: newUserName, 
+          displayName: trimmedName, 
           password: newUserPassword, 
           role: newUserRole 
         }),
@@ -128,11 +167,12 @@ export default function UsersPage() {
       if (response?.user) {
         setUsers((prev) => [response.user, ...prev]);
         setAddUserModalOpen(false);
+        const emailSent = newUserEmail;
         setNewUserEmail("");
         setNewUserName("");
         setNewUserPassword("");
         setNewUserRole("user");
-        showToast("success", "User created successfully");
+        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`);
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to add user";
@@ -143,44 +183,110 @@ export default function UsersPage() {
     }
   };
 
+  const handleEditUser = (user: any) => {
+    setUserToEdit(user);
+    setEditUserName(user.displayName || "");
+    setEditUserRole(user.role || "user");
+    setEditUserModalOpen(true);
+  };
+
+  const confirmEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userToEdit) return;
+    const isGoogle = Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com');
+    const isVerified = userToEdit.isVerified === true || userToEdit.status === 'verified' || userToEdit.emailVerified === true || isGoogle;
+    
+    if (editUserRole === "admin" && !isVerified) {
+      showToast("error", "User is unverified");
+      return;
+    }
+
+    const trimmedName = editUserName.trim();
+    if (!trimmedName) {
+      showToast("error", "Display name is required");
+      return;
+    }
+    if (trimmedName.length < 3) {
+      showToast("error", "Display name must be at least 3 characters");
+      return;
+    }
+    if (trimmedName.length > 16) {
+      showToast("error", "Display name cannot exceed 16 characters");
+      return;
+    }
+    setEditingUser(true);
+    try {
+      const response = await apiFetch<{ user: any }>(`/api/v1/admin/users/${userToEdit.uid}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          displayName: trimmedName,
+          role: editUserRole
+        }),
+      });
+      if (response?.user) {
+        setUsers((prev) => prev.map((u) => u.uid === response.user.uid ? response.user : u));
+        if (currentUser && currentUser.uid === response.user.uid) {
+          updateUser({ displayName: response.user.displayName, role: response.user.role });
+        }
+        setEditUserModalOpen(false);
+        setUserToEdit(null);
+        showToast("success", "User updated successfully");
+      }
+    } catch (err: any) {
+      const msg = err?.message || "Failed to update user";
+      showToast("error", msg);
+    } finally {
+      setEditingUser(false);
+    }
+  };
+
   const handleExportCSV = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.set("page", "1");
-      queryParams.set("limit", "10000");
-      if (search) queryParams.set("search", search);
-      if (role !== "all") queryParams.set("role", role);
-      if (status !== "all") queryParams.set("status", status);
+      let data = users && users.length > 0 ? users : [];
+      if (data.length === 0) {
+        const queryParams = new URLSearchParams();
+        queryParams.set("page", "1");
+        queryParams.set("limit", "100");
+        if (search) queryParams.set("search", search);
+        if (role !== "all") queryParams.set("role", role);
+        if (status !== "all") queryParams.set("status", status);
 
-      const response = await apiFetch<{ data: any[] }>(`/api/v1/admin/users?${queryParams.toString()}`);
-      if (response?.data) {
-        const { data } = response;
-        if (data.length === 0) { setError("No users to export"); return; }
-
-        const headers = ["ID", "Email", "Display Name", "Role", "Status", "Provider", "Conversions Used", "Created At"];
-        const rows = data.map((u: any) => [
-          u.uid,
-          u.email || "",
-          u.displayName || "",
-          u.role || "user",
-          (u.isVerified || u.providers?.includes('google.com') || u.providers?.includes('google')) ? "Active" : "Unverified",
-          u.providers?.includes('google.com') ? "Google" : "Email",
-          u.conversionsUsed?.toString() || "0",
-          new Date(u.createdAt).toLocaleString()
-        ]);
-
-        const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `users-export-${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const response = await apiFetch<{ data: any[] }>(`/api/v1/admin/users?${queryParams.toString()}`);
+        if (response?.data) data = response.data;
       }
+
+      if (!data || data.length === 0) {
+        setError("No users to export");
+        return;
+      }
+
+      const isGoogleUser = (u: any) => Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
+      const isVerifiedUser = (u: any) => u.isVerified === true || isGoogleUser(u);
+
+      const headers = ["ID", "Email", "Display Name", "Role", "Status", "Provider", "Conversions Used", "Created At"];
+      const rows = data.map((u: any) => [
+        u.uid || u.id,
+        u.email || "",
+        u.displayName || "",
+        u.role || "user",
+        isVerifiedUser(u) ? "Verified" : "Unverified",
+        isGoogleUser(u) ? "Google" : "Email",
+        u.conversionsUsed?.toString() || "0",
+        new Date(u.createdAt).toLocaleString()
+      ]);
+
+      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("success", "Users exported successfully!");
     } catch (err) {
       setError("Failed to export users");
     }
@@ -201,6 +307,18 @@ export default function UsersPage() {
     setPage(1);
   };
 
+  const handleStatusSort = () => {
+    if (sortBy === 'status') {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy('status');
+      setSortOrder('desc');
+    }
+    setPage(1);
+  };
+
+
+
   const goToPage = (targetPage: number) => {
     setPage(targetPage);
   };
@@ -210,27 +328,25 @@ export default function UsersPage() {
   };
 
   const prevPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
+    setPage((prev) => Math.max(1, prev - 1));
   };
-
-  const totalPages = Math.ceil(users.length / USERS_PAGE_SIZE) || 1;
 
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Page Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">Active Users</h2>
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">Users</h2>
           <p className="font-body text-text-muted">Manage accounts, roles, and platform access.</p>
         </div>
         {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleExportCSV} className="px-4 py-3 h-auto flex items-center justify-center gap-2 shadow-sm" disabled={loading}>
-            <SvgDownload className="w-5 h-5" />
-            Export CSV
+          <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
+            <SvgDownload className="w-4 h-4 shrink-0" />
+            Export
           </Button>
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="px-6 py-3 h-auto flex items-center justify-center gap-2 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
         </div>
@@ -254,8 +370,9 @@ export default function UsersPage() {
           {/* Table Loading/Empty/Error States */}
           {loading && (
             <div className="p-8">
-              <div className="flex justify-center my-8">
+              <div className="flex flex-col items-center justify-center my-8 gap-3">
                 <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+                <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading users...</span>
               </div>
             </div>
           )}
@@ -284,14 +401,20 @@ export default function UsersPage() {
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">User</th>
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">Role</th>
                     <th className="p-5 font-body font-semibold text-sm text-text-muted">Provider</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Usage (SVGs)</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Status</th>
+                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Usage</th>
+                     <th
+                       className="p-5 font-body font-semibold text-sm text-text-muted cursor-pointer select-none hover:text-brand-primary transition-colors"
+                       onClick={handleStatusSort}
+                     >
+                       Status{sortBy === 'status' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                     </th>
                     <th className="p-5 font-body font-semibold text-sm text-text-muted text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F2EDE8]">
-                  {users.map((u: any) => {
-                    const isGoogle = u.providers?.includes('google.com');
+                   {users.map((u: any, index: number) => {
+                    const isGoogle = Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
+                    const isVerified = u.isVerified === true || isGoogle;
                     const initials = u.displayName ? u.displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
                     const usagePercentage = Math.min((u.conversionsUsed / 1000) * 100, 100);
 
@@ -301,7 +424,7 @@ export default function UsersPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
                               {u.photoURL ? (
-                                <Image src={u.photoURL} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                                <img src={u.photoURL} alt="User avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               ) : (
                                 initials
                               )}
@@ -323,7 +446,6 @@ export default function UsersPage() {
                         </td>
                         <td className="p-5">
                           <div className="flex items-center gap-2 font-body text-sm text-text-muted">
-                            {isGoogle ? <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12Z" fill="#fff" stroke="none"/><path d="M23.49 12.275c0-.853-.075-1.67-.216-2.464H12v4.662h6.444c-.278 1.503-1.123 2.775-2.38 3.618v3.013h3.85c2.253-2.072 3.576-5.127 3.576-8.829Z" fill="#4285F4" stroke="none"/><path d="M12 24c3.24 0 5.952-1.077 7.935-2.905l-3.85-3.013c-1.077.722-2.457 1.15-3.935 1.15-3.03 0-5.597-2.046-6.516-4.795H1.64v3.125C3.606 21.464 7.498 24 12 24Z" fill="#34A853" stroke="none"/><path d="M5.484 14.437A7.2 7.2 0 0 1 5.105 12c0-.834.148-1.642.417-2.392V6.483H1.64A11.967 11.967 0 0 0 0 12c0 1.93.456 3.75 1.259 5.356l3.86-3.01Z" fill="#FBBC05" stroke="none"/><path d="M12 4.766c1.761 0 3.344.606 4.588 1.796l3.439-3.44C17.946 1.185 15.234 0 12 0 7.498 0 3.606 2.536 1.64 6.483l3.844 3.125c.918-2.748 3.486-4.842 6.516-4.842Z" fill="#EA4335" stroke="none"/></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> }] 
                             {isGoogle ? 'Google' : 'Email'}
                           </div>
                         </td>
@@ -337,10 +459,17 @@ export default function UsersPage() {
                           </div>
                         </td>
                         <td className="p-5">
-                          <span className={`inline-flex items-center gap-1.5 font-body font-semibold text-sm ${(u.isVerified || u.providers?.includes('google.com') || u.providers?.includes('google')) ? 'text-[#059669]' : 'text-gray-500'}`}>
-                            <span className={`w-2 h-2 rounded-full ${(u.isVerified || u.providers?.includes('google.com') || u.providers?.includes('google')) ? 'bg-[#059669]' : 'bg-gray-400'}`}></span> 
-                            {(u.isVerified || u.providers?.includes('google.com') || u.providers?.includes('google')) ? 'Active' : 'Unverified'}
-                          </span>
+                          {isVerified ? (
+                            <span className="inline-flex items-center gap-1.5 font-body font-semibold text-sm text-[#059669]">
+                              <span className="w-2 h-2 rounded-full bg-[#059669]"></span>
+                              Verified
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 font-body font-semibold text-sm text-[#B45309]">
+                              <span className="w-2 h-2 rounded-full bg-[#B45309]"></span>
+                              Unverified
+                            </span>
+                          )}
                         </td>
                         <td className="p-5 text-right">
                           <div className="relative inline-block" ref={openMenuUid === u.uid ? menuRef : undefined}>
@@ -351,13 +480,15 @@ export default function UsersPage() {
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
                             {openMenuUid === u.uid && (
-                              <div className="absolute right-0 mt-1 w-40 bg-white border border-[#F2EDE8] rounded-[8px] shadow-lg z-50 py-1">
+                              <div className={`absolute right-0 w-40 bg-white border border-[#F2EDE8] rounded-[8px] shadow-lg z-50 py-1 ${
+                                index >= users.length - 2 ? "bottom-full mb-1" : "top-full mt-1"
+                              }`}>
                                 <button
-                                  onClick={() => { setOpenMenuUid(null); }}
+                                  onClick={() => { setOpenMenuUid(null); handleEditUser(u); }}
                                   className="w-full px-4 py-2 text-left text-sm font-body text-text-dark hover:bg-[#FFFCFA] flex items-center gap-2"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                                  Edit Role
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                  Edit User
                                 </button>
                                 <button
                                   onClick={() => { setOpenMenuUid(null); handleDeleteUser(u); }}
@@ -389,7 +520,7 @@ export default function UsersPage() {
             {totalPages > 0 && (
               <div className="mt-auto p-5 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FFFCFA]">
                 <span className="font-body text-sm text-text-muted">
-                  Showing {((page - 1) * USERS_PAGE_SIZE) + 1} to {Math.min(page * USERS_PAGE_SIZE, users.length)} of {users.length > 0 ? users.length : 0} users
+                  Showing {((page - 1) * USERS_PAGE_SIZE) + 1} to {Math.min(page * USERS_PAGE_SIZE, totalItems)} of {totalItems} users
                 </span>
                 <div className="flex gap-1.5">
                   <button
@@ -448,6 +579,64 @@ export default function UsersPage() {
         </div>
       )}
 
+      {/* Edit User Modal */}
+      {editUserModalOpen && userToEdit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setEditUserModalOpen(false)}>
+          <div className="bg-white rounded-[12px] shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-heading font-bold text-lg text-text-dark">Edit User</h3>
+              <button onClick={() => setEditUserModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                <SvgX className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={confirmEditUser} className="flex flex-col gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
+                  <span className={`font-body text-xs font-semibold ${editUserName.length < 3 || editUserName.length > 16 ? 'text-red-500' : 'text-text-muted'}`}>
+                    {editUserName.length}/16
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={editUserName}
+                  onChange={(e) => setEditUserName(e.target.value)}
+                  minLength={3}
+                  maxLength={16}
+                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-body text-sm font-medium text-text-dark mb-1">Role</label>
+                <select
+                  value={editUserRole}
+                  onChange={(e) => setEditUserRole(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white cursor-pointer"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                {editUserRole === "admin" && !(userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'))) && (
+                  <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                    <SvgError className="w-3.5 h-3.5 shrink-0" />
+                    <span>User is unverified</span>
+                  </p>
+                )}
+              </div>
+              <div className="flex justify-end gap-3 mt-2">
+                <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser} className="px-4 py-2">
+                  Cancel
+                </Button>
+                <Button variant="solid" type="submit" disabled={editingUser} className="px-4 py-2">
+                  {editingUser ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Add User Modal */}
       {addUserModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setAddUserModalOpen(false)}>
@@ -471,13 +660,36 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label className="block font-body text-sm font-medium text-text-dark mb-1">Display Name *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-body text-sm font-medium text-text-dark">Display Name *</label>
+                  <span className={`font-body text-xs font-semibold ${newUserName.length < 3 || newUserName.length >= 16 ? 'text-red-500' : 'text-text-muted'}`}>
+                    {newUserName.length}/16
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
+                  onChange={(e) => setNewUserName(e.target.value.slice(0, 16))}
+                  minLength={3}
+                  maxLength={16}
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value.length > 16) {
+                      target.value = target.value.slice(0, 16);
+                      setNewUserName(target.value);
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text').slice(0, 16);
+                    setNewUserName(pastedText);
+                    if (e.clipboardData.getData('text').length > 16) {
+                      showToast("error", "Display name limited to 16 characters");
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                   placeholder="John Doe"
+                  autoComplete="off"
                   required
                 />
               </div>

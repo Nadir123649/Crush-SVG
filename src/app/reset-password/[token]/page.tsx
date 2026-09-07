@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
+import { VerificationModal } from "@/components/modals/VerificationModal";
+import { GuestOnly } from "@/components/auth/GuestOnly";
 
 type TokenState = "checking" | "valid" | "invalid";
 
@@ -89,7 +91,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <>
+    <GuestOnly>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
@@ -101,41 +103,29 @@ export default function ResetPasswordPage() {
           )}
 
           {tokenState === "invalid" && (
-            <div className="flex flex-col items-center gap-[12px] py-[32px]">
-              <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Link invalid or expired</h2>
-              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
-                This password reset link is invalid or has expired. Request a new one.
-              </p>
-              <Link
-                href="/?auth=login"
-                className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E] mt-[4px]"
-              >
-                Back to login
-              </Link>
-              <Link
-                href="/forgot-password"
-                className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
-              >
-                Request new link
-              </Link>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+              <VerificationModal 
+                variant="invalid"
+                onClose={() => router.push("/login")}
+                onContinue={() => router.push("/login")}
+              />
             </div>
           )}
 
           {done && (
-            <div className="flex flex-col items-center gap-[12px] py-[32px]">
-              <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Password changed</h2>
-              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
-                Your password has been updated. Sign in with your new password.
-              </p>
-              <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
-                Redirecting to login in {redirectIn}s…
-              </p>
-              <Link
-                href="/?auth=login"
-                className="w-full h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px]"
-              >
-                Log In
-              </Link>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+              <div className="flex flex-col w-full max-w-[440px]">
+                <VerificationModal 
+                  variant="success"
+                  onClose={() => router.push("/login")}
+                  onContinue={() => router.push("/login")}
+                />
+                {redirectIn > 0 && (
+                  <p className="text-center font-afacad text-[14px] text-[#4B5563] mt-[12px] text-white">
+                    Redirecting to login in {redirectIn}s…
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -243,6 +233,6 @@ export default function ResetPasswordPage() {
         </div>
       </div>
       </div>
-    </>
+    </GuestOnly>
   );
 }

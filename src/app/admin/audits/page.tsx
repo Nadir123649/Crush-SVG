@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
-
-export const dynamic = "force-dynamic";
+import { useAuth } from "@/lib/client/auth-context";
+import { showToast } from "@/lib/client/toast-bridge";
 
 const AUDITS_PAGE_SIZE = 20;
 
@@ -19,6 +19,7 @@ const SvgChevronLeft = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg
 const SvgChevronRight = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
 export default function AuditsPage() {
+  const { status: authStatus } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [audits, setAudits] = useState<any[]>([]);
@@ -58,8 +59,10 @@ export default function AuditsPage() {
   };
 
   useEffect(() => {
-    loadAudits(page);
-  }, [search]);
+    if (authStatus === "authed") {
+      loadAudits(page);
+    }
+  }, [authStatus, search]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -73,55 +76,57 @@ export default function AuditsPage() {
 
   const handleExportCSV = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.set("page", "1");
-      queryParams.set("limit", "10000");
-      if (search) queryParams.set("search", search);
+      let data = audits && audits.length > 0 ? audits : [];
+      if (data.length === 0) {
+        const queryParams = new URLSearchParams();
+        queryParams.set("page", "1");
+        queryParams.set("limit", "100");
+        if (search) queryParams.set("search", search);
 
-      const response = await apiFetch<{
-        data: any[];
-        meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-      }>(`/api/v1/admin/audits?${queryParams.toString()}`);
-
-      if (response?.data) {
-        const { data } = response;
-        if (data.length === 0) {
-          setError("No audit logs to export");
-          return;
-        }
-
-        const headers = ["Timestamp (UTC)", "Level", "Event Type", "Action Description", "User", "IP Address"];
-        const getSeverityLevel = (action: string) => {
-          const act = action.toLowerCase();
-          if (act.includes('fail') || act.includes('error') || act.includes('delete')) return 'Error';
-          if (act.includes('warn') || act.includes('limit') || act.includes('suspend')) return 'Warning';
-          return 'Info';
-        };
-
-        const rows = data.map((audit: any) => [
-          new Date(audit.createdAt).toLocaleString(),
-          getSeverityLevel(audit.action),
-          `${audit.action} ${audit.resourceType || ''}`.trim(),
-          audit.details && Object.keys(audit.details).length > 0
-            ? JSON.stringify(audit.details)
-            : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`,
-          audit.adminId,
-          audit.ipAddress || 'N/A'
-        ]);
-
-        const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-        
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `audits-export-${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const response = await apiFetch<{
+          data: any[];
+          meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+        }>(`/api/v1/admin/audits?${queryParams.toString()}`);
+        if (response?.data) data = response.data;
       }
+
+      if (!data || data.length === 0) {
+        setError("No audit logs to export");
+        return;
+      }
+
+      const headers = ["Timestamp (UTC)", "Level", "Event Type", "Action Description", "User", "IP Address"];
+      const getSeverityLevel = (action: string) => {
+        const act = action.toLowerCase();
+        if (act.includes('fail') || act.includes('error')) return 'Error';
+        if (act.includes('warn') || act.includes('limit') || act.includes('suspend') || act.includes('delete')) return 'Warning';
+        return 'Info';
+      };
+
+      const rows = data.map((audit: any) => [
+        new Date(audit.createdAt).toLocaleString(),
+        getSeverityLevel(audit.action),
+        `${audit.action} ${audit.resourceType || ''}`.trim(),
+        audit.details && Object.keys(audit.details).length > 0
+          ? JSON.stringify(audit.details)
+          : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`,
+        audit.adminId,
+        audit.ipAddress || 'N/A'
+      ]);
+
+      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
+      
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `audits-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("success", "Audit log exported successfully!");
     } catch (err) {
       setError("Failed to export audit logs");
     }
@@ -130,27 +135,21 @@ export default function AuditsPage() {
   // Helper to determine severity based on action keywords
   const getSeverityLevel = (action: string) => {
     const act = action.toLowerCase();
-    if (act.includes('fail') || act.includes('error') || act.includes('delete')) return 'error';
-    if (act.includes('warn') || act.includes('limit') || act.includes('suspend')) return 'warning';
+    if (act.includes('fail') || act.includes('error')) return 'error';
+    if (act.includes('warn') || act.includes('limit') || act.includes('suspend') || act.includes('delete')) return 'warning';
     return 'info';
   };
 
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
-          <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
-        </div>
-        <Button variant="solid" onClick={handleExportCSV} className="flex items-center gap-2 px-4 py-2.5 h-auto shadow-sm">
-          <SvgDownload className="w-4 h-4" />
-          Export CSV
-        </Button>
+      <div>
+        <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
+        <p className="font-body text-text-muted">Review chronological system events, security alerts, and administrative actions.</p>
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-wrap items-center gap-4">
+      {/* Search and Export */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="relative">
           <SvgSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input 
@@ -161,14 +160,10 @@ export default function AuditsPage() {
             className="pl-10 pr-4 py-2.5 bg-white border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-shadow min-w-[240px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
           />
         </div>
-        <button 
-          type="button"
-          onClick={() => loadAudits(1)}
-          className="flex items-center gap-2 px-4 py-2.5 border border-[#F2EDE8] bg-white rounded-[8px] text-text-dark font-body font-medium hover:bg-gray-50 transition-colors shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
-        >
-          <SvgFilter className="w-4 h-4" />
-          Filter
-        </button>
+        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-2.5 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <SvgDownload className="w-4 h-4 shrink-0" />
+          Export
+        </Button>
       </div>
 
       {/* Main Card containing the Table */}
@@ -176,10 +171,10 @@ export default function AuditsPage() {
         
         {loading && (
           <div className="p-8">
-            <div className="flex justify-center my-8">
-              <svg className="w-8 h-8 text-brand-primary animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2v4M12 12v4M12 22v4" strokeWidth="2" strokeLinecap="round"/></svg>
+            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
+              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+              <span className="font-body text-text-muted">Loading audits...</span>
             </div>
-            <span className="font-body text-text-muted">Loading audit logs...</span>
           </div>
         )}
 
@@ -229,9 +224,13 @@ export default function AuditsPage() {
                           )}
                         </td>
                         <td className="p-5 text-text-muted whitespace-nowrap">
-                          {new Date(audit.createdAt).toLocaleString(undefined, {
-                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-                          })}
+                          {(() => {
+                            const d = new Date(audit.createdAt);
+                            const day = d.getDate();
+                            const month = d.toLocaleString('en-GB', { month: 'short' });
+                            const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                            return `${day} ${month}, ${time}`;
+                          })()}
                         </td>
                         <td className="p-5 font-semibold capitalize">{audit.action} {audit.resourceType || ''}</td>
                         <td className="p-5 text-text-muted">
@@ -240,8 +239,10 @@ export default function AuditsPage() {
                             : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`}
                         </td>
                         <td className="p-5 font-medium">{audit.adminId}</td>
-                        <td className="p-5 font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block mt-3">
-                          {audit.ipAddress || 'N/A'}
+                        <td className="p-5">
+                          <span className="font-mono text-xs text-text-muted bg-[#FFFCFA] border border-[#F2EDE8] px-2 py-1 rounded inline-block">
+                            {audit.ipAddress || 'N/A'}
+                          </span>
                         </td>
                       </tr>
                     );

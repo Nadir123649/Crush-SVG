@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,21 +9,66 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 
-export function Header() {
+export function Header({ logoUrl }: { logoUrl?: string }) {
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [lastConverter, setLastConverter] = useState("/");
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.photoURL]);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
+  // ── Synchronous auth class applied BEFORE first paint ─────────────────────
+  // Reads the same localStorage key the AuthProvider uses so we don't create
+  // a second auth system. The HTML root class is set here synchronously so
+  // CSS can hide the wrong auth panel before the browser paints a single
+  // frame — eliminating any Login↔Profile flicker on page load / refresh.
+  useLayoutEffect(() => {
+    const applyAuthClass = () => {
+      try {
+        const hasUser = !!localStorage.getItem("crush_user");
+        if (hasUser) {
+          document.documentElement.classList.add("user-logged-in");
+          document.documentElement.classList.remove("user-logged-out");
+        } else {
+          document.documentElement.classList.add("user-logged-out");
+          document.documentElement.classList.remove("user-logged-in");
+        }
+      } catch {
+        document.documentElement.classList.add("user-logged-out");
+        document.documentElement.classList.remove("user-logged-in");
+      }
+    };
+
+    applyAuthClass();
+
+    // Keep in sync when storage changes in another tab (login/logout)
+    window.addEventListener("storage", applyAuthClass);
+    return () => window.removeEventListener("storage", applyAuthClass);
+  }, []);
+
+  // Keep root auth class in sync when React auth state changes (login/logout in same tab).
+  // Skip while status is 'loading' so we never undo the class set by the
+  // synchronous <script> in <head> before the first paint.
+  useEffect(() => {
+    if (status === "loading") return;
+    if (user) {
+      document.documentElement.classList.add("user-logged-in");
+      document.documentElement.classList.remove("user-logged-out");
+    } else {
+      document.documentElement.classList.add("user-logged-out");
+      document.documentElement.classList.remove("user-logged-in");
+    }
+  }, [user, status]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -33,11 +78,18 @@ export function Header() {
       ) {
         setMenuOpen(false);
       }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMenuOpen(false);
+        setMobileMenuOpen(false);
       }
     }
 
@@ -50,16 +102,31 @@ export function Header() {
     };
   }, []);
 
-  async function handleLogout() {
-    await logout();
+  function handleLogout() {
+    setMenuOpen(false);
+    logout();
     showToast("success", "You've been signed out");
     router.push("/");
-    router.refresh();
   }
 
   useEffect(() => {
-    queueMicrotask(() => setMenuOpen(false));
-  }, [status, pathname]);
+    queueMicrotask(() => {
+      setMenuOpen(false);
+      setMobileMenuOpen(false);
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname === "/png-to-svg" || pathname === "/" || pathname === "/svg-to-png") {
+      setLastConverter(pathname);
+      sessionStorage.setItem("last_converter", pathname);
+    } else {
+      const stored = sessionStorage.getItem("last_converter");
+      if (stored === "/png-to-svg" || stored === "/" || stored === "/svg-to-png") {
+        setLastConverter(stored);
+      }
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,8 +169,8 @@ export function Header() {
             className="flex items-center gap-[4px] md:gap-[6px]"
           >
             <Image
-              src={IMAGES.logo}
-              alt="CrushSVG Icon"
+              src={logoUrl || IMAGES.logo}
+              alt="CrushSVG Logo"
               width={26}
               height={26}
               className="w-[20px] h-[20px] md:w-[26px] md:h-[26px] object-contain"
@@ -118,116 +185,47 @@ export function Header() {
           {/* Right Side Links & Buttons */}
           <div className="flex items-center gap-[14px] md:gap-[24px]">
             <Link
-              href={pathname === "/png-to-svg" ? "/" : "/png-to-svg"}
-              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              href={lastConverter === "/png-to-svg" ? "/#converter" : "/png-to-svg#converter"}
+              onClick={(e) => {
+                const targetPath = lastConverter === "/png-to-svg" ? "/" : "/png-to-svg";
+                if (typeof window !== "undefined" && window.location.pathname === targetPath) {
+                  e.preventDefault();
+                  const el = document.getElementById("converter");
+                  if (el) {
+                    const offset = window.innerWidth >= 768 ? 96 : 70;
+                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({
+                      top: elementPosition - offset,
+                      behavior: "smooth"
+                    });
+                  }
+                }
+              }}
+              suppressHydrationWarning
+              className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
+              {lastConverter === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
             </Link>
 
             <Link
               href="/svg-guides"
-              className="hidden lg:inline-block font-body font-semibold text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Guides
             </Link>
 
             <Link
               href="/contact-us?r=1"
-              className="hidden md:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               Need Help?
             </Link>
 
-            {user ? (
-              <div className="relative" ref={menuRef}>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  aria-haspopup="menu"
-                  aria-expanded={menuOpen}
-                  aria-label="User account menu"
-                  className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
-                >
-                  {user.photoURL ? (
-                    <Image
-                      src={user.photoURL}
-                      alt=""
-                      width={24}
-                      height={24}
-                      className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
-                      {(user.displayName || user.email || "U")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </span>
-                  )}
+            {/* ── Auth area: BOTH states always in DOM; CSS controls visibility ── */}
 
-                  <span className="font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
-                    {user.displayName || user.email}
-                  </span>
-
-                  <svg
-                    width="10"
-                    height="6"
-                    viewBox="0 0 12 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`transition-transform duration-200 ${
-                      menuOpen ? "rotate-180" : ""
-                    }`}
-                  >
-                    <path
-                      d="M1 1.5L6 6.5L11 1.5"
-                      stroke="#353A3E"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                {menuOpen && (
-                  <div
-                    role="menu"
-                    className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
-                  >
-                    <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
-                      <p className="font-body font-medium text-[14px] text-text-dark truncate">
-                        {user.displayName || "CrushSVG user"}
-                      </p>
-
-                      <p className="font-body text-[12px] text-text-muted truncate">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    {user.role === 'admin' && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setMenuOpen(false)}
-                        className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
-                      >
-                        Admin Dashboard
-                      </Link>
-                    )}
-
-                    <button
-                      type="button"
-                      role="menuitem"
-
-                      onClick={handleLogout}
-                      className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
-                    >
-                      Log out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-[14px] md:gap-[16px]">
+            {/* Logged-out: Login + Signup buttons */}
+            <div className="logged-out-only flex items-center gap-[14px] md:gap-[16px]">
+              <div className="hidden md:flex items-center gap-[14px] md:gap-[16px]">
                 <Button
                   href="/login"
                   variant="outline"
@@ -244,7 +242,133 @@ export function Header() {
                   Sign Up
                 </Button>
               </div>
-            )}
+
+              {/* Mobile Hamburger (logged-out) */}
+              <div className="md:hidden flex items-center relative" ref={mobileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((v) => !v)}
+                  className="p-2 -mr-2 text-text-dark hover:text-brand-primary transition-colors cursor-pointer"
+                  aria-label="Open menu"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {mobileMenuOpen && (
+                  <div className="fixed top-[66px] left-0 w-full bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-lg py-6 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
+                    <div className="flex flex-col gap-2">
+                      <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-lg text-text-dark text-center py-3 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        Guides
+                      </Link>
+                      <Link href="/contact-us?r=1" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-lg text-text-dark text-center py-3 hover:text-brand-primary">
+                        Need Help?
+                      </Link>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center gap-3 mt-4">
+                      <Button href="/login" variant="outline" className="w-full max-w-[200px] h-[40px] rounded-[8px] bg-[#FFFFFF] text-[14px]" onClick={() => setMobileMenuOpen(false)}>
+                        Log In
+                      </Button>
+                      <Button href="/signup" variant="solid" className="w-full max-w-[200px] h-[40px] rounded-[8px] text-[14px]" onClick={() => setMobileMenuOpen(false)}>
+                        Sign Up
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Logged-in: Profile dropdown */}
+            <div className="logged-in-only relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="User account menu"
+                className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+              >
+                {user?.photoURL && !imageError ? (
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
+                    referrerPolicy="no-referrer"
+                    onError={() => {
+                      setImageError(true);
+                    }}
+                  />
+                ) : (
+                  <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
+                    {(user?.displayName || user?.email || "U")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </span>
+                )}
+
+                <span className="hidden sm:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
+                  {user?.displayName || user?.email}
+                </span>
+
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 12 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`transition-transform duration-200 ${
+                    menuOpen ? "rotate-180" : ""
+                  }`}
+                >
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="#353A3E"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
+                >
+                  <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
+                    <p className="font-body font-medium text-[14px] text-text-dark truncate">
+                      {user?.displayName || "CrushSVG user"}
+                    </p>
+
+                    <p className="font-body text-[12px] text-text-muted truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  {user?.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
+                  >
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
         </nav>
       </div>

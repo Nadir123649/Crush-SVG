@@ -1,21 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-import { auth } from '@/lib/middleware/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
+import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
-import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
-import { hashPassword } from '@/lib/auth/passwords'
+import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
+import { sendVerificationEmail } from '@/lib/integrations/email'
+import { getClientIp } from '@/lib/security/ip'
 
 export const runtime = 'nodejs'
-
-async function requireAdmin(who: { user: { id: string; role: string } } | { error: Response }): Promise<{ user: { id: string; role: string } } | { error: Response }> {
-  if ('error' in who) return who
-  if (who.user.role !== 'admin') {
-    return { error: NextResponse.json({ error: { code: 'forbidden', message: 'Admin access required' } }, { status: 403 }) }
-  }
-  return who
-}
 
 export async function GET(request: NextRequest) {
   const rl = await checkRateLimit(request, 'admin:users:list', 20, 60_000)
@@ -23,28 +17,91 @@ export async function GET(request: NextRequest) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
-  const who = await auth(request)
-  const adminCheck = await requireAdmin(who)
+  const adminCheck = await requireAdmin(request)
   if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   const { searchParams } = new URL(request.url)
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
   const skip = (page - 1) * limit
   const search = searchParams.get('search')?.trim()
+  const status = searchParams.get('status')?.trim()
+  const role = searchParams.get('role')?.trim()
+  const sortBy = searchParams.get('sortBy') || 'createdAt'
+  const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1
+
+  // Verified = email verified OR Google/OAuth provider.
+  const verifiedOr = [
+    { isVerified: true },
+    { providers: { $in: ['google', 'google.com'] } }
+  ]
 
   const filter: Record<string, unknown> = {}
+  const andClauses: Record<string, unknown>[] = []
+
   if (search) {
-    filter.$or = [
-      { email: { $regex: search, $options: 'i' } },
-      { displayName: { $regex: search, $options: 'i' } },
-      { uid: { $regex: search, $options: 'i' } },
-    ]
+    andClauses.push({
+      $or: [
+        { email: { $regex: search, $options: 'i' } },
+        { displayName: { $regex: search, $options: 'i' } },
+        { uid: { $regex: search, $options: 'i' } },
+      ]
+    })
   }
 
-  const [total, docs] = await Promise.all([
-    User.countDocuments(filter),
-    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+  if (role && role !== 'all') {
+    andClauses.push({ role })
+  }
+
+  if (status === 'verified') {
+    andClauses.push({ $or: verifiedOr })
+  } else if (status === 'unverified') {
+    // Not verified AND not a Google/OAuth account
+    andClauses.push({ $nor: verifiedOr })
+  }
+
+  if (andClauses.length === 1) {
+    Object.assign(filter, andClauses[0])
+  } else if (andClauses.length > 1) {
+    filter.$and = andClauses
+  }
+
+  let docs
+  
+  if (sortBy === 'status') {
+    docs = await User.aggregate([
+      { $match: filter },
+      { 
+        $addFields: {
+          computedStatus: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: ["$isVerified", true] },
+                  { $in: ["google.com", { $ifNull: ["$providers", []] }] },
+                  { $in: ["google", { $ifNull: ["$providers", []] }] }
+                ]
+              },
+              then: 1, // Active
+              else: 0  // Unverified
+            }
+          }
+        }
+      },
+      { $sort: { computedStatus: sortOrder, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ])
+  } else {
+    // Default sorting
+    const sortObj: Record<string, 1 | -1> = {}
+    sortObj[sortBy] = sortOrder
+    docs = await User.find(filter).sort(sortObj).skip(skip).limit(limit)
+  }
+
+  const [total] = await Promise.all([
+    User.countDocuments(filter)
   ])
 
   return successResponse({
@@ -66,9 +123,9 @@ export async function POST(request: NextRequest) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }
 
-  const who = await auth(request)
-  const adminCheck = await requireAdmin(who)
+  const adminCheck = await requireAdmin(request)
   if ('error' in adminCheck) return adminCheck.error
+  const who = adminCheck
 
   let body: unknown
   try {
@@ -88,8 +145,14 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'invalid_email', 'A valid email address is required', undefined, request)
   }
 
-  if (!displayName || !displayName.trim()) {
-    return errorResponse(400, 'missing_name', 'Display name is required', undefined, request)
+  if (displayName) {
+    if (typeof displayName !== 'string') {
+      return errorResponse(400, 'invalid_name', 'Display name must be a string', undefined, request)
+    }
+    const trimmed = displayName.trim()
+    if (trimmed.length > 0 && (trimmed.length < 3 || trimmed.length > 16)) {
+      return errorResponse(400, 'invalid_name', 'Display name must be between 3 and 16 characters', undefined, request)
+    }
   }
 
   if (!password || password.length < 8) {
@@ -105,19 +168,26 @@ export async function POST(request: NextRequest) {
     return errorResponse(409, 'email_taken', 'A user with this email already exists', undefined, request)
   }
 
+  const token = generateToken()
+  const now = Date.now()
+  const targetEmail = email.toLowerCase().trim()
+
   let created
   try {
     created = await User.create({
-      uid: `admin_${email}`,
-      email: email.toLowerCase().trim(),
-      displayName: displayName ?? email.split('@')[0],
+      uid: `admin_${targetEmail}`,
+      email: targetEmail,
+      displayName: (displayName && displayName.trim()) ? displayName.trim() : targetEmail.split('@')[0],
       photoURL: null,
       role,
-      isVerified: true,
+      isVerified: false,
+      emailVerificationToken: hashToken(token),
+      emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
       password: password ? await hashPassword(password) : undefined,
-      providers: ['admin'],
+      providers: ['email'],
+      linkedProviders: ['email'],
       conversionsUsed: 0,
-      lastLoginAt: new Date(),
+      lastLoginAt: new Date(now),
     })
   } catch (error) {
     if (isDuplicateKeyError(error)) {
@@ -126,15 +196,29 @@ export async function POST(request: NextRequest) {
     throw error
   }
 
+  const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+  try {
+    await sendVerificationEmail(targetEmail, verifyUrl)
+  } catch (e) {
+    console.error('Verification email failed to send:', e)
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[dev] Admin created verification email for ${targetEmail}: ${verifyUrl}`)
+  }
+
   await AuditLog.create({
     adminId: adminCheck.user.id,
     action: 'user_created',
     target: created._id.toString(),
     resourceType: 'user',
     resourceId: created.uid,
-    details: { email: created.email, role: created.role },
+    details: { email: created.email, role: created.role, isVerified: false },
+    ipAddress: getClientIp(request),
     metadata: { email: created.email, role: created.role },
   })
 
-  return successResponse({ user: toUserDTO(created) }, 201, rateLimitHeaders(rl), request)
+  return successResponse({ 
+    user: toUserDTO(created), 
+    message: `Account created successfully! Verification email sent to ${targetEmail}.` 
+  }, 201, rateLimitHeaders(rl), request)
 }

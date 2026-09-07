@@ -35,7 +35,11 @@ function errorResponse(code: string, status: number, rl: RateLimitResult) {
     },
     { status, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.delete(REFRESH_COOKIE_NAME)
+  res.cookies.delete({
+    name: REFRESH_COOKIE_NAME,
+    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
+    path: '/',
+  })
   return res
 }
 
@@ -122,6 +126,7 @@ export async function POST(request: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
     maxAge: result.remember ? 7 * 24 * 60 * 60 : undefined,
   })
   return res

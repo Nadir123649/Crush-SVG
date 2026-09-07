@@ -75,14 +75,27 @@ function SvgToPngConverter() {
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
-  const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("crush_usage_info");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [usageFailed, setUsageFailed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [dragOver, setDragOver] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [previewError, setPreviewError] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
@@ -93,14 +106,6 @@ function SvgToPngConverter() {
   const storageRestoredRef = useRef(false);
   const [storageRestored, setStorageRestored] = useState(false);
   const prevStatusRef = useRef<AuthStatus | null>(null);
-
-  useEffect(() => {
-    if (converting) {
-      const timer = setTimeout(() => setProgress(90), 50);
-      return () => clearTimeout(timer);
-    }
-    queueMicrotask(() => setProgress(0));
-  }, [converting]);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -216,6 +221,7 @@ function SvgToPngConverter() {
 
   function resetConversion() {
     if (result) setResult(null);
+    if (error) setError(null);
   }
 
   function resetDropdowns() {
@@ -288,6 +294,22 @@ function SvgToPngConverter() {
     }
   }
 
+  async function handleCopySvgCode() {
+    const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
+    if (!textToCopy) {
+      showToast("error", "No custom SVG code to copy");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", "SVG code copied to clipboard!");
+    } catch {
+      showToast("error", "Failed to copy SVG code");
+    }
+  }
+
   async function handleFile(file: File | undefined | null) {
     setError(null);
     if (!file) return;
@@ -324,30 +346,30 @@ function SvgToPngConverter() {
     setError(null);
     const options: ConvertRequest = { transparent };
 
-    if (selectedWidth !== "Original") {
+    if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
       let wNum = parseFloat(selectedWidth);
-      if (Number.isNaN(wNum) || wNum <= 0) {
-        setError(`Invalid width value. Enter a number like 480 or 12.7.`);
+      if (Number.isNaN(wNum)) {
+        setError(`Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
       if (unit === "cm") wNum = wNum * PX_PER_CM;
       options.width = Math.round(wNum);
       if (options.width < 1 || options.width > MAX_CUSTOM_PX) {
-        setError(`Width must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(`Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
     }
 
-    if (selectedHeight !== "Auto") {
+    if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
       let hNum = parseFloat(selectedHeight);
-      if (Number.isNaN(hNum) || hNum <= 0) {
-        setError(`Invalid height value. Enter a number like 480 or 12.7.`);
+      if (Number.isNaN(hNum)) {
+        setError(`Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
       if (unit === "cm") hNum = hNum * PX_PER_CM;
       options.height = Math.round(hNum);
       if (options.height < 1 || options.height > MAX_CUSTOM_PX) {
-        setError(`Height must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(`Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
         return;
       }
     }
@@ -374,12 +396,18 @@ function SvgToPngConverter() {
       });
       if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
-        setUsage({
+        const updatedUsage = {
           conversionsUsed: res.conversionsUsed,
           remaining: res.remaining,
           isUnlimited: false,
           limitReached: reached,
-        });
+        };
+        setUsage(updatedUsage);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
+          } catch {}
+        }
         window.dispatchEvent(
           new CustomEvent("crushUsageUpdated", {
             detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining },
@@ -424,6 +452,41 @@ function SvgToPngConverter() {
   const heightOptions = ["Auto", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
   const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
   const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
+
+  let validationError: string | null = null;
+  if (isCustomWidth) {
+    if (selectedWidth.trim() === "") {
+      validationError = "Please enter a custom width value.";
+    } else {
+      let wNum = parseFloat(selectedWidth);
+      if (Number.isNaN(wNum)) {
+        validationError = `Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+      } else {
+        if (unit === "cm") wNum = wNum * PX_PER_CM;
+        if (wNum < 1 || wNum > MAX_CUSTOM_PX) {
+          validationError = `Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        }
+      }
+    }
+  }
+
+  if (!validationError && isCustomHeight) {
+    if (selectedHeight.trim() === "") {
+      validationError = "Please enter a custom height value.";
+    } else {
+      let hNum = parseFloat(selectedHeight);
+      if (Number.isNaN(hNum)) {
+        validationError = `Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+      } else {
+        if (unit === "cm") hNum = hNum * PX_PER_CM;
+        if (hNum < 1 || hNum > MAX_CUSTOM_PX) {
+          validationError = `Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        }
+      }
+    }
+  }
+
+  const displayError = validationError || error;
 
   return (
     <>
@@ -485,15 +548,15 @@ function SvgToPngConverter() {
                         Clear
                       </span>
                     </button>
-                    {usage && (
-                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                    <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                      {usage
+                        ? usage.isUnlimited
                           ? "Unlimited conversions"
                           : `${usage.conversionsUsed} of ${
                               usage.conversionsUsed + usage.remaining
-                            } free conversions used`}
-                      </span>
-                    )}
+                            } free conversions used`
+                        : "0 of 3 free conversions used"}
+                    </span>
                   </div>
                 </div>
 
@@ -516,6 +579,19 @@ function SvgToPngConverter() {
                     className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+                  <button
+                    type="button"
+                    onClick={handleCopySvgCode}
+                    disabled={svgCode === SAMPLE_SVG || !svgCode}
+                    aria-label="Copy SVG code"
+                    className="absolute top-[12px] right-[12px] md:top-[16px] md:right-[16px] bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[8px] px-[10px] py-[6px] font-body text-[12px] font-medium transition-colors flex items-center gap-1.5 z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    {copiedCode ? "Copied!" : "Copy Code"}
+                  </button>
                 </div>
 
                 <input
@@ -552,7 +628,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">Drag &amp; Drop or </span>
                     <span className="font-medium text-brand-primary">Select SVG</span>
@@ -566,10 +642,31 @@ function SvgToPngConverter() {
                     : "Source size: unknown — set width/height or viewBox on your SVG"}
                 </p>
 
-                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px] lg:mt-auto mt-[6px] md:mt-[8px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="object-contain" />
-                  <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
-                </p>
+                <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
+                  {/* Feature Guide Box (when Custom is selected) */}
+                  {(isCustomWidth || isCustomHeight) && (
+                    <div className="w-full rounded-[12px] border border-[#8F8F8F] bg-white p-[14px] md:p-[16px] flex flex-col justify-center mb-[37px] gap-[8px]">
+                      <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
+                        <span>Pro PNG Export</span>
+                      </div>
+                      <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[5px]">
+                        <li className="flex items-center gap-2">
+                          <span className="text-brand-primary font-bold">✓</span>
+                          <span>Crisp, high-resolution rendering up to 4000px</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-brand-primary font-bold">✓</span>
+                          <span>Maintains perfect aspect ratio automatically</span>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
+                    <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
+                  </p>
+                </div>
               </div>
 
               {/* Right Column (Live Preview) */}
@@ -597,10 +694,10 @@ function SvgToPngConverter() {
                 </div>
 
                 {/* Settings & Controls */}
-                <div className="w-full mt-[16px] md:mt-[20px]">
+                <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col">
                   <div
-                    className={`w-full transition-all duration-300 ${
-                      converting ? "hidden md:block pointer-events-none opacity-50" : ""
+                    className={`w-full h-full flex flex-col justify-between transition-all duration-300 ${
+                      converting ? "hidden md:flex md:pointer-events-none opacity-50" : ""
                     }`}
                   >
                     {/* Dropdowns Row */}
@@ -1012,30 +1109,28 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
-                {error && (
+                {displayError && (
                   <div
                     role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
+                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] my-[16px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
                   >
-                    {error}
+                    {displayError}
                   </div>
                 )}
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[42px] mt-[16px] md:mt-[24px] flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] relative">
-                    {limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] md:mt-[24px] relative">
+                    {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
@@ -1045,9 +1140,9 @@ function SvgToPngConverter() {
                       </button>
                     ) : result?.data ? (
                       <Button
-                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleDownload}
-                        disabled={converting || isPlaceholderCode}
+                        disabled={converting || isPlaceholderCode || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                           Download PNG
@@ -1062,9 +1157,9 @@ function SvgToPngConverter() {
                       </Button>
                     ) : (
                       <Button
-                        className="w-[300px] h-[42px] px-[12px] md:px-[32px] rounded-[8px] md:rounded-[12px] gap-[6px] md:gap-[8px]"
+                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleConvert}
-                        disabled={converting}
+                        disabled={converting || isPlaceholderCode || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           Convert
