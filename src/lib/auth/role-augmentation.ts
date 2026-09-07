@@ -1,44 +1,36 @@
-import "server-only";
-
 /**
- * Module augmentation: locks the canonical role union onto the auth/session
- * contract so middleware and route handlers can rely on `role` without casts.
+ * Module augmentation: extends the auth/session contract with additional
+ * fields. Only NEW members may be declared here — re-declaring an existing
+ * property (e.g., `role`) with a different type triggers TS2717. The
+ * canonical `role: "user" | "admin"` union lives in:
+ *   - src/lib/shared/shared-types.ts (UserDTO)
+ *   - src/lib/auth/tokens.ts (DecodedAccessToken)
+ *   - src/lib/auth/edge-tokens.ts (EdgeDecodedToken)
  *
- * Server-side shapes (decoded access token, edge token) and the client-side
- * UserDTO are kept in sync here. Adding a new role (e.g., "moderator") to the
- * User model requires updating both this file and `shared-types.ts`.
+ * Add a new role (e.g., "moderator") by updating those three base files and
+ * extending the `AuthRole` union below so consumers get a single alias.
  */
+
+export type AuthRole = "user" | "admin";
+
 declare module "@/lib/shared/shared-types" {
     interface UserDTO {
-        uid: string;
-        email: string | null;
-        displayName: string;
-        name: string | null;
-        photoURL: string | null;
-        providers: string[];
-        linkedProviders: string[];
-        role: "user" | "admin";
-        hasPassword: boolean;
-        isVerified: boolean;
-        conversionsUsed: number;
-        createdAt: string;
-        lastLoginAt: string;
+        // Intentional additions only — no property re-declarations.
+        // `role` is already declared in the base interface.
+        // Optional example for future use:
+        // lastSeenAt?: string;
     }
 }
 
 declare module "@/lib/auth/tokens" {
     interface DecodedAccessToken {
-        id: string;
-        role: "user" | "admin";
-        jti?: string;
+        // No additions; `role` is already declared in the base interface.
     }
 }
 
 declare module "@/lib/auth/edge-tokens" {
     interface EdgeDecodedToken {
-        id: string;
-        role: "user" | "admin";
-        jti?: string;
+        // No additions; `role` is already declared in the base interface.
     }
 }
 
