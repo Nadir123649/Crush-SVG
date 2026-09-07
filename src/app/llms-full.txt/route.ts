@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-static";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net";
 
 const content = `# CrushSVG — Full Site Reference
 

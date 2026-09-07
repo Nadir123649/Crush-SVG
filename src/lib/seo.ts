@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net").replace(/\/$/, "");
 
 export const DEFAULT_KEYWORDS = [
   "crush svg",
@@ -240,3 +240,49 @@ export function getFAQSchema(faqs: { question: string; answer: string }[]) {
     })),
   };
 }
+
+export function getHowToSchema(name: string, description: string, steps: { name: string; text: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name,
+    description,
+    step: steps.map((step, idx) => ({
+      "@type": "HowToStep",
+      position: idx + 1,
+      name: step.name,
+      text: step.text,
+    })),
+  };
+}
+
+export function getArticleSchema(article: { title: string; description: string; slug: string; date: string; author?: string; image?: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    url: `${SITE_URL}/blog/${article.slug}`,
+    datePublished: article.date,
+    dateModified: article.date,
+    author: {
+      "@type": "Organization",
+      name: article.author || "CrushSVG Team",
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "CrushSVG",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icon-512.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/blog/${article.slug}`,
+    },
+    image: article.image || `${SITE_URL}/opengraph-image`,
+  };
+}
+

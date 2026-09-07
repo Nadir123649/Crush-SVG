@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { Hero } from '@/components/sections/Hero';
 import { Button } from '@/components/ui/Button';
+import { AdBanner } from '@/components/ui/AdBanner';
 
 interface BlogPostProps {
   params: Promise<{ slug: string }>;
@@ -41,6 +42,8 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
     description: post.description,
     url: `${SITE_URL}/blog/${post.slug}`,
     datePublished: post.date,
+    dateModified: post.date,
+    image: `${SITE_URL}/opengraph-image`,
     author: {
       '@type': 'Person',
       name: post.author,
@@ -52,6 +55,10 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
         '@type': 'ImageObject',
         url: `${SITE_URL}/icon-512.png`,
       },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}/blog/${post.slug}`,
     },
   };
 
@@ -133,6 +140,9 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
             </ReactMarkdown>
           </div>
         </section>
+
+        {/* AdSense Unit */}
+        <AdBanner />
 
         {/* Inline CTA callout — same as svg-guides */}
         <div className="p-5 md:p-6 rounded-[10px] bg-[#FCF1ED] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">

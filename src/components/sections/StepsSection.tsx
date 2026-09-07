@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
+import { getHowToSchema } from "@/lib/seo";
 
 export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const steps = mode === "background-remover" ? [
@@ -62,8 +63,36 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     },
   ];
 
+  const howToTitle = mode === "background-remover" 
+    ? "How to Remove Image Background Online" 
+    : mode === "image-resizer" 
+    ? "How to Resize Images Online" 
+    : mode === "raster-to-svg" 
+    ? "How to Convert Raster Images to SVG Vector" 
+    : "How to Convert SVG to PNG Online";
+
+  const howToDescription = mode === "background-remover"
+    ? "Remove background from photos in three simple steps."
+    : mode === "image-resizer"
+    ? "Resize PNG, JPG, and WebP images in seconds."
+    : mode === "raster-to-svg"
+    ? "Convert PNG or JPG raster images into scalable SVG vectors."
+    : "Convert SVG code or files into crisp transparent PNG images in three steps.";
+
+  const schemaSteps = steps.map((s) => ({
+    name: s.title,
+    text: s.description,
+  }));
+
   return (
     <section id="how-it-works" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getHowToSchema(howToTitle, howToDescription, schemaSteps)),
+        }}
+      />
+
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
         {mode === "background-remover" ? (
@@ -100,3 +129,4 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     </section>
   );
 }
+

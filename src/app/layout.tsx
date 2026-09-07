@@ -171,6 +171,14 @@ export default async function RootLayout({
           `}}
         />
 
+        {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="/llms.txt"
+          title="LLM Context"
+        />
+
       </head>
 
       <body
@@ -212,26 +220,6 @@ export default async function RootLayout({
             }}
           />
         </noscript>
-
-        {/* Structured data stays outside head-managed third-party scripts. */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebSiteSchema()),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getOrganizationSchema()),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebApplicationSchema()),
-          }}
-        />
 
         {/* Skip to main content */}
         <a

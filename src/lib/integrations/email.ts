@@ -105,6 +105,7 @@ function rewriteSiteLinks(html: string, url: string): string {
   const origin = /^https?:\/\/[^/]+/.exec(url)?.[0];
   if (!origin) return html;
   return html
+    .split("https://www.crushsvg.net").join(origin)
     .split("https://crushsvg.net").join(origin)
     .split("{{origin}}").join(origin);
 }
