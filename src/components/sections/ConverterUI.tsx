@@ -576,21 +576,21 @@ function SvgToPngConverter() {
                     }}
                     spellCheck={false}
                     aria-label="SVG code editor"
-                    className="w-full h-full pt-[13px] px-[16px] pb-[26px] md:pt-[21px] md:px-[24px] md:pb-[42px] resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <button
                     type="button"
                     onClick={handleCopySvgCode}
                     disabled={svgCode === SAMPLE_SVG || !svgCode}
-                    aria-label="Copy SVG code"
-                    className="absolute top-[12px] right-[12px] md:top-[16px] md:right-[16px] bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[8px] px-[10px] py-[6px] font-body text-[12px] font-medium transition-colors flex items-center gap-1.5 z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
+                    aria-label={copiedCode ? "SVG code copied" : "Copy SVG code"}
+                    title={copiedCode ? "Copied!" : "Copy code"}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
-                    {copiedCode ? "Copied!" : "Copy Code"}
                   </button>
                 </div>
 

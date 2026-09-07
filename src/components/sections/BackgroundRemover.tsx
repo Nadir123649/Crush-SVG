@@ -761,16 +761,23 @@ export function BackgroundRemover() {
                 {/* Main Upload / File Display Card */}
                 {dataUrl ? (
                   <div
+                    onClick={() => !processing && fileInputRef.current?.click()}
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDragOver(true);
                     }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
-                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border ${
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Click to replace image"
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && !processing) fileInputRef.current?.click();
+                    }}
+                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
-                        : "border-[#8F8F8F] bg-white"
+                        : "border-[#8F8F8F] bg-white hover:bg-gray-50/60 focus-visible:border-brand-primary focus-visible:outline-none"
                     } flex items-center justify-center p-[20px] overflow-hidden group transition-colors`}
                   >
                     <img
@@ -911,7 +918,7 @@ export function BackgroundRemover() {
                     <ul className="text-[11px] md:text-[12px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">Auto-detects and removes image backgrounds</span>
+                        <span className="leading-[1.3]">Auto detects and removes image backgrounds</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
@@ -923,7 +930,7 @@ export function BackgroundRemover() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">100% private — images stay in your browser</span>
+                        <span className="leading-[1.3]">100% private images stay in your browser</span>
                       </li>
                     </ul>
                   </div>
@@ -1010,9 +1017,6 @@ export function BackgroundRemover() {
                         alt="Background removed result"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
-                        Transparent PNG
-                      </span>
                     </div>
                   ) : previewMode === "before" && dataUrl ? (
                     <div className="relative w-full h-full flex flex-col items-center justify-center">

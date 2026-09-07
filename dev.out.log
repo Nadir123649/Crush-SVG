@@ -1,0 +1,23 @@
+
+> crushsvg@1.0.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.100.24:3000
+- Environments: .env.development, .env
+✓ Ready in 1770ms
+✓ Running next.config.ts took 2.6s
+[crushsvg] DNS servers overridden: 8.8.8.8,8.8.4.4
+Connected to MongoDB successfully
+- Experiments (use with caution):
+  · clientTraceMetadata
+
+ GET / 200 in 1568ms (next.js: 248ms, proxy.ts: 408ms, application-code: 913ms)
+ GET /png-to-svg 200 in 752ms (next.js: 290ms, proxy.ts: 12ms, application-code: 449ms)
+ GET /api/v1/health 200 in 999ms (next.js: 807ms, proxy.ts: 11ms, application-code: 181ms)
+ GET /png-to-svg 200 in 320ms (next.js: 39ms, proxy.ts: 21ms, application-code: 260ms)
+ POST /api/v1/auth/refresh 200 in 310ms (next.js: 232ms, proxy.ts: 11ms, application-code: 66ms)
+ GET / 200 in 242ms (next.js: 15ms, proxy.ts: 14ms, application-code: 213ms)
+ POST /api/v1/auth/refresh 200 in 83ms (next.js: 13ms, proxy.ts: 45ms, application-code: 25ms)
+ GET / 200 in 201ms (next.js: 12ms, proxy.ts: 7ms, application-code: 183ms)

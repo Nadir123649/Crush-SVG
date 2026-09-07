@@ -218,6 +218,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
               >
                 {user?.photoURL && !imageError ? (
                   <img
+                    key={user.photoURL}
                     src={user.photoURL}
                     alt=""
                     className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"

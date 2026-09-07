@@ -80,6 +80,8 @@ export default function BlogPage() {
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}
           </ReactMarkdown>
+
+          <a href="/" className="inline-block bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] !text-white font-medium rounded-[12px] px-[20px] py-[10px] hover:opacity-90 transition-opacity no-underline w-max">Try it free</a>
         </div>
       </article>
     </main>
