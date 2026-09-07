@@ -129,10 +129,10 @@ export default async function RootLayout({
         />
 
         {/* Google AdSense */}
-        <Script
-          id="google-adsense"
+        <script
+          async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          strategy="afterInteractive"
+          crossOrigin="anonymous"
         />
 
         {/* GDPR: Default consent denied — must run before GA4 config */}
@@ -169,6 +169,14 @@ export default async function RootLayout({
             gtag('js', new Date());
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}}
+        />
+
+        {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="/llms.txt"
+          title="LLM Context"
         />
 
       </head>

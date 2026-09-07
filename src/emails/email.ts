@@ -74,6 +74,7 @@ function rewriteSiteLinks(html: string, url: string): string {
     if (!origin)
         return html;
     return html
+        .split("https://www.crushsvg.net").join(origin)
         .split("https://crushsvg.net").join(origin)
         .split("{{origin}}").join(origin);
 }

@@ -125,6 +125,14 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Privacy Policy</Link>
             <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Terms of Service</Link>
           </div>
+          {/* Column 4: Use Cases */}
+          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
+            <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">Use Cases</h4>
+            <Link href="/use-case/svg-to-png-for-react" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">React & Next.js</Link>
+            <Link href="/use-case/svg-to-png-for-email-signatures" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Email Signatures</Link>
+            <Link href="/use-case/svg-to-png-transparent-background" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-transparent-background')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Transparent PNG</Link>
+            <Link href="/use-case/high-resolution-svg-to-png" onClick={(e) => handlePageClick(e, '/use-case/high-resolution-svg-to-png')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">High Resolution</Link>
+          </div>
         </div>
 
         {/* Right: Engineered For Quality (Desktop only) */}

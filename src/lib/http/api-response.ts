@@ -60,7 +60,7 @@ export function getOrigin(request: NextRequest): string {
         // password resets, or any user-facing redirect — fall back to frontend.
         const normalized = host.toLowerCase().replace(/:\d+$/, "");
         if (/^(api|staging\.api)\.crushsvg\.net$/.test(normalized)) {
-            return canonicalBase() || "https://crushsvg.net";
+            return canonicalBase() || "https://www.crushsvg.net";
         }
         return originFromHost(request, host);
     }

@@ -663,7 +663,7 @@ function SvgToPngConverter() {
                   )}
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
-                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
                     <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
                   </p>
                 </div>

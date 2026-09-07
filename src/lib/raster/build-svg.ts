@@ -25,7 +25,7 @@ export function injectMetadata(svg: string, ctx: MetadataContext): string {
     `<desc>${escapeXml(desc)}</desc>`,
     `<metadata>`,
     `<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">`,
-    `<crushsvg:Conversion xmlns:crushsvg="https://crushsvg.net/ns#">`,
+    `<crushsvg:Conversion xmlns:crushsvg="https://www.crushsvg.net/ns#">`,
     `<crushsvg:engine>vtracer</crushsvg:engine>`,
     `<crushsvg:mode>${escapeXml(ctx.options.mode)}</crushsvg:mode>`,
     `<crushsvg:quality>${escapeXml(ctx.options.quality)}</crushsvg:quality>`,
