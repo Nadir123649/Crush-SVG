@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { getAllPosts } from "@/lib/blog";
+import { useCases } from "@/lib/data/use-cases";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = getAllPosts();
@@ -11,6 +12,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.8,
   }));
+
+  const useCaseUrls: MetadataRoute.Sitemap = useCases.map((uc) => ({
+    url: `${SITE_URL}/use-case/${uc.slug}`,
+    lastModified: "2026-08-28",
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
 
   return [
     {
@@ -32,6 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     ...blogUrls,
+    ...useCaseUrls,
     {
       url: `${SITE_URL}/png-to-svg`,
       lastModified: "2026-08-27",

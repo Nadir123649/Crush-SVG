@@ -110,34 +110,11 @@ export default function RootLayout({
         />
 
         {/* Google AdSense */}
-        <script
-          async
+        <Script
+          id="google-adsense"
+          strategy="afterInteractive"
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
-        />
-
-        {/* Website Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebSiteSchema()),
-          }}
-        />
-
-        {/* Organization Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getOrganizationSchema()),
-          }}
-        />
-
-        {/* Web Application Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebApplicationSchema()),
-          }}
         />
       </head>
 
@@ -157,6 +134,26 @@ export default function RootLayout({
             }}
           />
         </noscript>
+
+        {/* Structured data stays outside head-managed third-party scripts. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getWebSiteSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getOrganizationSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getWebApplicationSchema()),
+          }}
+        />
 
         {/* Skip to main content */}
         <a
