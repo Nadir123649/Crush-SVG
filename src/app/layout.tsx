@@ -129,10 +129,10 @@ export default async function RootLayout({
         />
 
         {/* Google AdSense */}
-        <Script
-          id="google-adsense"
+        <script
+          async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          strategy="afterInteractive"
+          crossOrigin="anonymous"
         />
 
         {/* GDPR: Default consent denied — must run before GA4 config */}

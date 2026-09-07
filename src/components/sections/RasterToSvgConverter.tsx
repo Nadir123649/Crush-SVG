@@ -902,7 +902,6 @@ export function RasterToSvgConverter() {
                       alt="Upload Image"
                       width={36}
                       height={36}
-                      style={{ width: "auto", height: "auto" }}
                       className="w-[28px] h-[28px] md:w-[36px] md:h-[36px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
 
@@ -1009,7 +1008,7 @@ export function RasterToSvgConverter() {
 
                 {/* Privacy Assurance Text */}
                 <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} style={{ width: "auto", height: "auto" }} className="shrink-0" />
+                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
 
