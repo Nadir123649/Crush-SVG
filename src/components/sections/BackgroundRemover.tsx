@@ -761,16 +761,23 @@ export function BackgroundRemover() {
                 {/* Main Upload / File Display Card */}
                 {dataUrl ? (
                   <div
+                    onClick={() => !processing && fileInputRef.current?.click()}
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDragOver(true);
                     }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
-                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border ${
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Click to replace image"
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && !processing) fileInputRef.current?.click();
+                    }}
+                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
-                        : "border-[#8F8F8F] bg-white"
+                        : "border-[#8F8F8F] bg-white hover:bg-gray-50/60 focus-visible:border-brand-primary focus-visible:outline-none"
                     } flex items-center justify-center p-[20px] overflow-hidden group transition-colors`}
                   >
                     <img
@@ -1010,9 +1017,6 @@ export function BackgroundRemover() {
                         alt="Background removed result"
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
-                      <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
-                        Transparent PNG
-                      </span>
                     </div>
                   ) : previewMode === "before" && dataUrl ? (
                     <div className="relative w-full h-full flex flex-col items-center justify-center">

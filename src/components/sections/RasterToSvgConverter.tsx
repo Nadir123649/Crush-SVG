@@ -997,11 +997,11 @@ export function RasterToSvgConverter() {
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Complete privacy protection — all processing happens in your browser</span>
+                        <span>Complete privacy protection to all processing happens in your browser</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Instant download &amp; copy-to-clipboard for seamless workflow</span>
+                        <span>Instant download &amp; copy to clipboard for seamless workflow</span>
                       </li>
                     </ul>
                   </div>
@@ -1121,7 +1121,9 @@ export function RasterToSvgConverter() {
                         </button>
                       </div>
                       <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
-                        {result.svg}
+                        {result.svg.length > 3000
+                          ? result.svg.slice(0, 3000) + "\n\n... [Code truncated for performance. Use 'Copy Code' or Download to get the full SVG]"
+                          : result.svg}
                       </pre>
                     </div>
                   ) : previewMode === "source" && rasterDataUrl ? (
