@@ -23,13 +23,20 @@ const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const JPEG_SIG = Buffer.from([0xff, 0xd8, 0xff]);
 const GIF_SIG_87 = Buffer.from("GIF87a");
 const GIF_SIG_89 = Buffer.from("GIF89a");
-const BMP_SIG = Buffer.from("BM");
+const RIFF_SIG = Buffer.from("RIFF");
+const WEBP_SIG = Buffer.from("WEBP");
 
-export type AcceptedImageType = "png" | "jpeg" | "gif" | "bmp";
+export type AcceptedImageType = "png" | "jpeg" | "gif" | "bmp" | "webp";
 
 export function sniffImageType(buffer: Buffer): AcceptedImageType | null {
   if (buffer.length >= 8 && buffer.subarray(0, 8).equals(PNG_SIG)) return "png";
   if (buffer.length >= 3 && buffer.subarray(0, 3).equals(JPEG_SIG)) return "jpeg";
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).equals(RIFF_SIG) &&
+    buffer.subarray(8, 12).equals(WEBP_SIG)
+  )
+    return "webp";
   if (buffer.length >= 6 && (buffer.subarray(0, 6).equals(GIF_SIG_87) || buffer.subarray(0, 6).equals(GIF_SIG_89)))
     return "gif";
   if (buffer.length >= 2 && buffer.subarray(0, 2).equals(BMP_SIG)) return "bmp";

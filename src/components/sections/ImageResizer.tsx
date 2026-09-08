@@ -725,7 +725,7 @@ export function ImageResizer() {
                       {usage.isUnlimited
                         ? "Unlimited conversions"
                         : `${usage.conversionsUsed} of ${
-                            usage.conversionsUsed + usage.remaining
+                            usage.conversionsUsed + (usage.remaining ?? 0)
                           } free conversions used`}
                     </span>
                   )}

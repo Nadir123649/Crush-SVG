@@ -32,6 +32,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/health',
   '/api/v1/convert',
   '/api/v1/vectorize',
+  '/api/v1/usage',
   '/api/v1/svg/validate',
   '/api/v1/passwords/',
   '/api/v1/verification/',
@@ -41,7 +42,6 @@ const PUBLIC_API_PREFIXES = [
 const AUTH_API_PREFIXES = [
   '/api/v1/profile',
   '/api/v1/conversions',
-  '/api/v1/usage',
   '/api/v1/uploads',
   '/api/me',
 ]

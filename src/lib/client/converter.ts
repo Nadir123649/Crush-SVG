@@ -6,6 +6,8 @@ export interface ConvertRequest {
   scale?: number
   transparent?: boolean
   quality?: number
+  bgOption?: "Transparent" | "White" | "Black" | "Custom"
+  bgColor?: string
 }
 
 export interface ConvertResponse {

@@ -60,9 +60,14 @@ export async function processWithModnet(
   buffer: Buffer,
   options: BgRemoveOptionsParsed,
 ): Promise<BgRemoveResult> {
-  const meta = await sharp(buffer, { animated: false }).metadata();
-  const origWidth = meta.width ?? 0;
-  const origHeight = meta.height ?? 0;
+  // Single decode — get metadata and raw pixels in one pass
+  const decoded = await sharp(buffer, { animated: false })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const origWidth = decoded.info.width;
+  const origHeight = decoded.info.height;
 
   if (!origWidth || !origHeight) {
     throw new BgRemoveError("invalid_image", "Could not read image dimensions.");
@@ -77,12 +82,16 @@ export async function processWithModnet(
     );
   }
 
+  // Downscale if over pixel budget — operate on raw pixels directly
+  let workingPixels = decoded.data;
+  let workingW = origWidth;
+  let workingH = origHeight;
   const pixels = origWidth * origHeight;
   if (pixels > BG_REMOVE_LIMITS.MAX_PIXELS) {
     const scale = Math.sqrt(BG_REMOVE_LIMITS.MAX_PIXELS / pixels);
     const targetW = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(origWidth * scale));
     const targetH = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(origHeight * scale));
-    buffer = await sharp(buffer, { animated: false })
+    const resized = await sharp(decoded.data, { raw: { width: origWidth, height: origHeight, channels: 4 } })
       .resize(targetW, targetH, {
         fit: "inside",
         withoutEnlargement: true,
@@ -90,10 +99,15 @@ export async function processWithModnet(
       })
       .png()
       .toBuffer();
+    // Decode resized PNG back to raw for the padding step
+    const resizedDecoded = await sharp(resized).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    workingPixels = resizedDecoded.data;
+    workingW = resizedDecoded.info.width;
+    workingH = resizedDecoded.info.height;
   }
 
   // Pad to square for model input (MODNet expects square input)
-  const padded = await sharp(buffer, { animated: false })
+  const padded = await sharp(workingPixels, { raw: { width: workingW, height: workingH, channels: 4 } })
     .ensureAlpha()
     .resize(WORKING_SIZE, WORKING_SIZE, {
       fit: "contain",
@@ -138,7 +152,6 @@ export async function processWithModnet(
     throw new BgRemoveError("processing_failed", "MODNet returned an empty result set.");
   }
 
-  // Extract the RGBA data from the RawImage
   const resultWidth = resultImage.width;
   const resultHeight = resultImage.height;
   const resultData = resultImage.data;
@@ -147,58 +160,48 @@ export async function processWithModnet(
     throw new BgRemoveError("processing_failed", "MODNet returned invalid image data.");
   }
 
-  // Extract the alpha channel from the result
-  const resultBuf = Buffer.from(resultData);
-  const resultSharp = sharp(resultBuf, {
+  // Extract alpha channel from MODNet result — single sharp pipeline
+  const alphaChannel = await sharp(Buffer.from(resultData), {
     raw: { width: resultWidth, height: resultHeight, channels: 4 },
-  });
-
-  // Extract alpha from the MODNet result
-  const alphaChannel = await resultSharp
+  })
     .extractChannel(3) // alpha channel
     .raw()
     .toBuffer();
 
-  // Crop the content area out of the padded 512×512 alpha.
-  // fit:"contain" centers the image inside the square, so we compute the
-  // content rectangle and extract it before resizing to original dimensions.
+  // Compute content region (undo padding)
   const contentAspect = origWidth / origHeight;
   let contentW: number;
   let contentH: number;
   let padX: number;
   let padY: number;
 
-  if (contentAspect >= 1) {
-    // wider or square – height is the limiting dimension
-    contentH = resultHeight;
-    contentW = Math.round(resultHeight * contentAspect);
-    // contentW can exceed resultWidth when aspect > 1 after contain; clamp
-    if (contentW > resultWidth) {
-      contentW = resultWidth;
-      contentH = Math.round(resultWidth / contentAspect);
+if (contentAspect >= 1) {
+        contentH = resultHeight;
+        contentW = Math.round(resultHeight * contentAspect);
+        if (contentW > resultWidth) {
+            contentW = resultWidth;
+            contentH = Math.round(resultWidth / contentAspect);
+        }
+        padX = Math.floor((resultWidth - contentW) / 2);
+        padY = Math.floor((resultHeight - contentH) / 2);
+    } else {
+        contentW = resultWidth;
+        contentH = Math.round(resultWidth / contentAspect);
+        if (contentH > resultHeight) {
+            contentH = resultHeight;
+            contentW = Math.round(resultHeight * contentAspect);
+        }
+        padX = Math.floor((resultWidth - contentW) / 2);
+        padY = Math.floor((resultHeight - contentH) / 2);
     }
-    padX = Math.round((resultWidth - contentW) / 2);
-    padY = Math.round((resultHeight - contentH) / 2);
-  } else {
-    // taller – width is the limiting dimension
-    contentW = resultWidth;
-    contentH = Math.round(resultWidth / contentAspect);
-    if (contentH > resultHeight) {
-      contentH = resultHeight;
-      contentW = Math.round(resultHeight * contentAspect);
-    }
-    padX = Math.round((resultWidth - contentW) / 2);
-    padY = Math.round((resultHeight - contentH) / 2);
-  }
 
-  // Clamp to valid bounds (safety for rounding)
   contentW = Math.min(contentW, resultWidth - padX);
   contentH = Math.min(contentH, resultHeight - padY);
 
-  // Crop content area, then resize to original dimensions.
-  // .toColourspace('b-w') is required: Sharp's .raw() silently upscales
-  // 1-channel images to 3-channel RGB after pipeline operations like
-  // resize(), which would cause a 3× buffer overrun and scanline corruption.
+  // Resize alpha mask to original dimensions — raw single-channel buffer.
+  // .toColourspace("b-w") is required: Sharp's .raw() silently upscales
+  // 1-channel images to 3-channel RGB after pipeline operations like resize(),
+  // which would cause a 3× buffer overrun and scanline corruption.
   const resizedAlpha = await sharp(alphaChannel, {
     raw: { width: resultWidth, height: resultHeight, channels: 1 },
   })
@@ -211,33 +214,23 @@ export async function processWithModnet(
     .raw()
     .toBuffer();
 
-  // Get original image as raw RGBA
-  const originalRaw = await sharp(buffer, { animated: false })
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  // Combine original RGB with MODNet alpha
-  const combined = new Uint8ClampedArray(origWidth * origHeight * 4);
-  for (let i = 0; i < origWidth * origHeight; i++) {
-    const srcIdx = i * 4;
-    const dstIdx = i * 4;
-    combined[dstIdx] = originalRaw.data[srcIdx];       // R
-    combined[dstIdx + 1] = originalRaw.data[srcIdx + 1]; // G
-    combined[dstIdx + 2] = originalRaw.data[srcIdx + 2]; // B
-    combined[dstIdx + 3] = resizedAlpha[i];              // A from MODNet
+  // Write alpha mask directly into RGBA pixel data — avoids broken dest-in composite
+  // (dest-in with a 1-channel grayscale overlay is treated as fully opaque by sharp)
+  const maskedPixels = new Uint8Array(decoded.data);
+  const totalPixels = origWidth * origHeight;
+  for (let i = 0; i < totalPixels; i++) {
+    maskedPixels[i * 4 + 3] = resizedAlpha[i];
   }
 
-  // Handle bgOption
-  let outputBuffer: Buffer;
+  let composited: Buffer;
+
   switch (options.bgOption) {
-    case "Transparent":
-      outputBuffer = await sharp(Buffer.from(combined), {
-        raw: { width: origWidth, height: origHeight, channels: 4 },
-      })
-        .png()
+    case "Transparent": {
+      composited = await sharp(maskedPixels, { raw: { width: origWidth, height: origHeight, channels: 4 } })
+        .png({ compressionLevel: 3, adaptiveFiltering: true })
         .toBuffer();
       break;
+    }
     case "White":
     case "Black":
     case "Custom": {
@@ -251,57 +244,51 @@ export async function processWithModnet(
       const g = parseInt(targetHex.slice(3, 5), 16);
       const b = parseInt(targetHex.slice(5, 7), 16);
 
-      // Composite the foreground over the target background color
-      const fgImage = sharp(Buffer.from(combined), {
-        raw: { width: origWidth, height: origHeight, channels: 4 },
-      });
+      // Create solid RGBA background, composite masked foreground over it
       const bgImage = sharp({
         create: {
           width: origWidth,
           height: origHeight,
-          channels: 3,
-          background: { r, g, b },
+          channels: 4,
+          background: { r, g, b, alpha: 255 },
         },
       });
-      outputBuffer = await fgImage
-        .composite([{ input: await bgImage.png().toBuffer(), blend: "over" }])
-        .png()
+
+      composited = await bgImage
+        .composite([{ input: Buffer.from(maskedPixels), raw: { width: origWidth, height: origHeight, channels: 4 }, blend: "over" }])
+        .png({ compressionLevel: 3, adaptiveFiltering: true })
         .toBuffer();
       break;
     }
-    default:
-      outputBuffer = await sharp(Buffer.from(combined), {
-        raw: { width: origWidth, height: origHeight, channels: 4 },
-      })
-        .png()
+    default: {
+      composited = await sharp(maskedPixels, { raw: { width: origWidth, height: origHeight, channels: 4 } })
+        .png({ compressionLevel: 3, adaptiveFiltering: true })
         .toBuffer();
+    }
   }
 
-  // Apply scale
-  const scaleFactor = options.scale / 100;
-  let finalBuffer = outputBuffer;
+  // Apply scale — single sharp pipeline, no intermediate PNG encode
+  let finalBuffer = composited;
   let finalWidth = origWidth;
   let finalHeight = origHeight;
+  const scaleFactor = options.scale / 100;
   if (scaleFactor !== 1) {
     finalWidth = Math.max(1, Math.round(origWidth * scaleFactor));
     finalHeight = Math.max(1, Math.round(origHeight * scaleFactor));
-    finalBuffer = await sharp(outputBuffer)
+    finalBuffer = await sharp(composited)
       .resize(finalWidth, finalHeight, {
         fit: "inside",
         kernel: sharp.kernel.lanczos3,
       })
-      .png()
+      .png({ compressionLevel: 3, adaptiveFiltering: true })
       .toBuffer();
   }
 
-  const dataUrl = `data:image/png;base64,${finalBuffer.toString("base64")}`;
-  const outMeta = await sharp(finalBuffer).metadata();
-
   return {
-    dataUrl,
+    buffer: finalBuffer,
     format: "png",
     size: finalBuffer.length,
-    width: outMeta.width ?? finalWidth,
-    height: outMeta.height ?? finalHeight,
+    width: finalWidth,
+    height: finalHeight,
   };
 }

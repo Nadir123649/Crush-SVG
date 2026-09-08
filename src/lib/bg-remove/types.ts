@@ -11,7 +11,7 @@ export interface BgRemoveOptions {
 }
 
 export interface BgRemoveResult {
-  dataUrl: string;
+  buffer: Buffer;
   format: string;
   size: number;
   width: number;

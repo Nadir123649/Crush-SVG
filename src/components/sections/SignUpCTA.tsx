@@ -38,7 +38,7 @@ export function SignUpCTA() {
     return null;
   }
 
-  const remaining = usage ? usage.remaining : 3;
+  const remaining = usage ? (usage.remaining ?? 0) : 3;
   const used = usage ? usage.conversionsUsed : 0;
   const totalFree = remaining + used || 3; // Default to 3 if both are 0 but total isn't known
 

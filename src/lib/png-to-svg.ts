@@ -1,4 +1,5 @@
 import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
+import { getAccessToken } from "@/lib/client/http";
 
 export type TracingMode = "auto" | "logo" | "line-art" | "photo";
 export type PaletteLevel = "auto" | "8" | "24" | "48";
@@ -69,7 +70,7 @@ const QUALITY_KNOBS: Record<QualityLevel, QualityKnobs> = {
       pathPrecision: 3,
     },
     maxDimension: 2000,
-    doUpscale: true,
+    doUpscale: false,
   },
   high: {
     vtraceOptions: {
@@ -82,7 +83,7 @@ const QUALITY_KNOBS: Record<QualityLevel, QualityKnobs> = {
       pathPrecision: 4,
     },
     maxDimension: 2500,
-    doUpscale: true,
+    doUpscale: false,
   },
 };
 
@@ -145,6 +146,51 @@ function preprocessGrayscale(imageData: ImageData): ImageData {
     od[i + 1] = luma;
     od[i + 2] = luma;
   }
+  return out;
+}
+
+/** Combined remove-background + grayscale in a single pixel pass. */
+function removeBackgroundAndGrayscale(
+  imageData: ImageData,
+  threshold = 35
+): ImageData {
+  const { data, width: w, height: h } = imageData;
+  const out = new ImageData(new Uint8ClampedArray(data), w, h);
+  const od = out.data;
+
+  const bg = detectBackgroundColor(data, w, h);
+  const thresholdSq = threshold * threshold;
+
+  let fgCount = 0;
+  let bgCount = 0;
+
+  for (let i = 0; i < od.length; i += 4) {
+    const r = od[i];
+    const g = od[i + 1];
+    const b = od[i + 2];
+    const a = od[i + 3];
+
+    if (a === 0) continue;
+
+    const distSq = (r - bg.r) ** 2 + (g - bg.g) ** 2 + (b - bg.b) ** 2;
+    if (distSq <= thresholdSq) {
+      od[i + 3] = 0;
+      bgCount++;
+    } else {
+      fgCount++;
+      // Grayscale in the same pass
+      const luma = Math.round(grayLuma(r, g, b));
+      od[i] = luma;
+      od[i + 1] = luma;
+      od[i + 2] = luma;
+    }
+  }
+
+  const total = fgCount + bgCount;
+  if (total > 0 && fgCount / total < 0.01) {
+    return imageData;
+  }
+
   return out;
 }
 
@@ -378,7 +424,7 @@ function removeBackground(
   }
 
   const total = fgCount + bgCount;
-  if (total > 0 && fgCount / total < 0.1) {
+  if (total > 0 && fgCount / total < 0.01) {
     return imageData;
   }
 
@@ -397,23 +443,36 @@ function dilateAlpha(imageData: ImageData, px = 1): ImageData {
   const out = new ImageData(new Uint8ClampedArray(data), w, h);
   const od = out.data;
 
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      if (od[i + 3] > 0) continue;
+  // Two-pass approach: forward pass (top-left → bottom-right) then backward pass
+  // Each pass checks 2 neighbors instead of 9, reducing operations from O(w*h*9) to O(w*h*4)
+  for (let pass = 0; pass < 2; pass++) {
+    const yStart = pass === 0 ? 0 : h - 1;
+    const yEnd = pass === 0 ? h : -1;
+    const yStep = pass === 0 ? 1 : -1;
 
-      let maxAlpha = 0;
-      for (let dy = -px; dy <= px; dy++) {
-        for (let dx = -px; dx <= px; dx++) {
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-          const ni = (ny * w + nx) * 4;
-          if (data[ni + 3] > maxAlpha) maxAlpha = data[ni + 3];
+    for (let y = yStart; y !== yEnd; y += yStep) {
+      for (let x = pass === 0 ? 0 : w - 1; x !== (pass === 0 ? w : -1); x += pass === 0 ? 1 : -1) {
+        const i = (y * w + x) * 4;
+        if (od[i + 3] > 0) continue;
+
+        let maxAlpha = 0;
+        // Check neighbors in the direction of this pass
+        for (let dy = -px; dy <= px; dy++) {
+          for (let dx = -px; dx <= px; dx++) {
+            // Only check neighbors we haven't already processed
+            if (pass === 0 && (dy < 0 || (dy === 0 && dx < 0))) continue;
+            if (pass === 1 && (dy > 0 || (dy === 0 && dx > 0))) continue;
+
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+            const ni = (ny * w + nx) * 4;
+            if (data[ni + 3] > maxAlpha) maxAlpha = data[ni + 3];
+          }
         }
-      }
-      if (maxAlpha > 0) {
-        od[i + 3] = Math.min(255, maxAlpha);
+        if (maxAlpha > 0) {
+          od[i + 3] = Math.min(255, maxAlpha);
+        }
       }
     }
   }
@@ -495,7 +554,7 @@ function replaceBackgroundWithColor(
   }
 
   const total = fgCount + bgCount;
-  if (total > 0 && fgCount / total < 0.1) {
+  if (total > 0 && fgCount / total < 0.01) {
     return imageData;
   }
 
@@ -604,6 +663,51 @@ function countDistinctColors(imageData: ImageData): number {
   return seen.size;
 }
 
+async function processWithBackgroundRemoverEngine(
+  file: File,
+  bgOption: "Transparent" | "Custom",
+  bgColor?: string
+): Promise<HTMLImageElement | null> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bgOption", bgOption);
+    if (bgOption === "Custom" && bgColor) {
+      formData.append("bgColor", bgColor);
+    }
+    formData.append("scale", "100");
+
+    const token = typeof window !== "undefined" ? getAccessToken() : null;
+    const res = await fetch("/api/v1/background-remove", {
+      method: "POST",
+      headers: {
+        "x-internal-pipeline": "raster-to-svg",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!res.ok) return null;
+
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return await new Promise<HTMLImageElement | null>((resolve) => {
+      const resultImg = new Image();
+      resultImg.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(resultImg);
+      };
+      resultImg.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      resultImg.src = objectUrl;
+    });
+  } catch {
+    return null;
+  }
+}
+
 /* ── Main export ───────────────────────────────────────────────────── */
 
 export async function convertPngToSvg(
@@ -644,19 +748,37 @@ export async function convertPngToSvg(
   const isCustom = background === "custom";
 
   /* ── Step 1: Draw canvas with background handling ──────────────── */
-  const imageData = drawToCanvas(img, drawW, drawH, isTransparent);
-  let processedImageData: ImageData;
+  let engineImg: HTMLImageElement | null = null;
+  if (isTransparent || isCustom) {
+    engineImg = await processWithBackgroundRemoverEngine(
+      file,
+      isTransparent ? "Transparent" : "Custom",
+      customHex
+    );
+  }
 
-  if (isTransparent) {
-    processedImageData = removeBackground(imageData);
-  } else if (isCustom && customHex) {
-    const bg = detectBackgroundColor(imageData.data, drawW, drawH);
-    processedImageData =
-      bg.coverage >= 0.05
-        ? replaceBackgroundWithColor(imageData, bg, customHex)
-        : bakeCustomBgUnderImage(img, drawW, drawH, customHex);
+  let processedImageData: ImageData;
+  if (engineImg) {
+    processedImageData = drawToCanvas(engineImg, drawW, drawH, isTransparent);
+    if (isTransparent && tracingMode === "line-art") {
+      processedImageData = preprocessGrayscale(processedImageData);
+    }
   } else {
-    processedImageData = imageData;
+    const imageData = drawToCanvas(img, drawW, drawH, isTransparent);
+    if (isTransparent && tracingMode === "line-art") {
+      // Single pass: remove background + convert to grayscale
+      processedImageData = removeBackgroundAndGrayscale(imageData);
+    } else if (isTransparent) {
+      processedImageData = removeBackground(imageData);
+    } else if (isCustom && customHex) {
+      const bg = detectBackgroundColor(imageData.data, drawW, drawH);
+      processedImageData =
+        bg.coverage >= 0.05
+          ? replaceBackgroundWithColor(imageData, bg, customHex)
+          : bakeCustomBgUnderImage(img, drawW, drawH, customHex);
+    } else {
+      processedImageData = imageData;
+    }
   }
 
   /* ── Step 2: Resolve tracing mode ──────────────────────────────── */
@@ -669,7 +791,8 @@ export async function convertPngToSvg(
 
   /* ── Step 3: Mode-specific preprocess ──────────────────────────── */
   let preprocessed = processedImageData;
-  if (resolvedMode === "line-art") {
+  if (resolvedMode === "line-art" && !(isTransparent && tracingMode === "line-art")) {
+    // Only run separate grayscale pass if we didn't already do it in the combined pass
     preprocessed = preprocessGrayscale(processedImageData);
   }
 
@@ -694,9 +817,8 @@ export async function convertPngToSvg(
     if (resolvedMode === "photo" && outputSize > file.size * VECTOR_SIZE_RATIO_LIMIT) {
       let fallbackDataUrl = dataUrl;
       if (isTransparent) {
-        const fbData = drawToCanvas(img, drawW, drawH, true);
-        const fbProcessed = removeBackground(fbData);
-        const fbDilated = dilateAlpha(fbProcessed);
+        // Reuse already-processed data, just dilate alpha
+        const fbDilated = dilateAlpha(processedImageData);
         fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
       } else if (isCustom && customHex) {
         fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
@@ -738,9 +860,8 @@ export async function convertPngToSvg(
     // Any trace error → pixel fallback
     let fallbackDataUrl = dataUrl;
     if (isTransparent) {
-      const fbData = drawToCanvas(img, drawW, drawH, true);
-      const fbProcessed = removeBackground(fbData);
-      const fbDilated = dilateAlpha(fbProcessed);
+      // Reuse already-processed data, just dilate alpha
+      const fbDilated = dilateAlpha(processedImageData);
       fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
     } else if (isCustom && customHex) {
       fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);

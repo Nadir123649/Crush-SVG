@@ -25,25 +25,23 @@ export function detectBackgroundColor(
   ];
   for (const [x, y] of corners) {
     const i = (y * w + x) * 4;
+    if (data[i + 3] === 0) continue;
     samples.push({ r: data[i], g: data[i + 1], b: data[i + 2] });
   }
 
   for (let i = 0; i < 8; i++) {
     const t = Math.floor(((i + 1) / 9) * (w - 1));
     const ti = (0 * w + t) * 4;
-    samples.push({ r: data[ti], g: data[ti + 1], b: data[ti + 2] });
+    if (data[ti + 3] !== 0) samples.push({ r: data[ti], g: data[ti + 1], b: data[ti + 2] });
     const bi = ((h - 1) * w + t) * 4;
-    samples.push({ r: data[bi], g: data[bi + 1], b: data[bi + 2] });
+    if (data[bi + 3] !== 0) samples.push({ r: data[bi], g: data[bi + 1], b: data[bi + 2] });
     const li = (Math.floor((i * (h - 1)) / 7) * w + 0) * 4;
-    samples.push({ r: data[li], g: data[li + 1], b: data[li + 2] });
+    if (data[li + 3] !== 0) samples.push({ r: data[li], g: data[li + 1], b: data[li + 2] });
     const ri = (Math.floor((i * (h - 1)) / 7) * w + (w - 1)) * 4;
-    samples.push({ r: data[ri], g: data[ri + 1], b: data[ri + 2] });
+    if (data[ri + 3] !== 0) samples.push({ r: data[ri], g: data[ri + 1], b: data[ri + 2] });
   }
 
   // ── 2. Interior grid samples ─────────────────────────────────────────────
-  // Sample a grid of points across the full image interior so that large
-  // uniform regions behind the foreground are also detected as background.
-  // Grid density scales with image area but is capped to keep cost low.
   const gridCols = Math.min(16, Math.max(4, Math.ceil(w / 128)));
   const gridRows = Math.min(16, Math.max(4, Math.ceil(h / 128)));
   for (let gy = 0; gy < gridRows; gy++) {
@@ -51,6 +49,7 @@ export function detectBackgroundColor(
       const x = Math.round(((gx + 0.5) / gridCols) * (w - 1));
       const y = Math.round(((gy + 0.5) / gridRows) * (h - 1));
       const i = (y * w + x) * 4;
+      if (data[i + 3] === 0) continue;
       samples.push({ r: data[i], g: data[i + 1], b: data[i + 2] });
     }
   }
@@ -77,6 +76,12 @@ export function detectBackgroundColor(
   }
 
   clusters.sort((a, b) => b.count - a.count);
+
+  // All sampled pixels were transparent — no background to detect.
+  if (clusters.length === 0) {
+    return { r: 255, g: 255, b: 255, coverage: 0 };
+  }
+
   const dominant = clusters[0];
   const coverage = dominant.count / samples.length;
 
