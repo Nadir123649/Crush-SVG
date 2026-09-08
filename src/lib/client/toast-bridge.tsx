@@ -33,8 +33,9 @@ function InfoIcon() {
 
 // Rate-limited toast: only one toast is visible at a time (the previous one is
 // dismissed before showing the next) and identical messages fired within the
-// dedupe window are swallowed to avoid spam.
-export function showToast(kind: ToastKind, message: string) {
+// dedupe window are swallowed to avoid spam. Pass an `id` to prevent duplicate
+// toasts for the same action (e.g. rapid button clicks).
+export function showToast(kind: ToastKind, message: string, opts?: { id?: string }) {
   const now = Date.now()
   if (message === lastMessage && now - lastShownAt < DEDUPE_WINDOW_MS) return
 
@@ -42,12 +43,14 @@ export function showToast(kind: ToastKind, message: string) {
     toast.dismiss(activeToastId)
   }
 
+  const options = opts?.id ? { id: opts.id } : undefined
+
   const id =
     kind === "success"
-      ? toast.success(message)
+      ? toast.success(message, options)
       : kind === "error"
-        ? toast.error(message)
-        : toast(message, { icon: <InfoIcon /> })
+        ? toast.error(message, options)
+        : toast(message, { icon: <InfoIcon />, ...options })
 
   activeToastId = id
   lastMessage = message

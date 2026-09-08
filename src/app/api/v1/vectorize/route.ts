@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { successResponse, errorResponse } from "@/lib/http/api-response";
 import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
@@ -94,6 +95,9 @@ export async function POST(request: NextRequest) {
 
     const userId = request.headers.get("x-user-id");
     if (!userId) await incrementUsage(limit.guestId);
+
+    // Invalidate admin dashboard cache for real-time metrics
+    revalidatePath('/admin')
 
     const usage = await getUsage(request);
     const response = successResponse(
