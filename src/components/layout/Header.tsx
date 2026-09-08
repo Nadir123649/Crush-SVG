@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
@@ -121,9 +120,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname === "/png-to-svg" || pathname === "/" || pathname === "/svg-to-png") {
-      setLastConverter(pathname);
-      sessionStorage.setItem("last_converter", pathname);
+    const p = pathname as string;
+    if (p === "/png-to-svg" || p === "/" || p === "/svg-to-png") {
+      setLastConverter(p);
+      sessionStorage.setItem("last_converter", p);
     } else {
       const stored = sessionStorage.getItem("last_converter");
       if (stored === "/png-to-svg" || stored === "/" || stored === "/svg-to-png") {
@@ -215,7 +215,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               href="/blog"
               className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Blog
+              {tNav("blog")}
             </Link>
 
             <Link
@@ -288,7 +288,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                         {tNav("imageResizer")}
                       </Link>
                       <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        Blog & Articles
+                        {tNav("blog")}
                       </Link>
                       <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
                         {tNav("guides")}

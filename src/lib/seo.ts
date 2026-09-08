@@ -84,7 +84,7 @@ export const LOCALIZED_ROUTE_MAP: Record<string, Record<string, string>> = {
 
 interface LocalizedSEOProps {
   locale: string;
-  routeKey: keyof typeof LOCALIZED_ROUTE_MAP;
+  routeKey: string;
   title: string;
   description: string;
   image?: string;
@@ -101,8 +101,17 @@ export function constructLocalizedMetadata({
   keywords = DEFAULT_KEYWORDS,
   noindex = false,
 }: LocalizedSEOProps): Metadata {
-  const routeMapping = LOCALIZED_ROUTE_MAP[routeKey] || { [locale]: routeKey };
-  const currentPath = routeMapping[locale] || routeKey;
+  const defaultLocales = ["en", "es", "de", "fr", "pt", "ja"];
+  const cleanRoute = routeKey.startsWith("/") ? routeKey : `/${routeKey}`;
+  const routeMapping =
+    LOCALIZED_ROUTE_MAP[cleanRoute] ||
+    Object.fromEntries(
+      defaultLocales.map((loc) => [
+        loc,
+        loc === "en" ? cleanRoute : `/${loc}${cleanRoute === "/" ? "" : cleanRoute}`,
+      ])
+    );
+  const currentPath = routeMapping[locale] || (locale === "en" ? cleanRoute : `/${locale}${cleanRoute === "/" ? "" : cleanRoute}`);
   const canonicalUrl = `${SITE_URL}${currentPath === "/" ? "" : currentPath}`;
 
   const languages: Record<string, string> = {};

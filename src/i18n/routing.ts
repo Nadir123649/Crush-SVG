@@ -1,3 +1,4 @@
+import type { ComponentProps, ComponentType } from "react";
 import { defineRouting } from "next-intl/routing";
 import { createNavigation } from "next-intl/navigation";
 
@@ -44,13 +45,24 @@ export const routing = defineRouting({
 });
 
 export type Locale = (typeof routing.locales)[number];
-export const { Link, redirect, usePathname, useRouter, getPathname } = createNavigation(routing);
+const navigation = createNavigation(routing);
+export const redirect = navigation.redirect;
+export const usePathname = navigation.usePathname;
+export const useRouter = navigation.useRouter;
+export const getPathname = navigation.getPathname;
 
-export const LOCALE_LABELS: Record<Locale, { name: string; nativeName: string; flag: string }> = {
-  en: { name: "English", nativeName: "English", flag: "🇺🇸" },
-  es: { name: "Spanish", nativeName: "Español", flag: "🇪🇸" },
-  de: { name: "German", nativeName: "Deutsch", flag: "🇩🇪" },
-  fr: { name: "French", nativeName: "Français", flag: "🇫🇷" },
-  pt: { name: "Portuguese", nativeName: "Português", flag: "🇧🇷" },
-  ja: { name: "Japanese", nativeName: "日本語", flag: "🇯🇵" },
+export const Link = navigation.Link as unknown as ComponentType<
+  Omit<ComponentProps<typeof navigation.Link>, "href"> & {
+    href: string | { pathname: string; query?: Record<string, any> };
+    locale?: Locale;
+  }
+>;
+
+export const LOCALE_LABELS: Record<Locale, { name: string; nativeName: string; flag: string; region: string }> = {
+  en: { name: "English", nativeName: "English", flag: "🇺🇸", region: "Global" },
+  es: { name: "Spanish", nativeName: "Español", flag: "🇪🇸", region: "España / LatAm" },
+  de: { name: "German", nativeName: "Deutsch", flag: "🇩🇪", region: "Deutschland" },
+  fr: { name: "French", nativeName: "Français", flag: "🇫🇷", region: "France" },
+  pt: { name: "Portuguese", nativeName: "Português", flag: "🇧🇷", region: "Brasil / Portugal" },
+  ja: { name: "Japanese", nativeName: "日本語", flag: "🇯🇵", region: "日本" },
 };

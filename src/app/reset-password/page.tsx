@@ -1,20 +1,11 @@
-import React from "react";
-import { constructMetadata } from "@/lib/seo";
-import { ResetPasswordCard } from "@/components/auth/ResetPasswordCard";
-import { GuestOnly } from "@/components/auth/GuestOnly";
+import ResetPasswordPage, {
+  generateMetadata as baseGenerateMetadata,
+} from "../[locale]/reset-password/page";
 
-export const metadata = constructMetadata({
-  title: "Reset Password | CrushSVG",
-  description: "Reset your CrushSVG password.",
-  noindex: true,
-});
+export async function generateMetadata() {
+  return baseGenerateMetadata({ params: Promise.resolve({ locale: "en" }) });
+}
 
-export default function ResetPasswordPage() {
-  return (
-    <GuestOnly>
-      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-        <ResetPasswordCard />
-      </div>
-    </GuestOnly>
-  );
+export default function RootResetPasswordPage() {
+  return <ResetPasswordPage params={Promise.resolve({ locale: "en" })} />;
 }

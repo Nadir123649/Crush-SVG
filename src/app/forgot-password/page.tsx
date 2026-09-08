@@ -1,20 +1,11 @@
-import React from "react";
-import { ForgotPasswordCard } from "@/components/auth/ForgotPasswordCard";
-import { GuestOnly } from "@/components/auth/GuestOnly";
-import { constructMetadata } from "@/lib/seo";
+import ForgotPasswordPage, {
+  generateMetadata as baseGenerateMetadata,
+} from "../[locale]/forgot-password/page";
 
-export const metadata = constructMetadata({
-  title: "Forgot Password | CrushSVG",
-  description: "Reset your CrushSVG password.",
-  noindex: true,
-});
+export async function generateMetadata() {
+  return baseGenerateMetadata({ params: Promise.resolve({ locale: "en" }) });
+}
 
-export default function ForgotPasswordPage() {
-  return (
-    <GuestOnly>
-      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-        <ForgotPasswordCard />
-      </div>
-    </GuestOnly>
-  );
+export default function RootForgotPasswordPage() {
+  return <ForgotPasswordPage params={Promise.resolve({ locale: "en" })} />;
 }
