@@ -212,6 +212,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </Link>
 
             <Link
+              href="/blog"
+              className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+            >
+              Blog
+            </Link>
+
+            <Link
               href="/svg-guides"
               className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
@@ -279,6 +286,9 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                       </Link>
                       <Link href="/image-resizer" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
                         {tNav("imageResizer")}
+                      </Link>
+                      <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
+                        Blog & Articles
                       </Link>
                       <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
                         {tNav("guides")}
