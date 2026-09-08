@@ -4,7 +4,7 @@ import sharp from "sharp";
 
 env.allowRemoteModels = true;
 env.allowLocalModels = true;
-env.useFS = true;
+env.useFSCache = true;
 env.useBrowserCache = false;
 
 const MODEL_ID = "Xenova/modnet";
@@ -316,21 +316,17 @@ function removeBackgroundByDistance(
 }
 
 // ── MODNet engine (mirrors src/lib/bg-remove/modnet.ts) ────────────────
-type BackgroundRemovalPipeline = {
-    (input: string): Promise<{ width: number; height: number; data: Uint8Array }>;
-};
+type RawImageResult = { width: number; height: number; data: Uint8Array };
 
-let pipelinePromise: BackgroundRemovalPipeline | null = null;
+let pipelinePromise: ((input: string) => Promise<RawImageResult | RawImageResult[]>) | null = null;
 let initError: Error | null = null;
 
-async function getPipeline(): Promise<BackgroundRemovalPipeline> {
+async function getPipeline() {
     if (pipelinePromise) return pipelinePromise;
     if (initError) throw initError;
-    pipelinePromise = (await pipeline(
-        "background-removal",
-        MODEL_ID,
-        { device: "cpu", dtype: "fp32" },
-    )) as unknown as BackgroundRemovalPipeline;
+    pipelinePromise = await pipeline("background-removal", MODEL_ID, {
+        dtype: "fp32",
+    }) as (input: string) => Promise<RawImageResult | RawImageResult[]>;
     return pipelinePromise;
 }
 
@@ -393,7 +389,7 @@ async function runModnet(buffer: Buffer): Promise<{ buffer: Buffer; width: numbe
         .png()
         .toBuffer();
 
-    let bgRemovalPipeline: BackgroundRemovalPipeline;
+    let bgRemovalPipeline;
     try {
         bgRemovalPipeline = await getPipeline();
     } catch (error) {
@@ -401,11 +397,11 @@ async function runModnet(buffer: Buffer): Promise<{ buffer: Buffer; width: numbe
         throw new Error(`Failed to initialize MODNet model: ${initError.message}`);
     }
 
-    let resultImage: { width: number; height: number; data: Uint8Array } | null = null;
+    let rawResult: RawImageResult | RawImageResult[] | null = null;
     let tmpPath: string | null = null;
     try {
         tmpPath = await writeTempPng(padded);
-        resultImage = await bgRemovalPipeline(tmpPath);
+        rawResult = await bgRemovalPipeline(tmpPath);
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         throw new Error(`MODNet inference failed: ${msg}`);
@@ -413,7 +409,12 @@ async function runModnet(buffer: Buffer): Promise<{ buffer: Buffer; width: numbe
         if (tmpPath) await cleanupTempFile(tmpPath);
     }
 
-    if (!resultImage) throw new Error("MODNet returned no result.");
+    if (!rawResult) throw new Error("MODNet returned no result.");
+
+    // transformers.js v4 may return an array of RawImage or a single RawImage
+    const resultImage: RawImageResult = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+
+    if (!resultImage) throw new Error("MODNet returned an empty result set.");
 
     const resultWidth = resultImage.width;
     const resultHeight = resultImage.height;
@@ -564,7 +565,12 @@ export async function processSvgBackgroundRemove(buffer: Buffer): Promise<SvgBgR
 
     const classification = classifyImage(rawData, w, h);
     if (classification === "photo") {
-        return runModnet(buffer);
+        try {
+            return await runModnet(buffer);
+        } catch {
+            // MODNet failed — fall back to color-distance removal
+            return runColorDistance(buffer);
+        }
     }
     return runColorDistance(buffer);
 }

@@ -8,7 +8,7 @@ import {
   incrementGuestUsage,
   GUEST_CONVERSION_LIMIT,
 } from "@/lib/usage/guest-usage";
-import { classifyBgRemoveError, BgRemoveError } from "@/lib/bg-remove/errors";
+import { classifyBgRemoveError } from "@/lib/bg-remove/errors";
 import { bgRemoveOptionsSchema } from "@/lib/bg-remove/validation";
 import { BG_REMOVE_LIMITS, isAcceptedImage } from "@/lib/bg-remove/limits";
 import { processBackgroundRemove } from "@/lib/bg-remove/process";
@@ -186,18 +186,9 @@ export async function POST(request: NextRequest) {
         request,
       );
     }
-    if (error instanceof BgRemoveError) {
-      await logConversionError(request, error);
-      return errorResponse(
-        error.status,
-        error.code,
-        error.message,
-        undefined,
-        request,
-      );
-    }
     const failure = classifyBgRemoveError(error);
     await logConversionError(request, error);
+    console.error("[bg-remove] Processing error:", error);
     return errorResponse(
       failure.status,
       failure.code,

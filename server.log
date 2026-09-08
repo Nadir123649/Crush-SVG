@@ -1,10 +1,21 @@
+npm warn Unknown project config "supportedArchitectures.os". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "supportedArchitectures.cpu". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> crushsvg@1.0.0 dev
+> next dev
+
 ▲ Next.js 16.3.0 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.100.38:3000
-- Environments: .env.local, .env.development, .env
-✓ Ready in 1349ms
-✓ Running next.config.ts took 2.4s
+- Network:       http://192.168.100.22:3000
+- Environments: .env.development, .env
+✓ Ready in 444ms
+[@sentry/nextjs] Importing `withSentryConfig` from `@sentry/nextjs` is deprecated and will stop working in v11. Import it from `@sentry/nextjs/config` instead:
+  import { withSentryConfig } from '@sentry/nextjs/config';
+✓ Running next.config.ts took 847ms
+[crushsvg] DNS servers overridden: 8.8.8.8,8.8.4.4
 Connected to MongoDB successfully
 - Experiments (use with caution):
   · clientTraceMetadata
 
+○ Compiling /background-remover ...
+ GET /background-remover 200 in 5.7s (next.js: 5.1s, proxy.ts: 206ms, application-code: 412ms)

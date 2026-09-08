@@ -9,31 +9,25 @@ import { BG_REMOVE_LIMITS } from "./limits";
 // Configure Transformers.js for server-side use
 env.allowRemoteModels = true;
 env.allowLocalModels = true;
-env.useFS = true;
+// v4 auto-detects FS and cache; force filesystem cache on server, disable browser cache
+env.useFSCache = true;
 env.useBrowserCache = false;
 
 const MODEL_ID = "Xenova/modnet";
 const WORKING_SIZE = 512;
 
-type BackgroundRemovalPipeline = {
-  (input: string): Promise<{ width: number; height: number; data: Uint8Array }>;
-};
+type RawImageResult = { width: number; height: number; data: Uint8Array };
 
-let pipelinePromise: BackgroundRemovalPipeline | null = null;
+let pipelinePromise: ((input: string) => Promise<RawImageResult | RawImageResult[]>) | null = null;
 let initError: Error | null = null;
 
-async function getPipeline(): Promise<BackgroundRemovalPipeline> {
+async function getPipeline() {
   if (pipelinePromise) return pipelinePromise;
   if (initError) throw initError;
 
-  pipelinePromise = (await pipeline(
-    "background-removal",
-    MODEL_ID,
-    {
-      device: "cpu",
-      dtype: "fp32",
-    },
-  )) as unknown as BackgroundRemovalPipeline;
+  pipelinePromise = await pipeline("background-removal", MODEL_ID, {
+    dtype: "fp32",
+  }) as (input: string) => Promise<RawImageResult | RawImageResult[]>;
 
   return pipelinePromise;
 }
@@ -110,7 +104,7 @@ export async function processWithModnet(
     .toBuffer();
 
   // Run MODNet inference
-  let bgRemovalPipeline: BackgroundRemovalPipeline;
+  let bgRemovalPipeline;
   try {
     bgRemovalPipeline = await getPipeline();
   } catch (error) {
@@ -121,11 +115,11 @@ export async function processWithModnet(
     );
   }
 
-  let resultImage: { width: number; height: number; data: Uint8Array } | null = null;
+  let rawResult: RawImageResult | RawImageResult[] | null = null;
   let tmpPath: string | null = null;
   try {
     tmpPath = await writeTempPng(padded);
-    resultImage = await bgRemovalPipeline(tmpPath);
+    rawResult = await bgRemovalPipeline(tmpPath);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     throw new BgRemoveError("processing_failed", `MODNet inference failed: ${msg}`);
@@ -133,12 +127,18 @@ export async function processWithModnet(
     if (tmpPath) await cleanupTempFile(tmpPath);
   }
 
-  if (!resultImage) {
+  if (!rawResult) {
     throw new BgRemoveError("processing_failed", "MODNet returned no result.");
   }
 
-  // resultImage is a RawImage with alpha channel applied
-  // Extract the RGBA data
+  // transformers.js v4 may return an array of RawImage or a single RawImage
+  const resultImage: RawImageResult = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+
+  if (!resultImage) {
+    throw new BgRemoveError("processing_failed", "MODNet returned an empty result set.");
+  }
+
+  // Extract the RGBA data from the RawImage
   const resultWidth = resultImage.width;
   const resultHeight = resultImage.height;
   const resultData = resultImage.data;

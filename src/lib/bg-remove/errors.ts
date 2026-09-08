@@ -4,7 +4,8 @@ export type BgRemoveErrorCode =
   | "invalid_image"
   | "image_too_large"
   | "unsupported_dimensions"
-  | "processing_failed";
+  | "processing_failed"
+  | "model_unavailable";
 
 export interface BgRemoveFailure {
   status: number;
@@ -41,6 +42,20 @@ export function classifyBgRemoveError(error: unknown): BgRemoveFailure {
       status: 400,
       code: "image_too_large",
       message: "Image is too large to process. Try a smaller image.",
+    };
+  }
+  if (/fetch|network|ECONNREFUSED|ENOTFOUND|EAI_AGAIN/i.test(msg)) {
+    return {
+      status: 502,
+      code: "model_unavailable",
+      message: "Could not download the AI model. Please try again in a moment.",
+    };
+  }
+  if (/onnx|ort|session|model.*load/i.test(msg)) {
+    return {
+      status: 500,
+      code: "model_unavailable",
+      message: "AI model failed to initialize. Using fallback engine.",
     };
   }
   return {

@@ -56,8 +56,13 @@ export async function processBackgroundRemove(
   const classification = classifyImage(rawData, w, h);
 
   if (classification === "photo") {
-    const processModnet = await getModnetProcessor();
-    return processModnet(buffer, options);
+    try {
+      const processModnet = await getModnetProcessor();
+      return await processModnet(buffer, options);
+    } catch {
+      // MODNet failed — fall back to legacy color-distance engine
+      return processLegacy(buffer, options);
+    }
   }
 
   // graphic → legacy engine
