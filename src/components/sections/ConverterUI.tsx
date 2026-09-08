@@ -48,6 +48,25 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
+const COLOR_PRESETS = [
+  { name: "White", hex: "#FFFFFF" },
+  { name: "Black", hex: "#000000" },
+  { name: "Slate", hex: "#1E293B" },
+  { name: "Orange", hex: "#D94A1E" },
+  { name: "Blue", hex: "#2563EB" },
+  { name: "Emerald", hex: "#059669" },
+];
+
+function normalizeHex(input: string): string {
+  let hex = input.trim();
+  if (!hex.startsWith("#")) hex = "#" + hex;
+  if (hex.length === 4) {
+    hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  }
+  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex.toUpperCase();
+  return "#FFFFFF";
+}
+
 const formatDimensionLabel = (val: string, currentUnit: string) => {
   if (val === "Original" || val === "Auto" || val === "Custom") return val;
   return `${val} ${currentUnit}`;
@@ -71,6 +90,8 @@ function SvgToPngConverter() {
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
   const [transparent, setTransparent] = useState(false);
+  const [bgOption, setBgOption] = useState<"Transparent" | "White" | "Black" | "Custom">("White");
+  const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -153,15 +174,22 @@ function SvgToPngConverter() {
   }, [openDropdown]);
 
   useEffect(() => {
+    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
+    if (status === "authed") {
+      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+    }
+
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
+
     let cancelled = false;
     getUsage()
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
       .catch(() => {
-        if (!cancelled) {
+        if (cancelled) return;
+        if (status !== "authed") {
           setUsage(null);
           setUsageFailed(true);
         }
@@ -212,6 +240,13 @@ function SvgToPngConverter() {
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
+  const resultImageUrl = useMemo(() => {
+    if (!result?.data) return "";
+    return `data:${result.mimeType || "image/png"};base64,${result.data}`;
+  }, [result]);
+
+  const activePreviewUrl = resultImageUrl || previewUrl;
+
   function handleSvgChange(value: string) {
     setSvgCode(value);
     setResult(null);
@@ -233,6 +268,8 @@ function SvgToPngConverter() {
     setIsCustomHeight(false);
     setIsCustomScale(false);
     setTransparent(false);
+    setBgOption("White");
+    setCustomBgColor("#FFFFFF");
   }
 
   function handleClearSvg() {
@@ -344,7 +381,12 @@ function SvgToPngConverter() {
       return;
     }
     setError(null);
-    const options: ConvertRequest = { transparent };
+    const resolvedBg = transparent ? "Transparent" : bgOption;
+    const options: ConvertRequest = {
+      transparent,
+      bgOption: resolvedBg,
+      bgColor: !transparent && bgOption === "Custom" ? normalizeHex(customBgColor) : undefined,
+    };
 
     if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
       let wNum = parseFloat(selectedWidth);
@@ -394,7 +436,14 @@ function SvgToPngConverter() {
         height: options.height,
         scale: options.scale,
       });
-      if (res.remaining !== undefined) {
+      if (status === "authed") {
+        setUsage((prev) => ({
+          conversionsUsed: res.conversionsUsed ?? (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
+          remaining: null,
+          isUnlimited: true,
+          limitReached: false,
+        }));
+      } else if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         const updatedUsage = {
           conversionsUsed: res.conversionsUsed,
@@ -549,12 +598,12 @@ function SvgToPngConverter() {
                       </span>
                     </button>
                     <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {usage
-                        ? usage.isUnlimited
-                          ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + usage.remaining
-                            } free conversions used`
+                      {status === "authed" || usage?.isUnlimited
+                        ? "Unlimited conversions"
+                        : usage
+                        ? `${usage.conversionsUsed} of ${
+                            usage.conversionsUsed + (usage.remaining ?? 0)
+                          } free conversions used`
                         : "0 of 3 free conversions used"}
                     </span>
                   </div>
@@ -672,16 +721,41 @@ function SvgToPngConverter() {
               {/* Right Column (Live Preview) */}
               <div className="w-full lg:w-[537px] flex flex-col">
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">Live Preview</h2>
+                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+                    {result ? "Converted PNG Preview" : "Live Preview"}
+                  </h2>
+                  {result && (
+                    <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      PNG Ready{result.width && result.height ? ` (${result.width}×${result.height})` : ""}
+                    </span>
+                  )}
                 </div>
 
                 {/* Live Preview Box */}
-                <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
-                  {storageRestored && previewUrl && !previewError ? (
+                <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]">
+                  {result && transparent && (
+                    <div
+                      className="absolute inset-0 opacity-20 pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+                        backgroundSize: "16px 16px",
+                        backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                      }}
+                    />
+                  )}
+                  {converting ? (
+                    <div className="flex flex-col items-center justify-center gap-3 z-20">
+                      <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
+                      <span className="font-body font-medium text-[14px] text-[#353A3E]">
+                        Converting SVG to PNG...
+                      </span>
+                    </div>
+                  ) : storageRestored && activePreviewUrl && !previewError ? (
                     <img
-                      src={previewUrl}
-                      alt="SVG preview"
-                      className="w-full h-full object-contain drop-shadow-md"
+                      src={activePreviewUrl}
+                      alt={result ? "Converted PNG preview" : "SVG preview"}
+                      className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-md z-10"
                       onError={() => setPreviewError(true)}
                     />
                   ) : storageRestored ? (
@@ -1100,12 +1174,98 @@ function SvgToPngConverter() {
                         checked={transparent}
                         aria-label="Enable transparent background for PNG output"
                         onChange={(e) => {
-                          setTransparent(e.target.checked);
+                          const isChecked = e.target.checked;
+                          setTransparent(isChecked);
+                          setBgOption(isChecked ? "Transparent" : "White");
                           resetConversion();
                         }}
                         className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] rounded border-[#8F8F8F] accent-brand-primary cursor-pointer"
                       />
                     </label>
+
+                    {/* Custom Background Color Selection when Transparent is unchecked
+                    {!transparent && (
+                      <div className="w-full rounded-[12px] border border-[#8F8F8F] mt-[12px] p-[12px] md:p-[16px] bg-white flex flex-col gap-[10px]">
+                        <div className="flex items-center justify-between">
+                          <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E]">
+                            Background Color
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {(["White", "Black", "Custom"] as const).map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => {
+                                  setBgOption(opt);
+                                  resetConversion();
+                                }}
+                                className={`px-2.5 py-1 rounded-[6px] font-body text-[12px] md:text-[13px] font-medium transition-all cursor-pointer ${
+                                  bgOption === opt
+                                    ? "bg-brand-primary text-white shadow-xs"
+                                    : "bg-gray-100 text-[#475569] hover:bg-gray-200"
+                                }`}
+                              >
+                                {opt === "Custom" ? "Custom Color" : opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {bgOption === "Custom" && (
+                          <div className="pt-[8px] border-t border-gray-100 flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              {COLOR_PRESETS.map((c) => (
+                                <button
+                                  key={c.hex}
+                                  type="button"
+                                  onClick={() => {
+                                    setCustomBgColor(c.hex);
+                                    resetConversion();
+                                  }}
+                                  title={c.name}
+                                  style={{ backgroundColor: c.hex }}
+                                  className={`w-6 h-6 rounded-full border transition-all cursor-pointer ${
+                                    customBgColor.toLowerCase() === c.hex.toLowerCase()
+                                      ? "border-[#D94A1E] scale-110 shadow-xs ring-2 ring-[#D94A1E]/30"
+                                      : "border-gray-300 hover:scale-105"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <label
+                                htmlFor="custom-bg-color-picker"
+                                className="w-8 h-8 rounded-[6px] border border-gray-300 cursor-pointer overflow-hidden flex items-center justify-center shrink-0"
+                                style={{ backgroundColor: customBgColor }}
+                              >
+                                <input
+                                  id="custom-bg-color-picker"
+                                  type="color"
+                                  value={normalizeHex(customBgColor)}
+                                  onChange={(e) => {
+                                    setCustomBgColor(e.target.value);
+                                    resetConversion();
+                                  }}
+                                  className="opacity-0 w-0 h-0 cursor-pointer"
+                                />
+                              </label>
+                              <input
+                                type="text"
+                                value={customBgColor}
+                                onChange={(e) => {
+                                  setCustomBgColor(e.target.value);
+                                  resetConversion();
+                                }}
+                                maxLength={7}
+                                placeholder="#FFFFFF"
+                                className="w-24 h-8 px-2 rounded-[6px] border border-gray-300 font-mono text-[12px] text-[#353A3E] outline-none focus:border-[#D94A1E]"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    */}
                   </div>
                 </div>
 
@@ -1139,22 +1299,37 @@ function SvgToPngConverter() {
                         Sign up for unlimited conversions
                       </button>
                     ) : result?.data ? (
-                      <Button
-                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
-                        onClick={handleDownload}
-                        disabled={converting || isPlaceholderCode || !!validationError}
-                      >
-                        <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                          Download PNG
-                          <Image
-                            src={IMAGES.exportIcon}
-                            alt=""
-                            width={16}
-                            height={16}
-                            className="brightness-0 invert"
-                          />
-                        </span>
-                      </Button>
+                      <>
+                        <Button
+                          className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                          onClick={handleDownload}
+                          disabled={converting || isPlaceholderCode || !!validationError}
+                        >
+                          <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
+                            Download PNG
+                            <Image
+                              src={IMAGES.exportIcon}
+                              alt=""
+                              width={16}
+                              height={16}
+                              className="brightness-0 invert"
+                            />
+                          </span>
+                        </Button>
+                        <div className="flex items-center gap-[16px] mt-[-4px]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              resetConversion();
+                              void handleConvert();
+                            }}
+                            disabled={converting || isPlaceholderCode || !!validationError}
+                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
+                          >
+                            Re-convert
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <Button
                         className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { successResponse, errorResponse } from "@/lib/http/api-response";
+import { errorResponse } from "@/lib/http/api-response";
 import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import {
@@ -8,7 +8,7 @@ import {
   incrementGuestUsage,
   GUEST_CONVERSION_LIMIT,
 } from "@/lib/usage/guest-usage";
-import { classifyBgRemoveError, BgRemoveError } from "@/lib/bg-remove/errors";
+import { classifyBgRemoveError } from "@/lib/bg-remove/errors";
 import { bgRemoveOptionsSchema } from "@/lib/bg-remove/validation";
 import { BG_REMOVE_LIMITS, isAcceptedImage } from "@/lib/bg-remove/limits";
 import { processBackgroundRemove } from "@/lib/bg-remove/process";
@@ -146,35 +146,48 @@ export async function POST(request: NextRequest) {
 
     const result = await processBackgroundRemove(buffer, options);
 
-    await logConversion({
-      userId: request.headers.get("x-user-id"),
-      guestId: limit.guestId,
-      inputFormat: file.type || "image",
-      outputFormat: "png",
-      originalSize,
-      success: true,
-    });
+    const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
 
-    if (!isAuthenticated(request)) await incrementUsage(limit.guestId);
+    if (!isInternalPipeline) {
+      await logConversion({
+        userId: request.headers.get("x-user-id"),
+        guestId: limit.guestId,
+        inputFormat: file.type || "image",
+        outputFormat: "png",
+        originalSize,
+        success: true,
+      });
+
+      if (!isAuthenticated(request)) await incrementUsage(limit.guestId);
+    }
 
     const usage = await getUsage(request);
-    const response = successResponse(
-      {
-        dataUrl: result.dataUrl,
-        format: result.format,
-        size: result.size,
-        width: result.width,
-        height: result.height,
-        conversionsUsed: isAuthenticated(request) ? undefined : usage.used,
-        remaining: isAuthenticated(request) ? undefined : usage.remaining,
-      },
-      200,
-      undefined,
-      request,
-    );
+
+    // Return binary PNG — avoids base64 inflation (+33%) and JSON serialization overhead
+    const headers = new Headers();
+    headers.set("Content-Type", "image/png");
+    headers.set("Content-Length", String(result.size));
+    headers.set("X-Image-Width", String(result.width));
+    headers.set("X-Image-Height", String(result.height));
+    if (!isAuthenticated(request)) {
+      headers.set("X-Conversions-Used", String(usage.used));
+      headers.set("X-Conversions-Remaining", String(usage.remaining));
+    }
 
     const { setCookie } = ensureGuestId(request);
-    if (setCookie) response.cookies.set(setCookie);
+
+    const response = new NextResponse(new Uint8Array(result.buffer), { status: 200, headers });
+
+    if (setCookie) {
+      response.cookies.set(setCookie.name, setCookie.value, {
+        httpOnly: setCookie.httpOnly,
+        secure: setCookie.secure,
+        sameSite: setCookie.sameSite,
+        path: setCookie.path,
+        maxAge: setCookie.maxAge,
+      });
+    }
+
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -186,18 +199,9 @@ export async function POST(request: NextRequest) {
         request,
       );
     }
-    if (error instanceof BgRemoveError) {
-      await logConversionError(request, error);
-      return errorResponse(
-        error.status,
-        error.code,
-        error.message,
-        undefined,
-        request,
-      );
-    }
     const failure = classifyBgRemoveError(error);
     await logConversionError(request, error);
+    console.error("[bg-remove] Processing error:", error);
     return errorResponse(
       failure.status,
       failure.code,

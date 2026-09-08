@@ -22,7 +22,7 @@ export interface TokenPairDTO {
 }
 export interface UsageInfo {
     conversionsUsed: number;
-    remaining: number;
+    remaining: number | null;
     isUnlimited: boolean;
     limitReached?: boolean;
 }
