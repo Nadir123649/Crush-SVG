@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from "next/server";
 import { errorResponse } from "@/lib/http/api-response";
 import { logConversion } from "@/lib/usage/conversion-logger";
@@ -160,6 +161,9 @@ export async function POST(request: NextRequest) {
 
       if (!isAuthenticated(request)) await incrementUsage(limit.guestId);
     }
+
+    // Invalidate admin dashboard cache for real-time metrics
+    revalidatePath('/admin')
 
     const usage = await getUsage(request);
 

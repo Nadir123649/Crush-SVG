@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { LocalTime } from "@/components/utils/LocalTime";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,7 +12,6 @@ import { showToast } from "@/lib/client/toast-bridge";
 
 const CONVERSIONS_PAGE_SIZE = 15;
 
-const SvgDownload = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
 const SvgCalendar = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
 const SvgCheck = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
 const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
@@ -125,7 +125,7 @@ export default function ConversionsPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast("success", "Conversions report exported successfully!");
+      showToast("success", "Conversions report exported successfully!", { id: "export-conversions" });
     } catch (err) {
       setError("Failed to export conversions");
     }
@@ -140,10 +140,7 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
-          <SvgDownload className="w-4 h-4 shrink-0" />
-          Export
-        </Button>
+        <ExportButton onClick={handleExportCSV} />
       </div>
 
       {/* Interactive Filters Area (Client-side controlled) */}
