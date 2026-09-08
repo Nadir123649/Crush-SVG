@@ -1,0 +1,316 @@
+{
+  "common": {
+    "brand": "CrushSVG",
+    "free": "Gratuit",
+    "or": "ou",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "back": "Retour",
+    "save": "Enregistrer",
+    "loading": "Chargement...",
+    "px": "px",
+    "cm": "cm",
+    "custom": "Personnalisé",
+    "original": "Original",
+    "auto": "Auto"
+  },
+  "navigation": {
+    "svgToPng": "SVG en PNG",
+    "pngToSvg": "PNG en SVG",
+    "backgroundRemover": "Supprimer Arrière-plan",
+    "imageResizer": "Redimensionner Image",
+    "guides": "Guides",
+    "needHelp": "Besoin d'aide ?",
+    "logIn": "Connexion",
+    "signUp": "S'inscrire",
+    "adminDashboard": "Tableau de bord admin",
+    "logOut": "Se déconnecter",
+    "openMenu": "Ouvrir le menu",
+    "accountMenu": "Menu du compte utilisateur",
+    "homeAria": "Page d'accueil CrushSVG"
+  },
+  "language": {
+    "label": "Langue",
+    "selectLanguage": "Choisir la langue",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "pt": "Português",
+    "ja": "日本語"
+  },
+  "homepage": {
+    "badgeLoggedIn": "Vous bénéficiez d'un accès illimité aux conversions.",
+    "badgeLoggedOut": "3 conversions gratuites. Créez un compte gratuit pour un accès illimité.",
+    "heroTitlePrefix": "De",
+    "heroTitleHighlight": "SVG en PNG,",
+    "heroTitleSuffix": "Exactement comme Prévu",
+    "heroSubtitle": "Collez votre code SVG, importez un fichier ou glissez-déposez-le. Générez des images PNG nettes en quelques secondes pour Outlook, Gmail, newsletters et sites web.",
+    "bgRemoverCtaTitle": "Besoin de supprimer",
+    "bgRemoverCtaHighlight": "l'arrière-plan d'une image ?",
+    "bgRemoverCtaDesc": "Importez n'importe quelle photo et obtenez un PNG transparent et net en quelques secondes. Gratuit, privé, sans installation.",
+    "bgRemoverCtaButton": "Essayer le Suppresseur d'Arrière-plan"
+  },
+  "tool_pages": {
+    "svgToPng": {
+      "title": "Convertisseur SVG en PNG",
+      "h1": "De SVG en PNG, Exactement comme Prévu",
+      "subtitle": "Collez votre code SVG, importez un fichier ou déposez-le. Obtenez des fichiers PNG haute résolution instantanément."
+    },
+    "pngToSvg": {
+      "title": "Convertisseur PNG en SVG (Vectorisation)",
+      "h1": "De PNG en SVG, Exactement comme Prévu",
+      "subtitle": "Importez une image PNG ou JPG pour créer des vecteurs SVG parfaitement évolutifs pour logos, icônes et interfaces web."
+    },
+    "backgroundRemover": {
+      "title": "Suppresseur d'Arrière-plan",
+      "h1": "Supprimez les Arrière-plans Instantanément",
+      "subtitle": "Importez n'importe quelle image et obtenez un fond transparent en quelques secondes. Gratuit, confidentiel et exécuté dans le navigateur."
+    },
+    "imageResizer": {
+      "title": "Redimensionneur d'Image",
+      "h1": "Redimensionnez vos Images Instantanément",
+      "subtitle": "Ajustez la taille de vos images en quelques secondes. Prise en charge de PNG, JPG et WebP directement dans votre navigateur."
+    }
+  },
+  "upload_interface": {
+    "dropOrBrowse": "Glissez-déposez votre fichier SVG ici, ou parcourez",
+    "pasteSvgCode": "Collez votre code SVG ici",
+    "svgCodeTab": "Code SVG",
+    "uploadFileTab": "Importer un fichier",
+    "dropRasterOrBrowse": "Glissez-déposez PNG, JPG ou WebP ici",
+    "maxFileSize": "Taille maximale : 10 Mo",
+    "dropActive": "Déposez le fichier ici...",
+    "chooseFile": "Choisir un fichier",
+    "clear": "Effacer"
+  },
+  "conversion_states": {
+    "converting": "Conversion en cours...",
+    "vectorizing": "Vectorisation en cours...",
+    "removingBg": "Suppression de l'arrière-plan...",
+    "resizing": "Redimensionnement en cours...",
+    "success": "Conversion réussie !",
+    "ready": "Prêt pour la conversion"
+  },
+  "download_interface": {
+    "convertButton": "Convertir en PNG",
+    "vectorizeButton": "Vectoriser en SVG",
+    "removeBgButton": "Supprimer l'Arrière-plan",
+    "resizeButton": "Redimensionner l'Image",
+    "downloadPng": "Télécharger le PNG",
+    "downloadSvg": "Télécharger le SVG",
+    "copyImage": "Copier l'Image",
+    "copied": "Copié dans le presse-papiers !",
+    "downloadStarted": "Téléchargement démarré",
+    "width": "Largeur",
+    "height": "Hauteur",
+    "scale": "Échelle",
+    "unit": "Unité",
+    "background": "Arrière-plan",
+    "transparent": "Transparent",
+    "white": "Blanc",
+    "black": "Noir",
+    "customColor": "Couleur personnalisée",
+    "presets": "Préréglages",
+    "preview": "Aperçu"
+  },
+  "errors": {
+    "invalidSvg": "Veuillez fournir un code SVG ou un fichier SVG valide.",
+    "conversionFailed": "Échec de la conversion. Veuillez vérifier votre balisage SVG et réessayer.",
+    "fileTooLarge": "Le fichier est trop volumineux. La taille maximale est de 10 Mo.",
+    "unsupportedFormat": "Format de fichier non pris en charge. Veuillez importer une image valide.",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion."
+  },
+  "authentication": {
+    "login": "Connexion",
+    "signup": "S'inscrire",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "signedOutToast": "Vous avez été déconnecté",
+    "unlimitedNotice": "Vous bénéficiez d'un accès illimité aux conversions."
+  },
+  "profile": {
+    "title": "Profil Utilisateur",
+    "conversionsRemaining": "{count} conversions restantes",
+    "unlimited": "Accès illimité"
+  },
+  "usage": {
+    "conversionsLeft": "{count} Conversions Gratuites Restantes",
+    "lastFreeConversion": "Dernière Conversion Gratuite",
+    "signUpForFree": "S'inscrire Gratuitement",
+    "unlimitedConversions": "Conversions Illimitées"
+  },
+  "features": {
+    "svgTitle": "Fini les logiciels complexes et les convertisseurs instables",
+    "rasterTitle": "Fini la perte de netteté et les artefacts de pixellisation",
+    "bgTitle": "Fini les retouches manuelles fastidieuses",
+    "resizerTitle": "Fini les éditeurs d'images lourds et compliqués",
+    "svgDesc": "Collez votre code SVG, importez un fichier ou déposez-le pour générer un PNG haute qualité en quelques secondes pour Gmail, Outlook, Canva et sites web.",
+    "rasterDesc": "Importez un PNG ou JPG pour créer un SVG vectoriel parfaitement net et évolutif pour vos logos, icônes et illustrations.",
+    "bgDesc": "Importez n'importe quelle photo et laissez notre outil s'occuper du reste. Idéal pour photos de produits, réseaux sociaux et portraits.",
+    "resizerDesc": "Redimensionnez vos images aux dimensions exactes en quelques secondes. Idéal pour bannières, miniatures et supports web.",
+    "badgeFree": "Gratuit",
+    "badgeMultipleSizes": "Tailles d'export multiples",
+    "badgeTransparentBg": "Arrière-plan transparent",
+    "badgeScalableVector": "Rendu vectoriel évolutif",
+    "badgeColorControls": "Contrôle des couleurs et détails",
+    "badgeTransparentPng": "Sortie PNG transparente",
+    "badgePrivate": "100 % confidentiel et sécurisé",
+    "badgeNoInstall": "Aucune installation requise",
+    "badgeExactPixels": "Dimensions exactes en pixels",
+    "badgeRatioLock": "Verrouillage des proportions",
+    "badgeFormatsOutput": "Export PNG, JPG et WebP",
+    "badgeThreeFree": "3 conversions gratuites sans inscription"
+  },
+  "steps": {
+    "svg": [
+      {
+        "title": "Collez ou Importez",
+        "description": "Déposez votre fichier SVG ou collez le code directement dans le champ prévu."
+      },
+      {
+        "title": "Choisissez la Taille",
+        "description": "Ajustez la largeur en pixels ou appliquez un facteur d'échelle haute définition."
+      },
+      {
+        "title": "Téléchargez le PNG",
+        "description": "Obtenez un PNG transparent et net prêt à l'emploi en quelques secondes."
+      }
+    ],
+    "raster": [
+      {
+        "title": "Importez PNG ou JPG",
+        "description": "Déposez votre image matricielle ou collez-la depuis le presse-papiers."
+      },
+      {
+        "title": "Réglez la Vectorisation",
+        "description": "Ajustez la palette de couleurs, le lissage et la précision des courbes vectorielles."
+      },
+      {
+        "title": "Téléchargez le SVG",
+        "description": "Exportez un fichier SVG prêt pour vos applications, le web ou Figma."
+      }
+    ],
+    "bg": [
+      {
+        "title": "Importez votre Image",
+        "description": "Déposez votre photo. Formats acceptés : PNG, JPG et WebP jusqu'à 10 Mo."
+      },
+      {
+        "title": "Supprimez le Fond",
+        "description": "Cliquez sur un bouton et l'arrière-plan disparaît instantanément."
+      },
+      {
+        "title": "Téléchargez le Résultat",
+        "description": "Enregistrez un PNG avec fond transparent pour vos projets."
+      }
+    ],
+    "resizer": [
+      {
+        "title": "Importez votre Image",
+        "description": "Déposez votre photo ou collez-la depuis le presse-papiers."
+      },
+      {
+        "title": "Définissez les Dimensions",
+        "description": "Indiquez la largeur et la hauteur en pixels avec verrouillage des proportions."
+      },
+      {
+        "title": "Téléchargez l'Image",
+        "description": "Exportez au format PNG, JPG ou WebP avec optimisation de qualité."
+      }
+    ]
+  },
+  "target_audience": {
+    "svgTitle": "Conçu pour les Créateurs Numériques Modernes",
+    "svgSubtitle": "CrushSVG aide designers, développeurs et marketeurs à transformer des graphiques vectoriels en fichiers prêts pour la production sans logiciel lourd.",
+    "readVectorGuide": "Lire les Bonnes Pratiques Vectorielles",
+    "exploreGuides": "Explorer les Guides",
+    "vectorizeFast": "Vectoriser Rapidement",
+    "figmaGuide": "Guide Vectoriel pour Figma",
+    "webDevTitle": "Développeurs Web",
+    "webDevDesc": "Exportez des graphiques SVG en PNG pour signatures d'e-mails, newsletters et compatibilité navigateurs.",
+    "marketersTitle": "Marketeurs",
+    "marketersDesc": "Créez des visuels pour réseaux sociaux et présentations sans attendre les équipes de design.",
+    "agenciesTitle": "Agences",
+    "agenciesDesc": "Livrez rapidement des fichiers clients aux dimensions exactes avec fond transparent.",
+    "designersTitle": "Designers UI/UX",
+    "designersDesc": "Convertissez vos icônes et illustrations vectorielles Figma ou Illustrator en formats matriciels."
+  },
+  "FAQ": {
+    "title": "Foire Aux Questions (FAQ)",
+    "svg": [
+      {
+        "question": "CrushSVG est-il gratuit ?",
+        "answer": "Oui, CrushSVG est totalement gratuit. Convertissez vos fichiers SVG en PNG sans installer de logiciel ni fournir de carte bancaire."
+      },
+      {
+        "question": "CrushSVG gère-t-il la transparence PNG ?",
+        "answer": "Oui ! Le fond transparent est activé par défaut. Vous pouvez aussi choisir un fond blanc, noir ou une couleur sur mesure."
+      },
+      {
+        "question": "Jusqu'à quelle échelle puis-je agrandir l'image ?",
+        "answer": "Vous pouvez multiplier la taille jusqu'à 16x ou définir des dimensions personnalisées jusqu'à 4 000 pixels pour l'impression."
+      },
+      {
+        "question": "Mes fichiers restent-ils confidentiels ?",
+        "answer": "Oui. Le traitement est effectué de manière sécurisée dans votre navigateur et sur des serveurs protégés. Vos fichiers ne sont jamais conservés."
+      },
+      {
+        "question": "Puis-je convertir des SVG complexes avec des dégradés ?",
+        "answer": "Oui, CrushSVG prend en charge les dégradés linéaires et radiaux, les masques d'écrêtage, les styles CSS intégrés et les groupes complexes."
+      }
+    ]
+  },
+  "footer": {
+    "taglineSvg": "De SVG en PNG, exactement comme prévu.",
+    "taglineRaster": "De PNG en SVG, exactement comme prévu.",
+    "subtaglineSvg": "Convertissez, optimisez et exportez des fichiers impeccables.",
+    "subtaglineRaster": "Convertissez, vectorisez et créez des fichiers sans limite.",
+    "qualityTitle": "Conçu pour l'Excellence",
+    "browserBased": "Dans le Navigateur",
+    "transparentPng": "PNG Transparent",
+    "noInstall": "Sans Installation",
+    "explore": "Explorer",
+    "svgConverter": "Convertisseur SVG",
+    "pngConverter": "Convertisseur PNG",
+    "features": "Fonctionnalités",
+    "howItWorks": "Comment ça marche",
+    "changelog": "Journal des modifications",
+    "resources": "Ressources",
+    "svgGuides": "Guides SVG",
+    "helpFaq": "Aide & FAQ",
+    "supportHub": "Centre d'Assistance",
+    "contactUs": "Contact",
+    "company": "Entreprise",
+    "aboutUs": "À Propos",
+    "ourTeam": "Notre Équipe",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions d'Utilisation",
+    "useCases": "Cas d'Usage",
+    "reactNext": "React & Next.js",
+    "emailSignatures": "Signatures d'E-mails",
+    "transparentBg": "PNG Transparent",
+    "highResolution": "Haute Résolution",
+    "allRightsReserved": "© 2026 CrushSVG. Tous droits réservés.",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "cookies": "Cookies",
+    "blog": "Blog",
+    "support": "Assistance"
+  },
+  "SEO": {
+    "svgToPngTitle": "Convertir SVG en PNG Gratuit en Ligne – CrushSVG",
+    "svgToPngDescription": "Convertissez vos fichiers SVG en PNG net en quelques secondes. Gratuit, dans le navigateur, fond transparent. Sans installation.",
+    "pngToSvgTitle": "Convertir PNG en SVG – Vectoriser une Image en Ligne Gratuit",
+    "pngToSvgDescription": "Transformez vos images PNG, JPG et JPEG en vecteurs SVG nets et évolutifs en quelques secondes. Gratuit et en ligne.",
+    "bgRemoverTitle": "Supprimer Arrière-plan Gratuit en Ligne – CrushSVG",
+    "bgRemoverDescription": "Supprimez l'arrière-plan de vos images instantanément. Gratuit, dans le navigateur avec rendu PNG transparent.",
+    "imageResizerTitle": "Redimensionner Image en Ligne Gratuit – CrushSVG",
+    "imageResizerDescription": "Redimensionnez vos images instantanément. Gratuit, dans le navigateur, prend en charge PNG, JPG et WebP."
+  },
+  "accessibility": {
+    "skipToContent": "Passer au contenu principal",
+    "closeModal": "Fermer la fenêtre",
+    "previewAlt": "Aperçu de l'image convertie"
+  }
+}

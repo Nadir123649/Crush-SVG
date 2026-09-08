@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
+import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
+
+const intlMiddleware = createMiddleware(routing)
 
 const API_SUBDOMAINS = ['api.crushsvg.net', 'staging.api.crushsvg.net']
 const CORS_ORIGINS = ['https://crushsvg.net', 'https://www.crushsvg.net', 'https://staging.crushsvg.net']
@@ -162,23 +166,40 @@ export function proxy(request: NextRequest): NextResponse {
 
   // ── Route protection ────────────────────────────────────────────────
 
-  // Public pages — pass through
-  if (isPublicPage(pathname)) {
+  // 1. API routes — strictly unaffected by locale routing
+  if (pathname.startsWith('/api/') || pathname === '/api') {
+    if (isPublicApi(pathname)) {
+      const response = NextResponse.next()
+      response.headers.set('x-request-id', getRequestId(request))
+      return response
+    }
+
+    const hasToken = hasBearerToken(request)
+
+    if (isAdminApi(pathname)) {
+      if (!hasToken) {
+        return jsonError(401, 'unauthorized', 'Authentication required')
+      }
+      const response = NextResponse.next()
+      response.headers.set('x-request-id', getRequestId(request))
+      return response
+    }
+
+    if (isAuthApi(pathname)) {
+      if (!hasToken) {
+        return jsonError(401, 'unauthorized', 'Authentication required')
+      }
+      const response = NextResponse.next()
+      response.headers.set('x-request-id', getRequestId(request))
+      return response
+    }
+
     const response = NextResponse.next()
     response.headers.set('x-request-id', getRequestId(request))
     return response
   }
 
-  // Public API routes — pass through
-  if (isPublicApi(pathname)) {
-    const response = NextResponse.next()
-    response.headers.set('x-request-id', getRequestId(request))
-    return response
-  }
-
-  const hasToken = hasBearerToken(request)
-
-  // Admin pages — require auth cookie or redirect to /login
+  // 2. Admin pages — require auth cookie or redirect to /login
   if (isAdminPage(pathname)) {
     const refreshToken = request.cookies.get('crushsvg_refresh')?.value
     if (!refreshToken) {
@@ -191,28 +212,23 @@ export function proxy(request: NextRequest): NextResponse {
     return response
   }
 
-  // Admin API — require token (full JWT + role verification done in route handlers)
-  if (isAdminApi(pathname)) {
-    if (!hasToken) {
-      return jsonError(401, 'unauthorized', 'Authentication required')
-    }
+  // 3. Static assets, metadata endpoints, and internal files
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/monitoring') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/favicon.ico' ||
+    pathname.includes('.')
+  ) {
     const response = NextResponse.next()
     response.headers.set('x-request-id', getRequestId(request))
     return response
   }
 
-  // Auth-required API routes — require token
-  if (isAuthApi(pathname)) {
-    if (!hasToken) {
-      return jsonError(401, 'unauthorized', 'Authentication required')
-    }
-    const response = NextResponse.next()
-    response.headers.set('x-request-id', getRequestId(request))
-    return response
-  }
-
-  // Everything else — pass through
-  const response = NextResponse.next()
+  // 4. Public pages & tools — delegate to next-intl middleware for localized routing
+  const response = intlMiddleware(request)
   response.headers.set('x-request-id', getRequestId(request))
   return response
 }

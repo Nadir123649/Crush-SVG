@@ -2,38 +2,41 @@
 
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
+import { useTranslations } from "next-intl";
 
 export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "image-resizer" }) {
+  const t = useTranslations("target_audience");
+
   const cards = mode === "raster-to-svg" ? [
     {
       icon: IMAGES.message,
-      title: "Web Developers",
+      title: t("webDevTitle"),
       description: "Convert raster logos and bitmap icons into lightweight, scalable SVG vectors for fast web performance.",
       href: "/svg-guides",
-      linkText: "Read Vector Best Practices",
+      linkText: t("readVectorGuide"),
     },
     {
       icon: IMAGES.marketing,
-      title: "Marketers",
+      title: t("marketersTitle"),
       description: "Turn raster badges and product illustrations into crisp vector assets that scale cleanly across all screens.",
       href: "/svg-guides",
-      linkText: "Explore Guides",
+      linkText: t("exploreGuides"),
     },
     {
       icon: IMAGES.agencies,
-      title: "Agencies",
+      title: t("agenciesTitle"),
       description: "Deliver high-quality vector assets for clients in seconds without needing heavy desktop design tools.",
       href: "/png-to-svg#converter",
-      linkText: "Vectorize Assets Fast",
+      linkText: t("vectorizeFast"),
     },
     {
       icon: IMAGES.designers,
-      title: "UI Designers",
+      title: t("designersTitle"),
       description: "Transform bitmap sketches and icons into editable vector paths ready for Figma, Sketch, and Illustrator.",
       href: "/svg-guides",
-      linkText: "Figma Vector Guide",
+      linkText: t("figmaGuide"),
     },
   ] : mode === "image-resizer" ? [
     {
@@ -45,21 +48,21 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     },
     {
       icon: IMAGES.marketing,
-      title: "Marketers",
+      title: t("marketersTitle"),
       description: "Quickly resize campaign visuals to fit every ad placement and social media format without design tools.",
       href: "/image-resizer#converter",
       linkText: "Resize for Campaigns",
     },
     {
       icon: IMAGES.agencies,
-      title: "Agencies",
+      title: t("agenciesTitle"),
       description: "Deliver correctly sized assets to clients in seconds. No more back-and-forth about image dimensions.",
       href: "/image-resizer#converter",
       linkText: "Resize Client Assets",
     },
     {
       icon: IMAGES.designers,
-      title: "UI Designers",
+      title: t("designersTitle"),
       description: "Export images at exact pixel dimensions for web, mobile, and print with aspect ratio lock to prevent distortion.",
       href: "/image-resizer#converter",
       linkText: "Resize Design Assets",
@@ -67,31 +70,31 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
   ] : [
     {
       icon: IMAGES.message,
-      title: "Email Developers",
-      description: "Convert SVG logos and icons into reliable PNGs that render consistently across Outlook, Gmail.",
+      title: t("webDevTitle"),
+      description: t("webDevDesc"),
       href: "/svg-guides#svg-to-png-email",
-      linkText: "Read Email SVG Guide",
+      linkText: t("readVectorGuide"),
     },
     {
       icon: IMAGES.marketing,
-      title: "Marketers",
-      description: "Deliver polished, campaign-ready visuals in seconds with high-quality PNGs built for newsletters, landing pages and more.",
+      title: t("marketersTitle"),
+      description: t("marketersDesc"),
       href: "/svg-guides",
-      linkText: "Explore Best Practices",
+      linkText: t("exploreGuides"),
     },
     {
       icon: IMAGES.agencies,
-      title: "Agencies",
-      description: "Deliver client-ready PNG exports in seconds without the hassle of opening Figma, Illustrator, or Photoshop.",
+      title: t("agenciesTitle"),
+      description: t("agenciesDesc"),
       href: "/#converter",
-      linkText: "Convert Assets Fast",
+      linkText: t("vectorizeFast"),
     },
     {
       icon: IMAGES.designers,
-      title: "UI Designers",
-      description: "Preview exactly how your icons and graphics will look as PNGs before handing them off to developers.",
+      title: t("designersTitle"),
+      description: t("designersDesc"),
       href: "/svg-guides#figma-svg-to-transparent-png",
-      linkText: "Figma Export Guide",
+      linkText: t("figmaGuide"),
     },
   ];
 
@@ -126,14 +129,14 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[20px] md:mt-[30px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        Made For People <span className="text-brand-primary">Who Ship</span>
+        {t("svgTitle")}
       </h2>
 
       {/* Cards Container */}
       <div className="w-full max-w-[360px] md:max-w-[720px] lg:max-w-[1280px] flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-[16px] md:gap-[40px]">
         {cards.map((card, index) => (
           <Link
-            href={card.href}
+            href={card.href as any}
             key={index} 
             onClick={(e) => handleCardClick(e, card.href)}
             aria-label={card.linkText}

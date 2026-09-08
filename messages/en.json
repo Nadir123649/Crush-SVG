@@ -1,0 +1,316 @@
+{
+  "common": {
+    "brand": "CrushSVG",
+    "free": "Free",
+    "or": "or",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading...",
+    "px": "px",
+    "cm": "cm",
+    "custom": "Custom",
+    "original": "Original",
+    "auto": "Auto"
+  },
+  "navigation": {
+    "svgToPng": "SVG to PNG",
+    "pngToSvg": "PNG to SVG",
+    "backgroundRemover": "Background Remover",
+    "imageResizer": "Image Resizer",
+    "guides": "Guides",
+    "needHelp": "Need Help?",
+    "logIn": "Log In",
+    "signUp": "Sign Up",
+    "adminDashboard": "Admin Dashboard",
+    "logOut": "Log out",
+    "openMenu": "Open menu",
+    "accountMenu": "User account menu",
+    "homeAria": "CrushSVG homepage"
+  },
+  "language": {
+    "label": "Language",
+    "selectLanguage": "Select language",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "pt": "Português",
+    "ja": "日本語"
+  },
+  "homepage": {
+    "badgeLoggedIn": "You have unlimited conversions access.",
+    "badgeLoggedOut": "3 free conversions. Create a free account for unlimited access.",
+    "heroTitlePrefix": "From",
+    "heroTitleHighlight": "SVG to PNG,",
+    "heroTitleSuffix": "Exactly as Intended",
+    "heroSubtitle": "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more.",
+    "bgRemoverCtaTitle": "Need to remove an image",
+    "bgRemoverCtaHighlight": "background",
+    "bgRemoverCtaDesc": "Upload any photo and get a clean, transparent PNG in seconds. Free, private, no install needed.",
+    "bgRemoverCtaButton": "Try Background Remover"
+  },
+  "tool_pages": {
+    "svgToPng": {
+      "title": "SVG to PNG Converter",
+      "h1": "From SVG to PNG, Exactly as Intended",
+      "subtitle": "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds."
+    },
+    "pngToSvg": {
+      "title": "PNG to SVG Converter (Vectorize)",
+      "h1": "From PNG to SVG, Exactly as Intended",
+      "subtitle": "Upload a PNG or JPG file, or drag and drop it. Generate perfectly scalable SVG vectors in seconds for logos, illustrations, websites, and more."
+    },
+    "backgroundRemover": {
+      "title": "Background Remover",
+      "h1": "Remove Backgrounds Instantly",
+      "subtitle": "Upload any image and get a clean, transparent background in seconds. Free, private, and runs entirely in your browser."
+    },
+    "imageResizer": {
+      "title": "Image Resizer",
+      "h1": "Resize Images Instantly",
+      "subtitle": "Upload any image and resize it in seconds. Free, private, and runs entirely in your browser. Supports PNG, JPG, and WebP."
+    }
+  },
+  "upload_interface": {
+    "dropOrBrowse": "Drag & drop your SVG file here, or browse",
+    "pasteSvgCode": "Paste your SVG code here",
+    "svgCodeTab": "SVG Code",
+    "uploadFileTab": "Upload File",
+    "dropRasterOrBrowse": "Drag & drop PNG, JPG, or WebP here",
+    "maxFileSize": "Max file size: 10MB",
+    "dropActive": "Drop the file right here...",
+    "chooseFile": "Choose File",
+    "clear": "Clear"
+  },
+  "conversion_states": {
+    "converting": "Converting...",
+    "vectorizing": "Vectorizing...",
+    "removingBg": "Removing background...",
+    "resizing": "Resizing...",
+    "success": "Conversion completed successfully!",
+    "ready": "Ready to convert"
+  },
+  "download_interface": {
+    "convertButton": "Convert to PNG",
+    "vectorizeButton": "Vectorize to SVG",
+    "removeBgButton": "Remove Background",
+    "resizeButton": "Resize Image",
+    "downloadPng": "Download PNG",
+    "downloadSvg": "Download SVG",
+    "copyImage": "Copy Image",
+    "copied": "Copied to clipboard!",
+    "downloadStarted": "Download started",
+    "width": "Width",
+    "height": "Height",
+    "scale": "Scale",
+    "unit": "Unit",
+    "background": "Background",
+    "transparent": "Transparent",
+    "white": "White",
+    "black": "Black",
+    "customColor": "Custom Color",
+    "presets": "Presets",
+    "preview": "Preview"
+  },
+  "errors": {
+    "invalidSvg": "Please provide a valid SVG string or file.",
+    "conversionFailed": "Conversion failed. Please verify your SVG markup and try again.",
+    "fileTooLarge": "File is too large. Maximum supported size is 10MB.",
+    "unsupportedFormat": "Unsupported file format. Please upload a valid image.",
+    "networkError": "Network error. Please check your connection and try again."
+  },
+  "authentication": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "signedOutToast": "You've been signed out",
+    "unlimitedNotice": "You have unlimited conversions access."
+  },
+  "profile": {
+    "title": "User Profile",
+    "conversionsRemaining": "{count} conversions remaining",
+    "unlimited": "Unlimited access"
+  },
+  "usage": {
+    "conversionsLeft": "{count} Free Conversions Left",
+    "lastFreeConversion": "Last Free Conversion",
+    "signUpForFree": "Sign Up For Free",
+    "unlimitedConversions": "Unlimited Conversions"
+  },
+  "features": {
+    "svgTitle": "Stop juggling design tools and unreliable converters",
+    "rasterTitle": "Stop juggling design tools and raster artifacts",
+    "bgTitle": "Stop struggling with complex editing tools",
+    "resizerTitle": "Stop fumbling with desktop image editors",
+    "svgDesc": "Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds perfect for Gmail, Outlook, Canva, websites, newsletters, and more.",
+    "rasterDesc": "Simply upload a PNG or JPG, or drag and drop it to create a crisp, scalable SVG in seconds perfect for logos, icons, vector graphics, websites, and more.",
+    "bgDesc": "Simply upload any image and let our tool handle the rest. Perfect for product photos, social media, headshots, and design assets.",
+    "resizerDesc": "Upload any image and resize it to exact dimensions in seconds. Perfect for thumbnails, social media, web graphics, and print-ready assets.",
+    "badgeFree": "Free",
+    "badgeMultipleSizes": "Multiple export sizes",
+    "badgeTransparentBg": "Transparent background",
+    "badgeScalableVector": "Scalable Vector Output",
+    "badgeColorControls": "Color & detail controls",
+    "badgeTransparentPng": "Transparent PNG output",
+    "badgePrivate": "100% private & secure",
+    "badgeNoInstall": "No software install required",
+    "badgeExactPixels": "Exact pixel dimensions",
+    "badgeRatioLock": "Aspect ratio lock",
+    "badgeFormatsOutput": "PNG, JPG, and WebP output",
+    "badgeThreeFree": "3 free conversions, no login required"
+  },
+  "steps": {
+    "svg": [
+      {
+        "title": "Paste or Upload",
+        "description": "Drop your SVG file or paste standard markup directly into the field."
+      },
+      {
+        "title": "Choose Your Size",
+        "description": "Adjust width in pixels or simply scale it up for high-resolution output."
+      },
+      {
+        "title": "Download PNG",
+        "description": "Get a crisp, pixel-perfect PNG with transparent background in seconds."
+      }
+    ],
+    "raster": [
+      {
+        "title": "Upload PNG or JPG",
+        "description": "Drop your raster image or paste from clipboard directly into the converter."
+      },
+      {
+        "title": "Tune Vector Settings",
+        "description": "Adjust quality, color palette, and path smoothing for clean vector curves."
+      },
+      {
+        "title": "Download SVG",
+        "description": "Export scalable SVG markup ready for web, mobile apps, or Figma."
+      }
+    ],
+    "bg": [
+      {
+        "title": "Upload Your Image",
+        "description": "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB."
+      },
+      {
+        "title": "Remove Background",
+        "description": "Click one button and watch the background disappear instantly."
+      },
+      {
+        "title": "Download Result",
+        "description": "Get a clean, transparent PNG ready for any project or platform."
+      }
+    ],
+    "resizer": [
+      {
+        "title": "Upload Your Image",
+        "description": "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB."
+      },
+      {
+        "title": "Set Dimensions",
+        "description": "Enter exact pixel width and height, or use scale presets. Aspect ratio lock prevents distortion."
+      },
+      {
+        "title": "Download Result",
+        "description": "Export as PNG, JPG, or WebP with quality control. Your resized image is ready for any platform."
+      }
+    ]
+  },
+  "target_audience": {
+    "svgTitle": "Built For Modern Digital Creators",
+    "svgSubtitle": "CrushSVG helps designers, developers, and creators turn vector files into production-ready assets without bulky desktop software.",
+    "readVectorGuide": "Read Vector Best Practices",
+    "exploreGuides": "Explore Guides",
+    "vectorizeFast": "Vectorize Assets Fast",
+    "figmaGuide": "Figma Vector Guide",
+    "webDevTitle": "Web Developers",
+    "webDevDesc": "Export crisp SVG graphics into PNG format for email templates, newsletters, and legacy browser support.",
+    "marketersTitle": "Marketers",
+    "marketersDesc": "Generate social media graphics, email banners, and slide deck assets in seconds without waiting on design teams.",
+    "agenciesTitle": "Agencies",
+    "agenciesDesc": "Deliver pixel-perfect client assets quickly with exact dimensions, custom scales, and transparent backgrounds.",
+    "designersTitle": "UI Designers",
+    "designersDesc": "Quickly preview and convert icons or vector illustrations from Figma, Illustrator, or Sketch into raster formats."
+  },
+  "FAQ": {
+    "title": "Frequently Asked Questions",
+    "svg": [
+      {
+        "question": "Is CrushSVG free to use?",
+        "answer": "Yes, CrushSVG is free. You can convert SVG files to PNG without installing any software or entering a credit card."
+      },
+      {
+        "question": "Does CrushSVG support transparent PNG backgrounds?",
+        "answer": "Yes! Transparent background is supported by default. You can also pick solid white, black, or any custom color."
+      },
+      {
+        "question": "How high can I scale my SVG output?",
+        "answer": "You can scale up to 16x or specify custom dimensions up to 4000 pixels for ultra-high-resolution, print-ready graphics."
+      },
+      {
+        "question": "Are my files kept private?",
+        "answer": "Yes. Conversions are processed securely in your browser and on secure servers. Your files are never stored or shared."
+      },
+      {
+        "question": "Can I convert complex SVGs with embedded fonts or gradients?",
+        "answer": "Yes, CrushSVG supports linear/radial gradients, clipping paths, embedded styles, and nested SVG groupings."
+      }
+    ]
+  },
+  "footer": {
+    "taglineSvg": "From SVG to PNG, Exactly as Intended.",
+    "taglineRaster": "From PNG to SVG, Exactly as Intended.",
+    "subtaglineSvg": "Convert, optimize, and ship pixel-perfect assets.",
+    "subtaglineRaster": "Convert, vectorize, and ship scalable assets.",
+    "qualityTitle": "Engineered For Quality",
+    "browserBased": "Browser Based",
+    "transparentPng": "Transparent PNG",
+    "noInstall": "No Install",
+    "explore": "Explore",
+    "svgConverter": "SVG Converter",
+    "pngConverter": "PNG Converter",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "changelog": "Changelog",
+    "resources": "Resources",
+    "svgGuides": "SVG Guides",
+    "helpFaq": "Help & FAQ",
+    "supportHub": "Support Hub",
+    "contactUs": "Contact Us",
+    "company": "Company",
+    "aboutUs": "About Us",
+    "ourTeam": "Our Team",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "useCases": "Use Cases",
+    "reactNext": "React & Next.js",
+    "emailSignatures": "Email Signatures",
+    "transparentBg": "Transparent PNG",
+    "highResolution": "High Resolution",
+    "allRightsReserved": "© 2026 CrushSVG. All rights reserved.",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "cookies": "Cookies",
+    "blog": "Blog",
+    "support": "Support"
+  },
+  "SEO": {
+    "svgToPngTitle": "CrushSVG – Free SVG to PNG Converter Online",
+    "svgToPngDescription": "Convert SVG to crisp PNG in seconds. Free, browser-based, transparent background support. No install needed.",
+    "pngToSvgTitle": "PNG to SVG Converter – Free Image to Vector Online",
+    "pngToSvgDescription": "Convert PNG, JPG, and JPEG images to scalable SVG vectors in seconds. Free, browser-based. No install needed.",
+    "bgRemoverTitle": "Background Remover – Free AI Image Background Removal Online",
+    "bgRemoverDescription": "Remove image backgrounds instantly. Free, browser-based, transparent output. No install needed.",
+    "imageResizerTitle": "Image Resizer – Free Online Image Resizing Tool",
+    "imageResizerDescription": "Resize images instantly. Free, browser-based, supports PNG, JPG, and WebP. Adjust width, height, scale, and quality. No install needed."
+  },
+  "accessibility": {
+    "skipToContent": "Skip to main content",
+    "closeModal": "Close modal",
+    "previewAlt": "Converted image preview"
+  }
+}

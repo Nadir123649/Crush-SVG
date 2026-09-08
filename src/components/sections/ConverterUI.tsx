@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
@@ -80,6 +81,10 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 }
 
 function SvgToPngConverter() {
+  const tUpload = useTranslations("upload_interface");
+  const tDownload = useTranslations("download_interface");
+  const tStates = useTranslations("conversion_states");
+  const tUsage = useTranslations("usage");
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("Original");
@@ -552,7 +557,7 @@ function SvgToPngConverter() {
               {/* Left Column (SVG Code) */}
               <div className="w-full lg:w-[537px] flex flex-col">
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">SVG Code</h2>
+                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex items-center gap-[10px]">
                     {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
                       <button
@@ -594,12 +599,12 @@ function SvgToPngConverter() {
                       />
                       <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
                       <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
-                        Clear
+                        {tUpload("clear")}
                       </span>
                     </button>
                     <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "authed" || usage?.isUnlimited
-                        ? "Unlimited conversions"
+                        ? tUsage("unlimitedConversions")
                         : usage
                         ? `${usage.conversionsUsed} of ${
                             usage.conversionsUsed + (usage.remaining ?? 0)
@@ -748,7 +753,7 @@ function SvgToPngConverter() {
                     <div className="flex flex-col items-center justify-center gap-3 z-20">
                       <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
                       <span className="font-body font-medium text-[14px] text-[#353A3E]">
-                        Converting SVG to PNG...
+                        {tStates("converting")}
                       </span>
                     </div>
                   ) : storageRestored && activePreviewUrl && !previewError ? (
@@ -779,7 +784,7 @@ function SvgToPngConverter() {
                       {/* Width Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
                         <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
-                          Width
+                          {tDownload("width")}
                         </label>
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
@@ -851,7 +856,7 @@ function SvgToPngConverter() {
                       {/* Height Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
                         <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
-                          Height
+                          {tDownload("height")}
                         </label>
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
@@ -924,7 +929,7 @@ function SvgToPngConverter() {
                       {isScaleDisabled ? (
                         <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
                           <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
-                            Unit
+                            {tDownload("unit")}
                           </label>
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
@@ -996,7 +1001,7 @@ function SvgToPngConverter() {
                             htmlFor="scale-multiplier-input"
                             className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
                           >
-                            Scale
+                            {tDownload("scale")}
                           </label>
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
@@ -1166,7 +1171,7 @@ function SvgToPngConverter() {
                       className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
                     >
                       <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
-                        Transparent Background
+                        {tDownload("transparent")} {tDownload("background")}
                       </span>
                       <input
                         id="transparent-bg-toggle"
@@ -1296,7 +1301,7 @@ function SvgToPngConverter() {
                         onClick={() => setShowSignupPrompt(true)}
                         className="w-[300px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
                       >
-                        Sign up for unlimited conversions
+                        {tUsage("signUpForFree")}
                       </button>
                     ) : result?.data ? (
                       <>
@@ -1306,7 +1311,7 @@ function SvgToPngConverter() {
                           disabled={converting || isPlaceholderCode || !!validationError}
                         >
                           <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                            Download PNG
+                            {tDownload("downloadPng")}
                             <Image
                               src={IMAGES.exportIcon}
                               alt=""
@@ -1337,7 +1342,7 @@ function SvgToPngConverter() {
                         disabled={converting || isPlaceholderCode || !!validationError}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
-                          Convert
+                          {tDownload("convertButton")}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""

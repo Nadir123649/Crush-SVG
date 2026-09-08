@@ -2,9 +2,35 @@ import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import { getHowToSchema } from "@/lib/seo";
+import { useTranslations } from "next-intl";
 
 export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
-  const steps = mode === "background-remover" ? [
+  const t = useTranslations("steps");
+
+  const icons = [IMAGES.uploadImage, IMAGES.exportIcon, IMAGES.downloadImage];
+  const imgClasses = [
+    "w-[60px] h-[60px] md:w-[95px] md:h-[95px]",
+    "w-[80px] h-[80px] md:w-[104px] md:h-[104px]",
+    "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
+  ];
+
+  let stepData: { title: string; description: string }[] = [];
+  try {
+    const rawKey = mode === "background-remover" ? "bg" : mode === "image-resizer" ? "resizer" : mode === "raster-to-svg" ? "raster" : "svg";
+    const rawSteps = t.raw(rawKey) as { title: string; description: string }[];
+    if (Array.isArray(rawSteps)) {
+      stepData = rawSteps;
+    }
+  } catch {
+    // fallback
+  }
+
+  const steps = stepData.length === 3 ? stepData.map((item, idx) => ({
+    icon: icons[idx],
+    title: item.title,
+    description: item.description,
+    imgClassName: imgClasses[idx]
+  })) : (mode === "background-remover" ? [
     {
       icon: IMAGES.uploadImage,
       title: "Upload Your Image",
@@ -21,25 +47,6 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       icon: IMAGES.downloadImage,
       title: "Download Result",
       description: "Get a clean, transparent PNG ready for any project or platform.",
-      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
-    },
-  ] : mode === "image-resizer" ? [
-    {
-      icon: IMAGES.uploadImage,
-      title: "Upload Your Image",
-      description: "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB.",
-      imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
-    },
-    {
-      icon: IMAGES.exportIcon,
-      title: "Set Dimensions",
-      description: "Enter exact pixel width and height, or use scale presets. Aspect ratio lock prevents distortion.",
-      imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
-    },
-    {
-      icon: IMAGES.downloadImage,
-      title: "Download Result",
-      description: "Export as PNG, JPG, or WebP with quality control. Your resized image is ready for any platform.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
   ] : [
@@ -61,7 +68,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Create sharp, transparent PNGs ready for anywhere.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
-  ];
+  ]);
 
   const howToTitle = mode === "background-remover" 
     ? "How to Remove Image Background Online" 

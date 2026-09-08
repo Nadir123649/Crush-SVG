@@ -5,12 +5,25 @@ import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
+import { useTranslations } from "next-intl";
 
 export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+  const tFaq = useTranslations("FAQ");
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  let faqs = [];
+  let faqs: { question: string; answer: string }[] = [];
+
+  if (mode === "svg-to-png") {
+    try {
+      const rawFaqs = tFaq.raw("svg") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
+  }
 
   if (mode === "background-remover") {
     faqs = [
@@ -93,7 +106,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
         answer: "You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors.",
       }
     ];
-  } else {
+  } else if (faqs.length === 0) {
     faqs = [
       {
         question: "What is the maximum resolution for PNG exports?",
@@ -133,7 +146,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getFAQSchema(faqs)) }}
       />
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        Frequently Asked <span className="text-brand-primary">Questions</span>
+        {tFaq("title")}
       </h2>
 
       <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[24px]">

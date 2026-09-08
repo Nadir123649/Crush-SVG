@@ -1,0 +1,316 @@
+{
+  "common": {
+    "brand": "CrushSVG",
+    "free": "無料",
+    "or": "または",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "back": "戻る",
+    "save": "保存",
+    "loading": "読み込み中...",
+    "px": "px",
+    "cm": "cm",
+    "custom": "カスタム",
+    "original": "オリジナル",
+    "auto": "自動"
+  },
+  "navigation": {
+    "svgToPng": "SVG を PNG に変換",
+    "pngToSvg": "PNG を SVG に変換",
+    "backgroundRemover": "背景透過・削除",
+    "imageResizer": "画像リサイズ",
+    "guides": "ガイド",
+    "needHelp": "ヘルプが必要ですか？",
+    "logIn": "ログイン",
+    "signUp": "新規登録",
+    "adminDashboard": "管理者ダッシュボード",
+    "logOut": "ログアウト",
+    "openMenu": "メニューを開く",
+    "accountMenu": "ユーザーアカウントメニュー",
+    "homeAria": "CrushSVG ホームページ"
+  },
+  "language": {
+    "label": "言語",
+    "selectLanguage": "言語を選択",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "pt": "Português",
+    "ja": "日本語"
+  },
+  "homepage": {
+    "badgeLoggedIn": "無制限の変換アクセスが有効です。",
+    "badgeLoggedOut": "3回まで無料変換。無料アカウント作成で無制限利用可能。",
+    "heroTitlePrefix": "",
+    "heroTitleHighlight": "SVGからPNGへ、",
+    "heroTitleSuffix": "思い通りの高画質変換",
+    "heroSubtitle": "SVGコードの貼り付け、ファイル選択、またはドラッグ＆ドロップするだけ。Outlook、Gmail、ニュースレター、Webサイト用の高解像度PNGを瞬時に生成します。",
+    "bgRemoverCtaTitle": "画像の",
+    "bgRemoverCtaHighlight": "背景透過・削除",
+    "bgRemoverCtaDesc": "写真をアップロードするだけで、きれいに切り抜かれた透過PNGを数秒で取得できます。無料・安全・インストール不要。",
+    "bgRemoverCtaButton": "背景透過ツールを試す"
+  },
+  "tool_pages": {
+    "svgToPng": {
+      "title": "SVG PNG 変換コンバーター",
+      "h1": "SVGからPNGへ、思い通りの高画質変換",
+      "subtitle": "SVGコードの貼り付けまたはファイルアップロードで、高精細なPNG画像を数秒で作成できます。"
+    },
+    "pngToSvg": {
+      "title": "PNG SVG 変換コンバーター (ベクター化)",
+      "h1": "PNGからSVGへ、拡大しても美しいベクター化",
+      "subtitle": "PNGやJPGのラスター画像をアップロードするだけで、ロゴやイラストに最適なベクターSVGを瞬時に生成します。"
+    },
+    "backgroundRemover": {
+      "title": "画像背景透過・削除ツール",
+      "h1": "画像の背景を一瞬で透過・削除",
+      "subtitle": "写真をアップロードするだけで背景をきれいに削除。無料・安全で、ブラウザ内で完結して処理されます。"
+    },
+    "imageResizer": {
+      "title": "画像リサイズツール",
+      "h1": "画像のサイズを瞬時に変更",
+      "subtitle": "任意の画像を素早く指定サイズにリサイズ。PNG、JPG、WebP対応、ブラウザ内で安全に動作します。"
+    }
+  },
+  "upload_interface": {
+    "dropOrBrowse": "SVGファイルをここにドラッグ＆ドロップ、またはファイルを選択",
+    "pasteSvgCode": "SVGコードをここに貼り付け",
+    "svgCodeTab": "SVGコード",
+    "uploadFileTab": "ファイルアップロード",
+    "dropRasterOrBrowse": "PNG、JPG、WebP画像をここにドラッグ＆ドロップ",
+    "maxFileSize": "最大ファイルサイズ: 10MB",
+    "dropActive": "ファイルをここにドロップ...",
+    "chooseFile": "ファイルを選択",
+    "clear": "クリア"
+  },
+  "conversion_states": {
+    "converting": "変換中...",
+    "vectorizing": "ベクター化中...",
+    "removingBg": "背景を透過処理中...",
+    "resizing": "リサイズ中...",
+    "success": "変換が正常に完了しました！",
+    "ready": "変換の準備完了"
+  },
+  "download_interface": {
+    "convertButton": "PNGに変換",
+    "vectorizeButton": "SVGにベクター化",
+    "removeBgButton": "背景を削除",
+    "resizeButton": "画像をリサイズ",
+    "downloadPng": "PNGをダウンロード",
+    "downloadSvg": "SVGをダウンロード",
+    "copyImage": "画像をコピー",
+    "copied": "クリップボードにコピーしました！",
+    "downloadStarted": "ダウンロードを開始しました",
+    "width": "幅",
+    "height": "高さ",
+    "scale": "倍率",
+    "unit": "単位",
+    "background": "背景",
+    "transparent": "透過",
+    "white": "白",
+    "black": "黒",
+    "customColor": "カスタム色",
+    "presets": "プリセット",
+    "preview": "プレビュー"
+  },
+  "errors": {
+    "invalidSvg": "有効なSVGコードまたはファイルを指定してください。",
+    "conversionFailed": "変換に失敗しました。SVGの構文を確認してもう一度お試しください。",
+    "fileTooLarge": "ファイルサイズが大きすぎます。最大許容サイズは10MBです。",
+    "unsupportedFormat": "サポートされていないファイル形式です。有効な画像をアップロードしてください。",
+    "networkError": "ネットワークエラーが発生しました。接続を確認してください。"
+  },
+  "authentication": {
+    "login": "ログイン",
+    "signup": "新規登録",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "signedOutToast": "ログアウトしました",
+    "unlimitedNotice": "無制限の変換アクセスが有効です。"
+  },
+  "profile": {
+    "title": "ユーザープロフィール",
+    "conversionsRemaining": "残り変換回数: {count} 回",
+    "unlimited": "無制限アクセス"
+  },
+  "usage": {
+    "conversionsLeft": "残り無料変換: {count} 回",
+    "lastFreeConversion": "最後の無料変換枠",
+    "signUpForFree": "無料でアカウント登録",
+    "unlimitedConversions": "無制限変換"
+  },
+  "features": {
+    "svgTitle": "重いデザインソフトや不安定な変換ツールはもう不要",
+    "rasterTitle": "解像度の荒い画像や手作業のベクター変換から解放",
+    "bgTitle": "複雑な画像編集ソフトでの切り抜き作業にさようなら",
+    "resizerTitle": "デスクトップ専用リサイズアプリの手間を解消",
+    "svgDesc": "SVGコードの貼り付けやドラッグ＆ドロップだけで、Gmail、Outlook、Canva、Webサイト用の鮮明な高解像度PNGを瞬時に生成。",
+    "rasterDesc": "PNGやJPGをアップロードするだけで、ロゴやアイコン用の高品質で拡大可能なSVGベクターファイルを瞬時に作成。",
+    "bgDesc": "写真をアップロードするだけで背景を自動透過。商品画像、SNS投稿、ポートレート写真の切り抜きに最適。",
+    "resizerDesc": "画像を希望のピクセル寸法に一瞬で変更。サムネイルやバナー画像、印刷用素材の作成に最適。",
+    "badgeFree": "無料",
+    "badgeMultipleSizes": "複数の出力サイズに対応",
+    "badgeTransparentBg": "透過背景サポート",
+    "badgeScalableVector": "高精度ベクター出力",
+    "badgeColorControls": "色数とディテールの詳細調整",
+    "badgeTransparentPng": "高品質な透過PNG出力",
+    "badgePrivate": "100% 安全でプライバシー保護",
+    "badgeNoInstall": "インストール一切不要",
+    "badgeExactPixels": "正確なピクセル指定",
+    "badgeRatioLock": "縦横比ロック対応",
+    "badgeFormatsOutput": "PNG、JPG、WebP形式で出力",
+    "badgeThreeFree": "ログイン不要で3回無料変換"
+  },
+  "steps": {
+    "svg": [
+      {
+        "title": "貼り付けまたはアップロード",
+        "description": "SVGファイルをドロップするか、SVGコードを直接入力エリアに貼り付けます。"
+      },
+      {
+        "title": "サイズと背景を選択",
+        "description": "希望のピクセル幅や拡大倍率を指定し、透過または背景色を選びます。"
+      },
+      {
+        "title": "PNGをダウンロード",
+        "description": "美しく透過処理された高解像度PNGをワンクリックですぐに保存できます。"
+      }
+    ],
+    "raster": [
+      {
+        "title": "PNG・JPG画像をアップロード",
+        "description": "画像をドラッグ＆ドロップするか、クリップボードから直接貼り付けます。"
+      },
+      {
+        "title": "ベクター化の設定を調整",
+        "description": "カラーパレット、パスの滑らかさ、精度を微調整します。"
+      },
+      {
+        "title": "SVGをダウンロード",
+        "description": "Web、モバイルアプリ、Figmaですぐに使えるクリーンなSVGを取得します。"
+      }
+    ],
+    "bg": [
+      {
+        "title": "写真をアップロード",
+        "description": "PNG、JPG、WebP（最大10MB）に対応した画像をアップロードします。"
+      },
+      {
+        "title": "背景を一瞬で削除",
+        "description": "ボタンをクリックすると、AIが背景を素早く自動判別して透過します。"
+      },
+      {
+        "title": "透過PNGを保存",
+        "description": "切り抜かれた透明な背景のPNG画像をすぐにダウンロードできます。"
+      }
+    ],
+    "resizer": [
+      {
+        "title": "画像をアップロード",
+        "description": "リサイズしたい写真をドラッグ＆ドロップまたは貼り付けます。"
+      },
+      {
+        "title": "寸法を指定",
+        "description": "縦横比を維持しながら、幅と高さを正確なピクセル数で指定します。"
+      },
+      {
+        "title": "リサイズ画像を保存",
+        "description": "画質を最適化したPNG、JPG、WebP形式でダウンロードします。"
+      }
+    ]
+  },
+  "target_audience": {
+    "svgTitle": "すべてのデジタルクリエイターのために設計",
+    "svgSubtitle": "CrushSVGは、重いデスクトップソフトを起動することなく、デザイナー、エンジニア、マーケターがベクター画像を即座に実務用アセットへ変換できるよう支援します。",
+    "readVectorGuide": "ベクター画像のベストプラクティスを読む",
+    "exploreGuides": "ガイド一覧を見る",
+    "vectorizeFast": "画像を今すぐベクター化",
+    "figmaGuide": "Figmaベクター活用ガイド",
+    "webDevTitle": "Webエンジニア",
+    "webDevDesc": "メール署名やニュースレター、旧ブラウザ表示用にSVGをクッキリとしたPNGへ安全に変換。",
+    "marketersTitle": "マーケター",
+    "marketersDesc": "デザイン担当の手を借りずに、SNS画像やバナー用アセットを自分ですぐに書き出し。",
+    "agenciesTitle": "制作会社・代理店",
+    "agenciesDesc": "指定ピクセル寸法、カスタム倍率、透過背景のアセットを素早くクライアントへ納品。",
+    "designersTitle": "UI/UXデザイナー",
+    "designersDesc": "FigmaやIllustratorのアイコンやイラストを、プレビュー確認しながら手軽にラスタライズ。"
+  },
+  "FAQ": {
+    "title": "よくある質問 (FAQ)",
+    "svg": [
+      {
+        "question": "CrushSVGは無料で利用できますか？",
+        "answer": "はい、CrushSVGは無料です。ソフトのインストールやクレジットカードの登録なしで、SVGをPNGに変換できます。"
+      },
+      {
+        "question": "透過背景のPNG出力に対応していますか？",
+        "answer": "はい！初期設定で透過背景が有効になっています。白や黒、任意のカスタム背景色を選択することも可能です。"
+      },
+      {
+        "question": "どのくらいの大きさまで拡大変換できますか？",
+        "answer": "最大16倍の拡大倍率、または最大4000ピクセルまでのカスタム寸法指定に対応しており、印刷レベルの高精細な画像を出力できます。"
+      },
+      {
+        "question": "アップロードしたファイルの安全性やプライバシーは保護されますか？",
+        "answer": "はい。変換処理は安全に行われ、ファイルが外部に流出したり無断で保存・公開されることはありません。"
+      },
+      {
+        "question": "グラデーションやスタイルの含まれる複雑なSVGも変換できますか？",
+        "answer": "はい、線形・円形グラデーション、クリッピングパス、埋め込みCSSスタイル、複雑なグループ化を含むSVGに対応しています。"
+      }
+    ]
+  },
+  "footer": {
+    "taglineSvg": "SVGからPNGへ、思い通りの高画質変換。",
+    "taglineRaster": "PNGからSVGへ、思い通りの高画質変換。",
+    "subtaglineSvg": "変換、最適化、そして完璧なアセットを出力。",
+    "subtaglineRaster": "変換、ベクター化、無限に拡大できるアセットを作成。",
+    "qualityTitle": "妥協のない品質設計",
+    "browserBased": "ブラウザ完結",
+    "transparentPng": "透過PNG対応",
+    "noInstall": "インストール不要",
+    "explore": "ツール一覧",
+    "svgConverter": "SVGコンバーター",
+    "pngConverter": "PNGコンバーター",
+    "features": "特徴",
+    "howItWorks": "使い方",
+    "changelog": "更新履歴",
+    "resources": "リソース",
+    "svgGuides": "SVGガイド",
+    "helpFaq": "ヘルプ＆FAQ",
+    "supportHub": "サポートハブ",
+    "contactUs": "お問い合わせ",
+    "company": "会社情報",
+    "aboutUs": "CrushSVGについて",
+    "ourTeam": "チーム紹介",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "useCases": "活用事例",
+    "reactNext": "React・Next.js連携",
+    "emailSignatures": "メール署名での活用",
+    "transparentBg": "透過PNGの作成",
+    "highResolution": "超高解像度出力",
+    "allRightsReserved": "© 2026 CrushSVG. All rights reserved.",
+    "terms": "利用規約",
+    "privacy": "プライバシー",
+    "cookies": "Cookieポリシー",
+    "blog": "ブログ",
+    "support": "サポート"
+  },
+  "SEO": {
+    "svgToPngTitle": "SVG PNG 変換 – 無料オンライン高画質コンバーター | CrushSVG",
+    "svgToPngDescription": "SVGを数秒で鮮明なPNGに変換。無料、ブラウザ完結、透過背景対応。ソフトのインストール不要で高解像度書き出し可能。",
+    "pngToSvgTitle": "PNG SVG 変換 – 無料で画像をベクター化 | CrushSVG",
+    "pngToSvgDescription": "PNG、JPG、JPEG画像を拡大しても劣化しないSVGベクターに瞬時に変換。インストール不要の無料オンラインツール。",
+    "bgRemoverTitle": "画像背景透過・削除ツール – 無料オンライン | CrushSVG",
+    "bgRemoverDescription": "写真や画像の背景を一瞬で自動削除して透過PNGを作成。無料、ブラウザ完結、高精度な切り抜き。",
+    "imageResizerTitle": "画像リサイズツール – 無料オンライン画像サイズ変更 | CrushSVG",
+    "imageResizerDescription": "PNG、JPG、WebP画像のピクセルサイズを一瞬で変更。縦横比固定、画質最適化対応の無料ツール。"
+  },
+  "accessibility": {
+    "skipToContent": "メインコンテンツへスキップ",
+    "closeModal": "モーダルを閉じる",
+    "previewAlt": "変換後の画像プレビュー"
+  }
+}

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { useTranslations } from "next-intl";
 
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+  const t = useTranslations("features");
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
@@ -18,35 +20,37 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">
         <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[60px] tracking-[0.04em] text-center text-text-dark">
           {mode === "background-remover" ? (
-            <>Stop <span className="text-[#DA582D]">struggling with</span><br className="hidden md:inline" /> complex editing tools</>
+            t("bgTitle")
           ) : mode === "image-resizer" ? (
-            <>Stop <span className="text-[#DA582D]">fumbling with</span><br className="hidden md:inline" /> desktop image editors</>
+            t("resizerTitle")
+          ) : mode === "raster-to-svg" ? (
+            t("rasterTitle")
           ) : (
-            <>Stop <span className="text-[#DA582D]">juggling design tools</span> and<br className="hidden md:inline" /> unreliable converters</>
+            t("svgTitle")
           )}
         </h2>
         <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-center text-text-muted">
           {mode === "background-remover" ? (
-            <>Simply upload any image and let our tool handle the rest.<br className="hidden md:inline" /> Perfect for product photos, social media, headshots, and design assets.</>
+            t("bgDesc")
           ) : mode === "image-resizer" ? (
-            <>Upload any image and resize it to exact dimensions in seconds.<br className="hidden md:inline" /> Perfect for thumbnails, social media, web graphics, and print-ready assets.</>
+            t("resizerDesc")
           ) : mode === "svg-to-png" ? (
-            <>Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds<br className="hidden md:inline" /> perfect for Gmail, Outlook, Canva, websites, newsletters, and more.</>
+            t("svgDesc")
           ) : (
-            <>Simply upload a PNG or JPG, or drag and drop it to create a crisp, scalable SVG in seconds<br className="hidden md:inline" /> perfect for logos, icons, vector graphics, websites, and more.</>
+            t("rasterDesc")
           )}
         </p>
       </div>
 
       {/* Badges Row */}
       <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[30px] md:mt-[62px] max-w-[361px] md:max-w-[1000px]">
-        <Badge text="Free" />
-        <Badge text={mode === "background-remover" ? "Transparent PNG output" : mode === "raster-to-svg" ? "Scalable Vector Output" : mode === "image-resizer" ? "Exact pixel dimensions" : "Multiple export sizes"} />
-        <Badge text={mode === "background-remover" ? "100% private & secure" : mode === "image-resizer" ? "Aspect ratio lock" : "Transparent background"} />
-        {mode === "raster-to-svg" && <Badge text="Color & detail controls" />}
-        {mode === "background-remover" && <Badge text="No software install required" />}
-        {mode === "image-resizer" && <Badge text="PNG, JPG, and WebP output" />}
-        {(!mounted || !user) && <Badge text="3 free conversions, no login required" />}
+        <Badge text={t("badgeFree")} />
+        <Badge text={mode === "background-remover" ? t("badgeTransparentPng") : mode === "raster-to-svg" ? t("badgeScalableVector") : mode === "image-resizer" ? t("badgeExactPixels") : t("badgeMultipleSizes")} />
+        <Badge text={mode === "background-remover" ? t("badgePrivate") : mode === "image-resizer" ? t("badgeRatioLock") : t("badgeTransparentBg")} />
+        {mode === "raster-to-svg" && <Badge text={t("badgeColorControls")} />}
+        {mode === "background-remover" && <Badge text={t("badgeNoInstall")} />}
+        {mode === "image-resizer" && <Badge text={t("badgeFormatsOutput")} />}
+        {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
       </div>
 
     </section>

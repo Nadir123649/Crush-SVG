@@ -17,6 +17,8 @@ import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
 import { Settings } from "@/lib/database/db";
+import { getLocale, getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-VCLLSKB082";
@@ -63,9 +65,12 @@ export default async function RootLayout({
     // Ignore db fetch error
   }
 
+  const locale = (await getLocale().catch(() => "en")) || "en";
+  const messages = await getMessages().catch(() => ({}));
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${bricolage.variable} ${afacad.variable} h-full antialiased`}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
@@ -230,9 +235,11 @@ export default async function RootLayout({
         </a>
 
         <AuthProvider>
-          <ClientLayoutWrapper logoUrl={logoUrl}>
-            {children}
-          </ClientLayoutWrapper>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ClientLayoutWrapper logoUrl={logoUrl}>
+              {children}
+            </ClientLayoutWrapper>
+          </NextIntlClientProvider>
         </AuthProvider>
 
         <ToastProvider />
