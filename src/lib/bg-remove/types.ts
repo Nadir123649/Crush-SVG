@@ -11,7 +11,7 @@ export interface BgRemoveOptions {
 }
 
 export interface BgRemoveResult {
-  dataUrl: string;
+  buffer: Buffer;
   format: string;
   size: number;
   width: number;
@@ -26,4 +26,5 @@ export interface RgbColor {
 
 export interface DetectedBackground extends RgbColor {
   coverage: number;
+  isTransparent?: boolean;
 }

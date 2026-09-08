@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { svg, width, height, scale, transparent, quality } = parsed.data
+  const { svg, width, height, scale, transparent, quality, bgOption, bgColor } = parsed.data
 
   try {
-    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality })
+    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality, bgOption, bgColor })
     const base64 = result.buffer.toString('base64')
     const mimeType = 'image/png'
 

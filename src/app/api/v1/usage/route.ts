@@ -31,16 +31,17 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'validation_error', first)
   }
 
-  const { isAuthenticated } = parsed.data
+  const authHeader = request.headers.get('authorization')
+  const isAuth = Boolean(parsed.data.isAuthenticated || authHeader?.toLowerCase().startsWith('bearer '))
 
-  if (isAuthenticated) {
+  if (isAuth) {
     const who = await auth(request)
     if ('error' in who) return who.error
 
     const user = await User.findByIdAndUpdate(
       who.user.id,
       { $inc: { conversionsUsed: 1 } },
-      { new: true }
+      { returnDocument: 'after', new: true }
     )
 
     if (!user) {
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
       conversionsUsed: user.conversionsUsed,
       remaining: null,
       isUnlimited: true,
+      limitReached: false,
     })
   }
 

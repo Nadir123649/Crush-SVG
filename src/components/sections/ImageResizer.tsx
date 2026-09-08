@@ -362,6 +362,11 @@ export function ImageResizer() {
 
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
+    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
+    if (status === "authed") {
+      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+    }
+
     if (status === "loading") return;
     let cancelled = false;
     getUsage()
@@ -719,19 +724,15 @@ export function ImageResizer() {
                     </span>
                   </button>
 
-{status === "authed" ? (
-                      <span className="font-body font-normal text-[12px] md:text-[14px] text-brand-primary font-medium">
-                        Unlimited conversions
-                      </span>
-                    ) : usage ? (
-                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
-                          ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + usage.remaining
-                            } free conversions used`}
-                      </span>
-                    ) : null}
+                  {(usage || status === "authed") && (
+                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                      {status === "authed" || usage?.isUnlimited
+                        ? "Unlimited conversions"
+                        : `${usage?.conversionsUsed ?? 0} of ${
+                            (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
+                          } free conversions used`}
+                    </span>
+                  )}
                 </div>
               </div>
 

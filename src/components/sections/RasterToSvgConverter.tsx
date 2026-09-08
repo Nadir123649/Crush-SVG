@@ -380,14 +380,22 @@ export function RasterToSvgConverter() {
 
   // Usage polling
   useEffect(() => {
+    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
+    if (status === "authed") {
+      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+    }
+
     if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
+
     let cancelled = false;
     getUsage()
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
       .catch(() => {
-        if (!cancelled) {
+        if (cancelled) return;
+        if (status !== "authed") {
           setUsage(null);
           setUsageFailed(true);
         }
@@ -668,7 +676,11 @@ export function RasterToSvgConverter() {
           originalSize: fileToConvert.size,
           success: true,
         });
-        setUsage(u);
+        if (status === "authed") {
+          setUsage({ ...u, isUnlimited: true, remaining: null, limitReached: false });
+        } else {
+          setUsage(u);
+        }
       } catch (e) {
         console.error("Failed to track usage", e);
       }
@@ -784,16 +796,12 @@ export function RasterToSvgConverter() {
                     </button>
 
                     {/* Usage Counter */}
-                    {status === "authed" ? (
-                      <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        Unlimited conversions
-                      </span>
-                    ) : usage ? (
+                    {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                        {status === "authed" || usage?.isUnlimited
                           ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + usage.remaining
+                          : `${usage?.conversionsUsed ?? 0} of ${
+                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
                             } free conversions used`}
                       </span>
                     ) : null}

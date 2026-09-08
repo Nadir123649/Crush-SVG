@@ -398,17 +398,24 @@ export function BackgroundRemover() {
 
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
+    // Authenticated users are unlimited — set immediately to avoid any flash
+    // of stale guest data while the API call is in flight.
+    if (status === "authed") {
+      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+    }
+
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
+
     let cancelled = false;
     getUsage()
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
       .catch(() => {
-        if (!cancelled) {
-          setUsage(null);
-        }
+        if (cancelled) return;
+        // Authenticated users stay unlimited even if the call fails.
+        if (status !== "authed") setUsage(null);
       });
     return () => {
       cancelled = true;
@@ -456,8 +463,9 @@ export function BackgroundRemover() {
   useEffect(() => {
     if (!storageRestoredRef.current) return;
     try {
+      // Object URLs (blob:) can't be persisted — only persist data URLs
       const persistableResult =
-        result && result.dataUrl && result.dataUrl.length <= MAX_PERSISTED_RESULT_CHARS
+        result && result.dataUrl && !result.dataUrl.startsWith("blob:") && result.dataUrl.length <= MAX_PERSISTED_RESULT_CHARS
           ? result
           : null;
       sessionStorage.setItem(
@@ -475,6 +483,15 @@ export function BackgroundRemover() {
       );
     } catch {}
   }, [dataUrl, imageName, imageSize, imageDims, result, bgOption, customColor, scale]);
+
+  // ── Cleanup Object URLs on unmount ────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (result?.dataUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(result.dataUrl);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Global clipboard paste ─────────────────────────────────────────────────
   useEffect(() => {
@@ -585,9 +602,22 @@ export function BackgroundRemover() {
       if (file) {
         formData.append("file", file);
       } else if (dataUrl) {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const fallbackFile = new File([blob], imageName || "image.png", { type: blob.type });
+        // Convert data URL to blob via canvas (avoids CSP connect-src blocking fetch(dataUrl))
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = document.createElement("img") as HTMLImageElement;
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = dataUrl;
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const blob = await new Promise<Blob>((resolve) =>
+          canvas.toBlob((b) => resolve(b!), "image/png"),
+        );
+        const fallbackFile = new File([blob], imageName || "image.png", { type: "image/png" });
         formData.append("file", fallbackFile);
       }
 
@@ -608,26 +638,44 @@ export function BackgroundRemover() {
         throw new Error(body?.payload?.message || `Request failed (${apiRes.status})`);
       }
 
-      const body = await apiRes.json();
-      const payload = body.payload || body;
+      // Read binary PNG response — avoids base64 inflation and JSON parsing
+      const blob = await apiRes.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      // Revoke previous Object URL to prevent memory leaks
+      if (result?.dataUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(result.dataUrl);
+      }
+
+      // Read usage info from response headers
+      const conversionsUsed = apiRes.headers.get("X-Conversions-Used");
+      const remaining = apiRes.headers.get("X-Conversions-Remaining");
 
       setResult({
-        dataUrl: payload.dataUrl || payload.data,
-        format: payload.format || "png",
-        size: payload.size || 0,
-        conversionsUsed: payload.conversionsUsed,
-        remaining: payload.remaining,
+        dataUrl: objectUrl,
+        format: "png",
+        size: blob.size,
+        conversionsUsed: conversionsUsed ? Number(conversionsUsed) : undefined,
+        remaining: remaining ? Number(remaining) : undefined,
       });
       setStaleResult(false);
       setPreviewMode("after");
       showToast("success", "Background removed! Your image is ready to download.");
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
-      if (payload.remaining !== undefined) {
-        const reached = payload.remaining === 0;
+      if (status === "authed") {
+        setUsage((prev) => ({
+          conversionsUsed: conversionsUsed ? Number(conversionsUsed) : (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
+          remaining: null,
+          isUnlimited: true,
+          limitReached: false,
+        }));
+      } else if (remaining !== null) {
+        const remainingNum = Number(remaining);
+        const reached = remainingNum === 0;
         const updatedUsage = {
-          conversionsUsed: payload.conversionsUsed,
-          remaining: payload.remaining,
+          conversionsUsed: conversionsUsed ? Number(conversionsUsed) : 0,
+          remaining: remainingNum,
           isUnlimited: false,
           limitReached: reached,
         };
@@ -639,7 +687,7 @@ export function BackgroundRemover() {
         }
         window.dispatchEvent(
           new CustomEvent("crushUsageUpdated", {
-            detail: { conversionsUsed: payload.conversionsUsed, remaining: payload.remaining },
+            detail: { conversionsUsed: updatedUsage.conversionsUsed, remaining: updatedUsage.remaining },
           })
         );
       }
@@ -732,12 +780,12 @@ export function BackgroundRemover() {
                     </button>
 
                     {/* Usage Counter */}
-                    {usage && (
+                    {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                        {status === "authed" || usage?.isUnlimited
                           ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + usage.remaining
+                          : `${usage?.conversionsUsed ?? 0} of ${
+                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
                             } free conversions used`}
                       </span>
                     )}
