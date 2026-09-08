@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('Failed to record conversion usage:', error)
     }
+
+    // Invalidate admin dashboard cache for real-time metrics
+    revalidatePath('/admin')
 
     const nextUsed =
       usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined

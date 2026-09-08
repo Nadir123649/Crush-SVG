@@ -363,7 +363,6 @@ export function ImageResizer() {
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (status === "loading") return;
-    if (status === "authed" && !getAccessToken()) return;
     let cancelled = false;
     getUsage()
       .then((u) => {
@@ -678,8 +677,8 @@ export function ImageResizer() {
     >
       {/* Outer Dashed Border Box */}
       <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
-        {/* Inner Dashed Border Box */}
-        <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col px-0 md:px-[40px] py-[20px] md:py-[32px] transition-all duration-300">
+{/* Inner Dashed Border Box */}
+          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col px-0 md:px-[40px] py-[20px] transition-all duration-300">
           {/* Two-Column Grid */}
           <div className="flex flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
             {/* ============================================================ */}
@@ -720,15 +719,19 @@ export function ImageResizer() {
                     </span>
                   </button>
 
-                  {usage && (
-                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {usage.isUnlimited
-                        ? "Unlimited conversions"
-                        : `${usage.conversionsUsed} of ${
-                            usage.conversionsUsed + usage.remaining
-                          } free conversions used`}
-                    </span>
-                  )}
+{status === "authed" ? (
+                      <span className="font-body font-normal text-[12px] md:text-[14px] text-brand-primary font-medium">
+                        Unlimited conversions
+                      </span>
+                    ) : usage ? (
+                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                        {usage.isUnlimited
+                          ? "Unlimited conversions"
+                          : `${usage.conversionsUsed} of ${
+                              usage.conversionsUsed + usage.remaining
+                            } free conversions used`}
+                      </span>
+                    ) : null}
                 </div>
               </div>
 

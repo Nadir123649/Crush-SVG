@@ -24,6 +24,7 @@ export default function UsersPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [users, setUsers] = useState<any[]>([]);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
@@ -382,12 +383,6 @@ export default function UsersPage() {
             </div>
           )}
 
-          {!loading && !error && users.length === 0 && (
-            <div className="p-8 text-center text-text-muted">
-              No users found matching the selected filters.
-            </div>
-          )}
-
           {/* Data Table */}
           {!loading && (!error || users.length > 0) && (
             <>
@@ -419,13 +414,24 @@ export default function UsersPage() {
                       <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
                         <td className="p-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
-                              {u.photoURL ? (
-                                <img src={u.photoURL} alt="User avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                              ) : (
-                                initials
-                              )}
-                            </div>
+<div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
+                               {failedImages.has(u.uid) || !u.photoURL ? (
+                                 initials
+                               ) : (
+<Image
+                                    src={u.photoURL}
+                                    alt="User avatar"
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.onerror = null;
+                                      setFailedImages(prev => new Set(prev).add(u.uid));
+                                    }}
+                                  />
+                               )}
+                             </div>
                             <div className="min-w-0">
                               <div className="font-body font-bold text-sm text-text-dark truncate">{u.displayName || 'Unnamed User'}</div>
                               <div className="font-body text-[12px] text-text-muted truncate">{u.email || u.uid}</div>
@@ -606,20 +612,29 @@ export default function UsersPage() {
               </div>
               <div>
                 <label className="block font-body text-sm font-medium text-text-dark mb-1">Role</label>
-                <select
-                  value={editUserRole}
-                  onChange={(e) => setEditUserRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white cursor-pointer"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-                {editUserRole === "admin" && !(userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'))) && (
-                  <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
-                    <SvgError className="w-3.5 h-3.5 shrink-0" />
-                    <span>User is unverified</span>
-                  </p>
-                )}
+                {(() => {
+                  const userIsVerified = userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'));
+                  return (
+                    <>
+                      <select
+                        value={editUserRole}
+                        onChange={(e) => setEditUserRole(e.target.value)}
+                        disabled={!userIsVerified}
+                        title={!userIsVerified ? "User must be verified to become an admin" : undefined}
+                        className={`w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white ${!userIsVerified ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                      >
+                        <option value="user">User</option>
+                        <option value="admin" disabled={!userIsVerified}>Admin</option>
+                      </select>
+                      {!userIsVerified && (
+                        <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                          <SvgError className="w-3.5 h-3.5 shrink-0" />
+                          <span>User must be verified to become an admin</span>
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <div className="flex justify-end gap-3 mt-2">
                 <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser} className="px-4 py-2">

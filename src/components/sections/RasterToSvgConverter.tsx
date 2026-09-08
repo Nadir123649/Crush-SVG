@@ -381,7 +381,6 @@ export function RasterToSvgConverter() {
   // Usage polling
   useEffect(() => {
     if (status === "loading") return;
-    if (status === "authed" && !getAccessToken()) return;
     let cancelled = false;
     getUsage()
       .then((u) => {
@@ -785,7 +784,11 @@ export function RasterToSvgConverter() {
                     </button>
 
                     {/* Usage Counter */}
-                    {usage && (
+                    {status === "authed" ? (
+                      <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                        Unlimited conversions
+                      </span>
+                    ) : usage ? (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {usage.isUnlimited
                           ? "Unlimited conversions"
@@ -793,7 +796,7 @@ export function RasterToSvgConverter() {
                               usage.conversionsUsed + usage.remaining
                             } free conversions used`}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
@@ -815,23 +818,30 @@ export function RasterToSvgConverter() {
                 {rasterDataUrl ? (
                   /* State: Image Selected */
                   <div
+                    onClick={() => !converting && fileInputRef.current?.click()}
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDragOver(true);
                     }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
-                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border ${
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Click to replace image"
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && !converting) fileInputRef.current?.click();
+                    }}
+                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
-                        : "border-[#8F8F8F] bg-white"
+                        : "border-[#8F8F8F] bg-white hover:bg-gray-50/60 focus-visible:border-brand-primary focus-visible:outline-none"
                     } flex items-center justify-center p-[20px] overflow-hidden group transition-colors`}
                   >
                     {/* Selected Image */}
                     <img
                       src={rasterDataUrl}
                       alt={imageName || "Selected raster image"}
-                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200"
+                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
                     />
 
                     {/* Format Pill Badge */}

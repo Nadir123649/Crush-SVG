@@ -499,7 +499,7 @@ function SvgToPngConverter() {
           {/* Inner Dashed Border Box */}
           <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
             {/* Top row with columns */}
-            <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* Left Column (SVG Code) */}
               <div className="w-full lg:w-[537px] flex flex-col">
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
@@ -645,7 +645,7 @@ function SvgToPngConverter() {
                 <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
                   {/* Feature Guide Box (when Custom is selected) */}
                   {(isCustomWidth || isCustomHeight) && (
-                    <div className="w-full rounded-[12px] border border-[#8F8F8F] bg-white p-[14px] md:p-[16px] flex flex-col justify-center mb-[37px] gap-[8px]">
+                    <div className="w-full rounded-[12px] border border-[#8F8F8F] bg-white p-[14px] md:p-[16px] flex flex-col justify-center mt-[4px] mb-[12px] gap-[8px]">
                       <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
                         <span>Pro PNG Export</span>
                       </div>
@@ -1112,7 +1112,7 @@ function SvgToPngConverter() {
                 {displayError && (
                   <div
                     role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] my-[16px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
+                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[10px] mb-[4px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
                   >
                     {displayError}
                   </div>
@@ -1120,7 +1120,7 @@ function SvgToPngConverter() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[16px] md:mt-[24px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div className="w-full h-[42px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
@@ -1129,7 +1129,7 @@ function SvgToPngConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[16px] md:mt-[24px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !result?.data) ? (
                       <button
                         type="button"
