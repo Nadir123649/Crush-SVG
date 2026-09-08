@@ -19,3 +19,22 @@ Connected to MongoDB successfully
 
 ○ Compiling /background-remover ...
  GET /background-remover 200 in 5.7s (next.js: 5.1s, proxy.ts: 206ms, application-code: 412ms)
+using deprecated parameters for `initSync()`; pass a single object instead
+ GET / 200 in 1470ms (next.js: 744ms, proxy.ts: 9ms, application-code: 718ms)
+(node:10612) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ POST /api/v1/auth/refresh 200 in 802ms (next.js: 588ms, proxy.ts: 5ms, application-code: 209ms)
+ GET /api/v1/usage 200 in 530ms (next.js: 346ms, proxy.ts: 3ms, application-code: 181ms)
+[browser] using deprecated parameters for `initSync()`; pass a single object instead (src/lib/png-to-svg.ts:1:1)
+[browser] Image with src "http://localhost:3000/lock.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "http://localhost:3000/drag.webp" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+ GET /png-to-svg 200 in 594ms (next.js: 560ms, proxy.ts: 4ms, application-code: 31ms)
+ GET /api/v1/usage 200 in 153ms (next.js: 10ms, proxy.ts: 10ms, application-code: 134ms)
+ GET /api/v1/usage 200 in 123ms (next.js: 3ms, proxy.ts: 3ms, application-code: 117ms)
+ GET / 200 in 31ms (next.js: 6ms, proxy.ts: 2ms, application-code: 23ms)
+ GET /api/v1/usage 200 in 178ms (next.js: 5ms, proxy.ts: 5ms, application-code: 168ms)
+ GET /api/v1/usage 200 in 93ms (next.js: 4ms, proxy.ts: 3ms, application-code: 86ms)
+ GET /background-remover 200 in 27ms (next.js: 6ms, proxy.ts: 3ms, application-code: 18ms)
+ GET /api/v1/usage 200 in 95ms (next.js: 6ms, proxy.ts: 3ms, application-code: 86ms)
+ GET /api/v1/usage 200 in 94ms (next.js: 3ms, proxy.ts: 3ms, application-code: 88ms)
+ POST /api/v1/background-remove 200 in 28.5s (next.js: 285ms, proxy.ts: 7ms, application-code: 28.2s)
