@@ -70,11 +70,13 @@ export default async function RootLayout({
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-      <head>
+      <head suppressHydrationWarning>
         {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
             wrong auth panel on the very first frame. Reads the same
             localStorage key AuthProvider uses — no second auth system. */}
-        <script
+        <Script
+          id="auth-sync"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
           }}
@@ -129,8 +131,9 @@ export default async function RootLayout({
         />
 
         {/* Google AdSense */}
-        <script
-          async
+        <Script
+          id="google-adsense"
+          strategy="afterInteractive"
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           crossOrigin="anonymous"
         />
