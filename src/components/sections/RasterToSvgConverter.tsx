@@ -380,13 +380,13 @@ export function RasterToSvgConverter() {
 
   // Usage polling
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "authed" && !getAccessToken()) return;
-
     // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
     if (status === "authed") {
       setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
     }
+
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
 
     let cancelled = false;
     getUsage()
@@ -796,12 +796,12 @@ export function RasterToSvgConverter() {
                     </button>
 
                     {/* Usage Counter */}
-                    {usage && (
+                    {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                        {status === "authed" || usage?.isUnlimited
                           ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + (usage.remaining ?? 0)
+                          : `${usage?.conversionsUsed ?? 0} of ${
+                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
                             } free conversions used`}
                       </span>
                     )}

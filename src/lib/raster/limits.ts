@@ -25,6 +25,7 @@ const GIF_SIG_87 = Buffer.from("GIF87a");
 const GIF_SIG_89 = Buffer.from("GIF89a");
 const RIFF_SIG = Buffer.from("RIFF");
 const WEBP_SIG = Buffer.from("WEBP");
+const BMP_SIG = Buffer.from("BM");
 
 export type AcceptedImageType = "png" | "jpeg" | "gif" | "bmp" | "webp";
 

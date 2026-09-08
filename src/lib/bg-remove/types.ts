@@ -26,4 +26,5 @@ export interface RgbColor {
 
 export interface DetectedBackground extends RgbColor {
   coverage: number;
+  isTransparent?: boolean;
 }

@@ -10,20 +10,18 @@ const BASE_DPI = 72;
 const INPUT_PIXEL_BUDGET = 50000000;
 
 function computeSvgDensity(dims: SvgDimensions, target: TargetSize): number {
-    let density = 300;
     if (dims.width && dims.height) {
         const renderScale = Math.max(
             target.width && dims.width ? target.width / dims.width : 1,
             target.height && dims.height ? target.height / dims.height : 1,
         );
-        if (renderScale > 1) {
-            density = BASE_DPI * renderScale;
-        }
+        let density = BASE_DPI * renderScale;
         const budgetDensity = BASE_DPI * Math.sqrt(INPUT_PIXEL_BUDGET / (dims.width * dims.height));
         density = Math.min(density, budgetDensity);
         density = Math.max(density, BASE_DPI);
+        return density;
     }
-    return density;
+    return 300;
 }
 
 export type SvgFormat = "png";

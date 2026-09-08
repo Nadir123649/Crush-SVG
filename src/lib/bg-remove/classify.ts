@@ -228,6 +228,13 @@ export function classifyImage(
 ): ImageClassification {
   const stats = computeStats(data, w, h);
 
+  // Flat fills with no texture and few unique colors are definitively graphics
+  // (e.g. orange cloud logos, flat vector artwork with warm colors).
+  // Real photos of humans or natural scenes have natural micro-textures and gradients.
+  if (stats.avgLocalVariance < 15 || (stats.avgLocalVariance < 35 && stats.uniqueColorRatio < 0.025)) {
+    return "graphic";
+  }
+
   let photoScore = 0;
 
   // ── Signal 1: Skin-tone presence ───────────────────────────────
@@ -281,9 +288,11 @@ export function classifyImage(
     photoScore += 1;
   }
 
-  // ── Signal 6: Near-zero everything → definitely graphic ────────
-  if (stats.uniqueColorRatio < 0.05 && stats.avgLocalVariance < 20) {
-    photoScore -= 5;
+  // ── Signal 6: Flat texture + very few colors → graphic penalty ──
+  if (stats.skinToneRatio <= 0.03) {
+    if (stats.uniqueColorRatio < 0.005 || (stats.uniqueColorRatio < 0.03 && stats.avgLocalVariance < 25)) {
+      photoScore -= 5;
+    }
   }
 
   // Photo needs score >= 4. This means at least 2 strong signals must agree.

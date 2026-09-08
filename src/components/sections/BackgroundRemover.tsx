@@ -398,14 +398,14 @@ export function BackgroundRemover() {
 
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "authed" && !getAccessToken()) return;
-
     // Authenticated users are unlimited — set immediately to avoid any flash
     // of stale guest data while the API call is in flight.
     if (status === "authed") {
       setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
     }
+
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
 
     let cancelled = false;
     getUsage()
@@ -663,7 +663,14 @@ export function BackgroundRemover() {
       showToast("success", "Background removed! Your image is ready to download.");
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
-      if (remaining !== null) {
+      if (status === "authed") {
+        setUsage((prev) => ({
+          conversionsUsed: conversionsUsed ? Number(conversionsUsed) : (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
+          remaining: null,
+          isUnlimited: true,
+          limitReached: false,
+        }));
+      } else if (remaining !== null) {
         const remainingNum = Number(remaining);
         const reached = remainingNum === 0;
         const updatedUsage = {
@@ -773,12 +780,12 @@ export function BackgroundRemover() {
                     </button>
 
                     {/* Usage Counter */}
-                    {usage && (
+                    {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {usage.isUnlimited
+                        {status === "authed" || usage?.isUnlimited
                           ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + (usage.remaining ?? 0)
+                          : `${usage?.conversionsUsed ?? 0} of ${
+                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
                             } free conversions used`}
                       </span>
                     )}

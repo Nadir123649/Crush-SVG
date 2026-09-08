@@ -53,6 +53,11 @@ export async function processBackgroundRemove(
   const w = decoded.info.width;
   const h = decoded.info.height;
 
+  const bg = detectBackgroundColor(rawData, w, h);
+  if (bg.isTransparent) {
+    return processLegacyFromRaw(rawData, w, h, options);
+  }
+
   const classification = classifyImage(rawData, w, h);
 
   if (classification === "photo") {

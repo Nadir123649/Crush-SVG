@@ -174,13 +174,13 @@ function SvgToPngConverter() {
   }, [openDropdown]);
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (status === "authed" && !getAccessToken()) return;
-
     // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
     if (status === "authed") {
       setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
     }
+
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
 
     let cancelled = false;
     getUsage()
@@ -239,6 +239,13 @@ function SvgToPngConverter() {
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
+
+  const resultImageUrl = useMemo(() => {
+    if (!result?.data) return "";
+    return `data:${result.mimeType || "image/png"};base64,${result.data}`;
+  }, [result]);
+
+  const activePreviewUrl = resultImageUrl || previewUrl;
 
   function handleSvgChange(value: string) {
     setSvgCode(value);
@@ -429,7 +436,14 @@ function SvgToPngConverter() {
         height: options.height,
         scale: options.scale,
       });
-      if (res.remaining !== undefined) {
+      if (status === "authed") {
+        setUsage((prev) => ({
+          conversionsUsed: res.conversionsUsed ?? (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
+          remaining: null,
+          isUnlimited: true,
+          limitReached: false,
+        }));
+      } else if (res.remaining !== undefined) {
         const reached = res.remaining === 0;
         const updatedUsage = {
           conversionsUsed: res.conversionsUsed,
@@ -584,12 +598,12 @@ function SvgToPngConverter() {
                       </span>
                     </button>
                     <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {usage
-                        ? usage.isUnlimited
-                          ? "Unlimited conversions"
-                          : `${usage.conversionsUsed} of ${
-                              usage.conversionsUsed + (usage.remaining ?? 0)
-                            } free conversions used`
+                      {status === "authed" || usage?.isUnlimited
+                        ? "Unlimited conversions"
+                        : usage
+                        ? `${usage.conversionsUsed} of ${
+                            usage.conversionsUsed + (usage.remaining ?? 0)
+                          } free conversions used`
                         : "0 of 3 free conversions used"}
                     </span>
                   </div>
@@ -707,16 +721,41 @@ function SvgToPngConverter() {
               {/* Right Column (Live Preview) */}
               <div className="w-full lg:w-[537px] flex flex-col">
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">Live Preview</h2>
+                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+                    {result ? "Converted PNG Preview" : "Live Preview"}
+                  </h2>
+                  {result && (
+                    <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      PNG Ready{result.width && result.height ? ` (${result.width}×${result.height})` : ""}
+                    </span>
+                  )}
                 </div>
 
                 {/* Live Preview Box */}
-                <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[56px] md:p-[80px]">
-                  {storageRestored && previewUrl && !previewError ? (
+                <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]">
+                  {result && transparent && (
+                    <div
+                      className="absolute inset-0 opacity-20 pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+                        backgroundSize: "16px 16px",
+                        backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                      }}
+                    />
+                  )}
+                  {converting ? (
+                    <div className="flex flex-col items-center justify-center gap-3 z-20">
+                      <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
+                      <span className="font-body font-medium text-[14px] text-[#353A3E]">
+                        Converting SVG to PNG...
+                      </span>
+                    </div>
+                  ) : storageRestored && activePreviewUrl && !previewError ? (
                     <img
-                      src={previewUrl}
-                      alt="SVG preview"
-                      className="w-full h-full object-contain drop-shadow-md"
+                      src={activePreviewUrl}
+                      alt={result ? "Converted PNG preview" : "SVG preview"}
+                      className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-md z-10"
                       onError={() => setPreviewError(true)}
                     />
                   ) : storageRestored ? (
@@ -1144,7 +1183,7 @@ function SvgToPngConverter() {
                       />
                     </label>
 
-                    {/* Custom Background Color Selection when Transparent is unchecked */}
+                    {/* Custom Background Color Selection when Transparent is unchecked
                     {!transparent && (
                       <div className="w-full rounded-[12px] border border-[#8F8F8F] mt-[12px] p-[12px] md:p-[16px] bg-white flex flex-col gap-[10px]">
                         <div className="flex items-center justify-between">
@@ -1226,6 +1265,7 @@ function SvgToPngConverter() {
                         )}
                       </div>
                     )}
+                    */}
                   </div>
                 </div>
 

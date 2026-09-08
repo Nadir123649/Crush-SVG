@@ -214,10 +214,21 @@ if (contentAspect >= 1) {
     .raw()
     .toBuffer();
 
+  const totalPixels = origWidth * origHeight;
+  let foregroundCount = 0;
+  for (let i = 0; i < resizedAlpha.length; i++) {
+    if (resizedAlpha[i] > 20) foregroundCount++;
+  }
+  if (foregroundCount / totalPixels < 0.01) {
+    throw new BgRemoveError(
+      "processing_failed",
+      "MODNet detected no foreground subject in this image.",
+    );
+  }
+
   // Write alpha mask directly into RGBA pixel data — avoids broken dest-in composite
   // (dest-in with a 1-channel grayscale overlay is treated as fully opaque by sharp)
   const maskedPixels = new Uint8Array(decoded.data);
-  const totalPixels = origWidth * origHeight;
   for (let i = 0; i < totalPixels; i++) {
     maskedPixels[i * 4 + 3] = resizedAlpha[i];
   }
@@ -271,7 +282,8 @@ if (contentAspect >= 1) {
   let finalBuffer = composited;
   let finalWidth = origWidth;
   let finalHeight = origHeight;
-  const scaleFactor = options.scale / 100;
+  const scaleVal = typeof options.scale === "number" && !isNaN(options.scale) && options.scale > 0 ? options.scale : 100;
+  const scaleFactor = scaleVal / 100;
   if (scaleFactor !== 1) {
     finalWidth = Math.max(1, Math.round(origWidth * scaleFactor));
     finalHeight = Math.max(1, Math.round(origHeight * scaleFactor));

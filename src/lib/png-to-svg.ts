@@ -159,6 +159,16 @@ function removeBackgroundAndGrayscale(
   const od = out.data;
 
   const bg = detectBackgroundColor(data, w, h);
+  if (bg.isTransparent) {
+    for (let i = 0; i < od.length; i += 4) {
+      if (od[i + 3] === 0) continue;
+      const luma = Math.round(grayLuma(od[i], od[i + 1], od[i + 2]));
+      od[i] = luma;
+      od[i + 1] = luma;
+      od[i + 2] = luma;
+    }
+    return out;
+  }
   const thresholdSq = threshold * threshold;
 
   let fgCount = 0;
@@ -334,58 +344,103 @@ function detectBackgroundColor(
   data: Uint8ClampedArray,
   w: number,
   h: number
-): { r: number; g: number; b: number; coverage: number } {
-  const samples: { r: number; g: number; b: number }[] = [];
+): { r: number; g: number; b: number; coverage: number; isTransparent?: boolean } {
+  const samples: { r: number; g: number; b: number; isBorder: boolean }[] = [];
+  let transparentBorderSamples = 0;
+  let totalBorderSamples = 0;
 
-  const corners = [
-    [0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1],
-  ];
-  for (const [x, y] of corners) {
-    const i = (y * w + x) * 4;
-    samples.push({ r: data[i], g: data[i + 1], b: data[i + 2] });
+  const insets = [0, 2];
+  for (const inset of insets) {
+    if (w <= inset * 2 || h <= inset * 2) continue;
+    const x0 = inset, x1 = w - 1 - inset;
+    const y0 = inset, y1 = h - 1 - inset;
+
+    const corners = [
+      [x0, y0], [x1, y0], [x0, y1], [x1, y1]
+    ];
+    for (const [x, y] of corners) {
+      totalBorderSamples++;
+      const i = (y * w + x) * 4;
+      if (data[i + 3] < 128) {
+        transparentBorderSamples++;
+      } else {
+        samples.push({ r: data[i], g: data[i + 1], b: data[i + 2], isBorder: true });
+      }
+    }
+
+    for (let i = 0; i < 8; i++) {
+      const tx = Math.floor(x0 + ((i + 1) / 9) * (x1 - x0));
+      const ty = Math.floor(y0 + ((i + 1) / 9) * (y1 - y0));
+
+      const ti = (y0 * w + tx) * 4;
+      totalBorderSamples++;
+      if (data[ti + 3] < 128) transparentBorderSamples++;
+      else samples.push({ r: data[ti], g: data[ti + 1], b: data[ti + 2], isBorder: true });
+
+      const bi = (y1 * w + tx) * 4;
+      totalBorderSamples++;
+      if (data[bi + 3] < 128) transparentBorderSamples++;
+      else samples.push({ r: data[bi], g: data[bi + 1], b: data[bi + 2], isBorder: true });
+
+      const li = (ty * w + x0) * 4;
+      totalBorderSamples++;
+      if (data[li + 3] < 128) transparentBorderSamples++;
+      else samples.push({ r: data[li], g: data[li + 1], b: data[li + 2], isBorder: true });
+
+      const ri = (ty * w + x1) * 4;
+      totalBorderSamples++;
+      if (data[ri + 3] < 128) transparentBorderSamples++;
+      else samples.push({ r: data[ri], g: data[ri + 1], b: data[ri + 2], isBorder: true });
+    }
   }
 
-  for (let i = 0; i < 8; i++) {
-    const t = Math.floor((i + 1) / 9 * (w - 1));
-    const ti = (0 * w + t) * 4;
-    samples.push({ r: data[ti], g: data[ti + 1], b: data[ti + 2] });
-    const bi = ((h - 1) * w + t) * 4;
-    samples.push({ r: data[bi], g: data[bi + 1], b: data[bi + 2] });
-    const li = (Math.floor(i * (h - 1) / 7) * w + 0) * 4;
-    samples.push({ r: data[li], g: data[li + 1], b: data[li + 2] });
-    const ri = (Math.floor(i * (h - 1) / 7) * w + (w - 1)) * 4;
-    samples.push({ r: data[ri], g: data[ri + 1], b: data[ri + 2] });
+  if (samples.length === 0) {
+    return { r: 255, g: 255, b: 255, coverage: 1, isTransparent: true };
   }
 
-  const clusters: { r: number; g: number; b: number; count: number }[] = [];
+  const clusters: { r: number; g: number; b: number; count: number; borderCount: number }[] = [];
   for (const s of samples) {
     let merged = false;
     for (const c of clusters) {
       if (
-        Math.abs(c.r - s.r) <= 10 &&
-        Math.abs(c.g - s.g) <= 10 &&
-        Math.abs(c.b - s.b) <= 10
+        Math.abs(c.r - s.r) <= 12 &&
+        Math.abs(c.g - s.g) <= 12 &&
+        Math.abs(c.b - s.b) <= 12
       ) {
         c.r = (c.r * c.count + s.r) / (c.count + 1);
         c.g = (c.g * c.count + s.g) / (c.count + 1);
         c.b = (c.b * c.count + s.b) / (c.count + 1);
         c.count++;
+        if (s.isBorder) c.borderCount++;
         merged = true;
         break;
       }
     }
-    if (!merged) clusters.push({ r: s.r, g: s.g, b: s.b, count: 1 });
+    if (!merged) {
+      clusters.push({
+        r: s.r,
+        g: s.g,
+        b: s.b,
+        count: 1,
+        borderCount: s.isBorder ? 1 : 0,
+      });
+    }
   }
 
   clusters.sort((a, b) => b.count - a.count);
   const dominant = clusters[0];
   const coverage = dominant.count / samples.length;
+  const dominantBorderCoverage = totalBorderSamples > 0 ? dominant.borderCount / totalBorderSamples : 0;
+  const borderTransparentRatio = transparentBorderSamples / totalBorderSamples;
+
+  const isTransparent = borderTransparentRatio >= 0.60 && dominantBorderCoverage < 0.20;
 
   return {
     r: Math.round(dominant.r),
     g: Math.round(dominant.g),
     b: Math.round(dominant.b),
     coverage,
+    isTransparent,
   };
 }
 
@@ -398,6 +453,7 @@ function removeBackground(
   const od = out.data;
 
   const bg = detectBackgroundColor(data, w, h);
+  if (bg.isTransparent) return out;
   if (bg.coverage < 0.05) return out;
 
   const distSq = (r: number, g: number, b: number) =>
@@ -521,7 +577,7 @@ function bakeCustomBgUnderImage(
 
 function replaceBackgroundWithColor(
   imageData: ImageData,
-  bg: { r: number; g: number; b: number },
+  bg: { r: number; g: number; b: number; isTransparent?: boolean },
   hex: string,
   threshold = 35
 ): ImageData {
@@ -529,6 +585,21 @@ function replaceBackgroundWithColor(
   const out = new ImageData(new Uint8ClampedArray(data), w, h);
   const od = out.data;
   const { r: tr, g: tg, b: tb } = hexToRgb(hex);
+
+  if (bg.isTransparent) {
+    for (let i = 0; i < od.length; i += 4) {
+      const a = od[i + 3];
+      if (a < 255) {
+        const alphaNorm = a / 255;
+        const invAlpha = 1 - alphaNorm;
+        od[i] = Math.round(od[i] * alphaNorm + tr * invAlpha);
+        od[i + 1] = Math.round(od[i + 1] * alphaNorm + tg * invAlpha);
+        od[i + 2] = Math.round(od[i + 2] * alphaNorm + tb * invAlpha);
+        od[i + 3] = 255;
+      }
+    }
+    return out;
+  }
 
   const distSq = (r: number, g: number, b: number) =>
     (r - bg.r) ** 2 + (g - bg.g) ** 2 + (b - bg.b) ** 2;
