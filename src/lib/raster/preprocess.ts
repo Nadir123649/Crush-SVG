@@ -3,6 +3,7 @@ import sharp from "sharp";
 import { RASTER_LIMITS } from "./limits";
 import type { RasterOptions } from "./types";
 import { RasterConversionError } from "./errors";
+import { processBackgroundRemove } from "@/lib/bg-remove/process";
 
 export interface PreprocessResult {
   png: Buffer;
@@ -13,17 +14,50 @@ export interface PreprocessResult {
 
 /**
  * Decode the upload, enforce dimension/pixel budgets (downscaling when needed),
- * and apply the requested background. Returns a normalized PNG buffer that is
- * the exact raster the tracer will consume.
+ * and apply the requested background using the canonical background remover engine.
+ * Returns a normalized PNG buffer that is the exact raster the tracer will consume.
  */
 export async function preprocessRaster(
   buffer: Buffer,
   options: RasterOptions,
   maxPixels: number,
 ): Promise<PreprocessResult> {
-  const meta = await sharp(buffer, { animated: false }).metadata();
-  const width = meta.width ?? 0;
-  const height = meta.height ?? 0;
+  let workingBuffer = buffer;
+
+  // Run canonical background remover engine if transparent or custom background requested
+  if (options.background === "transparent") {
+    try {
+      const bgResult = await processBackgroundRemove(buffer, {
+        bgOption: "Transparent",
+        scale: 100,
+      });
+      workingBuffer = bgResult.buffer;
+    } catch {
+      /* Fallback to original buffer */
+    }
+  } else if (options.background === "custom" && options.bgColor) {
+    try {
+      const bgResult = await processBackgroundRemove(buffer, {
+        bgOption: "Custom",
+        bgColor: options.bgColor,
+        scale: 100,
+      });
+      workingBuffer = bgResult.buffer;
+    } catch {
+      /* Fallback to original buffer */
+    }
+  }
+
+  // Single decode — get metadata and raw pixels in one pass
+  const decoded = await sharp(workingBuffer, { animated: false })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  let width = decoded.info.width;
+  let height = decoded.info.height;
+  let pixels = decoded.data;
+
   if (!width || !height) {
     throw new RasterConversionError("invalid_image", "Could not read image dimensions.");
   }
@@ -36,27 +70,36 @@ export async function preprocessRaster(
       `Image dimension exceeds the ${RASTER_LIMITS.MAX_DIMENSION}px limit.`,
     );
   }
-  const pixels = width * height;
-  if (pixels > maxPixels) {
-    const scale = Math.sqrt(maxPixels / pixels);
+
+  const totalPixels = width * height;
+  if (totalPixels > maxPixels) {
+    const scale = Math.sqrt(maxPixels / totalPixels);
     const targetW = Math.max(RASTER_LIMITS.MIN_DIMENSION, Math.round(width * scale));
     const targetH = Math.max(RASTER_LIMITS.MIN_DIMENSION, Math.round(height * scale));
-    buffer = await sharp(buffer, { animated: false })
+    const resized = await sharp(decoded.data, { raw: { width, height, channels: 4 } })
       .resize(targetW, targetH, { fit: "inside", withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
-      .png()
-      .toBuffer();
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    pixels = resized.data;
+    width = resized.info.width;
+    height = resized.info.height;
   }
 
-  let pipeline = sharp(buffer, { animated: false });
+  let pipeline = sharp(pixels, { raw: { width, height, channels: 4 } });
+  let hasAlpha = true;
+
   if (options.background === "custom" && options.bgColor) {
     pipeline = pipeline.flatten({ background: options.bgColor });
+    hasAlpha = false;
   }
+
+  // Single PNG encode at the end — no intermediate encodes, no metadata re-read
   const png = await pipeline.png().toBuffer();
-  const outMeta = await sharp(png).metadata();
+
   return {
     png,
-    width: outMeta.width ?? width,
-    height: outMeta.height ?? height,
-    hasAlpha: outMeta.hasAlpha ?? false,
+    width,
+    height,
+    hasAlpha,
   };
 }

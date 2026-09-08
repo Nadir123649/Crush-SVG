@@ -50,3 +50,6 @@ public/debug.json
 
 # Markdown files
 *.md
+
+# OpenCode
+.opencode/

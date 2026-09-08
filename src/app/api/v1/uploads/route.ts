@@ -95,26 +95,32 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
   const rawWidth = formData.get('width')
   const rawScale = formData.get('scale')
   const rawTransparent = formData.get('transparent')
+  const rawBgOption = formData.get('bgOption')
+  const rawBgColor = formData.get('bgColor')
 
   const parsed = convertSchema
     .omit({ svg: true })
     .safeParse({
       width: rawWidth ? Number(rawWidth) : undefined,
       scale: rawScale ? Number(rawScale) : undefined,
-      transparent: rawTransparent === 'true' || rawTransparent === '1',
+      transparent: rawTransparent === null ? undefined : (rawTransparent === 'true' || rawTransparent === '1'),
+      bgOption: rawBgOption ?? undefined,
+      bgColor: rawBgColor ?? undefined,
     })
   if (!parsed.success) {
     const first = Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Invalid input'
     return errorResponse(400, 'validation_error', first, undefined, request)
   }
 
-  const { width, scale, transparent } = parsed.data
+  const { width, scale, transparent, bgOption, bgColor } = parsed.data
 
   try {
     const result = await convertSvgQueued(buffer.toString('utf-8'), {
       width,
       scale,
       transparent,
+      bgOption,
+      bgColor,
     })
 
     const idPrefix = sanitizePublicId(usage.userId ?? `guest_${getGuestId(request) ?? 'anon'}`)
