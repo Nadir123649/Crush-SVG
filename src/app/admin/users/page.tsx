@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { ExportButton } from "@/components/ui/ExportButton";
 import Image from "next/image";
 import { UserFilters } from "./UserFilters";
 import { apiFetch } from "@/lib/client/http";
@@ -11,7 +12,6 @@ import { useAuth } from "@/lib/client/auth-context";
 const USERS_PAGE_SIZE = 15;
 
 const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
-const SvgDownload = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
 const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
@@ -124,7 +124,7 @@ export default function UsersPage() {
       setUsers((prev) => prev.filter((u) => u.uid !== userToDelete.uid));
       setDeleteModalOpen(false);
       setUserToDelete(null);
-      showToast("success", "User deleted successfully");
+      showToast("success", "User deleted successfully", { id: "delete-user" });
     } catch (err) {
       setError("Failed to delete user");
     } finally {
@@ -136,20 +136,20 @@ export default function UsersPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserEmail || !newUserName || !newUserPassword) {
-      showToast("error", "Email, name, and password are required");
+      showToast("error", "Email, name, and password are required", { id: "add-user" });
       return;
     }
     const trimmedName = newUserName.trim();
     if (!trimmedName) {
-      showToast("error", "Display name is required");
+      showToast("error", "Display name is required", { id: "add-user" });
       return;
     }
     if (trimmedName.length < 3) {
-      showToast("error", "Display name must be at least 3 characters");
+      showToast("error", "Display name must be at least 3 characters", { id: "add-user" });
       return;
     }
     if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
+      showToast("error", "Display name cannot exceed 16 characters", { id: "add-user" });
       return;
     }
     setAddingUser(true);
@@ -172,12 +172,12 @@ export default function UsersPage() {
         setNewUserName("");
         setNewUserPassword("");
         setNewUserRole("user");
-        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`);
+        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`, { id: "add-user" });
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to add user";
       setError(msg);
-      showToast("error", msg);
+      showToast("error", msg, { id: "add-user" });
     } finally {
       setAddingUser(false);
     }
@@ -197,21 +197,21 @@ export default function UsersPage() {
     const isVerified = userToEdit.isVerified === true || userToEdit.status === 'verified' || userToEdit.emailVerified === true || isGoogle;
     
     if (editUserRole === "admin" && !isVerified) {
-      showToast("error", "User is unverified");
+      showToast("error", "User is unverified", { id: "edit-user" });
       return;
     }
 
     const trimmedName = editUserName.trim();
     if (!trimmedName) {
-      showToast("error", "Display name is required");
+      showToast("error", "Display name is required", { id: "edit-user" });
       return;
     }
     if (trimmedName.length < 3) {
-      showToast("error", "Display name must be at least 3 characters");
+      showToast("error", "Display name must be at least 3 characters", { id: "edit-user" });
       return;
     }
     if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
+      showToast("error", "Display name cannot exceed 16 characters", { id: "edit-user" });
       return;
     }
     setEditingUser(true);
@@ -230,11 +230,11 @@ export default function UsersPage() {
         }
         setEditUserModalOpen(false);
         setUserToEdit(null);
-        showToast("success", "User updated successfully");
+        showToast("success", "User updated successfully", { id: "edit-user" });
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to update user";
-      showToast("error", msg);
+      showToast("error", msg, { id: "edit-user" });
     } finally {
       setEditingUser(false);
     }
@@ -286,7 +286,7 @@ export default function UsersPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast("success", "Users exported successfully!");
+      showToast("success", "Users exported successfully!", { id: "export-users" });
     } catch (err) {
       setError("Failed to export users");
     }
@@ -341,11 +341,8 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
-            <SvgDownload className="w-4 h-4 shrink-0" />
-            Export
-          </Button>
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <ExportButton onClick={handleExportCSV} disabled={loading} />
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="gap-2 shadow-sm text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
@@ -684,7 +681,7 @@ export default function UsersPage() {
                     const pastedText = e.clipboardData.getData('text').slice(0, 16);
                     setNewUserName(pastedText);
                     if (e.clipboardData.getData('text').length > 16) {
-                      showToast("error", "Display name limited to 16 characters");
+                      showToast("error", "Display name limited to 16 characters", { id: "add-user" });
                     }
                   }}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"

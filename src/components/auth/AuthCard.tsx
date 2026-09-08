@@ -62,12 +62,7 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
-        const urlReturn = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get("returnTo") : null;
-        const finalReturn = returnTo || urlReturn || "/";
-        if (typeof window !== 'undefined' && finalReturn !== window.location.pathname) {
-          router.push(finalReturn);
-        }
-        router.refresh();
+        // GuestOnly detects status → "authed" and redirects using returnTo query param.
       } else {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
@@ -91,12 +86,7 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
-      const urlReturn = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get("returnTo") : null;
-      const finalReturn = returnTo || urlReturn || "/";
-      if (typeof window !== 'undefined' && finalReturn !== window.location.pathname) {
-        router.push(finalReturn);
-      }
-      router.refresh();
+      // GuestOnly detects status → "authed" and redirects using returnTo query param.
     } catch (err) {
       // Closing the popup (or a cancelled popup request) is a cancellation,
       // not an error — keep the form clean and silent.

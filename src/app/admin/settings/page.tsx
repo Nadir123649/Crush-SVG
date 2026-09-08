@@ -30,7 +30,7 @@ export default function SettingsPage() {
           setSettings(response.settings);
         }
       } catch (err) {
-        showToast("error", "Failed to load settings.");
+        showToast("error", "Failed to load settings.", { id: "load-settings" });
       } finally {
         setLoading(false);
       }
@@ -51,10 +51,10 @@ export default function SettingsPage() {
       });
       if (response?.settings) {
         setSettings(response.settings);
-        showToast("success", "Settings saved successfully!");
+        showToast("success", "Settings saved successfully!", { id: "save-settings" });
       }
     } catch (err) {
-      showToast("error", "Failed to save settings.");
+      showToast("error", "Failed to save settings.", { id: "save-settings" });
     } finally {
       setSavingSettings(false);
     }
@@ -65,11 +65,11 @@ export default function SettingsPage() {
     if (!file) return;
 
     if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) {
-      showToast("error", "Invalid file type. Only PNG, JPEG, WebP, and SVG are allowed.");
+      showToast("error", "Invalid file type. Only PNG, JPEG, WebP, and SVG are allowed.", { id: "upload-logo" });
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      showToast("error", "File too large. Maximum size is 2MB for logos.");
+      showToast("error", "File too large. Maximum size is 2MB for logos.", { id: "upload-logo" });
       return;
     }
 
@@ -97,11 +97,11 @@ export default function SettingsPage() {
         });
         if (response?.settings) {
           setSettings(response.settings);
-          showToast("success", "Logo updated successfully!");
+          showToast("success", "Logo updated successfully!", { id: "upload-logo" });
         }
       }
     } catch (err) {
-      showToast("error", "Failed to upload logo.");
+      showToast("error", "Failed to upload logo.", { id: "upload-logo" });
     } finally {
       setUploadingLogo(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -118,10 +118,10 @@ export default function SettingsPage() {
       });
       if (response?.settings) {
         setSettings(response.settings);
-        showToast("success", "Logo removed successfully!");
+        showToast("success", "Logo removed successfully!", { id: "remove-logo" });
       }
     } catch (err) {
-      showToast("error", "Failed to remove logo.");
+      showToast("error", "Failed to remove logo.", { id: "remove-logo" });
     } finally {
       setUploadingLogo(false);
     }
@@ -130,7 +130,7 @@ export default function SettingsPage() {
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminEmail || !adminPassword) {
-      showToast("error", "Email and password are required.");
+      showToast("error", "Email and password are required.", { id: "add-admin" });
       return;
     }
     setAddingAdmin(true);
@@ -139,14 +139,14 @@ export default function SettingsPage() {
         method: "POST",
         body: JSON.stringify({ email: adminEmail, password: adminPassword, role: "admin" })
       });
-      showToast("success", res?.message || `Admin created! Verification email sent to ${adminEmail}`);
+      showToast("success", res?.message || `Admin created! Verification email sent to ${adminEmail}`, { id: "add-admin" });
       setAdminEmail("");
       setAdminPassword("");
     } catch (err: any) {
       if (err.status === 409) {
-        showToast("error", "A user with this email already exists.");
+        showToast("error", "A user with this email already exists.", { id: "add-admin" });
       } else {
-        showToast("error", err.message || "Failed to add admin user.");
+        showToast("error", err.message || "Failed to add admin user.", { id: "add-admin" });
       }
     } finally {
       setAddingAdmin(false);

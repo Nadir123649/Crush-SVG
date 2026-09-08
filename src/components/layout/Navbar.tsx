@@ -96,7 +96,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
   function handleLogout() {
     setMenuOpen(false);
     logout();
-    showToast("success", "You've been signed out");
+    showToast("success", "You've been logged out");
     router.push("/");
   }
 

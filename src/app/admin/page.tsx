@@ -43,7 +43,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-64 gap-3">
+      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-70px)] w-full gap-3">
         <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
         <span className="font-body text-sm font-medium text-text-muted">Loading dashboard...</span>
       </div>
