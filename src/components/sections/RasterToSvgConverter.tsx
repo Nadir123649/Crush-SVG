@@ -804,7 +804,7 @@ export function RasterToSvgConverter() {
                               (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
                             } free conversions used`}
                       </span>
-                    ) : null}
+                    )}
                   </div>
                 </div>
 
