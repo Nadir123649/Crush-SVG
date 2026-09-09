@@ -648,7 +648,7 @@
     "resendVerification": "Resend verification email",
     "resendSuccess": "Verification email sent again.",
     "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
+    "forgotPasswordLink": "Forgot password?",
     "continueWithGoogle": "Continue with Google",
     "continueWithGithub": "Continue with GitHub",
     "continueWithX": "Continue with X",

@@ -774,8 +774,8 @@ export function BackgroundRemover() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <span className={`relative z-10 text-[#D94A1E] ${processing ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
                         Clear
                       </span>
                     </button>
@@ -826,13 +826,13 @@ export function BackgroundRemover() {
                     className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
-                        : "border-[#8F8F8F] bg-white hover:bg-gray-50/60 focus-visible:border-brand-primary focus-visible:outline-none"
+                        : `border-[#8F8F8F] bg-white ${processing ? '' : 'hover:bg-gray-50/60'} focus-visible:border-brand-primary focus-visible:outline-none`
                     } flex items-center justify-center p-[20px] overflow-hidden group transition-colors`}
                   >
                     <img
                       src={dataUrl}
                       alt={imageName || "Selected image"}
-                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
+                      className={`relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 ${processing ? '' : 'group-hover:scale-[1.02]'}`}
                     />
                     <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-brand-primary backdrop-blur-xs text-white px-2.5 py-1 rounded-md text-[12px] font-heading font-medium tracking-wide">
                       <span>{fileExt}</span>
@@ -859,8 +859,8 @@ export function BackgroundRemover() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <span className={`relative z-10 text-[#D94A1E] ${processing ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
                         Replace Image
                       </span>
                     </button>

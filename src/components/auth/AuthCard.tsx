@@ -266,7 +266,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 {t("rememberMe")}
               </label>
               <Link href="/forgot-password" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline">
-                {t("forgotPassword")}
+                {t("forgotPasswordLink")}
               </Link>
             </div>
           )}

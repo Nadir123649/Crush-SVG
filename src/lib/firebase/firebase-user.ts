@@ -39,9 +39,11 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
 
     if (user) {
         const expectedRole = roleFor(email);
+        // Preserve DB-displayName over OAuth token: only set if user has none yet
+        const displayName = user.displayName || token.name || "CrushSVG user";
         const updateData: any = {
             email: email ?? user.email,
-            displayName: token.name ?? user.displayName,
+            displayName,
             photoURL: token.picture || user.photoURL,
             lastLoginAt: now,
         };

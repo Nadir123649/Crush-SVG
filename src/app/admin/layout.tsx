@@ -21,7 +21,7 @@ const SvgBell = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width
 const SvgUser = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, status, logout } = useAuth();
+  const { user, status, logout, sessionVersion } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,6 +53,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Wait until session is fully resolved (not loading, user available)
     if (status === "loading" || (status === "authed" && !user)) return;
 
+    // CRITICAL: Wait for background refresh to complete (sessionVersion > 0)
+    // before evaluating admin role to prevent redirect loops from stale localStorage data
+    if (status === "authed" && sessionVersion === 0) return;
+
     if (status === "guest") {
       const target = `/login?returnTo=${encodeURIComponent(pathname)}`;
       if (redirectRef.current !== target) {
@@ -68,11 +72,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       // authed admin — clear any pending redirect
       redirectRef.current = null;
     }
-  }, [status, user, router, pathname]);
+  }, [status, user, sessionVersion, router, pathname]);
 
   const isLoading = status === "loading";
   const isGuest = status === "guest";
-  const isNonAdmin = status === "authed" && user?.role !== "admin";
+  const isNonAdmin = status === "authed" && sessionVersion > 0 && user?.role !== "admin";
   const showOverlay = isLoading || isGuest || isNonAdmin;
 
   const navLinks = [
