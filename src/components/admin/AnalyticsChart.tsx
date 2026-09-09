@@ -44,7 +44,8 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
     else niceDigit = 10;
     return niceDigit * magnitude;
   };
-  const yAxisMax = getNiceMax(maxValue);
+  const yAxisMaxRaw = getNiceMax(maxValue);
+  const yAxisMax = yAxisMaxRaw % 4 === 0 ? yAxisMaxRaw : yAxisMaxRaw + (4 - (yAxisMaxRaw % 4));
 
   // 5 grid lines (0%, 25%, 50%, 75%, 100%)
   const yAxisLines = [4, 3, 2, 1, 0].map(i => (yAxisMax * i) / 4);
@@ -63,7 +64,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
           {yAxisLines.map((val, i) => (
             <div key={`grid-${i}`} className="relative flex items-center w-full h-[1px]">
               <span className="absolute left-0 text-[#9ca3af] text-[10px] md:text-xs text-right w-8 -translate-y-1/2">
-                {val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : val}
+                {val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : Math.round(val)}
               </span>
               <div className="ml-10 w-full border-b border-dashed border-gray-200 dark:border-gray-800" />
             </div>
