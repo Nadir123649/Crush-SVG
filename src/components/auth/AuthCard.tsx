@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getErrorMessage } from "@/lib/firebase/firebase-client";
@@ -22,6 +23,8 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
   const isLogin = type === "login";
   const router = useRouter();
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
+  const t = useTranslations("auth_pages");
+  const tToast = useTranslations("toasts");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -67,14 +70,14 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
         setVerificationSent(true);
-        showToast("success", "Account created. Check your inbox to verify your email address.");
+        showToast("success", tToast("accountCreatedSuccess"));
       }
     } catch (err) {
       if (err instanceof ApiError && err.code === "email_not_verified") {
         setVerificationRequired(true);
         setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+        setError(err instanceof Error ? err.message : tToast("somethingWentWrong"));
       }
     } finally {
       setSubmitting(null);
@@ -106,9 +109,9 @@ async function handleOAuth(provider: OAuthProvider) {
     try {
       await resendVerification(email);
       setResendDone(true);
-      showToast("success", "A new verification link has been sent to your email.");
+      showToast("success", tToast("resendLinkSuccess"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not resend. Try again.");
+      setError(err instanceof Error ? err.message : tToast("couldNotResend"));
     }
   }
 
@@ -118,26 +121,25 @@ async function handleOAuth(provider: OAuthProvider) {
         <div className="flex flex-col items-center gap-[16px] py-[48px]">
           <Image src={IMAGES.emailVerification} alt="" width={72} height={72} className="object-contain" />
           <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1] text-center">
-            Check your email
+            {t("checkEmailTitle")}
           </h2>
           <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px]">
-            We sent a verification link to <span className="font-semibold text-[#353A3E]">{email}</span>.
-            Click it to activate your account, then log in.
+            {t("verificationSentDesc")} <span className="font-semibold text-[#353A3E]">{email}</span>.
           </p>
           <div className="flex flex-col items-center gap-[8px] mt-[8px]">
             {resendDone ? (
-              <p className="font-afacad text-[14px] text-[#D94A1E]">Verification email sent again.</p>
+              <p className="font-afacad text-[14px] text-[#D94A1E]">{t("resendSuccess")}</p>
             ) : (
               <button
                 type="button"
                 onClick={handleResend}
                 className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline"
               >
-                Resend verification email
+                {t("resendVerification")}
               </button>
             )}
             <Link href="/login" className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E]">
-              Back to login
+              {t("backToLogin")}
             </Link>
           </div>
         </div>
@@ -145,7 +147,7 @@ async function handleOAuth(provider: OAuthProvider) {
     );
   }
 
-  const submitLabel = submitting === "email" ? (isLogin ? "Logging in..." : "Creating account...") : isLogin ? "Log In" : "Create Account";
+  const submitLabel = submitting === "email" ? (isLogin ? t("loggingIn") : t("creatingAccount")) : isLogin ? t("loginTitle") : t("signupTitle");
 
   const isNameInvalid = hasSubmitted && !isLogin && (!name.trim() || name.trim().length < 3);
   const isEmailInvalid = hasSubmitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -159,13 +161,13 @@ async function handleOAuth(provider: OAuthProvider) {
         {/* Header Text */}
         <div className="flex flex-col gap-[4px] items-center text-center">
           <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
-            {isLogin ? "Log In" : "Create Account"}
+            {isLogin ? t("loginTitle") : t("signupTitle")}
           </h2>
           <p className="font-afacad text-[14px] text-[#000000]">
             {isLogin ? (
-              <>New user? <Link href="/signup" className="text-[#D94A1E] font-semibold hover:underline">Sign Up</Link></>
+              <>{t("newUserPrompt")} <Link href="/signup" className="text-[#D94A1E] font-semibold hover:underline">{t("signUpLink")}</Link></>
             ) : (
-              <>Already have an account? <Link href="/login" className="text-[#D94A1E] font-semibold hover:underline">Log In</Link></>
+              <>{t("alreadyUserPrompt")} <Link href="/login" className="text-[#D94A1E] font-semibold hover:underline">{t("logInLink")}</Link></>
             )}
           </p>
         </div>
@@ -174,13 +176,13 @@ async function handleOAuth(provider: OAuthProvider) {
         <form onSubmit={handleEmailSubmit} noValidate className="flex flex-col gap-[12px] mt-[8px]">
           {!isLogin && (
             <div className="flex flex-col gap-[4px]">
-              <label htmlFor="auth-name" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Name</label>
+              <label htmlFor="auth-name" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("nameLabel")}</label>
               <input
                 id="auth-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder={t("namePlaceholder")}
                 autoComplete="name"
                 maxLength={16}
                 aria-invalid={isNameInvalid ? "true" : undefined}
@@ -189,19 +191,19 @@ async function handleOAuth(provider: OAuthProvider) {
               />
               {isNameInvalid && (
                 <span id="auth-name-error" role="alert" className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
-                  Name must be at least 3 characters
+                  {t("nameMinError")}
                 </span>
               )}
             </div>
           )}
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="auth-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email address</label>
+            <label htmlFor="auth-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("emailLabel")}</label>
             <input
               id="auth-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder={t("emailPlaceholder")}
               autoComplete="email"
               aria-invalid={isEmailInvalid ? "true" : undefined}
               aria-describedby={isEmailInvalid ? "auth-email-error" : undefined}
@@ -209,19 +211,19 @@ async function handleOAuth(provider: OAuthProvider) {
             />
             {isEmailInvalid && (
               <span id="auth-email-error" role="alert" className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
-                Invalid email format
+                {t("emailInvalidError")}
               </span>
             )}
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Password</label>
+            <label htmlFor="auth-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("passwordLabel")}</label>
             <div className="relative w-full">
               <input
                 id="auth-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={t("passwordPlaceholder")}
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 aria-invalid={isPasswordInvalid ? "true" : undefined}
                 aria-describedby={isPasswordInvalid ? "auth-password-error" : undefined}
@@ -231,7 +233,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black flex items-center justify-center w-[20px] h-[20px]"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? t("hidePassword") : t("showPassword")}
               >
                 {!showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[16px] h-[16px]">
@@ -247,7 +249,7 @@ async function handleOAuth(provider: OAuthProvider) {
             </div>
             {isPasswordInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[2px]">
-                Password must be at least 6 characters
+                {t("passwordMinError")}
               </span>
             )}
           </div>
@@ -261,10 +263,10 @@ async function handleOAuth(provider: OAuthProvider) {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="rounded-[4px] border-[#B8B8B8] w-[14px] h-[14px] accent-[#D94A1E]"
                 />
-                Remember me
+                {t("rememberMe")}
               </label>
               <Link href="/forgot-password" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline">
-                Forgot password?
+                {t("forgotPasswordLink")}
               </Link>
             </div>
           )}
@@ -275,9 +277,7 @@ async function handleOAuth(provider: OAuthProvider) {
               className="rounded-[6px] border border-red-200 bg-red-50 px-[12px] py-[8px] font-afacad text-[12px] leading-[18px] text-red-700"
             >
               {error && error.includes("already exists") ? (
-                <span>
-                  An account with this email already exists. Please <a href="/login" style={{ color: "#3b82f6", fontWeight: 600, textDecoration: "underline" }}>log in</a> instead.
-                </span>
+                <span dangerouslySetInnerHTML={{ __html: t("accountExistsError") }} />
               ) : (
                 error
               )}
@@ -288,7 +288,7 @@ async function handleOAuth(provider: OAuthProvider) {
                   disabled={resendDone}
                   className="block mt-[6px] font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline disabled:text-[#AEAEAE]"
                 >
-                  {resendDone ? "Verification email sent again" : "Resend verification email"}
+                  {resendDone ? t("resendSuccess") : t("resendVerification")}
                 </button>
               )}
             </div>
@@ -305,7 +305,7 @@ async function handleOAuth(provider: OAuthProvider) {
 
         <div className="flex items-center gap-[10px] my-[6px]">
           <div className="h-[1px] flex-1 bg-[#B8B8B8]"></div>
-          <span className="font-afacad text-[12px] text-[#4B5563] font-medium">Or</span>
+          <span className="font-afacad text-[12px] text-[#4B5563] font-medium">{t("or")}</span>
           <div className="h-[1px] flex-1 bg-[#B8B8B8]"></div>
         </div>
 
@@ -314,12 +314,12 @@ async function handleOAuth(provider: OAuthProvider) {
           <button 
             type="button" 
             onClick={() => handleOAuth("google")} 
-            aria-label="Continue with Google authentication"
+            aria-label={t("continueWithGoogleAria")}
             className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
             <span className="font-afacad font-medium text-[14px] text-black">
-              Continue with Google
+              {t("continueWithGoogle")}
             </span>
           </button>
         </div>
@@ -327,7 +327,10 @@ async function handleOAuth(provider: OAuthProvider) {
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[12px] leading-[12px] text-[#475569]">
-            By {isLogin ? "logging in" : "creating an account"}, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Privacy Policy.</Link>
+            {isLogin ? t("termsNoticeByLogin") : t("termsNoticeBySignup")}{" "}
+            <Link href="/terms" className="font-bold text-[#D94A1E] text-[12px] hover:underline">{t("termsOfService")}</Link>{" "}
+            &{" "}
+            <Link href="/privacy-policy" className="font-bold text-[#D94A1E] text-[12px] hover:underline">{t("privacyPolicy")}.</Link>
           </p>
         </div>
       </div>

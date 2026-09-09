@@ -2,14 +2,17 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
+import { useTranslations } from "next-intl";
 
 interface SignupPromptModalProps {
   onClose: () => void;
 }
 
 export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
+  const t = useTranslations("auth_pages.signupPrompt");
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -50,11 +53,11 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
         </div>
 
         <h2 id="signup-prompt-title" className="font-heading font-bold text-[30px] leading-[110%] text-[#D94A1E] text-center mt-[20px]">
-          You&apos;ve used your 3 free conversions
+          {t("title")}
         </h2>
 
         <p className="font-body font-normal text-[14px] leading-[150%] text-[#4B5563] text-center mt-[12px]">
-          Create a free account for unlimited conversions. Your current design stays right here.
+          {t("subtitle")}
         </p>
 
         <Link
@@ -62,7 +65,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
           onClick={onClose}
           className="w-full h-[46px] mt-[24px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
         >
-          Sign up free
+          {t("signupButton")}
         </Link>
 
         <Link
@@ -70,7 +73,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
           onClick={onClose}
           className="w-full h-[46px] mt-[12px] flex items-center justify-center rounded-[12px] border border-[#D94A1E] text-[#D94A1E] font-body font-medium text-[16px] hover:opacity-80 transition-opacity"
         >
-          Log in
+          {t("loginLink")}
         </Link>
       </div>
     </div>

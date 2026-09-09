@@ -14,6 +14,7 @@ import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
+import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -294,6 +295,7 @@ function VectorDropdown({
 }
 
 export function RasterToSvgConverter() {
+  const t = useTranslations("raster_to_svg");
   const { status, sessionVersion } = useAuth();
 
   // Settings
@@ -532,7 +534,7 @@ export function RasterToSvgConverter() {
             if (file) {
               e.preventDefault();
               void handleFile(file);
-              showToast("success", "Image pasted from clipboard");
+              showToast("success", t("toastPasted"));
               return;
             }
           }
@@ -555,15 +557,14 @@ export function RasterToSvgConverter() {
     const isWebp = file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp");
 
     if (!isPng && !isJpg && !isWebp) {
-      setError("Please choose a valid PNG, JPG, or WebP image file.");
-      showToast("error", "Unsupported file type. Please upload PNG, JPG, or WebP.");
+      setError(t("errorInvalidFile"));
+      showToast("error", t("errorInvalidFile"));
       return;
     }
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-        setError(`Image too large (${sizeMB}MB). Maximum allowed size is 10MB.`);
-        showToast("error", "Image exceeds 10MB limit.");
+        setError(t("errorTooLarge"));
+        showToast("error", t("errorTooLarge"));
         return;
       }
 
@@ -609,7 +610,7 @@ export function RasterToSvgConverter() {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
-    showToast("success", "Cleared image and converter settings");
+    showToast("success", t("resetButton"));
   }
 
   async function handleLoadSample() {
@@ -619,15 +620,15 @@ export function RasterToSvgConverter() {
       const blob = await res.blob();
       const file = new File([blob], "crushsvg-icon.png", { type: "image/png" });
       handleFile(file);
-      showToast("success", "Loaded sample CrushSVG icon");
+      showToast("success", t("toastSampleLoaded"));
     } catch {
-      showToast("error", "Could not load sample image");
+      showToast("error", t("toastSampleError"));
     }
   }
 
   async function handleConvert() {
     if (!rasterFile && !rasterDataUrl) {
-      showToast("error", "No image selected. Upload a PNG or JPG to convert.");
+      showToast("error", t("errorInvalidFile"));
       return;
     }
     setError(null);
@@ -666,7 +667,7 @@ export function RasterToSvgConverter() {
         advisory: res.advisory,
       });
       setPreviewMode("vector");
-      showToast("success", "Vectorization complete! Ready to download.");
+      showToast("success", t("convertButton"));
       trackConversion("raster_vectorized", { output_format: "svg" });
       
       try {
@@ -685,7 +686,7 @@ export function RasterToSvgConverter() {
         console.error("Failed to track usage", e);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Vectorization failed. Please try again.";
+      const msg = err instanceof Error ? err.message : t("errorConversion");
       setError(msg);
       showToast("error", msg);
       
@@ -714,7 +715,7 @@ export function RasterToSvgConverter() {
     a.click();
     a.remove();
     URL.revokeObjectURL(downloadUrl);
-    showToast("success", "Your SVG download has started");
+    showToast("success", t("toastDownloadStarted"));
     trackConversion("svg_downloaded", { output_format: "svg" });
 
     if (limitReached && status !== "authed") {
@@ -729,9 +730,9 @@ export function RasterToSvgConverter() {
       await navigator.clipboard.writeText(result.svg);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
-      showToast("success", "SVG vector markup copied to clipboard");
+      showToast("success", t("toastCopied"));
     } catch {
-      showToast("error", "Failed to copy SVG. You can download the file instead.");
+      showToast("error", t("toastCopyFailed"));
     }
   }
 
@@ -763,7 +764,7 @@ export function RasterToSvgConverter() {
                 {/* Column Header */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    Source Image
+                    {t("sourceImage")}
                   </h2>
                   <div className="flex items-center gap-[10px]">
                     {/* Clear Button */}
@@ -799,10 +800,8 @@ export function RasterToSvgConverter() {
                     {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {status === "authed" || usage?.isUnlimited
-                          ? "Unlimited conversions"
-                          : `${usage?.conversionsUsed ?? 0} of ${
-                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
-                            } free conversions used`}
+                          ? t("unlimitedConversions")
+                          : t("conversionsUsed", { used: usage?.conversionsUsed ?? 0, total: (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0) })}
                       </span>
                     )}
                   </div>
@@ -889,7 +888,7 @@ export function RasterToSvgConverter() {
                     {/* Drag Replace Feedback */}
                     {dragOver && (
                       <div className="absolute inset-0 z-30 bg-white/90 flex items-center justify-center font-body font-medium text-[15px] text-brand-primary">
-                        Drop new file to replace
+                        {t("dropToReplace")}
                       </div>
                     )}
                   </div>
@@ -925,11 +924,11 @@ export function RasterToSvgConverter() {
 
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
                       <span className="font-normal">Drag &amp; Drop or </span>
-                      <span className="font-semibold text-brand-primary">Select Image</span>
+                      <span className="font-semibold text-brand-primary">{t("selectImage")}</span>
                     </div>
 
                      <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
-                       PNG, JPG, or WebP up to 10MB
+                       {t("uploadHint")}
                      </p>
 
                     <div className="flex items-center gap-2 mt-1">
@@ -966,19 +965,19 @@ export function RasterToSvgConverter() {
                     {/* Row 2: 3 Metrics Cards */}
                     <div className="grid grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
                       <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Dimensions</span>
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">{t("dimensions")}</span>
                         <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
                           {imageDims ? `${imageDims.width}×${imageDims.height}` : "..."}
                         </strong>
                       </div>
                       <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Aspect Ratio</span>
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">{t("aspectRatio")}</span>
                         <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
                           {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
                         </strong>
                       </div>
                       <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
-                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">Input Format</span>
+                        <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">{t("inputFormat")}</span>
                         <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
                           {fileExt} Bitmap
                         </strong>
@@ -990,35 +989,35 @@ export function RasterToSvgConverter() {
                       <span className="truncate">
                         Mode: <strong className="text-[#202427] font-medium">{rasterMode}</strong> &bull; Quality: <strong className="text-[#202427] font-medium">{rasterQuality}</strong> &bull; Colors: <strong className="text-[#202427] font-medium">{rasterColors}</strong> &bull; BG: <strong className="text-[#202427] font-medium">{rasterBackground}</strong>
                       </span>
-                      <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
+                      <span className="text-brand-primary font-medium shrink-0 ml-2">{t("ready")}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
                     <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
-                      <span>Dual-Engine Converter</span>
-                      <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">PNG &amp; JPG to SVG</span>
+                      <span>{t("dualEngineTitle")}</span>
+                      <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">{t("dualEngineBadge")}</span>
                     </div>
                     <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Intelligent vector tracing creates smooth, scalable paths from raster images</span>
+                        <span>{t("featureVectorTracing")}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Advanced pixel mode for photorealistic conversions with gradient support</span>
+                        <span>{t("featurePixelMode")}</span>
                       </li>
                        <li className="flex items-center gap-2">
                          <span className="text-brand-primary font-bold">✓</span>
-                         <span>Smart auto-detection selects optimal conversion strategy instantly</span>
+                         <span>{t("featureAutoDetect")}</span>
                        </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Complete privacy protection to all processing happens in your browser</span>
+                        <span>{t("featurePrivacy")}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-brand-primary font-bold">✓</span>
-                        <span>Instant download &amp; copy to clipboard for seamless workflow</span>
+                        <span>{t("featureDownload")}</span>
                       </li>
                     </ul>
                   </div>
@@ -1027,13 +1026,13 @@ export function RasterToSvgConverter() {
                 {/* Privacy Assurance Text */}
                 <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
-                  <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
+                  <span>{t("privateNotice")}</span>
                 </p>
 
                 {/* Result Details */}
                 {result && result.size > 0 && (
                   <p className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B] mt-[10px]">
-                    {result.modeUsed === "vector" ? "Vector Paths" : "Pixel-Perfect"}
+                    {result.modeUsed === "vector" ? t("resultVectorPaths") : t("resultPixelPerfect")}
                     {result.tracingModeUsed === "auto" && result.resolvedTracingMode
                       ? ` · Auto → ${result.resolvedTracingMode.charAt(0).toUpperCase()}${result.resolvedTracingMode.slice(1)}`
                       : result.tracingModeUsed
@@ -1044,7 +1043,7 @@ export function RasterToSvgConverter() {
                     {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
                     {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
                     {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
-                    {" · "}{formatFileSize(result.size)} · Infinitely Scalable
+                    {" · "}{formatFileSize(result.size)} · {t("infinitelyScalable")}
                   </p>
                 )}
               </div>
@@ -1056,7 +1055,7 @@ export function RasterToSvgConverter() {
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {result ? "Vector Output" : "Live Preview"}
+                    {result ? t("vectorOutput") : t("livePreview")}
                   </h2>
 
                   {/* Mode Tabs (Vector / Source / Code) */}
@@ -1071,7 +1070,7 @@ export function RasterToSvgConverter() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Vector SVG
+                        {t("vectorSvgTab")}
                       </button>
                       <button
                         type="button"
@@ -1082,7 +1081,7 @@ export function RasterToSvgConverter() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Source
+                        {t("sourceTab")}
                       </button>
                       <button
                         type="button"
@@ -1093,7 +1092,7 @@ export function RasterToSvgConverter() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        SVG Code
+                        {t("svgCodeTab")}
                       </button>
                     </div>
                   )}
@@ -1108,7 +1107,7 @@ export function RasterToSvgConverter() {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
                       <span className="font-body font-medium text-[14px] text-text-dark">
-                        Vectorizing image paths...
+                        {t("vectorizing")}
                       </span>
                     </div>
                   ) : previewMode === "code" && result ? (
@@ -1116,7 +1115,7 @@ export function RasterToSvgConverter() {
                     <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
                       <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
                         <span className="text-[12px] font-mono text-[#353A3E]">
-                          SVG Markup ({formatFileSize(result.size)})
+                          {t("svgMarkup", { size: formatFileSize(result.size) })}
                         </span>
                         <button
                           type="button"
@@ -1134,7 +1133,7 @@ export function RasterToSvgConverter() {
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                           </svg>
-                          {copiedCode ? "Copied!" : "Copy Code"}
+                          {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
                       <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
@@ -1152,7 +1151,7 @@ export function RasterToSvgConverter() {
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
                       <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
-                        Original Raster
+                        {t("originalRaster")}
                       </span>
                     </div>
                   ) : result && previewSvgUrl ? (
@@ -1174,7 +1173,7 @@ export function RasterToSvgConverter() {
                       />
                       <div className="absolute inset-0 bg-white/40 flex items-center justify-center">
                         <span className="bg-white/90 backdrop-blur-xs border border-gray-200 text-text-dark font-body font-medium text-[13px] px-3 py-1.5 rounded-full shadow-sm">
-                          Click &ldquo;Vectorize Image&rdquo; below
+                          {t("clickVectorizeBelow")}
                         </span>
                       </div>
                     </div>
@@ -1187,7 +1186,7 @@ export function RasterToSvgConverter() {
                         className="w-[83px] h-[83px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
-                        Vector preview will appear here
+                        {t("previewPlaceholder")}
                       </p>
                     </div>
                   ) : null}
@@ -1204,7 +1203,7 @@ export function RasterToSvgConverter() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
-                      label="Quality"
+                      label={t("qualityLabel")}
                       value={rasterQuality}
                       options={QUALITY_OPTIONS}
                       onChange={(val) => {
@@ -1220,7 +1219,7 @@ export function RasterToSvgConverter() {
 
                     {/* Colors Dropdown */}
                     <VectorDropdown
-                      label="Color Palette"
+                      label={t("colorPaletteLabel")}
                       value={rasterColors}
                       options={COLOR_OPTIONS}
                       onChange={(val) => {
@@ -1236,7 +1235,7 @@ export function RasterToSvgConverter() {
 
                     {/* Background Dropdown */}
                     <VectorDropdown
-                      label="Background"
+                      label={t("backgroundLabel")}
                       value={rasterBackground}
                       options={BACKGROUND_OPTIONS}
                       onChange={(val) => {
@@ -1254,7 +1253,7 @@ export function RasterToSvgConverter() {
 
                     {/* Tracing Mode Dropdown */}
                     <VectorDropdown
-                      label="Tracing Mode"
+                      label={t("tracingModeLabel")}
                       value={rasterMode}
                       options={MODE_OPTIONS}
                       onChange={(val) => {
@@ -1309,7 +1308,7 @@ export function RasterToSvgConverter() {
                         onClick={() => setShowSignupPrompt(true)}
                         className="w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
                       >
-                        Sign up for unlimited conversions
+                        {t("signUpUnlimited")}
                       </button>
                     ) : isSvgResult ? (
                       <>
@@ -1319,7 +1318,7 @@ export function RasterToSvgConverter() {
                           disabled={converting}
                         >
                           <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                            Download SVG
+                            {t("downloadButton")}
                             <Image
                               src={IMAGES.exportIcon}
                               alt=""
@@ -1348,7 +1347,7 @@ export function RasterToSvgConverter() {
                               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
-                            {copiedCode ? "Copied!" : "Copy SVG Code"}
+                            {copiedCode ? t("copied") : t("copySvgCode")}
                           </button>
                           <span className="text-[#CBD5E1]">&bull;</span>
                           <button
@@ -1357,7 +1356,7 @@ export function RasterToSvgConverter() {
                             disabled={converting}
                             className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
                           >
-                            Re-vectorize
+                            {t("revectorize")}
                           </button>
                         </div>
                       </>
@@ -1368,7 +1367,7 @@ export function RasterToSvgConverter() {
                         disabled={converting || !rasterDataUrl}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                          Vectorize Image
+                          {t("convertButton")}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""

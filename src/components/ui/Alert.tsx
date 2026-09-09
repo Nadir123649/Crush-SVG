@@ -1,8 +1,9 @@
 import React from "react";
+import { useTranslations } from "next-intl";
 
 export interface AlertProps {
   variant?: "error" | "success" | "warning";
-  message: string;
+  message?: string;
   onClose?: () => void;
   className?: string;
   width?: string;
@@ -15,7 +16,9 @@ export function Alert({
   className = "",
   width,
 }: AlertProps) {
+  const t = useTranslations("alert");
   const isError = variant === "error" || variant === "warning";
+  const displayMessage = message || (variant === "success" ? t("defaultSuccess") : variant === "warning" ? t("defaultWarning") : t("defaultError"));
 
   return (
     <div
@@ -68,7 +71,7 @@ export function Alert({
         )}
 
         {/* Message Text */}
-        <span className="truncate sm:whitespace-normal">{message}</span>
+        <span className="truncate sm:whitespace-normal">{displayMessage}</span>
       </div>
 
       {/* Right Close Icon */}

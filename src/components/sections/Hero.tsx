@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { useTranslations } from "next-intl";
 
 interface HeroProps {
   badge?: React.ReactNode;
@@ -11,6 +12,7 @@ interface HeroProps {
 }
 
 export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: HeroProps) {
+  const t = useTranslations("homepage");
   const { status } = useAuth();
   // Auth status is only known on the client. Render a stable value during
   // SSR and the first client render so hydration matches; update after mount.
@@ -37,8 +39,8 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
             <span className="relative inline-flex rounded-full h-[6px] w-[6px] bg-brand-primary"></span>
           </div>
           <span className="font-body font-medium text-[12px] sm:text-[12px] md:text-[14px] leading-[14px] md:leading-[18.67px] text-text-dark whitespace-nowrap overflow-hidden text-ellipsis">
-            <span className="logged-in-only">You have unlimited conversions access.</span>
-            <span className="logged-out-only">3 free conversions. Create a free account for unlimited access.</span>
+            <span className="logged-in-only">{t("badgeLoggedIn")}</span>
+            <span className="logged-out-only">{t("badgeLoggedOut")}</span>
           </span>
         </div>
       ) : badge ? (
@@ -67,14 +69,14 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
       <h1 className="font-heading font-semibold text-[32px] leading-[34px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark">
         {title ? title : (
           <>
-            From <span className="text-brand-primary">SVG to PNG,</span> Exactly<br className="hidden md:inline" /> as Intended
+            {t("heroTitlePrefix") ? `${t("heroTitlePrefix")} ` : ""}<span className="text-brand-primary">{t("heroTitleHighlight")}</span> {t("heroTitleSuffix")}
           </>
         )}
       </h1>
 
       {/* Description */}
       <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] tracking-[0%] text-center text-text-muted max-w-[361px] md:max-w-[600px]">
-        {subtitle ? subtitle : "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds for Outlook, Gmail, newsletters, websites, and more."}
+        {subtitle ? subtitle : t("heroSubtitle")}
       </p>
       
     </section>

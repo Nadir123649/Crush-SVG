@@ -1,21 +1,11 @@
-import React from "react";
-import { AuthCard } from "@/components/auth/AuthCard";
-import { GuestOnly } from "@/components/auth/GuestOnly";
-import { constructMetadata } from "@/lib/seo";
+import SignupPage, {
+  generateMetadata as baseGenerateMetadata,
+} from "../[locale]/signup/page";
 
-export const metadata = constructMetadata({
-  title: "Sign up | CrushSVG",
-  description: "Create a free CrushSVG account to convert SVGs to PNGs without limits.",
-  noindex: true,
-});
+export async function generateMetadata() {
+  return baseGenerateMetadata({ params: Promise.resolve({ locale: "en" }) });
+}
 
-export default function SignupPage() {
-  return (
-    <GuestOnly>
-      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-
-        <AuthCard type="signup" />
-      </div>
-    </GuestOnly>
-  );
+export default function RootSignupPage() {
+  return <SignupPage params={Promise.resolve({ locale: "en" })} />;
 }
