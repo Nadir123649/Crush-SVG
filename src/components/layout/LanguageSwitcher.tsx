@@ -1,46 +1,99 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useLocale } from "next-intl";
-import { useRouter, usePathname, routing, type Locale, LOCALE_LABELS } from "@/i18n/routing";
+import { useLocale, useTranslations } from "next-intl";
+import { useLoading } from "@/components/providers/LoadingProvider";
+import { usePathname, useRouter, routing, type Locale, LOCALE_LABELS, getPathname } from "@/i18n/routing";
 
 interface LanguageSwitcherProps {
   className?: string;
   dropUp?: boolean;
+  listboxId?: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function LanguageSwitcher({ className = "", dropUp = false }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  className = "",
+  dropUp = false,
+  listboxId = "language-listbox",
+  isOpen: controlledIsOpen,
+  onOpenChange,
+}: LanguageSwitcherProps) {
   const currentLocale = useLocale() as Locale;
-  const router = useRouter();
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const tLang = useTranslations("language");
+
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const setIsOpen = useCallback(
+    (open: boolean | ((prev: boolean) => boolean)) => {
+      const nextOpen = typeof open === "function" ? open(isOpen) : open;
+      if (onOpenChange) {
+        onOpenChange(nextOpen);
+      } else {
+        setInternalIsOpen(nextOpen);
+      }
+    },
+    [isOpen, onOpenChange]
+  );
+
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const { beginLoading } = useLoading();
   const containerRef = useRef<HTMLDivElement>(null);
-  const listboxRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const pendingReleaseRef = useRef<(() => void) | null>(null);
 
   const locales = routing.locales;
   const currentInfo = LOCALE_LABELS[currentLocale] || LOCALE_LABELS.en;
 
-  // Close on outside click
+  useEffect(() => {
+    pendingReleaseRef.current?.();
+    pendingReleaseRef.current = null;
+  }, [currentLocale]);
+
+  // Close on outside click (if uncontrolled)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen, setIsOpen]);
 
   const handleSelectLocale = useCallback(
     (newLocale: Locale) => {
       setIsOpen(false);
-      triggerRef.current?.focus();
       if (newLocale === currentLocale) return;
-      router.replace(pathname, { locale: newLocale });
+
+      pendingReleaseRef.current?.();
+      pendingReleaseRef.current = beginLoading();
+
+      // Set cookie directly so next request instantly receives new locale
+      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+
+      try {
+        // Compute target localized pathname
+        const targetPath = getPathname({ href: pathname || "/", locale: newLocale });
+        const search = typeof window !== "undefined" ? window.location.search : "";
+        const hash = typeof window !== "undefined" ? window.location.hash : "";
+        const fullUrl = `${targetPath}${search}${hash}`;
+        router.push(fullUrl as Parameters<typeof router.push>[0]);
+      } catch {
+        // Fallback for custom routes
+        const prefix = newLocale === routing.defaultLocale ? "" : `/${newLocale}`;
+        const cleanPath = (pathname || "/").replace(/^\/(es|de|fr|pt|ja)/, "");
+        const fallbackUrl = `${prefix}${cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`}` || "/";
+        router.push(fallbackUrl as Parameters<typeof router.push>[0]);
+      }
     },
-    [currentLocale, pathname, router]
+    [beginLoading, currentLocale, pathname, router, setIsOpen]
   );
 
   // Keyboard navigation
@@ -90,93 +143,100 @@ export function LanguageSwitcher({ className = "", dropUp = false }: LanguageSwi
   };
 
   return (
-    <div className={`relative inline-block text-left ${className}`} ref={containerRef} onKeyDown={handleKeyDown}>
-      {/* Trigger Button */}
+    <div
+      className={`relative inline-block text-left ${className}`}
+      ref={containerRef}
+      onKeyDown={handleKeyDown}
+    >
+      {/* Compact brand control */}
       <button
         ref={triggerRef}
         type="button"
         onClick={() => {
-          setIsOpen((prev) => !prev);
-          setFocusedIndex(locales.indexOf(currentLocale));
+          const next = !isOpen;
+          setIsOpen(next);
+          if (next) {
+            setFocusedIndex(locales.indexOf(currentLocale));
+          }
         }}
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls="language-listbox"
-        aria-label={`Language selector. Currently selected: ${currentInfo.nativeName}`}
-        className="group flex items-center gap-[8px] h-[36px] md:h-[40px] px-[12px] md:px-[14px] rounded-[10px] md:rounded-[12px] border border-[#EAEAEA] bg-white/95 backdrop-blur-md text-text-dark hover:border-[#D94A1E]/50 hover:bg-[#FAF6F3] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(217,74,30,0.08)] transition-all duration-200 cursor-pointer text-[13px] md:text-[14px] font-body font-medium focus:outline-none focus:ring-2 focus:ring-[#D94A1E]/30"
+        aria-label={`${tLang("selectLanguage")}. ${currentInfo.nativeName}`}
+        className={`group relative flex items-center gap-[7px] h-[36px] px-[3px] rounded-[7px] bg-transparent transition-all duration-200 cursor-pointer text-[13px] font-body font-medium focus:outline-none ${
+          isOpen
+            ? "text-brand-primary"
+            : "text-text-body hover:text-brand-primary"
+        }`}
       >
-        {/* Globe SVG */}
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-[#64748B] group-hover:text-brand-primary transition-colors shrink-0"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          <path d="M2 12h20" />
-        </svg>
-
-        {/* Flag Badge */}
-        <span className="text-[14px] md:text-[15px] leading-none select-none" aria-hidden="true">
-          {currentInfo.flag}
+        <span className="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-brand-primary text-white transition-colors group-hover:bg-[#c4411a]" aria-hidden="true">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a14.5 14.5 0 0 0 0 20M12 2a14.5 14.5 0 0 1 0 20" />
+            <path d="M2 12h20" />
+          </svg>
         </span>
 
-        {/* Label */}
-        <span className="truncate max-w-[76px] sm:max-w-none text-[#1E293B] group-hover:text-brand-primary transition-colors font-medium">
-          {currentInfo.nativeName}
+        <span className="font-heading font-bold text-[12px] uppercase tracking-[0.06em] text-brand-primary group-hover:text-text-dark transition-colors">
+          {currentLocale}
         </span>
 
         {/* Chevron */}
         <svg
-          width="10"
+          width="9"
           height="6"
-          viewBox="0 0 10 6"
+          viewBox="0 0 12 8"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={`transition-transform duration-200 text-[#94A3B8] group-hover:text-brand-primary shrink-0 ${
-            isOpen ? "rotate-180" : ""
+          className={`transition-transform duration-200 shrink-0 text-[#8C827C] group-hover:text-brand-primary ${
+            isOpen ? "rotate-180 text-brand-primary" : ""
           }`}
           aria-hidden="true"
         >
           <path
-            d="M1 1L5 5L9 1"
+            d="M1 1.5L6 6.5L11 1.5"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       </button>
 
-      {/* Dropdown Card */}
+      {/* Language menu */}
       {isOpen && (
         <div
-          id="language-listbox"
-          ref={listboxRef}
+          id={listboxId}
           role="listbox"
-          aria-label="Select website language"
+          aria-label={tLang("selectLanguage")}
           className={`absolute ${
-            dropUp ? "bottom-full mb-2" : "top-full mt-2"
-          } right-0 w-[230px] bg-white/98 backdrop-blur-xl border border-[#EAEAEA] rounded-[16px] shadow-[0_16px_48px_-8px_rgba(0,0,0,0.16)] p-[6px] z-50 animate-in fade-in-0 zoom-in-95 duration-150 ring-1 ring-black/5`}
+            dropUp ? "bottom-full mb-2" : "top-[38px] md:top-[48px]"
+          } right-0 w-[240px] bg-[#FFFCFA] rounded-[10px] shadow-[0_12px_30px_rgba(32,36,39,0.12)] overflow-hidden z-50 animate-in fade-in-0 zoom-in-95 duration-150`}
+          style={{
+            border: "1px solid #E8DED7",
+          }}
         >
-          {/* Header */}
-          <div className="px-[10px] py-[6px] mb-[2px] border-b border-[#F4F4F4] flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8] font-body">
-              Language / Idioma
+          <div className="px-[12px] py-[10px] border-b border-[#EDE5DF] flex items-center justify-between bg-[#FFF7F3]">
+            <span className="font-heading font-semibold text-[12px] text-text-dark">
+              {tLang("selectLanguage")}
             </span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Live multi-language" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-brand-primary">
+              CrushSVG
+            </span>
           </div>
 
           {/* Options */}
-          <div className="flex flex-col gap-[2px]">
+          <div className="p-[5px] flex flex-col gap-[2px]">
             {locales.map((loc, index) => {
               const info = LOCALE_LABELS[loc];
               const isSelected = loc === currentLocale;
@@ -193,43 +253,44 @@ export function LanguageSwitcher({ className = "", dropUp = false }: LanguageSwi
                   onMouseEnter={() => setFocusedIndex(index)}
                   className={`w-full flex items-center justify-between px-[10px] py-[8px] rounded-[10px] text-left transition-all duration-150 cursor-pointer ${
                     isSelected
-                      ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                      ? "bg-[#FFF1EB] border border-[#D94A1E]/25 text-brand-primary"
                       : isFocused
                       ? "bg-[#FAF6F3] text-brand-primary"
-                      : "text-[#334155] hover:bg-[#FAF6F3]"
+                      : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary border border-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-[10px] min-w-0">
-                    <span className="text-[17px] leading-none shrink-0" aria-hidden="true">
-                      {info.flag}
+                    <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF1EB] border border-[#F0C9B9] flex items-center justify-center text-[10px] font-heading font-bold uppercase text-brand-primary shrink-0" aria-hidden="true">
+                      {loc}
                     </span>
                     <div className="flex flex-col min-w-0 leading-tight">
-                      <span className="text-[13px] font-heading font-medium truncate">
+                      <span className={`text-[13.5px] font-heading ${isSelected ? "font-bold text-brand-primary" : "font-semibold text-text-dark"}`}>
                         {info.nativeName}
                       </span>
-                      <span className="text-[10.5px] text-[#94A3B8] font-body">
-                        {info.name}
+                      <span className="text-[11px] text-text-muted font-body">
+                        {info.name} • {info.region}
                       </span>
                     </div>
                   </div>
 
                   {isSelected ? (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-brand-primary shrink-0 ml-2"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <div className="w-[18px] h-[18px] rounded-full bg-brand-primary text-white flex items-center justify-center shrink-0 ml-2">
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
                   ) : (
-                    <span className="text-[10px] font-mono text-[#CBD5E1] uppercase shrink-0">
+                    <span className="text-[11px] font-mono uppercase text-[#A8A29E] font-medium shrink-0">
                       {loc}
                     </span>
                   )}

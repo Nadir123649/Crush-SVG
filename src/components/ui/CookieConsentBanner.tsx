@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { updateConsentGranted } from "@/lib/client/analytics";
+import { updateConsentDenied, updateConsentGranted } from "@/lib/client/analytics";
 
 const CONSENT_KEY = "crush_cookie_consent";
+const CONSENT_EVENT = "crushConsentChanged";
 
 type ConsentValue = "granted" | "denied" | null;
 
@@ -19,17 +20,20 @@ export function CookieConsentBanner() {
     if (stored === "granted") {
       updateConsentGranted();
     }
-    setConsent(stored);
+    queueMicrotask(() => setConsent(stored));
   }, []);
 
   function handleAccept() {
     localStorage.setItem(CONSENT_KEY, "granted");
     updateConsentGranted();
+    window.dispatchEvent(new Event(CONSENT_EVENT));
     setConsent("granted");
   }
 
   function handleDecline() {
     localStorage.setItem(CONSENT_KEY, "denied");
+    updateConsentDenied();
+    window.dispatchEvent(new Event(CONSENT_EVENT));
     setConsent("denied");
   }
 

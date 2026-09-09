@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
@@ -18,81 +18,25 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<"none" | "tools" | "profile" | "language">("none");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [lastConverter, setLastConverter] = useState("/");
-  const [imageError, setImageError] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    setImageError(false);
-  }, [user?.photoURL]);
+  const navContainerRef = useRef<HTMLDivElement>(null);
 
-  const menuRef = useRef<HTMLDivElement>(null);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
-
-  // ── Synchronous auth class applied BEFORE first paint ─────────────────────
-  // Reads the same localStorage key the AuthProvider uses so we don't create
-  // a second auth system. The HTML root class is set here synchronously so
-  // CSS can hide the wrong auth panel before the browser paints a single
-  // frame — eliminating any Login↔Profile flicker on page load / refresh.
-  useLayoutEffect(() => {
-    const applyAuthClass = () => {
-      try {
-        const hasUser = !!localStorage.getItem("crush_user");
-        if (hasUser) {
-          document.documentElement.classList.add("user-logged-in");
-          document.documentElement.classList.remove("user-logged-out");
-        } else {
-          document.documentElement.classList.add("user-logged-out");
-          document.documentElement.classList.remove("user-logged-in");
-        }
-      } catch {
-        document.documentElement.classList.add("user-logged-out");
-        document.documentElement.classList.remove("user-logged-in");
-      }
-    };
-
-    applyAuthClass();
-
-    // Keep in sync when storage changes in another tab (login/logout)
-    window.addEventListener("storage", applyAuthClass);
-    return () => window.removeEventListener("storage", applyAuthClass);
-  }, []);
-
-  // Keep root auth class in sync when React auth state changes (login/logout in same tab).
-  // Skip while status is 'loading' so we never undo the class set by the
-  // synchronous <script> in <head> before the first paint.
-  useEffect(() => {
-    if (status === "loading") return;
-    if (user) {
-      document.documentElement.classList.add("user-logged-in");
-      document.documentElement.classList.remove("user-logged-out");
-    } else {
-      document.documentElement.classList.add("user-logged-out");
-      document.documentElement.classList.remove("user-logged-in");
-    }
-  }, [user, status]);
-
+  // Click outside to close dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
-        setMenuOpen(false);
-      }
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target as Node)
-      ) {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target as Node)) {
+        setActiveDropdown("none");
         setMobileMenuOpen(false);
       }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setMenuOpen(false);
+        setActiveDropdown("none");
         setMobileMenuOpen(false);
       }
     }
@@ -106,31 +50,20 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, []);
 
-  function handleLogout() {
-    setMenuOpen(false);
+  const handleLogout = useCallback(() => {
+    setActiveDropdown("none");
+    setMobileMenuOpen(false);
     logout();
     showToast("success", tToasts("loggedOut"));
     router.push("/");
-  }
+  }, [logout, router, tToasts]);
 
+  // Close all menus on pathname navigation
   useEffect(() => {
     queueMicrotask(() => {
-      setMenuOpen(false);
+      setActiveDropdown("none");
       setMobileMenuOpen(false);
     });
-  }, [pathname]);
-
-  useEffect(() => {
-    const p = pathname as string;
-    if (p === "/png-to-svg" || p === "/" || p === "/svg-to-png") {
-      setLastConverter(p);
-      sessionStorage.setItem("last_converter", p);
-    } else {
-      const stored = sessionStorage.getItem("last_converter");
-      if (stored === "/png-to-svg" || stored === "/" || stored === "/svg-to-png") {
-        setLastConverter(stored);
-      }
-    }
   }, [pathname]);
 
   useEffect(() => {
@@ -139,15 +72,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (
-      typeof window !== "undefined" &&
-      window.location.pathname === "/"
-    ) {
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
       window.history.pushState(null, "", "/");
@@ -156,29 +85,35 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     }
   };
 
+  const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
+  const isPngToSvgActive = pathname === "/png-to-svg";
+  const isOtherToolActive = pathname === "/background-remover" || pathname === "/image-resizer";
+  const isAuthenticated = status === "authed" && !!user;
+
   return (
-    <div className="w-full h-[66px] md:h-[92px] sticky top-0 z-50">
+    <header className="w-full h-[66px] md:h-[92px] sticky top-0 z-50">
       <div
-        className={`w-full flex justify-center px-[16px] md:px-[80px] pt-[24px] md:pt-[40px] pb-[10px] transition-all duration-300 absolute top-0 ${
+        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[16px] md:pt-[30px] pb-[10px] transition-all duration-300 absolute top-0 ${
           isScrolled
-            ? "bg-[#FFFCFA]/95 backdrop-blur-md"
+            ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)]"
             : "bg-[#FFFCFA]"
         }`}
+        ref={navContainerRef}
       >
-        <nav className="w-full max-w-[1280px] flex items-center justify-between h-[32px] md:h-[42px]">
-          {/* Logo */}
+        <nav className="w-full max-w-[1280px] grid grid-cols-[auto_1fr_auto] items-center gap-[20px] h-[36px] md:h-[44px]">
+          {/* Left: Logo */}
           <Link
             href="/"
             onClick={handleLogoClick}
-            aria-label="CrushSVG homepage"
-            className="flex items-center gap-[4px] md:gap-[6px]"
+            aria-label={tNav("homeAria")}
+            className="flex items-center gap-[6px] md:gap-[8px] group shrink-0"
           >
             <Image
               src={logoUrl || IMAGES.logo}
               alt="CrushSVG Logo"
-              width={26}
-              height={26}
-              className="w-[20px] h-[20px] md:w-[26px] md:h-[26px] object-contain"
+              width={28}
+              height={28}
+              className="w-[22px] h-[22px] md:w-[28px] md:h-[28px] object-contain transition-transform duration-200 group-hover:scale-105"
             />
 
             <div className="font-heading font-semibold text-[20px] md:text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
@@ -187,66 +122,246 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
           </Link>
 
-          {/* Right Side Links & Buttons */}
-          <div className="flex items-center gap-[14px] md:gap-[24px]">
+          {/* Center: Desktop Navigation Options */}
+          <div className="hidden lg:flex items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] px-[5px] py-[4px]">
+            {/* SVG to PNG (Primary Tool Link) */}
             <Link
-              href={lastConverter === "/png-to-svg" ? "/#converter" : "/png-to-svg#converter"}
+              href="/"
               onClick={(e) => {
-                const targetPath = lastConverter === "/png-to-svg" ? "/" : "/png-to-svg";
-                if (typeof window !== "undefined" && window.location.pathname === targetPath) {
+                if (typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
                   e.preventDefault();
                   const el = document.getElementById("converter");
                   if (el) {
                     const offset = window.innerWidth >= 768 ? 96 : 70;
                     const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                    window.scrollTo({
-                      top: elementPosition - offset,
-                      behavior: "smooth"
-                    });
+                    window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }
               }}
-              suppressHydrationWarning
-              className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+                isSvgToPngActive
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary"
+              }`}
             >
-              {lastConverter === "/png-to-svg" ? tNav("svgToPng") : tNav("pngToSvg")}
+              {tNav("svgToPng")}
             </Link>
 
+            {/* PNG to SVG (Vectorizer Link) */}
+            <Link
+              href="/png-to-svg"
+              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+                isPngToSvgActive
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary"
+              }`}
+            >
+              {tNav("pngToSvg")}
+            </Link>
+
+            {/* More Tools Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveDropdown((prev) => (prev === "tools" ? "none" : "tools"))
+                }
+                aria-expanded={activeDropdown === "tools"}
+                aria-haspopup="true"
+                className={`flex items-center gap-[4px] px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors cursor-pointer ${
+                  isOtherToolActive || activeDropdown === "tools"
+                    ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                    : "text-text-body hover:text-brand-primary"
+                }`}
+              >
+                <span>{tNav("tools")}</span>
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 12 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`transition-transform duration-200 ${
+                    activeDropdown === "tools" ? "rotate-180 text-brand-primary" : "text-[#757575]"
+                  }`}
+                >
+                  <path
+                    d="M1 1.5L6 6.5L11 1.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {/* Tools Dropdown Card */}
+              {activeDropdown === "tools" && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-[36px] w-[280px] bg-white rounded-[16px] shadow-[0px_16px_48px_0px_rgba(217,74,30,0.12),0px_4px_16px_0px_rgba(0,0,0,0.06)] overflow-hidden z-50 animate-in fade-in-0 zoom-in-95 duration-150"
+                  style={{ border: "1px solid #F2EDE8" }}
+                >
+                  <div className="h-[3px] w-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                  <div className="px-[14px] py-[8px] border-b border-[#F2EDE8] flex items-center justify-between bg-[#FFFCFA]">
+                    <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted">
+                      {tNav("tools")}
+                    </span>
+                    <span className="text-[10px] font-mono text-brand-primary font-semibold bg-[#FFF5F2] px-[6px] py-[1px] rounded-full border border-brand-primary/20">
+                      Suite
+                    </span>
+                  </div>
+
+                  <div className="p-[6px] flex flex-col gap-[2px]">
+                    <Link
+                      href="/"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        isSvgToPngActive
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        SVG
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("svgToPng")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          Vector code & files to crisp PNG
+                        </span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/png-to-svg"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        isPngToSvgActive
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        PNG
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("pngToSvg")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          Raster images to scalable SVG
+                        </span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/background-remover"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        pathname === "/background-remover"
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        AI
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("backgroundRemover")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          AI background transparency
+                        </span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/image-resizer"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        pathname === "/image-resizer"
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        PX
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("imageResizer")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          Dimension scaling & optimization
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Blog */}
             <Link
               href="/blog"
-              className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+                pathname.startsWith("/blog")
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary"
+              }`}
             >
               {tNav("blog")}
             </Link>
 
+            {/* Guides */}
             <Link
               href="/svg-guides"
-              className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+                pathname.startsWith("/svg-guides")
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary"
+              }`}
             >
               {tNav("guides")}
             </Link>
 
+            {/* Need Help? */}
             <Link
               href="/contact-us?r=1"
-              className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
+              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+                pathname.startsWith("/contact-us")
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary"
+              }`}
             >
               {tNav("needHelp")}
             </Link>
+          </div>
 
-            {/* Language Switcher (Desktop) */}
+          {/* Right Side: Language Switcher + Auth */}
+          <div className="flex items-center gap-[8px] sm:gap-[12px] md:gap-[16px] border-l border-[#E8DED7] pl-[12px] md:pl-[16px]">
+            {/* Language Switcher (Tablet & Desktop) */}
             <div className="hidden sm:inline-block">
-              <LanguageSwitcher />
+              <LanguageSwitcher
+                listboxId="desktop-language-listbox"
+                isOpen={activeDropdown === "language"}
+                onOpenChange={(open) => setActiveDropdown(open ? "language" : "none")}
+              />
             </div>
 
-            {/* ── Auth area: BOTH states always in DOM; CSS controls visibility ── */}
-
-            {/* Logged-out: Login + Signup buttons */}
-            <div className="logged-out-only flex items-center gap-[14px] md:gap-[16px]">
-              <div className="hidden md:flex items-center gap-[14px] md:gap-[16px]">
+            {/* Guest actions */}
+            {status === "guest" && (
+              <div className="hidden md:flex items-center gap-[8px] md:gap-[12px]">
                 <Button
                   href="/login"
                   variant="outline"
-                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
+                  className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
                 >
                   {tAuth("login")}
                 </Button>
@@ -254,97 +369,47 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 <Button
                   href="/signup"
                   variant="solid"
-                  className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
+                  className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
                 >
                   {tAuth("signup")}
                 </Button>
               </div>
+            )}
 
-              {/* Mobile Hamburger (logged-out) */}
-              <div className="md:hidden flex items-center relative" ref={mobileMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen((v) => !v)}
-                  className="p-2 -mr-2 text-text-dark hover:text-brand-primary transition-colors cursor-pointer"
-                  aria-label={tNav("openMenu")}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-
-                {mobileMenuOpen && (
-                  <div className="fixed top-[66px] left-0 w-full bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-lg py-6 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
-                    <div className="flex flex-col gap-2">
-                      <Link href="/" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("svgToPng")}
-                      </Link>
-                      <Link href="/png-to-svg" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("pngToSvg")}
-                      </Link>
-                      <Link href="/background-remover" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("backgroundRemover")}
-                      </Link>
-                      <Link href="/image-resizer" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("imageResizer")}
-                      </Link>
-                      <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("blog")}
-                      </Link>
-                      <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        {tNav("guides")}
-                      </Link>
-                      <Link href="/contact-us?r=1" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 hover:text-brand-primary">
-                        {tNav("needHelp")}
-                      </Link>
-                    </div>
-
-                    <div className="flex justify-center pt-2 border-t border-[#F2EDE8]">
-                      <LanguageSwitcher />
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center gap-3 mt-2">
-                      <Button href="/login" variant="outline" className="w-full max-w-[240px] h-[42px] rounded-[10px] bg-[#FFFFFF] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
-                        {tAuth("login")}
-                      </Button>
-                      <Button href="/signup" variant="solid" className="w-full max-w-[240px] h-[42px] rounded-[10px] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
-                        {tAuth("signup")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Logged-in: Profile dropdown */}
-            <div className="logged-in-only relative" ref={menuRef}>
+            {/* Authenticated profile menu */}
+            {isAuthenticated && <div className="relative">
               <button
                 type="button"
-                onClick={() => setMenuOpen((v) => !v)}
+                onClick={() =>
+                  setActiveDropdown((prev) => (prev === "profile" ? "none" : "profile"))
+                }
                 aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label="User account menu"
-                className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
+                aria-expanded={activeDropdown === "profile"}
+                aria-label={tNav("accountMenu")}
+                className={`flex items-center gap-[6px] md:gap-[8px] rounded-full border bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[5px] md:pr-[12px] md:py-[5px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-all cursor-pointer ${
+                  activeDropdown === "profile"
+                    ? "border-brand-primary ring-2 ring-brand-primary/20"
+                    : "border-[#F2EDE8] hover:border-[#D94A1E]/30"
+                }`}
               >
-                {user?.photoURL && !imageError ? (
-                  <img
+                {user?.photoURL && failedImageUrl !== user.photoURL ? (
+                  <Image
                     src={user.photoURL}
                     alt=""
-                    className="rounded-full object-cover w-[24px] h-[24px] md:w-[30px] md:h-[30px]"
+                    width={28}
+                    height={28}
+                    className="rounded-full object-cover w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+                    unoptimized
                     referrerPolicy="no-referrer"
-                    onError={() => {
-                      setImageError(true);
-                    }}
+                    onError={() => setFailedImageUrl(user.photoURL ?? null)}
                   />
                 ) : (
-                  <span className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[14px]">
-                    {(user?.displayName || user?.email || "U")
-                      .charAt(0)
-                      .toUpperCase()}
+                  <span className="w-[24px] h-[24px] md:w-[28px] md:h-[28px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[12px] md:text-[13px]">
+                    {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
                   </span>
                 )}
 
-                <span className="hidden sm:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[140px] truncate">
+                <span className="hidden sm:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[130px] truncate">
                   {user?.displayName || user?.email}
                 </span>
 
@@ -355,29 +420,29 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   className={`transition-transform duration-200 ${
-                    menuOpen ? "rotate-180" : ""
+                    activeDropdown === "profile" ? "rotate-180 text-brand-primary" : "text-[#757575]"
                   }`}
                 >
                   <path
                     d="M1 1.5L6 6.5L11 1.5"
-                    stroke="#353A3E"
-                    strokeWidth="2"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
               </button>
 
-              {menuOpen && (
+              {activeDropdown === "profile" && (
                 <div
                   role="menu"
-                  className="absolute right-0 top-[42px] md:top-[52px] w-[200px] bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.1)] py-[8px] z-50"
+                  className="absolute right-0 top-[40px] md:top-[50px] w-[210px] bg-white rounded-[14px] shadow-[0px_16px_48px_0px_rgba(217,74,30,0.12),0px_4px_16px_0px_rgba(0,0,0,0.06)] overflow-hidden py-[8px] z-50 animate-in fade-in-0 zoom-in-95 duration-150"
+                  style={{ border: "1px solid #F2EDE8" }}
                 >
                   <div className="px-[16px] py-[8px] border-b border-[#F2EDE8] mb-[4px]">
-                    <p className="font-body font-medium text-[14px] text-text-dark truncate">
+                    <p className="font-heading font-semibold text-[14px] text-text-dark truncate">
                       {user?.displayName || "CrushSVG user"}
                     </p>
-
                     <p className="font-body text-[12px] text-text-muted truncate">
                       {user?.email}
                     </p>
@@ -386,8 +451,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   {user?.role === "admin" && (
                     <Link
                       href="/admin"
-                      onClick={() => setMenuOpen(false)}
-                      className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
+                      onClick={() => setActiveDropdown("none")}
+                      className="block w-full text-left px-[16px] py-[9px] font-body text-[14px] text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
                     >
                       {tNav("adminDashboard")}
                     </Link>
@@ -397,17 +462,208 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     type="button"
                     role="menuitem"
                     onClick={handleLogout}
-                    className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
+                    className="w-full text-left px-[16px] py-[9px] font-body font-medium text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors cursor-pointer"
                   >
                     {tNav("logOut")}
                   </button>
                 </div>
               )}
-            </div>
+            </div>}
 
+            {/* Mobile Hamburger Button */}
+            <div className="lg:hidden flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveDropdown("none");
+                  setMobileMenuOpen((v) => !v);
+                }}
+                className={`p-2 rounded-[8px] text-text-dark hover:text-brand-primary hover:bg-[#FAF6F3] transition-colors cursor-pointer ${
+                  mobileMenuOpen ? "text-brand-primary bg-[#FFF5F2]" : ""
+                }`}
+                aria-label={tNav("openMenu")}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </nav>
       </div>
-    </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed top-[66px] left-0 w-full max-h-[calc(100vh-66px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
+          {/* Tools Category */}
+          <div className="flex flex-col gap-1">
+            <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted px-2 py-1">
+              {tNav("tools")}
+            </span>
+            <div className="grid grid-cols-1 gap-1">
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  isSvgToPngActive
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  SVG
+                </span>
+                <span className="font-body text-[15px]">{tNav("svgToPng")}</span>
+              </Link>
+
+              <Link
+                href="/png-to-svg"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  isPngToSvgActive
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  PNG
+                </span>
+                <span className="font-body text-[15px]">{tNav("pngToSvg")}</span>
+              </Link>
+
+              <Link
+                href="/background-remover"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  pathname === "/background-remover"
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  AI
+                </span>
+                <span className="font-body text-[15px]">{tNav("backgroundRemover")}</span>
+              </Link>
+
+              <Link
+                href="/image-resizer"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  pathname === "/image-resizer"
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  PX
+                </span>
+                <span className="font-body text-[15px]">{tNav("imageResizer")}</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Resources Category */}
+          <div className="flex flex-col gap-1 pt-2 border-t border-[#F2EDE8]">
+            <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted px-2 py-1">
+              {tNav("guides")} & {tNav("blog")}
+            </span>
+            <Link
+              href="/blog"
+              onClick={() => setMobileMenuOpen(false)}
+              className="font-body font-medium text-[15px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
+            >
+              {tNav("blog")}
+            </Link>
+            <Link
+              href="/svg-guides"
+              onClick={() => setMobileMenuOpen(false)}
+              className="font-body font-medium text-[15px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
+            >
+              {tNav("guides")}
+            </Link>
+            <Link
+              href="/contact-us?r=1"
+              onClick={() => setMobileMenuOpen(false)}
+              className="font-body font-medium text-[15px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
+            >
+              {tNav("needHelp")}
+            </Link>
+          </div>
+
+          {/* Language Switcher in Mobile Drawer */}
+          <div className="flex items-center justify-between pt-3 border-t border-[#F2EDE8] px-2">
+            <span className="font-heading font-semibold text-[13px] text-text-dark">
+              Language / Idioma
+            </span>
+            <LanguageSwitcher listboxId="mobile-language-listbox" />
+          </div>
+
+          {/* Mobile guest actions */}
+          {status === "guest" && (
+            <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
+              <Button
+                href="/login"
+                variant="outline"
+                className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {tAuth("login")}
+              </Button>
+              <Button
+                href="/signup"
+                variant="solid"
+                className="w-full h-[40px] rounded-[10px] text-[15px]"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {tAuth("signup")}
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile authenticated actions */}
+          {isAuthenticated && <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
+            <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
+              <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[13px]">
+                {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="font-body font-medium text-[14px] text-text-dark truncate">
+                  {user?.displayName || "User"}
+                </span>
+                <span className="font-body text-[12px] text-text-muted truncate">
+                  {user?.email}
+                </span>
+              </div>
+            </div>
+
+            {user?.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
+              >
+                {tNav("adminDashboard")}
+              </Link>
+            )}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full text-center py-2.5 rounded-[10px] font-body font-semibold text-[14px] text-[#D94A1E] bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
+            >
+              {tNav("logOut")}
+            </button>
+          </div>}
+        </div>
+      )}
+    </header>
   );
 }
