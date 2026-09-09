@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import Image from "next/image";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { UserFilters } from "./UserFilters";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -11,7 +11,6 @@ import { useAuth } from "@/lib/client/auth-context";
 const USERS_PAGE_SIZE = 15;
 
 const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
-const SvgDownload = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
 const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
@@ -24,6 +23,7 @@ export default function UsersPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [users, setUsers] = useState<any[]>([]);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
@@ -124,7 +124,7 @@ export default function UsersPage() {
       setUsers((prev) => prev.filter((u) => u.uid !== userToDelete.uid));
       setDeleteModalOpen(false);
       setUserToDelete(null);
-      showToast("success", "User deleted successfully");
+      showToast("success", "User deleted successfully", { id: "delete-user" });
     } catch (err) {
       setError("Failed to delete user");
     } finally {
@@ -136,20 +136,20 @@ export default function UsersPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserEmail || !newUserName || !newUserPassword) {
-      showToast("error", "Email, name, and password are required");
+      showToast("error", "Email, name, and password are required", { id: "add-user" });
       return;
     }
     const trimmedName = newUserName.trim();
     if (!trimmedName) {
-      showToast("error", "Display name is required");
+      showToast("error", "Display name is required", { id: "add-user" });
       return;
     }
     if (trimmedName.length < 3) {
-      showToast("error", "Display name must be at least 3 characters");
+      showToast("error", "Display name must be at least 3 characters", { id: "add-user" });
       return;
     }
     if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
+      showToast("error", "Display name cannot exceed 16 characters", { id: "add-user" });
       return;
     }
     setAddingUser(true);
@@ -172,12 +172,12 @@ export default function UsersPage() {
         setNewUserName("");
         setNewUserPassword("");
         setNewUserRole("user");
-        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`);
+        showToast("success", response.message || `User created! Verification email sent to ${emailSent}`, { id: "add-user" });
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to add user";
       setError(msg);
-      showToast("error", msg);
+      showToast("error", msg, { id: "add-user" });
     } finally {
       setAddingUser(false);
     }
@@ -197,21 +197,21 @@ export default function UsersPage() {
     const isVerified = userToEdit.isVerified === true || userToEdit.status === 'verified' || userToEdit.emailVerified === true || isGoogle;
     
     if (editUserRole === "admin" && !isVerified) {
-      showToast("error", "User is unverified");
+      showToast("error", "User is unverified", { id: "edit-user" });
       return;
     }
 
     const trimmedName = editUserName.trim();
     if (!trimmedName) {
-      showToast("error", "Display name is required");
+      showToast("error", "Display name is required", { id: "edit-user" });
       return;
     }
     if (trimmedName.length < 3) {
-      showToast("error", "Display name must be at least 3 characters");
+      showToast("error", "Display name must be at least 3 characters", { id: "edit-user" });
       return;
     }
     if (trimmedName.length > 16) {
-      showToast("error", "Display name cannot exceed 16 characters");
+      showToast("error", "Display name cannot exceed 16 characters", { id: "edit-user" });
       return;
     }
     setEditingUser(true);
@@ -230,11 +230,11 @@ export default function UsersPage() {
         }
         setEditUserModalOpen(false);
         setUserToEdit(null);
-        showToast("success", "User updated successfully");
+        showToast("success", "User updated successfully", { id: "edit-user" });
       }
     } catch (err: any) {
       const msg = err?.message || "Failed to update user";
-      showToast("error", msg);
+      showToast("error", msg, { id: "edit-user" });
     } finally {
       setEditingUser(false);
     }
@@ -286,7 +286,7 @@ export default function UsersPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast("success", "Users exported successfully!");
+      showToast("success", "Users exported successfully!", { id: "export-users" });
     } catch (err) {
       setError("Failed to export users");
     }
@@ -341,11 +341,8 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleExportCSV} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm" disabled={loading}>
-            <SvgDownload className="w-4 h-4 shrink-0" />
-            Export
-          </Button>
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] py-3 h-auto flex items-center justify-center gap-2 shadow-sm text-sm">
+          <ExportButton onClick={handleExportCSV} disabled={loading} />
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="gap-2 shadow-sm text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
@@ -369,8 +366,8 @@ export default function UsersPage() {
 
           {/* Table Loading/Empty/Error States */}
           {loading && (
-            <div className="p-8">
-              <div className="flex flex-col items-center justify-center my-8 gap-3">
+            <div className="flex items-center justify-center w-full min-h-[400px]">
+              <div className="flex flex-col items-center justify-center gap-3">
                 <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
                 <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading users...</span>
               </div>
@@ -382,12 +379,6 @@ export default function UsersPage() {
               <SvgError className="w-12 h-12 mb-3 mx-auto text-red-500" />
               <span className="font-body text-text-dark">{error}</span>
               <Button variant="outline" onClick={() => setError(null)} className="mt-4">Retry</Button>
-            </div>
-          )}
-
-          {!loading && !error && users.length === 0 && (
-            <div className="p-8 text-center text-text-muted">
-              No users found matching the selected filters.
             </div>
           )}
 
@@ -419,16 +410,22 @@ export default function UsersPage() {
                     const usagePercentage = Math.min((u.conversionsUsed / 1000) * 100, 100);
 
                     return (
-                      <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
+                       <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
                         <td className="p-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
-                              {u.photoURL ? (
-                                <img src={u.photoURL} alt="User avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                              ) : (
-                                initials
-                              )}
-                            </div>
+<div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
+                               {failedImages.has(u.uid) || !u.photoURL ? (
+                                 <span className="flex items-center justify-center w-full h-full">{initials}</span>
+                               ) : (
+                                 <img
+                                   src={u.photoURL}
+                                   alt=""
+                                   className="w-full h-full object-cover"
+                                   referrerPolicy="no-referrer"
+                                   onError={() => setFailedImages(prev => new Set(prev).add(u.uid))}
+                                 />
+                               )}
+                             </div>
                             <div className="min-w-0">
                               <div className="font-body font-bold text-sm text-text-dark truncate">{u.displayName || 'Unnamed User'}</div>
                               <div className="font-body text-[12px] text-text-muted truncate">{u.email || u.uid}</div>
@@ -609,20 +606,29 @@ export default function UsersPage() {
               </div>
               <div>
                 <label className="block font-body text-sm font-medium text-text-dark mb-1">Role</label>
-                <select
-                  value={editUserRole}
-                  onChange={(e) => setEditUserRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white cursor-pointer"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-                {editUserRole === "admin" && !(userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'))) && (
-                  <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
-                    <SvgError className="w-3.5 h-3.5 shrink-0" />
-                    <span>User is unverified</span>
-                  </p>
-                )}
+                {(() => {
+                  const userIsVerified = userToEdit.isVerified === true || userToEdit.status === "verified" || userToEdit.emailVerified === true || (Array.isArray(userToEdit.providers) && userToEdit.providers.some((p: string) => p === 'google' || p === 'google.com'));
+                  return (
+                    <>
+                      <select
+                        value={editUserRole}
+                        onChange={(e) => setEditUserRole(e.target.value)}
+                        disabled={!userIsVerified}
+                        title={!userIsVerified ? "User must be verified to become an admin" : undefined}
+                        className={`w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary bg-white ${!userIsVerified ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                      >
+                        <option value="user">User</option>
+                        <option value="admin" disabled={!userIsVerified}>Admin</option>
+                      </select>
+                      {!userIsVerified && (
+                        <p className="font-body text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                          <SvgError className="w-3.5 h-3.5 shrink-0" />
+                          <span>User must be verified to become an admin</span>
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <div className="flex justify-end gap-3 mt-2">
                 <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser} className="px-4 py-2">
@@ -684,7 +690,7 @@ export default function UsersPage() {
                     const pastedText = e.clipboardData.getData('text').slice(0, 16);
                     setNewUserName(pastedText);
                     if (e.clipboardData.getData('text').length > 16) {
-                      showToast("error", "Display name limited to 16 characters");
+                      showToast("error", "Display name limited to 16 characters", { id: "add-user" });
                     }
                   }}
                   className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"

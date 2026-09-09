@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import { AuthCard } from "@/components/auth/AuthCard";
+import { showToast } from "@/lib/client/toast-bridge";
 
 // Inline SVGs to avoid dependency issues
 const SvgDashboard = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
@@ -46,11 +47,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
+  const redirectRef = useRef<string | null>(null);
+
   useEffect(() => {
+    // Wait until session is fully resolved (not loading, user available)
+    if (status === "loading" || (status === "authed" && !user)) return;
+
     if (status === "guest") {
-      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
-    } else if (status === "authed" && user?.role !== "admin") {
-      router.push("/");
+      const target = `/login?returnTo=${encodeURIComponent(pathname)}`;
+      if (redirectRef.current !== target) {
+        redirectRef.current = target;
+        router.push(target);
+      }
+    } else if (status === "authed" && user && user.role !== "admin") {
+      if (redirectRef.current !== "/") {
+        redirectRef.current = "/";
+        router.push("/");
+      }
+    } else {
+      // authed admin — clear any pending redirect
+      redirectRef.current = null;
     }
   }, [status, user, router, pathname]);
 
@@ -69,6 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = () => {
     setIsLoggingOut(true);
+    showToast("success", "You've been logged out.", { id: "logout" });
     logout();
     router.push('/');
   };

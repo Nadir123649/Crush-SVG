@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, type ReactNode } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/client/auth-context";
 
 interface GuestOnlyProps {
@@ -12,14 +12,16 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   const { status, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const redirectedRef = useRef(false);
 
   useEffect(() => {
     if (status === "authed" && !redirectedRef.current) {
       redirectedRef.current = true;
-      router.replace("/");
+      const returnTo = searchParams.get("returnTo") || "/";
+      router.replace(returnTo);
     }
-  }, [status, router]);
+  }, [status, router, searchParams]);
 
   if (status === "loading") {
     return null;
