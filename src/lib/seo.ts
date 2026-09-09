@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { routing } from "@/i18n/routing";
 
 export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net").replace(/\/$/, "");
 
@@ -28,6 +29,169 @@ interface SEOProps {
   image?: string;
   keywords?: string[];
   noindex?: boolean;
+}
+
+export const OG_LOCALES: Record<string, string> = {
+  en: "en_US",
+  es: "es_ES",
+  de: "de_DE",
+  fr: "fr_FR",
+  pt: "pt_BR",
+  ja: "ja_JP",
+};
+
+const locales = routing.locales;
+const pathnames = routing.pathnames;
+
+function buildLocalizedPaths(routeKey: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  const mapping = pathnames[routeKey as keyof typeof pathnames];
+  for (const loc of locales) {
+    if (typeof mapping === "object" && mapping !== null) {
+      const localized = String(mapping[loc as keyof typeof mapping]);
+      result[loc] = loc === "en" ? localized : `/${loc}${localized === "/" ? "" : localized}`;
+    } else {
+      const path = String(mapping || routeKey);
+      result[loc] = loc === "en" ? path : `/${loc}${path === "/" ? "" : path}`;
+    }
+  }
+  return result;
+}
+
+interface LocalizedSEOProps {
+  locale: string;
+  routeKey: string;
+  title: string;
+  description: string;
+  image?: string;
+  keywords?: string[];
+  noindex?: boolean;
+}
+
+export function constructLocalizedMetadata({
+  locale,
+  routeKey,
+  title,
+  description,
+  image = "/opengraph-image",
+  keywords = DEFAULT_KEYWORDS,
+  noindex = false,
+}: LocalizedSEOProps): Metadata {
+  const cleanRoute = routeKey.startsWith("/") ? routeKey : `/${routeKey}`;
+  const routeMapping = buildLocalizedPaths(cleanRoute);
+  const currentPath = routeMapping[locale] || (locale === "en" ? cleanRoute : `/${locale}${cleanRoute === "/" ? "" : cleanRoute}`);
+  const canonicalUrl = `${SITE_URL}${currentPath === "/" ? "" : currentPath}`;
+
+  const languages: Record<string, string> = {};
+  for (const [loc, path] of Object.entries(routeMapping)) {
+    languages[loc] = `${SITE_URL}${path === "/" ? "" : path}`;
+  }
+  if (routeMapping.en) {
+    languages["x-default"] = `${SITE_URL}${routeMapping.en === "/" ? "" : routeMapping.en}`;
+  }
+
+  const ogLocale = OG_LOCALES[locale] || "en_US";
+
+  return {
+    title,
+    description,
+    keywords,
+    applicationName: "CrushSVG",
+    authors: [{ name: "CrushSVG Team", url: SITE_URL }],
+    creator: "CrushSVG",
+    publisher: "CrushSVG",
+    category: "Developer & Designer Tools",
+    metadataBase: new URL(SITE_URL),
+    alternates: {
+      canonical: canonicalUrl,
+      languages,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: canonicalUrl,
+      siteName: "CrushSVG",
+      locale: ogLocale,
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+      creator: "@CrushSVG",
+      site: "@CrushSVG",
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "CrushSVG",
+    },
+    formatDetection: {
+      telephone: false,
+      date: false,
+      address: false,
+      email: false,
+      url: false,
+    },
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "32x32" },
+        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
+      apple: [
+        { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+      other: [
+        {
+          rel: "mask-icon",
+          url: "/icon-512.png",
+          color: "#D94A1E",
+        },
+      ],
+    },
+    manifest: "/manifest.webmanifest",
+    robots: noindex
+      ? {
+          index: false,
+          follow: false,
+          nocache: true,
+          googleBot: {
+            index: false,
+            follow: false,
+            noimageindex: true,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+          nocache: false,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "4g9Z_Bp03i6CKz3fw8qNFHYNDOfQM-Pgk9V4iGpX-cg",
+      other: {
+        "msvalidate.01": ["68434D213B77FA63AE8FFAA76729DCEE"],
+      },
+    },
+  };
 }
 
 export function constructMetadata({

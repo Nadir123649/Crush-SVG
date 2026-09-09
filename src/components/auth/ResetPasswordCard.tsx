@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export function ResetPasswordCard() {
+  const t = useTranslations("auth_pages.resetPassword");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [password, setPassword] = useState("");
@@ -34,21 +36,21 @@ export function ResetPasswordCard() {
         {/* Header Text */}
         <div className="flex flex-col gap-[8px] items-center text-center">
           <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
-            Create New Password
+            {t("title")}
           </h2>
         </div>
 
         {/* Inputs */}
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-[12px] mt-[4px]">
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your new password</label>
+            <label htmlFor="new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("passwordLabel")}</label>
             <div className="relative w-full">
               <input 
                 id="new-password"
                 type={showPassword ? "text" : "password"} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={t("passwordPlaceholder")}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isPasswordInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
               />
               <button
@@ -71,13 +73,13 @@ export function ResetPasswordCard() {
             </div>
             {isPasswordInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
-                Password must be at least 6 characters
+                {t("passwordMinError")}
               </span>
             )}
           </div>
 
           <div className="flex flex-col gap-[4px]">
-            <label htmlFor="confirm-new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Confirm your password</label>
+            <label htmlFor="confirm-new-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("confirmPasswordLabel")}</label>
             <div className="relative w-full">
               <input 
                 id="confirm-new-password"
@@ -87,7 +89,7 @@ export function ResetPasswordCard() {
                   setConfirmPassword(e.target.value);
                   setError(null);
                 }}
-                placeholder="Re-enter your new password"
+                placeholder={t("confirmPasswordPlaceholder")}
                 className={`w-full h-[32px] rounded-[4px] border-[1px] ${isConfirmInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#B8B8B8] focus:border-[#D94A1E]"} bg-transparent px-[12px] pr-[32px] font-sans text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
               />
               <button
@@ -110,7 +112,7 @@ export function ResetPasswordCard() {
             </div>
             {isConfirmInvalid ? (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
-                Passwords do not match
+                {t("passwordMismatch")}
               </span>
             ) : error ? (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[4px]">
@@ -121,14 +123,14 @@ export function ResetPasswordCard() {
         
         {/* CTA Button */}
         <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
-          Set New Password
+          {t("submitButton")}
         </button>
         </form>
 
         {/* Footer Text */}
         <div className="text-center mt-[12px]">
           <p className="font-afacad font-normal text-[14px] text-[#475569]">
-            Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
+            {t("backToLogin").split(" Log In")[0]} <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
           </p>
         </div>
       </div>

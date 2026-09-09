@@ -1,9 +1,11 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
+import { useTranslations } from "next-intl";
 
 export function SignupCard() {
+  const t = useTranslations("auth_pages.signup");
   return (
     <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8] relative">
 
@@ -11,37 +13,37 @@ export function SignupCard() {
         
         {/* Header Text */}
         <div className="flex flex-col gap-[4px] items-center text-center">
-          <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">Create Account</h2>
+          <h2 className="font-bricolage text-[24px] font-bold text-[#000000] leading-[1]">{t("title")}</h2>
           <p className="font-afacad text-[14px] text-[#000000]">
-            Already have an account? <Link href="/login" className="text-[#D94A1E] font-semibold hover:underline">Log In</Link>
+            {t("hasAccount")} <Link href="/login" className="text-[#D94A1E] font-semibold hover:underline">{t("loginLink")}</Link>
           </p>
         </div>
 
         {/* Inputs */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Name</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("nameLabel")}</label>
             <input 
               type="text" 
               maxLength={16}
-              placeholder="Enter your name"
+              placeholder={t("namePlaceholder")}
               className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Email</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("emailLabel")}</label>
             <input 
               type="email" 
-              placeholder="Enter your email"
+              placeholder={t("emailPlaceholder")}
               className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">Enter your password</label>
+            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("passwordLabel")}</label>
             <div className="relative w-full">
               <input 
                 type="password" 
-                placeholder="Enter your password"
+                placeholder={t("passwordPlaceholder")}
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
               <button className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">
@@ -56,12 +58,12 @@ export function SignupCard() {
 
         {/* CTA Button */}
         <button className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[12px]">
-          Create Account
+          {t("submitButton")}
         </button>
 
         <div className="flex items-center gap-[10px] my-[6px]">
           <div className="h-[1px] flex-1 bg-[#B8B8B8]"></div>
-          <span className="font-afacad text-[12px] text-[#4B5563] font-medium">Or</span>
+          <span className="font-afacad text-[12px] text-[#4B5563] font-medium">{t("orContinueWith")}</span>
           <div className="h-[1px] flex-1 bg-[#B8B8B8]"></div>
         </div>
 
@@ -69,7 +71,7 @@ export function SignupCard() {
           {/* Continue with Google */}
           <button className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors">
             <Image src={IMAGES.google} alt="Google" width={16} height={16} />
-            <span className="font-afacad font-medium text-[14px] text-black">Continue with Google</span>
+            <span className="font-afacad font-medium text-[14px] text-black">{t("googleButton")}</span>
           </button>
 
 
@@ -78,7 +80,7 @@ export function SignupCard() {
         {/* Footer Text */}
         <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[12px] leading-[12px] text-[#57534E]">
-            By creating an account, you agree to our <Link href="/terms" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Terms of Service</Link> & <Link href="/privacy-policy" className="font-bold text-[#D94A1E] text-[12px] hover:underline">Privacy Policy.</Link>
+            {t("termsPrefix")} <Link href="/terms" className="font-bold text-[#D94A1E] text-[12px] hover:underline">{t("termsOfService")}</Link> {t("termsMiddle")} <Link href="/privacy-policy" className="font-bold text-[#D94A1E] text-[12px] hover:underline">{t("privacyPolicy")}</Link>
           </p>
         </div>
       </div>

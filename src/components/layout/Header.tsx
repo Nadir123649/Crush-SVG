@@ -2,14 +2,18 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
+  const tNav = useTranslations("navigation");
+  const tAuth = useTranslations("authentication");
+  const tToasts = useTranslations("toasts");
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +109,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   function handleLogout() {
     setMenuOpen(false);
     logout();
-    showToast("success", "You've been logged out");
+    showToast("success", tToasts("loggedOut"));
     router.push("/");
   }
 
@@ -117,9 +121,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname === "/png-to-svg" || pathname === "/" || pathname === "/svg-to-png") {
-      setLastConverter(pathname);
-      sessionStorage.setItem("last_converter", pathname);
+    const p = pathname as string;
+    if (p === "/png-to-svg" || p === "/" || p === "/svg-to-png") {
+      setLastConverter(p);
+      sessionStorage.setItem("last_converter", p);
     } else {
       const stored = sessionStorage.getItem("last_converter");
       if (stored === "/png-to-svg" || stored === "/" || stored === "/svg-to-png") {
@@ -204,29 +209,34 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               suppressHydrationWarning
               className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              {lastConverter === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
+              {lastConverter === "/png-to-svg" ? tNav("svgToPng") : tNav("pngToSvg")}
             </Link>
 
             <Link
               href="/blog"
               className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Blog
+              {tNav("blog")}
             </Link>
 
             <Link
               href="/svg-guides"
               className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Guides
+              {tNav("guides")}
             </Link>
 
             <Link
               href="/contact-us?r=1"
               className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Need Help?
+              {tNav("needHelp")}
             </Link>
+
+            {/* Language Switcher (Desktop) */}
+            <div className="hidden sm:inline-block">
+              <LanguageSwitcher />
+            </div>
 
             {/* ── Auth area: BOTH states always in DOM; CSS controls visibility ── */}
 
@@ -238,7 +248,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   variant="outline"
                   className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
                 >
-                  Log In
+                  {tAuth("login")}
                 </Button>
 
                 <Button
@@ -246,7 +256,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   variant="solid"
                   className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
                 >
-                  Sign Up
+                  {tAuth("signup")}
                 </Button>
               </div>
 
@@ -256,7 +266,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   type="button"
                   onClick={() => setMobileMenuOpen((v) => !v)}
                   className="p-2 -mr-2 text-text-dark hover:text-brand-primary transition-colors cursor-pointer"
-                  aria-label="Open menu"
+                  aria-label={tNav("openMenu")}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -267,34 +277,38 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   <div className="fixed top-[66px] left-0 w-full bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-lg py-6 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
                     <div className="flex flex-col gap-2">
                       <Link href="/" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        SVG to PNG Converter
+                        {tNav("svgToPng")}
                       </Link>
                       <Link href="/png-to-svg" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        PNG to SVG (Vectorize)
+                        {tNav("pngToSvg")}
                       </Link>
                       <Link href="/background-remover" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        Background Remover
+                        {tNav("backgroundRemover")}
                       </Link>
                       <Link href="/image-resizer" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        Image Resizer
+                        {tNav("imageResizer")}
                       </Link>
                       <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        Blog & Articles
+                        {tNav("blog")}
                       </Link>
                       <Link href="/svg-guides" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 border-b border-[#F2EDE8]/50 hover:text-brand-primary">
-                        SVG Guides & Tutorials
+                        {tNav("guides")}
                       </Link>
                       <Link href="/contact-us?r=1" onClick={() => setMobileMenuOpen(false)} className="font-body font-medium text-base text-text-dark text-center py-2.5 hover:text-brand-primary">
-                        Need Help?
+                        {tNav("needHelp")}
                       </Link>
+                    </div>
+
+                    <div className="flex justify-center pt-2 border-t border-[#F2EDE8]">
+                      <LanguageSwitcher />
                     </div>
 
                     <div className="flex flex-col items-center justify-center gap-3 mt-2">
                       <Button href="/login" variant="outline" className="w-full max-w-[240px] h-[42px] rounded-[10px] bg-[#FFFFFF] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
-                        Log In
+                        {tAuth("login")}
                       </Button>
                       <Button href="/signup" variant="solid" className="w-full max-w-[240px] h-[42px] rounded-[10px] text-[15px]" onClick={() => setMobileMenuOpen(false)}>
-                        Sign Up
+                        {tAuth("signup")}
                       </Button>
                     </div>
                   </div>
@@ -375,7 +389,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                       onClick={() => setMenuOpen(false)}
                       className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
                     >
-                      Admin Dashboard
+                      {tNav("adminDashboard")}
                     </Link>
                   )}
 
@@ -385,7 +399,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     onClick={handleLogout}
                     className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
                   >
-                    Log out
+                    {tNav("logOut")}
                   </button>
                 </div>
               )}
