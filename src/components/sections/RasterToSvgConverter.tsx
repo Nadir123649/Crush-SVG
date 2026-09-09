@@ -755,7 +755,7 @@ export function RasterToSvgConverter() {
           {/* Inner Dashed Border Box */}
           <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
@@ -789,8 +789,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
                         Clear
                       </span>
                     </button>
@@ -842,14 +842,14 @@ export function RasterToSvgConverter() {
                     className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
-                        : "border-[#8F8F8F] bg-white hover:bg-gray-50/60 focus-visible:border-brand-primary focus-visible:outline-none"
+                        : `border-[#8F8F8F] bg-white ${converting ? '' : 'hover:bg-gray-50/60'} focus-visible:border-brand-primary focus-visible:outline-none`
                     } flex items-center justify-center p-[20px] overflow-hidden group transition-colors`}
                   >
                     {/* Selected Image */}
                     <img
                       src={rasterDataUrl}
                       alt={imageName || "Selected raster image"}
-                      className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
+                      className={`relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 ${converting ? '' : 'group-hover:scale-[1.02]'}`}
                     />
 
                     {/* Format Pill Badge */}
@@ -880,8 +880,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className="absolute inset-0 z-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                      <span className="relative z-10 text-[#D94A1E] group-hover/btn:text-white transition-colors duration-300 ease-in-out">
+                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover/btn:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover/btn:text-white'} transition-colors duration-300 ease-in-out`}>
                         Replace Image
                       </span>
                     </button>
@@ -918,9 +918,9 @@ export function RasterToSvgConverter() {
                     <Image
                       src={IMAGES.drag}
                       alt="Upload Image"
-                      width={36}
-                      height={36}
-                      className="w-[28px] h-[28px] md:w-[36px] md:h-[36px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      width={72}
+                      height={72}
+                      className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
 
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
