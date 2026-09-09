@@ -249,6 +249,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionStorage.setItem('crush_session_only', '1')
         } catch { }
       }
+      // Force a background refresh so the server's latest profile (photoURL,
+      // role, displayName) is picked up even if the initial exchange returned
+      // a stale snapshot. This ensures the profile image updates immediately.
+      refreshSession({ silent: true }).then((fresh) => {
+        if (fresh?.user) {
+          applySession({
+            user: fresh.user,
+            token: fresh.token,
+            sessionId: fresh.sessionId ?? undefined,
+            remember: fresh.remember ?? undefined,
+          })
+        }
+      }).catch(() => { /* non-critical */ })
       showToast('success', 'Signed in successfully. Welcome back!')
     },
     [applySession]

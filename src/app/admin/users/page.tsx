@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
-import Image from "next/image";
 import { UserFilters } from "./UserFilters";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -367,8 +366,8 @@ export default function UsersPage() {
 
           {/* Table Loading/Empty/Error States */}
           {loading && (
-            <div className="p-8">
-              <div className="flex flex-col items-center justify-center my-8 gap-3">
+            <div className="flex items-center justify-center w-full min-h-[400px]">
+              <div className="flex flex-col items-center justify-center gap-3">
                 <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
                 <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading users...</span>
               </div>
@@ -411,25 +410,20 @@ export default function UsersPage() {
                     const usagePercentage = Math.min((u.conversionsUsed / 1000) * 100, 100);
 
                     return (
-                      <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
+                       <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
                         <td className="p-5">
                           <div className="flex items-center gap-3">
 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
                                {failedImages.has(u.uid) || !u.photoURL ? (
-                                 initials
+                                 <span className="flex items-center justify-center w-full h-full">{initials}</span>
                                ) : (
-<Image
-                                    src={u.photoURL}
-                                    alt="User avatar"
-                                    width={40}
-                                    height={40}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.onerror = null;
-                                      setFailedImages(prev => new Set(prev).add(u.uid));
-                                    }}
-                                  />
+                                 <img
+                                   src={u.photoURL}
+                                   alt=""
+                                   className="w-full h-full object-cover"
+                                   referrerPolicy="no-referrer"
+                                   onError={() => setFailedImages(prev => new Set(prev).add(u.uid))}
+                                 />
                                )}
                              </div>
                             <div className="min-w-0">

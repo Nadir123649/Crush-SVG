@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
@@ -47,11 +47,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
+  const redirectRef = useRef<string | null>(null);
+
   useEffect(() => {
+    // Wait until session is fully resolved (not loading, user available)
+    if (status === "loading" || (status === "authed" && !user)) return;
+
     if (status === "guest") {
-      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
-    } else if (status === "authed" && user?.role !== "admin") {
-      router.push("/");
+      const target = `/login?returnTo=${encodeURIComponent(pathname)}`;
+      if (redirectRef.current !== target) {
+        redirectRef.current = target;
+        router.push(target);
+      }
+    } else if (status === "authed" && user && user.role !== "admin") {
+      if (redirectRef.current !== "/") {
+        redirectRef.current = "/";
+        router.push("/");
+      }
+    } else {
+      // authed admin — clear any pending redirect
+      redirectRef.current = null;
     }
   }, [status, user, router, pathname]);
 
