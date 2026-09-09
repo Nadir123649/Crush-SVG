@@ -152,6 +152,7 @@ export function LanguageSwitcher({
       <button
         ref={triggerRef}
         type="button"
+        onMouseDown={(event) => event.stopPropagation()}
         onClick={() => {
           const next = !isOpen;
           setIsOpen(next);
@@ -162,7 +163,7 @@ export function LanguageSwitcher({
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        aria-controls="language-listbox"
+        aria-controls={listboxId}
         aria-label={`${tLang("selectLanguage")}. ${currentInfo.nativeName}`}
         className={`group relative flex items-center gap-[7px] h-[36px] px-[3px] rounded-[7px] bg-transparent transition-all duration-200 cursor-pointer text-[13px] font-body font-medium focus:outline-none ${
           isOpen

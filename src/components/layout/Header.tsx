@@ -14,6 +14,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
   const tAuth = useTranslations("authentication");
   const tToasts = useTranslations("toasts");
+  const tLanguage = useTranslations("language");
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -24,6 +25,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
+  const previousPathnameRef = useRef(pathname);
+  const pathnameReadyRef = useRef(false);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -60,10 +63,15 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
   // Close all menus on pathname navigation
   useEffect(() => {
-    queueMicrotask(() => {
-      setActiveDropdown("none");
-      setMobileMenuOpen(false);
-    });
+    if (!pathnameReadyRef.current) {
+      pathnameReadyRef.current = true;
+      previousPathnameRef.current = pathname;
+      return;
+    }
+    if (previousPathnameRef.current === pathname) return;
+    previousPathnameRef.current = pathname;
+    setActiveDropdown("none");
+    setMobileMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -350,8 +358,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="hidden sm:inline-block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
-                isOpen={activeDropdown === "language"}
-                onOpenChange={(open) => setActiveDropdown(open ? "language" : "none")}
               />
             </div>
 
@@ -474,7 +480,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="lg:hidden flex items-center">
               <button
                 type="button"
-                onClick={() => {
+                onMouseDown={(event) => event.stopPropagation()}
+                onPointerDown={() => {
                   setActiveDropdown("none");
                   setMobileMenuOpen((v) => !v);
                 }}
@@ -601,7 +608,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Language Switcher in Mobile Drawer */}
           <div className="flex items-center justify-between pt-3 border-t border-[#F2EDE8] px-2">
             <span className="font-heading font-semibold text-[13px] text-text-dark">
-              Language / Idioma
+              {tLanguage("label")}
             </span>
             <LanguageSwitcher listboxId="mobile-language-listbox" />
           </div>

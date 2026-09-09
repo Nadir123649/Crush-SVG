@@ -12,7 +12,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1",
+    command: "npx next dev --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: true,
     timeout: 120_000,
