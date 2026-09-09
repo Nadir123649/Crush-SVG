@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
@@ -289,6 +290,7 @@ function BgRemoverDropdown({
 }
 
 export function BackgroundRemover() {
+  const t = useTranslations("bg_remover");
   const { status, sessionVersion } = useAuth();
 
   // Settings
@@ -530,14 +532,13 @@ export function BackgroundRemover() {
     const isWebp = f.type === "image/webp" || f.name.toLowerCase().endsWith(".webp");
 
     if (!isPng && !isJpg && !isWebp) {
-      setError("Please choose a valid PNG, JPG, or WebP image file.");
+      setError(t("errorInvalidFile"));
       showToast("error", "Unsupported file type. Please upload PNG, JPG, or WebP.");
       return;
     }
 
     if (f.size > MAX_FILE_SIZE_BYTES) {
-      const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-      setError(`Image too large (${sizeMB}MB). Maximum allowed size is 10MB.`);
+      setError(t("errorTooLarge"));
       showToast("error", "Image exceeds 10MB limit.");
       return;
     }
@@ -692,7 +693,7 @@ export function BackgroundRemover() {
         );
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Background removal failed. Please try again.";
+      const msg = err instanceof Error ? err.message : t("errorProcessing");
       setError(msg);
       showToast("error", msg);
     } finally {
@@ -898,11 +899,10 @@ export function BackgroundRemover() {
                       className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
-                      <span className="font-normal">Drag &amp; Drop or </span>
-                      <span className="font-semibold text-brand-primary">Select Image</span>
+                      <span className="font-normal">{t("uploadLabel")}</span>
                     </div>
                     <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
-                      PNG, JPG, or WebP up to 10MB
+                      {t("uploadHint")}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
@@ -957,7 +957,7 @@ export function BackgroundRemover() {
                 ) : (
                   <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
                     <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex items-center justify-between mb-[6px]">
-                      <span>AI Background Removal</span>
+                      <span>{t("features.title")}</span>
                       <span className="text-[10px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
                         PNG &amp; JPG
                       </span>
@@ -965,19 +965,19 @@ export function BackgroundRemover() {
                     <ul className="text-[11px] md:text-[12px] text-[#64748B] flex flex-col gap-[4px]">
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">Auto detects and removes image backgrounds</span>
+                        <span className="leading-[1.3]">{t("features.aiDesc")}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">Clean transparent PNG output</span>
+                        <span className="leading-[1.3]">{t("features.instantDesc")}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">Works with photos, headshots, and designs</span>
+                        <span className="leading-[1.3]">{t("features.highQualityDesc")}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                        <span className="leading-[1.3]">100% private images stay in your browser</span>
+                        <span className="leading-[1.3]">{t("features.freeDesc")}</span>
                       </li>
                     </ul>
                   </div>
@@ -1004,7 +1004,7 @@ export function BackgroundRemover() {
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {hasResult ? "Result" : "Live Preview"}
+                    {hasResult ? t("resultLabel") : "Live Preview"}
                   </h2>
 
                   {/* Mode Tabs (Before / After) */}
@@ -1019,7 +1019,7 @@ export function BackgroundRemover() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Original
+                        {t("originalLabel")}
                       </button>
                       <button
                         type="button"
@@ -1030,7 +1030,7 @@ export function BackgroundRemover() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Removed
+                        {t("resultLabel")}
                       </button>
                     </div>
                   )}
@@ -1053,7 +1053,7 @@ export function BackgroundRemover() {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
                       <span className="font-body font-medium text-[14px] text-text-dark">
-                        Removing background...
+                        {t("processing")}
                       </span>
                     </div>
                   ) : previewMode === "after" && result?.dataUrl ? (
@@ -1072,7 +1072,7 @@ export function BackgroundRemover() {
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
                       <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
-                        Original
+                        {t("originalLabel")}
                       </span>
                     </div>
                   ) : dataUrl ? (
@@ -1096,7 +1096,7 @@ export function BackgroundRemover() {
                         className="w-[64px] h-[64px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
-                        Preview will appear here
+                        {t("previewLabel")} will appear here
                       </p>
                     </div>
                   ) : null}
@@ -1217,7 +1217,7 @@ export function BackgroundRemover() {
                       />
                     </div>
                     <span className="font-body text-[12px] text-[#64748B]">
-                      Analyzing image and removing background...
+                      {t("processing")}
                     </span>
                   </div>
                 ) : (
@@ -1238,7 +1238,7 @@ export function BackgroundRemover() {
                           disabled={processing}
                         >
                           <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                            Download PNG
+                            {t("downloadButton")}
                             <Image
                               src={IMAGES.exportIcon}
                               alt=""
@@ -1258,7 +1258,7 @@ export function BackgroundRemover() {
                         disabled={processing || !dataUrl}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                          Remove Background
+                          {t("removeButton")}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""

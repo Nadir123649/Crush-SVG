@@ -13,6 +13,7 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
   const tAuth = useTranslations("authentication");
+  const tToasts = useTranslations("toasts");
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -108,7 +109,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   function handleLogout() {
     setMenuOpen(false);
     logout();
-    showToast("success", "You've been logged out");
+    showToast("success", tToasts("loggedOut"));
     router.push("/");
   }
 

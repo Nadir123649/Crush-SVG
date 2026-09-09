@@ -8,6 +8,7 @@ import { Hero } from "@/components/sections/Hero";
 
 export function ContactUsClient() {
   const t = useTranslations("contact_page");
+  const tContact = useTranslations("contact_us");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -103,7 +104,7 @@ export function ContactUsClient() {
             />
             {isNameInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
-                Name must be at least 3 characters
+                {tContact("nameMinError")}
               </span>
             )}
           </div>
@@ -121,7 +122,7 @@ export function ContactUsClient() {
             />
             {isEmailInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
-                Invalid email format
+                {tContact("emailInvalidError")}
               </span>
             )}
           </div>
@@ -139,7 +140,7 @@ export function ContactUsClient() {
             ></textarea>
             {isMessageInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
-                Message must be at least 10 characters
+                {tContact("messageMinError")}
               </span>
             )}
           </div>
@@ -150,12 +151,12 @@ export function ContactUsClient() {
             aria-label="Send contact message"
             className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading ? t("sendingButton") : messageSent ? "Send another message" : t("sendButton")}
+            {loading ? t("sendingButton") : messageSent ? tContact("sendAnother") : t("sendButton")}
           </button>
         </form>
 
         <div className="w-full flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
-          <span className="font-afacad text-[16px] text-text-muted">Or email us directly at:</span>
+          <span className="font-afacad text-[16px] text-text-muted">{tContact("orEmailUs")}</span>
           <a href="mailto:support@crushsvg.net" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
             support@crushsvg.net
           </a>
@@ -165,7 +166,7 @@ export function ContactUsClient() {
       {/* Return to Converter Link */}
       <div className="mt-8">
         <Link href="/" className="text-sm font-semibold text-text-muted hover:text-brand-primary hover:underline transition-colors flex items-center gap-1.5">
-          &larr; Back to CrushSVG Converter
+          &larr; {tContact("backHome")}
         </Link>
       </div>
     </div>

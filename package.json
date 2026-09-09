@@ -10,6 +10,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "i18n:sync": "tsx scripts/i18n-sync.ts",
+    "i18n:validate": "tsx scripts/i18n-validate.ts",
+    "i18n:check": "tsx scripts/i18n-validate.ts && echo '✅ i18n validation passed'",
+    "i18n:translate": "I18N_SYNC_PROVIDER=openai tsx scripts/i18n-sync.ts --translate --write",
     "worker": "tsx scripts/conversion-worker.ts",
     "worker:raster": "NODE_OPTIONS=--conditions=react-server tsx scripts/raster-worker.ts",
     "seed:admin": "tsx scripts/seed-admin.ts"

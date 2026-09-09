@@ -83,7 +83,16 @@
     "maxFileSize": "Max file size: 10MB",
     "dropActive": "Drop the file right here...",
     "chooseFile": "Choose File",
-    "clear": "Clear"
+    "clear": "Clear",
+    "dragOrSelectSvg": "Drag & Drop or ",
+    "selectSvg": "Select SVG",
+    "formatCode": "Format Code",
+    "sourceSize": "Source size: {width} x {height} px{aspect}",
+    "sourceSizeUnknown": "Source size: unknown — set width/height or viewBox on your SVG",
+    "proPngExport": "Pro PNG Export",
+    "crispRendering": "Crisp, high-resolution rendering up to 4000px",
+    "maintainsRatio": "Maintains perfect aspect ratio automatically",
+    "privateNotice": "100% Private & Secure - Your data is never shared or stored anywhere."
   },
   "conversion_states": {
     "converting": "Converting...",
@@ -113,14 +122,40 @@
     "black": "Black",
     "customColor": "Custom Color",
     "presets": "Presets",
-    "preview": "Preview"
+    "preview": "Preview",
+    "livePreview": "Live Preview",
+    "convertedPngPreview": "Converted PNG Preview",
+    "pngReady": "PNG Ready",
+    "customWidth": "Custom Width",
+    "customHeight": "Custom Height",
+    "reconvert": "Re-convert"
+  },
+  "export_button": {
+    "label": "Export"
+  },
+  "alert": {
+    "defaultSuccess": "Success!",
+    "defaultError": "Something went wrong",
+    "defaultWarning": "Warning"
   },
   "errors": {
     "invalidSvg": "Please provide a valid SVG string or file.",
     "conversionFailed": "Conversion failed. Please verify your SVG markup and try again.",
     "fileTooLarge": "File is too large. Maximum supported size is 10MB.",
     "unsupportedFormat": "Unsupported file format. Please upload a valid image.",
-    "networkError": "Network error. Please check your connection and try again."
+    "networkError": "Network error. Please check your connection and try again.",
+    "notFound": {
+      "title": "Page Not Found",
+      "message": "The page you're looking for doesn't exist or has been moved.",
+      "backHome": "Back to converter"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred.",
+      "messageWithRef": "An unexpected error occurred. Reference: {digest}",
+      "tryAgain": "Try again",
+      "goHome": "Go home"
+    }
   },
   "authentication": {
     "login": "Log In",
@@ -137,6 +172,7 @@
   },
   "usage": {
     "conversionsLeft": "{count} Free Conversions Left",
+    "conversionsUsed": "{used} of {total} free conversions used",
     "lastFreeConversion": "Last Free Conversion",
     "signUpForFree": "Sign Up For Free",
     "unlimitedConversions": "Unlimited Conversions"
@@ -235,7 +271,20 @@
     "agenciesTitle": "Agencies",
     "agenciesDesc": "Deliver pixel-perfect client assets quickly with exact dimensions, custom scales, and transparent backgrounds.",
     "designersTitle": "UI Designers",
-    "designersDesc": "Quickly preview and convert icons or vector illustrations from Figma, Illustrator, or Sketch into raster formats."
+    "designersDesc": "Quickly preview and convert icons or vector illustrations from Figma, Illustrator, or Sketch into raster formats.",
+    "rasterWebDevDesc": "Convert raster logos and bitmap icons into lightweight, scalable SVG vectors for fast web performance.",
+    "rasterMarketersDesc": "Turn raster badges and product illustrations into crisp vector assets that scale cleanly across all screens.",
+    "rasterAgenciesDesc": "Deliver high-quality vector assets for clients in seconds without needing heavy desktop design tools.",
+    "rasterDesignersDesc": "Transform bitmap sketches and icons into editable vector paths ready for Figma, Sketch, and Illustrator.",
+    "resizerCreatorsTitle": "Content Creators",
+    "resizerCreatorsDesc": "Resize photos and graphics to exact platform dimensions for Instagram, YouTube thumbnails, and blog posts.",
+    "resizerCreatorsLink": "Resize Your Images",
+    "resizerMarketersDesc": "Quickly resize campaign visuals to fit every ad placement and social media format without design tools.",
+    "resizerMarketersLink": "Resize for Campaigns",
+    "resizerAgenciesDesc": "Deliver correctly sized assets to clients in seconds. No more back-and-forth about image dimensions.",
+    "resizerAgenciesLink": "Resize Client Assets",
+    "resizerDesignersDesc": "Export images at exact pixel dimensions for web, mobile, and print with aspect ratio lock to prevent distortion.",
+    "resizerDesignersLink": "Resize Design Assets"
   },
   "FAQ": {
     "title": "Frequently Asked Questions",
@@ -259,6 +308,84 @@
       {
         "question": "Can I convert complex SVGs with embedded fonts or gradients?",
         "answer": "Yes, CrushSVG supports linear/radial gradients, clipping paths, embedded styles, and nested SVG groupings."
+      }
+    ],
+    "bg": [
+      {
+        "question": "What image formats are supported?",
+        "answer": "You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG."
+      },
+      {
+        "question": "Is my image data kept private?",
+        "answer": "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else."
+      },
+      {
+        "question": "Do I need to install any software?",
+        "answer": "No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins."
+      },
+      {
+        "question": "Is CrushSVG free to use?",
+        "answer": "Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees."
+      },
+      {
+        "question": "What types of images work best?",
+        "answer": "Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up."
+      },
+      {
+        "question": "What is the maximum image size?",
+        "answer": "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution."
+      }
+    ],
+    "resizer": [
+      {
+        "question": "What image formats can I resize?",
+        "answer": "You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format."
+      },
+      {
+        "question": "Is my image data kept private?",
+        "answer": "Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers."
+      },
+      {
+        "question": "What is the maximum image size I can resize?",
+        "answer": "You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side."
+      },
+      {
+        "question": "Can I maintain the aspect ratio while resizing?",
+        "answer": "Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa."
+      },
+      {
+        "question": "When should I use JPG vs PNG vs WebP?",
+        "answer": "Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio."
+      },
+      {
+        "question": "Is CrushSVG free to use?",
+        "answer": "Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees."
+      }
+    ],
+    "raster": [
+      {
+        "question": "Can I control the quality of the vectorized SVG?",
+        "answer": "Yes! You can adjust presets (Low, Medium, High), color quantization, background handling, and path smoothing."
+      },
+      {
+        "question": "Are my uploaded PNG and JPG images secure?",
+        "answer": "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else."
+      },
+      {
+        "question": "Does this tool support removing backgrounds?",
+        "answer": "Yes, you can enable the 'Ignore Background' feature to automatically remove solid backgrounds during vectorization."
+      },
+      {
+        "question": "Do I need to install any software?",
+        "answer": "No, CrushSVG is entirely web-based. You can vectorize images directly in your browser without any plugins."
+      },
+      {
+        "question": "Is CrushSVG free to use?",
+        "answer": "Yes! You can vectorize images for free. Creating an account unlocks unlimited conversions without any hidden fees."
+      },
+      {
+        "question": "What image formats can I vectorize?",
+        "answer": "You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors."
       }
     ]
   },
@@ -312,7 +439,10 @@
   "accessibility": {
     "skipToContent": "Skip to main content",
     "closeModal": "Close modal",
-    "previewAlt": "Converted image preview"
+    "previewAlt": "Converted image preview",
+    "svgPreview": "SVG preview",
+    "convertedPngPreview": "Converted PNG preview",
+    "uploadPlaceholder": "Upload placeholder"
   },
   "about_page": {
     "metaTitle": "About Us | CrushSVG - Built by The Nevon",
@@ -380,6 +510,28 @@
     "locationTitle": "Location & Studio",
     "locationDesc": "The Nevon Digital Product Studio",
     "emailTitle": "Direct Inquiries"
+  },
+  "contact_us": {
+    "title": "Contact Us",
+    "subtitle": "Have questions? We'd love to hear from you.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "How can we help?",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us more...",
+    "submitButton": "Send Message",
+    "sendingButton": "Sending...",
+    "successMessage": "Message sent! We'll get back to you soon.",
+    "errorMessage": "Failed to send message. Please try again.",
+    "backHome": "Back to Home",
+    "nameMinError": "Name must be at least 3 characters",
+    "emailInvalidError": "Invalid email format",
+    "messageMinError": "Message must be at least 10 characters",
+    "sendAnother": "Send another message",
+    "orEmailUs": "Or email us directly at:"
   },
   "privacy_page": {
     "metaTitle": "Privacy Policy | CrushSVG",
@@ -471,6 +623,14 @@
     "tableOfContents": "On this page",
     "searchPlaceholder": "Search guides and articles..."
   },
+  "blog": {
+    "shareLabel": "Share this article",
+    "shareOnX": "Share on X",
+    "shareOnFacebook": "Share on Facebook",
+    "shareOnLinkedIn": "Share on LinkedIn",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied!"
+  },
   "auth_pages": {
     "loginTitle": "Log In",
     "signupTitle": "Create Account",
@@ -484,7 +644,7 @@
     "sendResetLink": "Send Reset Link",
     "backToLogin": "Back to log in",
     "checkEmailTitle": "Check your email",
-    "verificationSentDesc": "We sent a verification link to your email. Click it to activate your account, then log in.",
+    "verificationSentDesc": "We sent a verification link to <email>. Click it to activate your account, then log in.",
     "resendVerification": "Resend verification email",
     "resendSuccess": "Verification email sent again.",
     "rememberMe": "Remember me",
@@ -492,6 +652,375 @@
     "continueWithGoogle": "Continue with Google",
     "continueWithGithub": "Continue with GitHub",
     "continueWithX": "Continue with X",
-    "termsNotice": "By continuing, you agree to our Terms of Service and Privacy Policy."
+    "termsNoticeByLogin": "By logging in, you agree to our",
+    "termsNoticeBySignup": "By creating an account, you agree to our",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "or": "Or",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter your name",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "nameMinError": "Name must be at least 3 characters",
+    "emailInvalidError": "Invalid email format",
+    "passwordMinError": "Password must be at least 6 characters",
+    "loggingIn": "Logging in...",
+    "creatingAccount": "Creating account...",
+    "accountExistsError": "An account with this email already exists. Please <a>log in</a> instead.",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "accountCreatedSuccess": "Account created. Check your inbox to verify your email address.",
+    "resendLinkSuccess": "A new verification link has been sent to your email.",
+    "couldNotResend": "Could not resend. Try again.",
+    "continueWithGoogleAria": "Continue with Google authentication",
+    "signupPrompt": {
+      "title": "Create an Account",
+      "subtitle": "Sign up to save your conversions and access premium features.",
+      "feature1": "Save conversion history",
+      "feature2": "Access premium tools",
+      "feature3": "Priority support",
+      "signupButton": "Create Account",
+      "loginPrompt": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "verification": {
+      "title": "Verify Your Email",
+      "subtitle": "We've sent a verification link to {email}",
+      "checkSpam": "If you don't see the email, check your spam folder.",
+      "resendButton": "Resend Verification Email",
+      "resendCooldown": "Resend available in {seconds}s",
+      "successMessage": "Verification email sent!",
+      "backToLogin": "Back to login",
+      "continueButton": "Continue"
+    },
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Join CrushSVG to access all conversion tools",
+      "nameLabel": "Name",
+      "namePlaceholder": "Enter your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Create a password",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "submitButton": "Create Account",
+      "loadingButton": "Creating Account...",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "termsPrefix": "By creating an account, you agree to our",
+      "termsOfService": "Terms of Service",
+      "termsMiddle": "and",
+      "privacyPolicy": "Privacy Policy",
+      "orContinueWith": "or continue with",
+      "googleButton": "Google",
+      "githubButton": "GitHub"
+    },
+    "resetPassword": {
+      "title": "Create New Password",
+      "subtitle": "Enter your email and we'll send you a reset link",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Enter your new password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPasswordLabel": "Confirm your password",
+      "confirmPasswordPlaceholder": "Re-enter your new password",
+      "submitButton": "Set New Password",
+      "loadingButton": "Sending...",
+      "backToLogin": "Remember your password? Log In",
+      "successTitle": "Check Your Email",
+      "successMessage": "We've sent a password reset link to {email}",
+      "successSpamNote": "If you don't see the email, check your spam folder.",
+      "passwordMinError": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password?",
+      "subtitle": "No worries, we'll send you reset instructions.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "submitButton": "Send Reset Link",
+      "loadingButton": "Sending...",
+      "backToLogin": "Back to login",
+      "successTitle": "Check Your Email",
+      "successMessage": "We've sent a password reset link to {email}",
+      "successSpamNote": "If you don't see the email, check your spam folder.",
+      "emailInvalidError": "Invalid email format"
+    }
+  },
+  "cookie_consent": {
+    "message": "We use cookies to improve your experience and track anonymous usage via",
+    "googleAnalytics": "Google Analytics",
+    "noDataSold": "No personal data is sold.",
+    "learnMore": "Learn more",
+    "decline": "Decline",
+    "accept": "Accept",
+    "declineAria": "Decline non-essential cookies",
+    "acceptAria": "Accept all cookies",
+    "dialogAria": "Cookie consent"
+  },
+  "signup_cta": {
+    "titleLine1": "Start free today.",
+    "titleLine2": "No credit card",
+    "titleRequired": "required.",
+    "subtitle": "Enjoy {count} free conversions with no signup required. When you're ready for more, create a free account to unlock unlimited access.",
+    "usedAllTitle": "You've used your {total} free conversions",
+    "remainingTitle": "You have {count} free conversion{s} left",
+    "remainingTitle_one": "You have {count} free conversion left",
+    "ctaSubtitle": "Create a free account to keep converting. No credit card required ever.",
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "sessionNote": "Your session and files are safe. They stay in this session until you finish signing up.",
+    "lastFree": "Last Free Conversion",
+    "freeRemaining": "{count} Free Conversions Left",
+    "signUpFree": "Sign Up For Free"
+  },
+  "toasts": {
+    "loggedOut": "You've been logged out",
+    "signedIn": "Signed in successfully. Welcome back!",
+    "passwordUpdated": "Password updated. Please sign in again.",
+    "svgPasted": "SVG pasted from clipboard",
+    "svgFormatted": "SVG code formatted",
+    "svgAlreadyFormatted": "SVG is already formatted",
+    "formatError": "We couldn't format this SVG. Please check that the code is valid.",
+    "noSvgToCopy": "No custom SVG code to copy",
+    "svgCopied": "SVG code copied to clipboard!",
+    "copyFailed": "Failed to copy SVG code",
+    "conversionComplete": "Conversion complete. Your {format} is ready to download.",
+    "conversionTimedOut": "The conversion took too long. Please try again.",
+    "conversionFailed": "Conversion failed. Please try again.",
+    "downloadStarted": "Your download has started",
+    "pasteToStart": "Paste your SVG code or upload a file to get started.",
+    "invalidSvgFile": "Please choose an SVG file (.svg).",
+    "fileTooLarge": "SVG file too large. Maximum size is 10MB.",
+    "fileReadError": "Could not read that file. Please try again.",
+    "customWidthRequired": "Please enter a custom width value.",
+    "customHeightRequired": "Please enter a custom height value.",
+    "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
+    "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm)."
+  },
+  "bg_remover": {
+    "title": "Background Remover",
+    "subtitle": "Remove image backgrounds instantly with AI-powered precision",
+    "uploadLabel": "Drop your image here or click to browse",
+    "uploadHint": "Supports JPG, PNG, WebP — Max 10MB",
+    "removeButton": "Remove Background",
+    "processing": "Processing...",
+    "downloadButton": "Download PNG",
+    "previewLabel": "Preview",
+    "originalLabel": "Original",
+    "resultLabel": "Result",
+    "sliderLabel": "Comparison",
+    "restoreButton": "Restore Original",
+    "tryAnotherButton": "Try Another Image",
+    "errorInvalidFile": "Please select a valid image file",
+    "errorTooLarge": "File size must be less than 10MB",
+    "errorProcessing": "Background removal failed. Please try again.",
+    "fileInfo": "File: {name} ({size})",
+    "resetButton": "Reset",
+    "features": {
+      "title": "Why use our Background Remover?",
+      "aiPowered": "AI-Powered",
+      "aiDesc": "Advanced machine learning for precise edge detection",
+      "instant": "Instant Results",
+      "instantDesc": "Get your transparent image in seconds",
+      "highQuality": "High Quality",
+      "highQualityDesc": "Preserve fine details and smooth edges",
+      "freeToUse": "Free to Use",
+      "freeDesc": "No sign-up required for basic usage"
+    },
+    "tips": {
+      "title": "Tips for best results",
+      "tip1": "Use images with clear subject-background contrast",
+      "tip2": "Higher resolution images produce better results",
+      "tip3": "Works best with portraits, products, and objects"
+    }
+  },
+  "faq_footer": {
+    "specificQuestion": "Have a more specific question?",
+    "viewAllFaqs": "View All FAQs",
+    "svgGuides": "SVG Guides",
+    "contactUs": "Contact Us"
+  },
+  "raster_to_svg": {
+    "title": "Raster to SVG",
+    "subtitle": "Convert raster images (JPG, PNG, WebP) to scalable SVG vectors",
+    "sourceImage": "Source Image",
+    "clearButton": "Clear",
+    "unlimitedConversions": "Unlimited conversions",
+    "conversionsUsed": "{used} of {total} free conversions used",
+    "uploadLabel": "Drop your image here or click to browse",
+    "uploadHint": "Supports JPG, PNG, WebP — Max 10MB",
+    "selectImage": "Select Image",
+    "pasteHint": "paste clipboard image",
+    "replaceImage": "Replace Image",
+    "dropToReplace": "Drop new file to replace",
+    "clickToReplace": "Click to replace image",
+    "dragDropSelect": "Drag and drop or select an image file to vectorize",
+    "dimensions": "Dimensions",
+    "aspectRatio": "Aspect Ratio",
+    "inputFormat": "Input Format",
+    "ready": "Ready",
+    "convertButton": "Vectorize Image",
+    "processing": "Converting...",
+    "downloadButton": "Download SVG",
+    "copyCode": "Copy Code",
+    "copied": "Copied!",
+    "copySvgCode": "Copy SVG Code",
+    "revectorize": "Re-vectorize",
+    "signUpUnlimited": "Sign up for unlimited conversions",
+    "vectorOutput": "Vector Output",
+    "livePreview": "Live Preview",
+    "vectorSvgTab": "Vector SVG",
+    "sourceTab": "Source",
+    "svgCodeTab": "SVG Code",
+    "originalRaster": "Original Raster",
+    "vectorizing": "Vectorizing image paths...",
+    "svgMarkup": "SVG Markup ({size})",
+    "clickVectorizeBelow": "Click \"Vectorize Image\" below",
+    "previewPlaceholder": "Vector preview will appear here",
+    "qualityLabel": "Quality",
+    "colorPaletteLabel": "Color Palette",
+    "backgroundLabel": "Background",
+    "tracingModeLabel": "Tracing Mode",
+    "privateNotice": "100% Private & Secure - Your images are processed securely and never stored.",
+    "dualEngineTitle": "Dual-Engine Converter",
+    "dualEngineBadge": "PNG & JPG to SVG",
+    "featureVectorTracing": "Intelligent vector tracing creates smooth, scalable paths from raster images",
+    "featurePixelMode": "Advanced pixel mode for photorealistic conversions with gradient support",
+    "featureAutoDetect": "Smart auto-detection selects optimal conversion strategy instantly",
+    "featurePrivacy": "Complete privacy protection to all processing happens in your browser",
+    "featureDownload": "Instant download & copy to clipboard for seamless workflow",
+    "resultVectorPaths": "Vector Paths",
+    "resultPixelPerfect": "Pixel-Perfect",
+    "infinitelyScalable": "Infinitely Scalable",
+    "errorInvalidFile": "Please select a valid image file",
+    "errorTooLarge": "File size must be less than 10MB",
+    "errorConversion": "Conversion failed. Please try again.",
+    "toastPasted": "Image pasted from clipboard",
+    "toastSampleLoaded": "Loaded sample CrushSVG icon",
+    "toastSampleError": "Could not load sample image",
+    "toastDownloadStarted": "SVG download has started",
+    "toastCopied": "SVG vector markup copied to clipboard",
+    "toastCopyFailed": "Failed to copy SVG. You can download the file instead.",
+    "settingsLabel": "Conversion Settings",
+    "detailLevel": "Detail Level",
+    "detailLow": "Low (faster, smaller file)",
+    "detailMedium": "Medium (balanced)",
+    "detailHigh": "High (detailed, larger file)",
+    "colorMode": "Color Mode",
+    "colorFull": "Full Color",
+    "colorGrayscale": "Grayscale",
+    "colorBlackWhite": "Black & White",
+    "smoothEdges": "Smooth Edges",
+    "removeBackground": "Remove Background",
+    "optimizeSvg": "Optimize SVG",
+    "fileInfo": "File: {name} ({size})",
+    "resetButton": "Reset",
+    "advancedOptions": "Advanced Options",
+    "pathPrecision": "Path Precision",
+    "colorQuantization": "Color Quantization",
+    "blurPreprocessing": "Blur Preprocessing",
+    "none": "None",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "image_resizer": {
+    "title": "Image Resizer",
+    "subtitle": "Resize your images to any dimension while maintaining quality",
+    "uploadLabel": "Drop your image here or click to browse",
+    "uploadHint": "Supports JPG, PNG, WebP, GIF",
+    "widthLabel": "Width",
+    "heightLabel": "Height",
+    "lockRatio": "Lock aspect ratio",
+    "unlockRatio": "Unlock aspect ratio",
+    "lockRatioTitle": "Aspect ratio locked",
+    "unlockRatioTitle": "Aspect ratio unlocked",
+    "presetLabel": "Preset sizes",
+    "customSize": "Custom",
+    "maintainAspect": "Maintain aspect ratio",
+    "resizeButton": "Resize Image",
+    "processing": "Processing...",
+    "downloadButton": "Download Resized Image",
+    "resetButton": "Reset",
+    "originalSize": "Original size",
+    "newSize": "New size",
+    "widthPlaceholder": "Width (px)",
+    "heightPlaceholder": "Height (px)",
+    "errorInvalidFile": "Please select a valid image file",
+    "errorTooLarge": "File size must be less than 10MB",
+    "errorGeneric": "Failed to resize image. Please try again.",
+    "presets": {
+      "thumbnail": "Thumbnail (150×150)",
+      "social": "Social Media (1200×630)",
+      "avatar": "Avatar (400×400)",
+      "banner": "Banner (728×90)",
+      "wallpaper": "Wallpaper (1920×1080)",
+      "instagram": "Instagram Post (1080×1080)",
+      "facebook": "Facebook Cover (820×312)",
+      "twitter": "Twitter Header (1500×500)"
+    },
+    "sourceImage": "Source Image",
+    "clearButton": "Clear",
+    "unlimitedConversions": "Unlimited conversions",
+    "conversionsUsed": "{used} of {total} free conversions used",
+    "selectedImageAlt": "Selected image",
+    "replaceImage": "Replace Image",
+    "dropToReplace": "Drop new file to replace",
+    "dragDropOrSelect": "Drag & drop or select an image file for resizing",
+    "selectImageButton": "Select Image",
+    "formatsUpTo": "PNG, JPG, or WebP up to 10MB",
+    "pasteHint": "paste clipboard image",
+    "dimensionsLabel": "Dimensions",
+    "aspectLabel": "Aspect",
+    "readyStatus": "Ready",
+    "featureTitle": "Client-Side Image Resizing",
+    "featureFormats": "PNG & JPG & WebP",
+    "featureExactPixels": "Resize by exact pixels or scale percentage",
+    "featureRatioLock": "Aspect ratio lock prevents distortion",
+    "featureExport": "Export as PNG, JPG, or WebP with quality control",
+    "featurePrivacy": "100% private images stay in your browser",
+    "privacyText": "100% Private & Secure - Your images are processed securely and never stored.",
+    "livePreview": "Live Preview",
+    "resultHeader": "Result",
+    "originalTab": "Original",
+    "resizedTab": "Resized",
+    "resizingImage": "Resizing image...",
+    "clickResizeBelow": "Click \"Resize Image\" below",
+    "previewPlaceholder": "Preview will appear here",
+    "scaleDropdown": "Scale",
+    "formatDropdown": "Output Format",
+    "qualityLabel": "Quality",
+    "smallerFile": "Smaller file",
+    "higherQuality": "Higher quality",
+    "resizingProgress": "Resizing image to {width}×{height}...",
+    "downloadFormat": "Download {format}",
+    "newImageButton": "New Image",
+    "errorInvalidDimensions": "Please enter valid width and height values.",
+    "errorMaxDimensions": "Maximum dimension is 10,000 pixels.",
+    "clearUploadedAria": "Clear uploaded image",
+    "uploadFileAria": "Upload image file for resizing",
+    "qualityAria": "Output quality percentage",
+    "uploadImageAlt": "Upload Image"
+  },
+  "steps_section": {
+    "howToSvgPng": "How to Convert SVG to PNG Online",
+    "howToSvgPngDesc": "Convert SVG code or files into crisp transparent PNG images in three steps.",
+    "howToRasterSvg": "How to Convert Raster Images to SVG Vector",
+    "howToRasterSvgDesc": "Convert PNG or JPG raster images into scalable SVG vectors.",
+    "howToBgRemover": "How to Remove Image Background Online",
+    "howToBgRemoverDesc": "Remove background from photos in three simple steps.",
+    "howToImageResizer": "How to Resize Images Online",
+    "howToImageResizerDesc": "Resize PNG, JPG, and WebP images in seconds.",
+    "headingSvgPngLine1": "One File.",
+    "headingSvgPngHighlight": "Three Simple Steps.",
+    "headingBgRemoverLine1": "One Image.",
+    "headingBgRemoverHighlight": "Three Simple Steps.",
+    "headingImageResizerLine1": "One Image.",
+    "headingImageResizerHighlight": "Perfectly Sized."
   }
 }

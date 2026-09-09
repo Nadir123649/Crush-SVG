@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { constructLocalizedMetadata } from "@/lib/seo";
@@ -16,10 +16,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "auth_pages" });
   return constructLocalizedMetadata({
     locale,
     routeKey: "/login",
-    title: "Log In | CrushSVG",
+    title: `${t("loginTitle")} | CrushSVG`,
     description: "Log in to your CrushSVG account to convert SVGs to PNGs without limits.",
     noindex: true,
   });

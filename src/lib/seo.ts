@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { routing } from "@/i18n/routing";
 
 export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net").replace(/\/$/, "");
 
@@ -39,48 +40,23 @@ export const OG_LOCALES: Record<string, string> = {
   ja: "ja_JP",
 };
 
-export const LOCALIZED_ROUTE_MAP: Record<string, Record<string, string>> = {
-  "/": {
-    en: "/",
-    es: "/es",
-    de: "/de",
-    fr: "/fr",
-    pt: "/pt",
-    ja: "/ja",
-  },
-  "/convert-svg-to-png": {
-    en: "/convert-svg-to-png",
-    es: "/es/convertir-svg-a-png",
-    de: "/de/svg-in-png-umwandeln",
-    fr: "/fr/convertir-svg-en-png",
-    pt: "/pt/converter-svg-para-png",
-    ja: "/ja/svg-png-henkan",
-  },
-  "/png-to-svg": {
-    en: "/png-to-svg",
-    es: "/es/convertir-png-a-svg",
-    de: "/de/png-in-svg-umwandeln",
-    fr: "/fr/convertir-png-en-svg",
-    pt: "/pt/converter-png-para-svg",
-    ja: "/ja/png-svg-henkan",
-  },
-  "/background-remover": {
-    en: "/background-remover",
-    es: "/es/eliminar-fondo",
-    de: "/de/hintergrund-entfernen",
-    fr: "/fr/supprimer-arriere-plan",
-    pt: "/pt/remover-fundo",
-    ja: "/ja/haikei-touka",
-  },
-  "/image-resizer": {
-    en: "/image-resizer",
-    es: "/es/redimensionar-imagen",
-    de: "/de/bildgrossen-andern",
-    fr: "/fr/redimensionner-image",
-    pt: "/pt/redimensionar-imagem",
-    ja: "/ja/gazou-saizu-henkou",
-  },
-};
+const locales = routing.locales;
+const pathnames = routing.pathnames;
+
+function buildLocalizedPaths(routeKey: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  const mapping = pathnames[routeKey as keyof typeof pathnames];
+  for (const loc of locales) {
+    if (typeof mapping === "object" && mapping !== null) {
+      const localized = String(mapping[loc as keyof typeof mapping]);
+      result[loc] = loc === "en" ? localized : `/${loc}${localized === "/" ? "" : localized}`;
+    } else {
+      const path = String(mapping || routeKey);
+      result[loc] = loc === "en" ? path : `/${loc}${path === "/" ? "" : path}`;
+    }
+  }
+  return result;
+}
 
 interface LocalizedSEOProps {
   locale: string;
@@ -101,16 +77,8 @@ export function constructLocalizedMetadata({
   keywords = DEFAULT_KEYWORDS,
   noindex = false,
 }: LocalizedSEOProps): Metadata {
-  const defaultLocales = ["en", "es", "de", "fr", "pt", "ja"];
   const cleanRoute = routeKey.startsWith("/") ? routeKey : `/${routeKey}`;
-  const routeMapping =
-    LOCALIZED_ROUTE_MAP[cleanRoute] ||
-    Object.fromEntries(
-      defaultLocales.map((loc) => [
-        loc,
-        loc === "en" ? cleanRoute : `/${loc}${cleanRoute === "/" ? "" : cleanRoute}`,
-      ])
-    );
+  const routeMapping = buildLocalizedPaths(cleanRoute);
   const currentPath = routeMapping[locale] || (locale === "en" ? cleanRoute : `/${locale}${cleanRoute === "/" ? "" : cleanRoute}`);
   const canonicalUrl = `${SITE_URL}${currentPath === "/" ? "" : currentPath}`;
 

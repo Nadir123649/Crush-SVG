@@ -6,7 +6,7 @@ export const routing = defineRouting({
   locales: ["en", "es", "de", "fr", "pt", "ja"] as const,
   defaultLocale: "en",
   localePrefix: "as-needed",
-  localeDetection: false,
+  localeDetection: true,
   pathnames: {
     "/": "/",
     "/convert-svg-to-png": {

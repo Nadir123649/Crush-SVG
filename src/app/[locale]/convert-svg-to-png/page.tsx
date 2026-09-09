@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { constructLocalizedMetadata, DEFAULT_KEYWORDS } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
@@ -10,7 +9,7 @@ import { StepsSection } from "@/components/sections/StepsSection";
 import { TargetAudience } from "@/components/sections/TargetAudience";
 import { FAQ } from "@/components/sections/FAQ";
 import { AdBanner } from "@/components/ui/AdBanner";
-import { routing } from "@/i18n/routing";
+import { Link, routing } from "@/i18n/routing";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

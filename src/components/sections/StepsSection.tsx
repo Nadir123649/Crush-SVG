@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const t = useTranslations("steps");
+  const tSection = useTranslations("steps_section");
 
   const icons = [IMAGES.uploadImage, IMAGES.exportIcon, IMAGES.downloadImage];
   const imgClasses = [
@@ -71,20 +72,20 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   ]);
 
   const howToTitle = mode === "background-remover" 
-    ? "How to Remove Image Background Online" 
+    ? tSection("howToBgRemover") 
     : mode === "image-resizer" 
-    ? "How to Resize Images Online" 
+    ? tSection("howToImageResizer") 
     : mode === "raster-to-svg" 
-    ? "How to Convert Raster Images to SVG Vector" 
-    : "How to Convert SVG to PNG Online";
+    ? tSection("howToRasterSvg") 
+    : tSection("howToSvgPng");
 
   const howToDescription = mode === "background-remover"
-    ? "Remove background from photos in three simple steps."
+    ? tSection("howToBgRemoverDesc")
     : mode === "image-resizer"
-    ? "Resize PNG, JPG, and WebP images in seconds."
+    ? tSection("howToImageResizerDesc")
     : mode === "raster-to-svg"
-    ? "Convert PNG or JPG raster images into scalable SVG vectors."
-    : "Convert SVG code or files into crisp transparent PNG images in three steps.";
+    ? tSection("howToRasterSvgDesc")
+    : tSection("howToSvgPngDesc");
 
   const schemaSteps = steps.map((s) => ({
     name: s.title,
@@ -103,11 +104,11 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
         {mode === "background-remover" ? (
-          <>One Image. <span className="text-[#D94A1E]">Three Simple Steps.</span></>
+          <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
-          <>One Image. <span className="text-[#D94A1E]">Perfectly Sized.</span></>
+          <>{tSection("headingImageResizerLine1")} <span className="text-[#D94A1E]">{tSection("headingImageResizerHighlight")}</span></>
         ) : (
-          <>One File. <span className="text-[#D94A1E]">Three Simple Steps.</span></>
+          <>{tSection("headingSvgPngLine1")} <span className="text-[#D94A1E]">{tSection("headingSvgPngHighlight")}</span></>
         )}
       </h2>
 

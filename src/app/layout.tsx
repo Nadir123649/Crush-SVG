@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Afacad } from "next/font/google";
+import { Bricolage_Grotesque, Afacad, Noto_Sans_JP } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/ToastProvider";
@@ -37,6 +37,12 @@ const afacad = Afacad({
   display: "swap",
 });
 
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  preload: false,
+  display: "swap",
+});
+
 export const viewport: Viewport = {
   themeColor: "#D94A1E",
   width: "device-width",
@@ -71,7 +77,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${bricolage.variable} ${afacad.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${afacad.variable} ${notoSansJP.variable} h-full antialiased`}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
@@ -242,6 +248,8 @@ export default async function RootLayout({
             <ClientLayoutWrapper logoUrl={logoUrl}>
               {children}
             </ClientLayoutWrapper>
+            {/* Cookie Consent Banner - inside NextIntlClientProvider for useTranslations */}
+            <CookieConsentBanner />
           </NextIntlClientProvider>
         </AuthProvider>
 
@@ -250,9 +258,6 @@ export default async function RootLayout({
         <Analytics />
 
         <SpeedInsights />
-
-        {/* Cookie Consent Banner */}
-        <CookieConsentBanner />
 
         {/* Service Worker */}
         <ServiceWorkerRegistration />

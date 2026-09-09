@@ -230,6 +230,25 @@ export function proxy(request: NextRequest): NextResponse {
   // 4. Public pages & tools — delegate to next-intl middleware for localized routing
   const response = intlMiddleware(request)
   response.headers.set('x-request-id', getRequestId(request))
+
+  // Persist language preference in NEXT_LOCALE cookie (handles client-side
+  // language switches where next-intl's syncCookie may not fire).
+  // Skip redirect responses — the middleware already sets the cookie there.
+  if (!response.redirected) {
+    const localePattern = routing.locales.join('|')
+    const localeMatch = pathname.match(new RegExp(`^\\/(${localePattern})(\\/|$)`))
+    if (localeMatch) {
+      const currentCookie = request.cookies.get('NEXT_LOCALE')?.value
+      if (currentCookie !== localeMatch[1]) {
+        response.cookies.set('NEXT_LOCALE', localeMatch[1], {
+          path: '/',
+          maxAge: 365 * 24 * 60 * 60,
+          sameSite: 'lax',
+        })
+      }
+    }
+  }
+
   return response
 }
 

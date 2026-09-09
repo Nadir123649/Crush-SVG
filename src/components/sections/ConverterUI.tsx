@@ -85,6 +85,8 @@ function SvgToPngConverter() {
   const tDownload = useTranslations("download_interface");
   const tStates = useTranslations("conversion_states");
   const tUsage = useTranslations("usage");
+  const tToast = useTranslations("toasts");
+  const tA11y = useTranslations("accessibility");
   const { status, sessionVersion } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<"width" | "height" | "scale" | "unit" | null>(null);
   const [selectedWidth, setSelectedWidth] = useState("Original");
@@ -297,7 +299,7 @@ function SvgToPngConverter() {
         e.preventDefault();
         handleSvgChange(text.trim());
         resetDropdowns();
-        showToast("success", "SVG pasted from clipboard");
+        showToast("success", tToast("svgPasted"));
       }
     }
     window.addEventListener("paste", handleGlobalPaste);
@@ -326,29 +328,29 @@ function SvgToPngConverter() {
         pad += indent;
       });
       if (svgCode.trim() === formatted.trim()) {
-        showToast("success", "SVG is already formatted");
+        showToast("success", tToast("svgAlreadyFormatted"));
         return;
       }
       setSvgCode(formatted.trim());
-      showToast("success", "SVG code formatted");
+      showToast("success", tToast("svgFormatted"));
     } catch {
-      showToast("error", "We couldn't format this SVG. Please check that the code is valid.");
+      showToast("error", tToast("formatError"));
     }
   }
 
   async function handleCopySvgCode() {
     const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
     if (!textToCopy) {
-      showToast("error", "No custom SVG code to copy");
+      showToast("error", tToast("noSvgToCopy"));
       return;
     }
     try {
       await navigator.clipboard.writeText(textToCopy);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
-      showToast("success", "SVG code copied to clipboard!");
+      showToast("success", tToast("svgCopied"));
     } catch {
-      showToast("error", "Failed to copy SVG code");
+      showToast("error", tToast("copyFailed"));
     }
   }
 
@@ -358,18 +360,18 @@ function SvgToPngConverter() {
     resetDropdowns();
 
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
-      setError("Please choose an SVG file (.svg).");
+      setError(tToast("invalidSvgFile"));
       return;
     }
     if (Number(file.size) > 10 * 1024 * 1024) {
-      setError("SVG file too large. Maximum size is 10MB.");
+      setError(tToast("fileTooLarge"));
       return;
     }
     try {
       const text = await file.text();
       handleSvgChange(text.trimEnd());
     } catch {
-      setError("Could not read that file. Please try again.");
+      setError(tToast("fileReadError"));
     }
   }
 
@@ -382,7 +384,7 @@ function SvgToPngConverter() {
 
   async function handleConvert() {
     if (isPlaceholderCode || svgCode.trim() === "") {
-      showToast("error", "Paste your SVG code or upload a file to get started.");
+      showToast("error", tToast("pasteToStart"));
       return;
     }
     setError(null);
@@ -396,13 +398,13 @@ function SvgToPngConverter() {
     if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
       let wNum = parseFloat(selectedWidth);
       if (Number.isNaN(wNum)) {
-        setError(`Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(tToast("invalidWidth", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
       if (unit === "cm") wNum = wNum * PX_PER_CM;
       options.width = Math.round(wNum);
       if (options.width < 1 || options.width > MAX_CUSTOM_PX) {
-        setError(`Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(tToast("invalidWidth", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
     }
@@ -410,13 +412,13 @@ function SvgToPngConverter() {
     if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
       let hNum = parseFloat(selectedHeight);
       if (Number.isNaN(hNum)) {
-        setError(`Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
       if (unit === "cm") hNum = hNum * PX_PER_CM;
       options.height = Math.round(hNum);
       if (options.height < 1 || options.height > MAX_CUSTOM_PX) {
-        setError(`Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`);
+        setError(tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
     }
@@ -434,7 +436,7 @@ function SvgToPngConverter() {
       const res = await convertText(svgCode, options);
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
-      showToast("success", `Conversion complete. Your ${outputExt} is ready to download.`);
+      showToast("success", tToast("conversionComplete", { format: outputExt }));
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
         width: options.width,
@@ -474,10 +476,10 @@ function SvgToPngConverter() {
         return;
       }
       if (err instanceof DOMException && err.name === "TimeoutError") {
-        showToast("error", "The conversion took too long. Please try again.");
+        showToast("error", tToast("conversionTimedOut"));
         return;
       }
-      showToast("error", err instanceof Error ? err.message : "Conversion failed. Please try again.");
+      showToast("error", err instanceof Error ? err.message : tToast("conversionFailed"));
     } finally {
       setConverting(false);
     }
@@ -493,7 +495,7 @@ function SvgToPngConverter() {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    showToast("success", "Your download has started");
+    showToast("success", tToast("downloadStarted"));
     trackConversion("png_downloaded", { output_format: ext });
     if (limitReached && status !== "authed") {
       setLimitDownloadDone(true);
@@ -510,15 +512,15 @@ function SvgToPngConverter() {
   let validationError: string | null = null;
   if (isCustomWidth) {
     if (selectedWidth.trim() === "") {
-      validationError = "Please enter a custom width value.";
+      validationError = tToast("customWidthRequired");
     } else {
       let wNum = parseFloat(selectedWidth);
       if (Number.isNaN(wNum)) {
-        validationError = `Invalid width value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        validationError = tToast("invalidWidth", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
       } else {
         if (unit === "cm") wNum = wNum * PX_PER_CM;
         if (wNum < 1 || wNum > MAX_CUSTOM_PX) {
-          validationError = `Invalid width value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+          validationError = tToast("invalidWidth", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
         }
       }
     }
@@ -526,15 +528,15 @@ function SvgToPngConverter() {
 
   if (!validationError && isCustomHeight) {
     if (selectedHeight.trim() === "") {
-      validationError = "Please enter a custom height value.";
+      validationError = tToast("customHeightRequired");
     } else {
       let hNum = parseFloat(selectedHeight);
       if (Number.isNaN(hNum)) {
-        validationError = `Invalid height value. Must be a number between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+        validationError = tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
       } else {
         if (unit === "cm") hNum = hNum * PX_PER_CM;
         if (hNum < 1 || hNum > MAX_CUSTOM_PX) {
-          validationError = `Invalid height value. Must be between 1 and ${MAX_CUSTOM_PX} px (max ${(MAX_CUSTOM_PX / PX_PER_CM).toFixed(1)} cm).`;
+          validationError = tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
         }
       }
     }
@@ -572,7 +574,7 @@ function SvgToPngConverter() {
                         }`}
                         title="Format SVG Code"
                       >
-                        Format Code
+                        {tUpload("formatCode")}
                       </button>
                     )}
                     <button
@@ -606,10 +608,11 @@ function SvgToPngConverter() {
                       {status === "authed" || usage?.isUnlimited
                         ? tUsage("unlimitedConversions")
                         : usage
-                        ? `${usage.conversionsUsed} of ${
-                            usage.conversionsUsed + (usage.remaining ?? 0)
-                          } free conversions used`
-                        : "0 of 3 free conversions used"}
+                        ? tUsage("conversionsUsed", {
+                            used: usage.conversionsUsed,
+                            total: usage.conversionsUsed + (usage.remaining ?? 0),
+                          })
+                        : tUsage("conversionsUsed", { used: 0, total: 3 })}
                     </span>
                   </div>
                 </div>
@@ -684,16 +687,16 @@ function SvgToPngConverter() {
                 >
                   <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
-                    <span className="font-normal">Drag &amp; Drop or </span>
-                    <span className="font-medium text-brand-primary">Select SVG</span>
+                    <span className="font-normal">{tUpload("dragOrSelectSvg")}</span>
+                    <span className="font-medium text-brand-primary">{tUpload("selectSvg")}</span>
                   </div>
                 </div>
 
                 {/* Bottom Source Text */}
                 <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px]">
                   {dims.width && dims.height
-                    ? `Source size: ${dims.width} x ${dims.height} px${aspectLabel}`
-                    : "Source size: unknown — set width/height or viewBox on your SVG"}
+                    ? tUpload("sourceSize", { width: dims.width, height: dims.height, aspect: aspectLabel })
+                    : tUpload("sourceSizeUnknown")}
                 </p>
 
                 <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
@@ -701,16 +704,16 @@ function SvgToPngConverter() {
                   {(isCustomWidth || isCustomHeight) && (
                     <div className="w-full rounded-[12px] border border-[#8F8F8F] bg-white p-[14px] md:p-[16px] flex flex-col justify-center mt-[4px] mb-[12px] gap-[8px]">
                       <div className="font-heading font-semibold text-[13px] text-[#475569] flex items-center gap-1.5">
-                        <span>Pro PNG Export</span>
+                        <span>{tUpload("proPngExport")}</span>
                       </div>
                       <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[5px]">
                         <li className="flex items-center gap-2">
                           <span className="text-brand-primary font-bold">✓</span>
-                          <span>Crisp, high-resolution rendering up to 4000px</span>
+                          <span>{tUpload("crispRendering")}</span>
                         </li>
                         <li className="flex items-center gap-2">
                           <span className="text-brand-primary font-bold">✓</span>
-                          <span>Maintains perfect aspect ratio automatically</span>
+                          <span>{tUpload("maintainsRatio")}</span>
                         </li>
                       </ul>
                     </div>
@@ -718,7 +721,7 @@ function SvgToPngConverter() {
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
-                    <span>100% Private &amp; Secure - Your data is never shared or stored anywhere.</span>
+                    <span>{tUpload("privateNotice")}</span>
                   </p>
                 </div>
               </div>
@@ -727,11 +730,11 @@ function SvgToPngConverter() {
               <div className="w-full lg:w-[537px] flex flex-col">
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {result ? "Converted PNG Preview" : "Live Preview"}
+                    {result ? tDownload("convertedPngPreview") : tDownload("livePreview")}
                   </h2>
                   {result && (
                     <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      PNG Ready{result.width && result.height ? ` (${result.width}×${result.height})` : ""}
+                      {tDownload("pngReady")}{result.width && result.height ? ` (${result.width}×${result.height})` : ""}
                     </span>
                   )}
                 </div>
@@ -759,14 +762,14 @@ function SvgToPngConverter() {
                   ) : storageRestored && activePreviewUrl && !previewError ? (
                     <img
                       src={activePreviewUrl}
-                      alt={result ? "Converted PNG preview" : "SVG preview"}
+                      alt={result ? tA11y("convertedPngPreview") : tA11y("svgPreview")}
                       className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-md z-10"
                       onError={() => setPreviewError(true)}
                     />
                   ) : storageRestored ? (
                     <img
                       src={IMAGES.uploadImage}
-                      alt="Upload placeholder"
+                      alt={tA11y("uploadPlaceholder")}
                       className="max-w-full max-h-full w-auto h-auto object-contain"
                     />
                   ) : null}
@@ -1090,7 +1093,7 @@ function SvgToPngConverter() {
                             htmlFor="custom-width-input"
                             className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
                           >
-                            Custom Width
+                            {tDownload("customWidth")}
                           </label>
                           <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
                             <input
@@ -1129,7 +1132,7 @@ function SvgToPngConverter() {
                             htmlFor="custom-height-input"
                             className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
                           >
-                            Custom Height
+                            {tDownload("customHeight")}
                           </label>
                           <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
                             <input
@@ -1331,7 +1334,7 @@ function SvgToPngConverter() {
                             disabled={converting || isPlaceholderCode || !!validationError}
                             className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
                           >
-                            Re-convert
+                            {tDownload("reconvert")}
                           </button>
                         </div>
                       </>
