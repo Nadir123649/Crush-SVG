@@ -171,7 +171,7 @@
   },
   "features": {
     "svgTitle": "Olvídate de programas complejos y convertidores poco fiables",
-    "rasterTitle": "Deja de luchar con herramientas de diseño y artefactos de imagen",
+    "rasterTitle": "Olvídate de programas complejos y convertidores poco fiables",
     "bgTitle": "Deja de complicarte con editores fotográficos pesados",
     "resizerTitle": "Deja de perder tiempo con editores de escritorio",
     "svgDesc": "Pega tu código SVG, sube un archivo o arrástralo para generar un PNG de alta calidad en segundos, perfecto para Gmail, Outlook, Canva, páginas web y más.",
@@ -250,7 +250,7 @@
     ]
   },
   "target_audience": {
-    "svgTitle": "Diseñado para Creadores Digitales Modernos",
+    "svgTitle": "Diseñado para personas que lanzan.",
     "svgSubtitle": "CrushSVG ayuda a diseñadores, desarrolladores y creadores a transformar gráficos vectoriales en archivos listos para producción sin software pesado.",
     "readVectorGuide": "Leer Buenas Prácticas Vectoriales",
     "exploreGuides": "Explorar Guías",

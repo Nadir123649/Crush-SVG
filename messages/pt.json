@@ -171,7 +171,7 @@
   },
   "features": {
     "svgTitle": "Chega de softwares pesados e conversores instáveis",
-    "rasterTitle": "Chega de perda de qualidade e pixelização indesejada",
+    "rasterTitle": "Chega de softwares pesados e conversores instáveis",
     "bgTitle": "Chega de perder tempo com editores fotográficos complexos",
     "resizerTitle": "Chega de complicações para ajustar tamanhos de imagem",
     "svgDesc": "Cole seu código SVG, envie um arquivo ou arraste para gerar um PNG de alta qualidade em segundos para Gmail, Outlook, Canva e sites.",
@@ -250,7 +250,7 @@
     ]
   },
   "target_audience": {
-    "svgTitle": "Desenvolvido para Criadores Digitais Modernos",
+    "svgTitle": "Feito para quem constrói e entrega.",
     "svgSubtitle": "O CrushSVG ajuda designers, desenvolvedores e profissionais de marketing a transformar arquivos vetoriais em ativos prontos para produção sem softwares pesados.",
     "readVectorGuide": "Boas Práticas para Vetores",
     "exploreGuides": "Explorar Guias",

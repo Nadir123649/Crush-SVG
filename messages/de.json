@@ -171,7 +171,7 @@
   },
   "features": {
     "svgTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
-    "rasterTitle": "Schluss mit unscharfen Pixeln und manueller Vektorisierung",
+    "rasterTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
     "bgTitle": "Schluss mit komplizierten Bildbearbeitungsprogrammen",
     "resizerTitle": "Schluss mit umständlichen Desktop-Tools zur Bildanpassung",
     "svgDesc": "Einfach SVG-Code einfügen, Datei hochladen oder ablegen und in Sekunden hochwertige PNG-Bilder für Gmail, Outlook, Canva und Webseiten erzeugen.",
@@ -250,7 +250,7 @@
     ]
   },
   "target_audience": {
-    "svgTitle": "Entwickelt für moderne digitale Macher",
+    "svgTitle": "Gemacht für Leute, die liefern.",
     "svgSubtitle": "CrushSVG hilft Designern und Entwicklern, Vektordateien ohne schwere Desktop-Software in produktionsreife Grafiken umzuwandeln.",
     "readVectorGuide": "Vektor-Best-Practices lesen",
     "exploreGuides": "Anleitungen entdecken",

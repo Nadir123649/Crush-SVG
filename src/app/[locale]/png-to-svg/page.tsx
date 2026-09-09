@@ -31,6 +31,20 @@ export async function generateMetadata({
   });
 }
 
+function renderHeroTitle(title: string) {
+  const match = title.match(/(PNG (?:to|zu|a|en|para) SVG|PNGからSVGへ)/i);
+  if (!match) return title;
+
+  const parts = title.split(match[0]);
+  return (
+    <>
+      {parts[0]}
+      <span className="text-brand-primary">{match[0]}</span>
+      {parts.slice(1).join(match[0])}
+    </>
+  );
+}
+
 export default async function PngToSvgPage({
   params,
 }: {
@@ -43,7 +57,7 @@ export default async function PngToSvgPage({
   return (
     <div className="w-full flex flex-col items-center">
       <Hero
-        title={tTools("h1")}
+        title={renderHeroTitle(tTools("h1"))}
         subtitle={tTools("subtitle")}
       />
       <ConverterUI mode="raster-to-svg" />

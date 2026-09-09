@@ -171,7 +171,7 @@
   },
   "features": {
     "svgTitle": "Fini les logiciels complexes et les convertisseurs instables",
-    "rasterTitle": "Fini la perte de netteté et les artefacts de pixellisation",
+    "rasterTitle": "Fini les logiciels complexes et les convertisseurs instables",
     "bgTitle": "Fini les retouches manuelles fastidieuses",
     "resizerTitle": "Fini les éditeurs d'images lourds et compliqués",
     "svgDesc": "Collez votre code SVG, importez un fichier ou déposez-le pour générer un PNG haute qualité en quelques secondes pour Gmail, Outlook, Canva et sites web.",
@@ -250,7 +250,7 @@
     ]
   },
   "target_audience": {
-    "svgTitle": "Conçu pour les Créateurs Numériques Modernes",
+    "svgTitle": "Conçu pour ceux qui déploient.",
     "svgSubtitle": "CrushSVG aide designers, développeurs et marketeurs à transformer des graphiques vectoriels en fichiers prêts pour la production sans logiciel lourd.",
     "readVectorGuide": "Lire les Bonnes Pratiques Vectorielles",
     "exploreGuides": "Explorer les Guides",

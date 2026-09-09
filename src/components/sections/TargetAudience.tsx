@@ -6,6 +6,21 @@ import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
 
+function renderTargetAudienceTitle(title: string) {
+  const match = title.match(/(Who Ships?\.?|die liefern\.?|personas que lanzan\.?|ceux qui déploient\.?|quem constrói e entrega\.?|創り届ける人のために。?)/i);
+  if (match) {
+    const parts = title.split(match[0]);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-brand-primary">{match[0]}</span>
+        {parts.slice(1).join(match[0])}
+      </>
+    );
+  }
+  return title;
+}
+
 export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "image-resizer" }) {
   const t = useTranslations("target_audience");
 
@@ -129,7 +144,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[20px] md:mt-[30px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        {t("svgTitle")}
+        {renderTargetAudienceTitle(t("svgTitle"))}
       </h2>
 
       {/* Cards Container */}

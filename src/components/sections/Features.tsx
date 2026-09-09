@@ -4,6 +4,21 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { useTranslations } from "next-intl";
 
+function renderFeaturesTitle(title: string) {
+  const match = title.match(/(juggling design tools|überladener Software|programas complejos|logiciels complexes|softwares pesados|重いデザインソフト)/i);
+  if (match) {
+    const parts = title.split(match[0]);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-brand-primary">{match[0]}</span>
+        {parts.slice(1).join(match[0])}
+      </>
+    );
+  }
+  return title;
+}
+
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const t = useTranslations("features");
   const { user } = useAuth();
@@ -19,14 +34,14 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       {/* Heading & Description */} 
       <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">
         <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[60px] tracking-[0.04em] text-center text-text-dark">
-          {mode === "background-remover" ? (
-            t("bgTitle")
-          ) : mode === "image-resizer" ? (
-            t("resizerTitle")
-          ) : mode === "raster-to-svg" ? (
-            t("rasterTitle")
-          ) : (
-            t("svgTitle")
+          {renderFeaturesTitle(
+            mode === "background-remover"
+              ? t("bgTitle")
+              : mode === "image-resizer"
+              ? t("resizerTitle")
+              : mode === "raster-to-svg"
+              ? t("rasterTitle")
+              : t("svgTitle")
           )}
         </h2>
         <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-center text-text-muted">

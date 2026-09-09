@@ -179,7 +179,7 @@
   },
   "features": {
     "svgTitle": "Stop juggling design tools and unreliable converters",
-    "rasterTitle": "Stop juggling design tools and raster artifacts",
+    "rasterTitle": "Stop juggling design tools and unreliable converters",
     "bgTitle": "Stop struggling with complex editing tools",
     "resizerTitle": "Stop fumbling with desktop image editors",
     "svgDesc": "Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds perfect for Gmail, Outlook, Canva, websites, newsletters, and more.",
@@ -258,7 +258,7 @@
     ]
   },
   "target_audience": {
-    "svgTitle": "Built For Modern Digital Creators",
+    "svgTitle": "Made For People Who Ship.",
     "svgSubtitle": "CrushSVG helps designers, developers, and creators turn vector files into production-ready assets without bulky desktop software.",
     "readVectorGuide": "Read Vector Best Practices",
     "exploreGuides": "Explore Guides",

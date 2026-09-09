@@ -8,6 +8,21 @@ import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 
+function renderFaqTitle(title: string) {
+  const match = title.match(/(Questions|Fragen|Preguntas|Perguntas|質問)/i);
+  if (match) {
+    const parts = title.split(match[0]);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-brand-primary">{match[0]}</span>
+        {parts.slice(1).join(match[0])}
+      </>
+    );
+  }
+  return title;
+}
+
 export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
   const tFaq = useTranslations("FAQ");
   const tFooter = useTranslations("faq_footer");
@@ -76,7 +91,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getFAQSchema(faqs)) }}
       />
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        {tFaq("title")}
+        {renderFaqTitle(tFaq("title"))}
       </h2>
 
       <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[24px]">
