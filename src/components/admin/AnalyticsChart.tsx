@@ -110,7 +110,6 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
                 key={`bar-group-${i}`}
                 className="relative flex flex-col items-center justify-end h-full group"
                 style={{ width: `${100 / chartData.length}%` }}
-                title={`${chartLabels[i]}: ${val} ${val === 1 ? 'conversion' : 'conversions'}`}
               >
                 {/* Bar */}
                 <div 
