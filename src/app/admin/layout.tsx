@@ -6,15 +6,17 @@ import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
+import { AppLoader } from "@/components/ui/AppLoader";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { showToast } from "@/lib/client/toast-bridge";
 
 // Inline SVGs to avoid dependency issues
 const SvgDashboard = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
 const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-const SvgFileText = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>;
+const SvgFileText = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000.svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>;
 const SvgHistory = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>;
 const SvgSettings = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+const SvgBlogs = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000.svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 17H20"/><path d="M4 14.5A2.5 2.5 0 0 1 6.5 12H20"/><path d="M6.5 12H20"/><path d="M4 9.5A2.5 2.5 0 0 1 6.5 7H20"/><path d="M6.5 7H20"/></svg>;
 const SvgLogOut = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
 const SvgMenu = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
 const SvgBell = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>;
@@ -26,12 +28,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
-  const [imageError, setImageError] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  useEffect(() => {
-    setImageError(false);
-  }, [user?.photoURL]);
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const touchStartXRef = React.useRef<number | null>(null);
@@ -74,16 +72,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [status, user, sessionVersion, router, pathname]);
 
-  const isLoading = status === "loading";
+  const isAuthedAdmin = status === "authed" && sessionVersion > 0 && user?.role === "admin";
   const isGuest = status === "guest";
-  const isNonAdmin = status === "authed" && sessionVersion > 0 && user?.role !== "admin";
-  const showOverlay = isLoading || isGuest || isNonAdmin;
 
   const navLinks = [
     { href: "/admin", label: "Overview", icon: SvgDashboard },
     { href: "/admin/users", label: "User Management", icon: SvgUsers },
     { href: "/admin/conversions", label: "Conversion logs", icon: SvgFileText },
     { href: "/admin/audits", label: "System Audit logs", icon: SvgHistory },
+    { href: "/admin/blogs", label: "Blogs", icon: SvgBlogs, prefix: "/admin/blogs" },
     { href: "/admin/settings", label: "Settings", icon: SvgSettings },
   ];
 
@@ -94,31 +91,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/');
   };
 
+  if (!isAuthedAdmin) {
+    return (
+      <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
+        {isGuest && !isLoggingOut ? (
+          <AuthCard type="login" returnTo={pathname} />
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <AppLoader />
+            <span className="font-body text-text-muted text-sm">Loading admin panel...</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen bg-[#FFFCFA] font-body text-text-body antialiased flex overflow-hidden">
-      {/* Auth overlay — always rendered, same outer div */}
-      {showOverlay && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FFFCFA]">
-          {isLoading && (
-            <div className="flex flex-col items-center justify-center animate-pulse">
-              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
-            </div>
-          )}
-          {isGuest && !isLoggingOut && (
-            <AuthCard type="login" returnTo={pathname} />
-          )}
-          {isGuest && isLoggingOut && (
-            <div className="flex flex-col items-center justify-center animate-pulse">
-              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
-            </div>
-          )}
-          {isNonAdmin && (
-            <div className="flex flex-col items-center justify-center animate-pulse">
-              <Image src={IMAGES.logo} alt="Loading" width={48} height={48} className="object-contain opacity-80" />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
@@ -130,6 +119,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Desktop sidebar edge toggle */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={isDesktopSidebarOpen ? "Close sidebar" : "Open sidebar"}
+        aria-expanded={isDesktopSidebarOpen}
         onMouseDown={(e) => {
           dragInfoRef.current = { startX: e.clientX, hasDragged: false };
           const handleMouseMove = (moveEvent: MouseEvent) => {
@@ -158,6 +151,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         onClick={() => {
           if (!dragInfoRef.current.hasDragged) {
             setIsDesktopSidebarOpen(!isDesktopSidebarOpen);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsDesktopSidebarOpen((open) => !open);
           }
         }}
         className={`hidden md:flex fixed top-0 bottom-0 z-40 w-4 cursor-pointer items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
@@ -254,7 +253,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Navigation Links */}
           <ul className="flex flex-col space-y-2">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = link.prefix 
+                ? pathname === link.href || pathname.startsWith(link.prefix + "/")
+                : pathname === link.href;
               const Icon = link.icon;
               return (
                 <li key={link.href}>
@@ -283,13 +284,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Profile / Logout */}
         <div className={`pb-6 ${isDesktopSidebarOpen ? 'px-6' : 'px-3 md:flex md:flex-col md:items-center'}`}>
           <div className={`flex items-center mb-4 ${isDesktopSidebarOpen ? 'space-x-3' : 'md:justify-center md:space-x-0 space-x-3'}`}>
-            {user?.photoURL && !imageError ? (
-              <img
+            {user?.photoURL && failedImageUrl !== user.photoURL ? (
+              <Image
                 src={user.photoURL}
                 alt={user.displayName || user.email || "Admin"}
+                width={32}
+                height={32}
                 className="w-8 h-8 min-w-[32px] rounded-full object-cover border border-[#F2EDE8] flex-shrink-0"
+                unoptimized
                 referrerPolicy="no-referrer"
-                onError={() => setImageError(true)}
+                onError={() => setFailedImageUrl(user.photoURL ?? null)}
               />
             ) : (
               <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
@@ -324,7 +328,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SvgMenu className="w-6 h-6" />
             </button>
             <h1 className="font-heading font-semibold text-xl text-text-dark">
-              Admin {"/"} {navLinks.find(l => l.href === pathname)?.label || "Overview"}
+              {navLinks.find(l => l.href === pathname)?.label || (pathname.startsWith("/admin/blogs") ? "Blog" : "Overview")}
             </h1>
           </div>
         </header>

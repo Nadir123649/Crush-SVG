@@ -49,15 +49,6 @@ const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
-const COLOR_PRESETS = [
-  { name: "White", hex: "#FFFFFF" },
-  { name: "Black", hex: "#000000" },
-  { name: "Slate", hex: "#1E293B" },
-  { name: "Orange", hex: "#D94A1E" },
-  { name: "Blue", hex: "#2563EB" },
-  { name: "Emerald", hex: "#059669" },
-];
-
 function normalizeHex(input: string): string {
   let hex = input.trim();
   if (!hex.startsWith("#")) hex = "#" + hex;
@@ -103,20 +94,11 @@ function SvgToPngConverter() {
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
-  const [usage, setUsage] = useState<UsageInfo | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("crush_usage_info");
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return null;
-  });
-  const [usageFailed, setUsageFailed] = useState(false);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   const [dragOver, setDragOver] = useState(false);
@@ -146,7 +128,6 @@ function SvgToPngConverter() {
       setError(null);
       setPreviewError(false);
       setUsage(null);
-      setUsageFailed(false);
       setShowSignupPrompt(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("crush_converter_state");
@@ -185,7 +166,9 @@ function SvgToPngConverter() {
   useEffect(() => {
     // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
     if (status === "authed") {
-      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+      queueMicrotask(() => {
+        setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
+      });
     }
 
     if (status === "loading") return;
@@ -200,7 +183,6 @@ function SvgToPngConverter() {
         if (cancelled) return;
         if (status !== "authed") {
           setUsage(null);
-          setUsageFailed(true);
         }
       });
     return () => {
@@ -228,7 +210,7 @@ function SvgToPngConverter() {
         setStorageRestored(true);
       }
     });
-  }, []);
+  }, [status, sessionVersion]);
 
   useEffect(() => {
     if (!storageRestoredRef.current) return;
@@ -306,7 +288,7 @@ function SvgToPngConverter() {
     }
     window.addEventListener("paste", handleGlobalPaste);
     return () => window.removeEventListener("paste", handleGlobalPaste);
-  }, []);
+  }, [tToast]);
 
   function handleFormatSvg() {
     if (!svgCode || isPlaceholderCode) return;
@@ -357,6 +339,7 @@ function SvgToPngConverter() {
   }
 
   async function handleFile(file: File | undefined | null) {
+    if (converting) return;
     setError(null);
     if (!file) return;
     resetDropdowns();
@@ -380,6 +363,7 @@ function SvgToPngConverter() {
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
+    if (converting) return;
     setError(null);
     void handleFile(e.dataTransfer.files?.[0]);
   }
@@ -559,6 +543,7 @@ function SvgToPngConverter() {
     <>
       <section
         id="converter"
+        aria-busy={converting}
         className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
@@ -698,7 +683,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" style={{ width: "auto", height: "auto" }} />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">{tUpload("dragOrSelectSvg")}</span>
                     <span className="font-medium text-brand-primary">{tUpload("selectSvg")}</span>
@@ -733,7 +718,7 @@ function SvgToPngConverter() {
                   )}
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
-                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>{tUpload("privateNotice")}</span>
                   </p>
                 </div>
@@ -816,6 +801,8 @@ function SvgToPngConverter() {
                           <button
                             type="button"
                             aria-label="Toggle width dropdown"
+                            aria-haspopup="listbox"
+                            aria-expanded={openDropdown === "width"}
                             onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
                             className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                           >
@@ -844,7 +831,8 @@ function SvgToPngConverter() {
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                             <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
                               {widthOptions.map((opt: string) => (
-                                <div
+                                <button
+                                  type="button"
                                   key={opt}
                                   role="option"
                                   aria-selected={selectedWidth === opt}
@@ -862,7 +850,7 @@ function SvgToPngConverter() {
                                   className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                 >
                                   {formatDimensionLabel(opt, unit)}
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>
@@ -888,6 +876,8 @@ function SvgToPngConverter() {
                           <button
                             type="button"
                             aria-label="Toggle height dropdown"
+                            aria-haspopup="listbox"
+                            aria-expanded={openDropdown === "height"}
                             onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
                             className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                           >
@@ -916,7 +906,8 @@ function SvgToPngConverter() {
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                             <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
                               {heightOptions.map((opt: string) => (
-                                <div
+                                <button
+                                  type="button"
                                   key={opt}
                                   role="option"
                                   aria-selected={selectedHeight === opt}
@@ -934,7 +925,7 @@ function SvgToPngConverter() {
                                   className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                 >
                                   {formatDimensionLabel(opt, unit)}
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>
@@ -961,6 +952,8 @@ function SvgToPngConverter() {
                             <button
                               type="button"
                               aria-label="Toggle unit dropdown"
+                              aria-haspopup="listbox"
+                              aria-expanded={openDropdown === "unit"}
                               onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
                               className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer bg-transparent shrink-0"
                             >
@@ -989,7 +982,8 @@ function SvgToPngConverter() {
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                               <div role="listbox" className="w-full py-[8px] brand-scrollbar">
                                 {["px", "cm"].map((opt) => (
-                                  <div
+                                  <button
+                                    type="button"
                                     key={opt}
                                     role="option"
                                     aria-selected={unit === opt}
@@ -1005,7 +999,7 @@ function SvgToPngConverter() {
                                     className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                   >
                                     {opt}
-                                  </div>
+                                  </button>
                                 ))}
                               </div>
                             </div>
@@ -1043,6 +1037,8 @@ function SvgToPngConverter() {
                             <button
                               type="button"
                               aria-label="Toggle scale dropdown"
+                              aria-haspopup="listbox"
+                              aria-expanded={openDropdown === "scale"}
                               onClick={() => setOpenDropdown(openDropdown === "scale" ? null : "scale")}
                               className="px-[8px] md:px-[12px] h-full flex items-center justify-center cursor-pointer shrink-0"
                             >
@@ -1071,7 +1067,8 @@ function SvgToPngConverter() {
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                               <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
                                 {SCALE_OPTIONS.map((opt: string) => (
-                                  <div
+                                  <button
+                                    type="button"
                                     key={opt}
                                     role="option"
                                     aria-selected={selectedScale === opt}
@@ -1089,7 +1086,7 @@ function SvgToPngConverter() {
                                     className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                   >
                                     {opt}
-                                  </div>
+                                  </button>
                                 ))}
                               </div>
                             </div>
@@ -1301,7 +1298,11 @@ function SvgToPngConverter() {
 
                 {/* Action Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[42px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px] relative">
+                  <div
+                    className="w-full h-[42px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px] relative"
+                    role="status"
+                    aria-live="polite"
+                  >
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"

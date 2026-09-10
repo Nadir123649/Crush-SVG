@@ -7,12 +7,14 @@ import { GuestUsage } from "@/lib/database/models/guest-usage";
 import { ConversionLog } from "@/lib/database/models/conversion-log";
 import { AuditLog } from "@/lib/database/models/audit-log";
 import { Settings } from "@/lib/database/models/settings";
-export { User, VALID_USER_FILTER, Session, GuestUsage, ConversionLog, AuditLog, Settings };
+import { Blog } from "@/lib/database/models/blog";
+export { User, VALID_USER_FILTER, Session, GuestUsage, ConversionLog, AuditLog, Settings, Blog };
 export type { UserDoc } from "@/lib/database/models/user";
 export type { SessionDoc, SessionStatus } from "@/lib/database/models/session";
 export type { GuestUsageDoc } from "@/lib/database/models/guest-usage";
 export type { ConversionLogDoc } from "@/lib/database/models/conversion-log";
 export type { AuditLogDoc } from "@/lib/database/models/audit-log";
+export type { BlogDoc } from "@/lib/database/models/blog";
 declare global {
     var __crushSvgMongoose: Promise<Connection> | undefined;
 }

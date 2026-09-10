@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           "Applebot-Extended",
         ],
         allow: "/",
+        disallow: ["/admin/", "/api/v1/admin/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

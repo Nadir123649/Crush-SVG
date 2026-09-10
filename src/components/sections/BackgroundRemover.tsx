@@ -902,6 +902,7 @@ export function BackgroundRemover() {
                       width={72}
                       height={72}
                       className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      style={{ width: "auto", height: "auto" }}
                     />
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
                       <span className="font-normal">{t("uploadLabel")}</span>
@@ -995,7 +996,8 @@ export function BackgroundRemover() {
                     alt="Lock"
                     width={12}
                     height={12}
-                    className="shrink-0"
+                    className="shrink-0 w-[12px] h-[12px]"
+                    style={{ width: "auto", height: "auto" }}
                   />
                   <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>

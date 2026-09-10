@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
 import { KpiCard } from "@/components/admin/KpiCard";
+import { AppLoader } from "@/components/ui/AppLoader";
 
 // Inline SVGs to avoid dependency issues
 const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
@@ -43,8 +44,8 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-70px)] w-full gap-3">
-        <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
+      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-140px)] w-full gap-3">
+        <AppLoader />
         <span className="font-body text-sm font-medium text-text-muted">Loading dashboard...</span>
       </div>
     );
@@ -175,7 +176,7 @@ export default function AdminDashboard() {
       <section className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden">
         <div className="p-8 border-b border-[#F2EDE8] flex justify-between items-center">
           <h2 className="font-heading font-bold text-2xl text-text-dark">Recent Conversions</h2>
-          <Button href="/admin/conversions" variant="outline" className="h-[36px] px-4 text-[14px] bg-white">View All</Button>
+          <Button href="/admin/conversions" variant="solid">View All</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-body">
