@@ -3,9 +3,12 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema } from "@/lib/seo";
-import { getAllPosts, getCategories } from "@/lib/blog";
+import { Blog, User } from "@/lib/database/db";
+import type { BlogDoc } from "@/lib/database/models/blog";
 import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -36,6 +39,72 @@ export async function generateMetadata({
   });
 }
 
+function calculateReadTime(text: string): string {
+  const wordsPerMinute = 200;
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} min read`;
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+interface BlogPost {
+  slug: string;
+  title: string;
+  seo_title: string;
+  seo_description: string;
+  description: string;
+  excerpt: string;
+  date: string;
+  formattedDate: string;
+  category: string;
+  readTime: string;
+  author: string;
+  cover_image: string;
+  accent_color: string;
+  content: string;
+}
+
+async function getAllPosts(): Promise<BlogPost[]> {
+  const docs = await Blog.find({ published: true })
+    .sort({ createdAt: -1 })
+    .populate("authorId", "displayName")
+    .lean();
+
+  return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
+    const authorName = doc.authorId?.displayName || "CrushSVG Team";
+    const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+    return {
+      slug: doc.slug,
+      title: doc.title,
+      seo_title: doc.title,
+      seo_description: doc.excerpt || "",
+      description: doc.excerpt || "",
+      excerpt: doc.excerpt || "",
+      date: date.toISOString(),
+      formattedDate: formatDate(date),
+      category: doc.category || "General",
+      readTime: calculateReadTime(doc.content),
+      author: authorName,
+      cover_image: doc.coverImage || "/blog.png",
+      accent_color: "#FF6B00",
+      content: doc.content,
+    };
+  });
+}
+
+async function getCategories(): Promise<string[]> {
+  const docs = await Blog.find({ published: true }).select("category").lean();
+  const categories = Array.from(new Set(docs.map((d) => d.category || "General")));
+  return ["All", ...categories];
+}
+
 export default async function BlogListingPage({
   params,
 }: {
@@ -45,8 +114,8 @@ export default async function BlogListingPage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "blog_page" });
 
-  const posts = getAllPosts();
-  const categories = getCategories();
+  const posts = await getAllPosts();
+  const categories = await getCategories();
 
   const blogSchema = {
     "@context": "https://schema.org",
@@ -65,7 +134,7 @@ export default async function BlogListingPage({
     blogPost: posts.map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
-      description: post.seo_description || post.excerpt,
+      description: post.excerpt,
       url: `${SITE_URL}${locale === "en" ? `/blog/${post.slug}` : `/${locale}/blog/${post.slug}`}`,
       datePublished: post.date,
       dateModified: post.date,

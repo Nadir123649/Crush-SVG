@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link, routing } from "@/i18n/routing";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { getPostBySlug, getAllPosts, getRelatedPosts } from "@/lib/blog";
+import { Blog, User } from "@/lib/database/db";
+import type { BlogDoc } from "@/lib/database/models/blog";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema, getFAQSchema } from "@/lib/seo";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { BlogCoverVisual } from "@/components/blog/BlogCoverVisual";
@@ -14,20 +13,128 @@ import { BlogFAQSection } from "@/components/blog/BlogFAQSection";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
 
+export const dynamic = "force-dynamic";
+
 interface BlogPostProps {
   params: Promise<{ locale: string; slug: string }>;
 }
 
-export async function generateStaticParams() {
-  const posts = getAllPosts();
-  return routing.locales.flatMap((locale) =>
-    posts.map((post) => ({ locale, slug: post.slug }))
-  );
+function calculateReadTime(text: string): string {
+  const wordsPerMinute = 200;
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} min read`;
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+interface BlogPost {
+  slug: string;
+  title: string;
+  seo_title: string;
+  seo_description: string;
+  description: string;
+  excerpt: string;
+  date: string;
+  formattedDate: string;
+  category: string;
+  readTime: string;
+  author: string;
+  cover_image: string;
+  accent_color: string;
+  faqs?: { question: string; answer: string }[];
+  content: string;
+}
+
+async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  const doc = await Blog.findOne({ slug, published: true })
+    .populate("authorId", "displayName")
+    .lean();
+
+  if (!doc) return null;
+
+  const authorDoc = doc.authorId as { displayName?: string } | undefined;
+  const authorName = authorDoc?.displayName || "CrushSVG Team";
+  const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+
+  return {
+    slug: doc.slug,
+    title: doc.title,
+    seo_title: doc.title,
+    seo_description: doc.excerpt || "",
+    description: doc.excerpt || "",
+    excerpt: doc.excerpt || "",
+    date: date.toISOString(),
+    formattedDate: formatDate(date),
+    category: doc.category || "General",
+    readTime: calculateReadTime(doc.content),
+    author: authorName,
+    cover_image: doc.coverImage || "/blog.png",
+    accent_color: "#FF6B00",
+    content: doc.content,
+  };
+}
+
+async function getRelatedPosts(currentSlug: string, category?: string, limit = 3): Promise<BlogPost[]> {
+  const filter: Record<string, unknown> = {
+    published: true,
+    slug: { $ne: currentSlug },
+  };
+  if (category) {
+    filter.category = category;
+  }
+
+  let docs = await Blog.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("authorId", "displayName")
+    .lean();
+
+  if (category && docs.length < limit) {
+    const moreFilter: Record<string, unknown> = {
+      published: true,
+      slug: { $ne: currentSlug },
+      category: { $ne: category },
+    };
+    const moreDocs = await Blog.find(moreFilter)
+      .sort({ createdAt: -1 })
+      .limit(limit - docs.length)
+      .populate("authorId", "displayName")
+      .lean();
+    docs = [...docs, ...moreDocs];
+  }
+
+  return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
+    const authorName = doc.authorId?.displayName || "CrushSVG Team";
+    const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+    return {
+      slug: doc.slug,
+      title: doc.title,
+      seo_title: doc.title,
+      seo_description: doc.excerpt || "",
+      description: doc.excerpt || "",
+      excerpt: doc.excerpt || "",
+      date: date.toISOString(),
+      formattedDate: formatDate(date),
+      category: doc.category || "General",
+      readTime: calculateReadTime(doc.content),
+      author: authorName,
+      cover_image: doc.coverImage || "/blog.png",
+      accent_color: "#FF6B00",
+      content: doc.content,
+    };
+  });
 }
 
 export async function generateMetadata({ params }: BlogPostProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return constructLocalizedMetadata({
@@ -56,13 +163,13 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
 export default async function BlogPostDetailPage({ params }: BlogPostProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = getRelatedPosts(post.slug, post.category, 3);
+  const relatedPosts = await getRelatedPosts(post.slug, post.category, 3);
   const articleUrl = `${SITE_URL}${locale === "en" ? `/blog/${post.slug}` : `/${locale}/blog/${post.slug}`}`;
 
   // Article Schema
@@ -103,10 +210,6 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
     { name: post.title, item: locale === "en" ? `/blog/${post.slug}` : `/${locale}/blog/${post.slug}` },
   ]);
 
-  // FAQ Schema (if available)
-  const faqSchema =
-    post.faqs && post.faqs.length > 0 ? getFAQSchema(post.faqs) : null;
-
   return (
     <main className="w-full flex flex-col items-center min-h-screen bg-background pb-[60px] md:pb-[100px]">
       {/* Structured Data (JSON-LD) */}
@@ -118,12 +221,6 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsSchema) }}
       />
-      {faqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
-      )}
 
       {/* Article Reading Container */}
       <article className="w-full max-w-[840px] px-[16px] md:px-[24px] pt-[32px] md:pt-[64px]">
@@ -183,7 +280,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           <BlogShareBar title={post.title} url={articleUrl} />
         </header>
 
-        {/* Reusable Visual Cover Box (Dynamic Branded Visual or User Image) */}
+        {/* Reusable Visual Cover Box */}
         <div className="mb-[40px] md:mb-[60px]">
           <BlogCoverVisual
             coverImage={post.cover_image}
@@ -194,57 +291,11 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           />
         </div>
 
-        {/* Markdown Content Section in Brand Card Box */}
+        {/* HTML Content from TipTap Editor */}
         <div
-          className="w-full bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] p-[24px] md:p-[44px] shadow-[0px_4px_40px_rgba(0,0,0,0.04)] font-body text-[16px] md:text-[17px] leading-[1.8] text-[#374151] space-y-[22px]
-          [&>h2]:font-heading [&>h2]:font-semibold [&>h2]:text-[22px] [&>h2]:md:text-[28px] [&>h2]:text-text-dark [&>h2]:mt-[40px] [&>h2]:mb-[16px] [&>h2]:tracking-[0.03em] [&>h2]:pb-[8px] [&>h2]:border-b [&>h2]:border-[#FAF6F3] first:[&>h2]:mt-0
-          [&>h3]:font-heading [&>h3]:font-semibold [&>h3]:text-[18px] [&>h3]:md:text-[22px] [&>h3]:text-text-dark [&>h3]:mt-[28px] [&>h3]:mb-[12px] [&>h3]:tracking-[0.03em]
-          [&>p]:mb-[20px] [&>p]:leading-[1.8]
-          [&>ul]:list-disc [&>ul]:pl-[24px] [&>ul]:space-y-[8px] [&>ul]:mb-[20px]
-          [&>ol]:list-decimal [&>ol]:pl-[24px] [&>ol]:space-y-[8px] [&>ol]:mb-[20px]
-          [&>li]:leading-[1.7]
-          [&>li>strong]:font-semibold [&>li>strong]:text-text-dark
-          [&>p>strong]:font-semibold [&>p>strong]:text-text-dark
-          [&_a]:text-brand-primary [&_a]:font-medium hover:[&_a]:underline
-          [&>blockquote]:border-l-[4px] [&>blockquote]:border-brand-primary [&>blockquote]:pl-[18px] [&>blockquote]:italic [&>blockquote]:text-text-muted [&>blockquote]:my-[24px] [&>blockquote]:bg-[#FAF6F3] [&>blockquote]:p-[16px] [&>blockquote]:rounded-r-[10px]
-          [&>code]:bg-[#FAF6F3] [&>code]:text-brand-primary [&>code]:px-[6px] [&>code]:py-[2px] [&>code]:rounded-[4px] [&>code]:text-[14px] [&>code]:font-mono
-        "
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.content}
-          </ReactMarkdown>
-        </div>
-
-        {/* Dedicated Interactive FAQ Section */}
-        {post.faqs && post.faqs.length > 0 && (
-          <BlogFAQSection faqs={post.faqs} />
-        )}
-
-        {/* AdSense Unit */}
-        <div className="my-[36px] md:my-[56px]">
-          <AdBanner />
-        </div>
-
-        {/* High-Converting CTA Box (CrushSVG Brand Box) */}
-        <div className="mb-[48px] p-[24px] md:p-[40px] rounded-[16px] md:rounded-[24px] bg-[#FAF6F3] border border-[#EAEAEA] flex flex-col sm:flex-row items-center justify-between gap-[20px]">
-          <div className="flex flex-col gap-[6px] text-center sm:text-left">
-            <span className="text-[12px] font-heading font-semibold uppercase tracking-wider text-brand-primary">
-              Instant Solution
-            </span>
-            <p className="font-heading font-semibold text-text-dark text-[18px] md:text-[22px] tracking-[0.03em]">
-              Ready to convert your SVG to PNG?
-            </p>
-            <p className="font-body text-[14px] text-text-muted">
-              Free, browser-based, pixel-perfect. No install, no uploads, no quality loss.
-            </p>
-          </div>
-          <Link
-            href="/"
-            className="h-[44px] px-[24px] rounded-[8px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-[14px] md:text-[15px] font-heading font-medium hover:opacity-90 transition-opacity shrink-0 no-underline flex items-center justify-center"
-          >
-            Open Converter &rarr;
-          </Link>
-        </div>
+          className="w-full bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] p-[24px] md:p-[44px] shadow-[0px_4px_40px_rgba(0,0,0,0.04)] font-body text-[16px] md:text-[17px] leading-[1.8] text-[#374151] space-y-[22px] prose prose-base max-w-none prose-headings:font-heading prose-p:text-[#374151] prose-li:text-[#374151] prose-a:text-brand-primary prose-strong:text-text-dark prose-blockquote:border-l-brand-primary prose-blockquote:text-text-muted prose-code:bg-[#FAF6F3] prose-code:text-brand-primary prose-code:px-[6px] prose-code:py-[2px] prose-code:rounded-[4px] prose-code:text-[14px] prose-code:font-mono"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
         {/* Related Articles Section */}
         {relatedPosts.length > 0 && (

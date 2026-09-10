@@ -37,7 +37,7 @@ export function BlogCoverVisual({
           fill
           priority={isLarge}
           sizes={isLarge ? "(max-width: 1024px) 100vw, 840px" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-contain transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute top-[12px] left-[12px] bg-white/95 backdrop-blur-sm px-[10px] py-[3px] rounded-full shadow-sm border border-[#EAEAEA] z-10">
           <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary">
