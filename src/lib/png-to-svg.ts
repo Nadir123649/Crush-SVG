@@ -99,38 +99,10 @@ function classifyImage(imageData: ImageData): TracingMode {
   const totalPixels = data.length / 4;
   if (totalPixels === 0) return "photo";
 
-  let grayCount = 0;
-  let edgeCount = 0;
-  const step = Math.max(4, Math.floor(totalPixels / 50000));
-
-  for (let i = 0; i < data.length; i += step * 4) {
-    const r = data[i], g = data[i + 1], b = data[i + 2];
-    const luma = grayLuma(r, g, b);
-    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-    if (saturation < 20) grayCount++;
-  }
-
-  const grayRatio = grayCount / (totalPixels / step);
-
-  // Edge density: compare each pixel with right neighbor
-  const edgeStep = Math.max(4, Math.floor(totalPixels / 30000));
-  let edgeSamples = 0;
-  for (let i = 0; i < data.length - 4 * edgeStep; i += edgeStep * 4) {
-    const diff =
-      Math.abs(data[i] - data[i + edgeStep * 4]) +
-      Math.abs(data[i + 1] - data[i + edgeStep * 4 + 1]) +
-      Math.abs(data[i + 2] - data[i + edgeStep * 4 + 2]);
-    if (diff > 80) edgeCount++;
-    edgeSamples++;
-  }
-  const edgeDensity = edgeSamples > 0 ? edgeCount / edgeSamples : 0;
-
-  // Line art: mostly grayscale + strong edges (outlines)
-  if (grayRatio > 0.80 && edgeDensity > 0.12) return "line-art";
-
+  // In auto mode, line-art should never be chosen automatically (line-art is explicit user opt-in).
+  // Auto mode classifies between "logo" (clean vector shapes for graphics/logos/icons) and "photo".
   const distinctColors = countDistinctColors(imageData);
-  // Logo: few distinct colors, not mostly gray (has some color)
-  if (distinctColors <= 64 && grayRatio <= 0.60) return "logo";
+  if (distinctColors <= 64) return "logo";
 
   return "photo";
 }
@@ -633,8 +605,25 @@ function replaceBackgroundWithColor(
   return out;
 }
 
-function postProcessSvg(svg: string, width: number, height: number): string {
+function stripFullCanvasRect(svg: string): string {
+  return svg.replace(
+    /<rect[^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
+    ""
+  );
+}
+
+function postProcessSvg(
+  svg: string,
+  width: number,
+  height: number,
+  background: BackgroundMode = "preserve",
+  bgColor?: string
+): string {
   let result = svg;
+
+  if (background === "transparent") {
+    result = stripFullCanvasRect(result);
+  }
 
   const svgTagMatch = result.match(/<svg[^>]*>/);
   if (svgTagMatch) {
@@ -655,17 +644,40 @@ function postProcessSvg(svg: string, width: number, height: number): string {
     }
 
     result = result.replace(svgTagMatch[0], tag);
+
+    if (background === "custom" && bgColor) {
+      result = stripFullCanvasRect(result);
+      const openTagMatch = result.match(/<svg[^>]*>/);
+      if (openTagMatch) {
+        const bgRect = `<rect width="${width}" height="${height}" fill="${bgColor}"/>`;
+        const insertIdx = result.indexOf(openTagMatch[0]) + openTagMatch[0].length;
+        result = result.slice(0, insertIdx) + bgRect + result.slice(insertIdx);
+      }
+    }
   }
 
   return result;
 }
 
-function buildPixelSvg(dataUrl: string, width: number, height: number): string {
+function buildPixelSvg(
+  dataUrl: string,
+  width: number,
+  height: number,
+  background: BackgroundMode = "preserve",
+  bgColor?: string
+): string {
+  const bgRect =
+    background === "custom" && bgColor
+      ? `  <rect width="${width}" height="${height}" fill="${bgColor}"/>\n`
+      : "";
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+    bgRect,
     `  <image href="${dataUrl}" width="${width}" height="${height}" preserveAspectRatio="none"/>`,
     `</svg>`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function imageDataToDataUrl(imageData: ImageData, w: number, h: number): string {
@@ -783,6 +795,24 @@ async function processWithBackgroundRemoverEngine(
   }
 }
 
+function checkImageHasAlpha(img: HTMLImageElement, sampleW = 64, sampleH = 64): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = sampleW;
+    canvas.height = sampleH;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return false;
+    ctx.drawImage(img, 0, 0, sampleW, sampleH);
+    const data = ctx.getImageData(0, 0, sampleW, sampleH).data;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 250) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 /* ── Main export ───────────────────────────────────────────────────── */
 
 export async function convertPngToSvg(
@@ -824,10 +854,11 @@ export async function convertPngToSvg(
 
   const isTransparent = background === "transparent";
   const isCustom = background === "custom";
+  const alreadyTransparent = isTransparent && checkImageHasAlpha(img);
 
   /* ── Step 1: Draw canvas with background handling ──────────────── */
   let engineImg: HTMLImageElement | null = null;
-  if (isTransparent || isCustom) {
+  if ((isTransparent && !alreadyTransparent) || (isCustom && !checkImageHasAlpha(img))) {
     engineImg = await processWithBackgroundRemoverEngine(
       file,
       isTransparent ? "Transparent" : "Custom",
@@ -891,7 +922,7 @@ export async function convertPngToSvg(
   try {
     const svg = runVectorTrace(preprocessed, drawW, drawH, vtraceOptions);
     const cleaned = stripBlackPlate(svg);
-    const processed = postProcessSvg(cleaned, drawW, drawH);
+    const processed = postProcessSvg(cleaned, drawW, drawH, background, customHex);
     const outputSize = new Blob([processed]).size;
 
     // Photo fallback: if output is oversized, embed as pixel
@@ -904,7 +935,7 @@ export async function convertPngToSvg(
       } else if (isCustom && customHex) {
         fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
       }
-      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
+      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH, background, customHex);
       advisory = "Photo mode: vector output exceeded size limit, fell back to pixel-embed SVG.";
       return {
         svg: fallbackSvg,
@@ -947,7 +978,7 @@ export async function convertPngToSvg(
     } else if (isCustom && customHex) {
       fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
     }
-    const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
+    const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH, background, customHex);
     return {
       svg: fallbackSvg,
       modeUsed: "pixel",

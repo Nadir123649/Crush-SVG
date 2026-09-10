@@ -4,7 +4,6 @@ import { ensureFontConfig } from "@/lib/svg/font-config";
 import { sanitizeSvg } from "@/lib/svg/svg-sanitize";
 import { computeTargetSize, parseSvgDimensions, type SvgDimensions, type TargetSize } from "@/lib/svg/svg-dims";
 import { ConversionTimeoutError } from "@/lib/svg/svg-errors";
-import { processBackgroundRemove } from "@/lib/bg-remove/process";
 
 const BASE_DPI = 72;
 const INPUT_PIXEL_BUDGET = 50000000;
@@ -68,34 +67,7 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
 
     const resolvedBgOption = options.bgOption ?? (options.transparent === false ? "White" : "Transparent");
 
-    // Fast path: solid white background
-    if (resolvedBgOption === "White") {
-        const pipeline = sharp(Buffer.from(sanitizedSvg, "utf-8"), {
-            density: computeSvgDensity(dims, target),
-            limitInputPixels: INPUT_PIXEL_BUDGET,
-        });
-        if (target.width) {
-            pipeline.resize({
-                width: target.width,
-                height: target.height,
-                fit: target.fit,
-                withoutEnlargement: false,
-                background: { r: 255, g: 255, b: 255, alpha: 1 },
-            });
-        }
-        pipeline.flatten({ background: { r: 255, g: 255, b: 255 } });
-        pipeline.png({
-            compressionLevel: 3,
-            adaptiveFiltering: true,
-        });
-        const { data: buffer, info } = await withTimeout(
-            pipeline.toBuffer({ resolveWithObject: true }),
-            CONVERSION_TIMEOUT_MS,
-        );
-        return { buffer, width: info.width, height: info.height, format: "png", warnings };
-    }
-
-    // Transparent, Custom, or Black background: render with alpha and run canonical bg-remove engine
+    // Render SVG with requested dimensions and background option
     const pipeline = sharp(Buffer.from(sanitizedSvg, "utf-8"), {
         density: computeSvgDensity(dims, target),
         limitInputPixels: INPUT_PIXEL_BUDGET,
@@ -114,36 +86,26 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
             },
         });
     }
-    pipeline.ensureAlpha();
-    const { data: initialPng, info } = await withTimeout(
-        pipeline.png({ compressionLevel: 3, adaptiveFiltering: true }).toBuffer({ resolveWithObject: true }),
+
+    if (resolvedBgOption === "White") {
+        pipeline.flatten({ background: { r: 255, g: 255, b: 255 } });
+    } else if (resolvedBgOption === "Black") {
+        pipeline.flatten({ background: { r: 0, g: 0, b: 0 } });
+    } else if (resolvedBgOption === "Custom" && options.bgColor) {
+        pipeline.flatten({ background: options.bgColor });
+    } else {
+        pipeline.ensureAlpha();
+    }
+
+    pipeline.png({
+        compressionLevel: 3,
+        adaptiveFiltering: true,
+    });
+
+    const { data: buffer, info } = await withTimeout(
+        pipeline.toBuffer({ resolveWithObject: true }),
         CONVERSION_TIMEOUT_MS,
     );
 
-    try {
-        const removed = await withTimeout(
-            processBackgroundRemove(initialPng, {
-                bgOption: resolvedBgOption,
-                bgColor: options.bgColor,
-                scale: 100,
-            }),
-            CONVERSION_TIMEOUT_MS,
-        );
-        return {
-            buffer: removed.buffer,
-            width: removed.width,
-            height: removed.height,
-            format: "png",
-            warnings,
-        };
-    } catch {
-        // Fallback: return initial PNG directly if background removal encounters an error
-        return {
-            buffer: initialPng,
-            width: info.width,
-            height: info.height,
-            format: "png",
-            warnings,
-        };
-    }
+    return { buffer, width: info.width, height: info.height, format: "png", warnings };
 }

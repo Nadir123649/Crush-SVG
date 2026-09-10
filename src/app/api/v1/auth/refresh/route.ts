@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { Session, User } from '@/lib/database/db'
 import { logger } from '@/lib/shared/logger'
@@ -35,11 +35,7 @@ function errorResponse(code: string, status: number, rl: RateLimitResult) {
     },
     { status, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.delete({
-    name: REFRESH_COOKIE_NAME,
-    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
-    path: '/',
-  })
+  clearRefreshCookie(res)
   return res
 }
 
@@ -121,13 +117,6 @@ export async function POST(request: NextRequest) {
     },
     { status: 200, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
-    maxAge: result.remember ? 7 * 24 * 60 * 60 : undefined,
-  })
+  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(result.remember))
   return res
 }

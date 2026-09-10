@@ -101,27 +101,38 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 
 import { EMAIL_VERIFICATION_HTML, RESET_PASSWORD_HTML } from "@/emails/html-templates";
 
-function rewriteSiteLinks(html: string, url: string): string {
-  const origin = /^https?:\/\/[^/]+/.exec(url)?.[0];
-  if (!origin) return html;
-  return html
-    .split("https://www.crushsvg.net").join(origin)
-    .split("https://crushsvg.net").join(origin)
-    .split("{{origin}}").join(origin);
+function resolveFrontendOrigin(explicitFrontend?: string, url?: string): string {
+  if (explicitFrontend) return explicitFrontend.replace(/\/+$/, "");
+  if (url) {
+    if (url.includes("staging")) return "https://staging.crushsvg.net";
+    if (url.includes("crushsvg.net")) return (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/+$/, "");
+    const origin = /^https?:\/\/[^/]+/.exec(url)?.[0];
+    if (origin && !origin.includes("api.")) return origin;
+  }
+  return (process.env.NEXT_PUBLIC_APP_URL || "https://crushsvg.net").replace(/\/+$/, "");
 }
 
-export async function sendVerificationEmail(to: string, url: string): Promise<void> {
+function rewriteSiteLinks(html: string, frontendOrigin: string): string {
+  return html
+    .split("https://www.crushsvg.net").join(frontendOrigin)
+    .split("https://crushsvg.net").join(frontendOrigin)
+    .split("{{origin}}").join(frontendOrigin);
+}
+
+export async function sendVerificationEmail(to: string, url: string, frontendOrigin?: string): Promise<void> {
+  const feOrigin = resolveFrontendOrigin(frontendOrigin, url);
   let html = EMAIL_VERIFICATION_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
-  html = rewriteSiteLinks(html, url);
+  html = rewriteSiteLinks(html, feOrigin);
   await sendEmail(to, "Verify your CrushSVG email", html);
 }
 
-export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
+export async function sendResetPasswordEmail(to: string, url: string, frontendOrigin?: string): Promise<void> {
+  const feOrigin = resolveFrontendOrigin(frontendOrigin, url);
   let html = RESET_PASSWORD_HTML;
   html = html.replace(/href="#"/g, `href="${url}"`);
   html = html.replace(/{{first_name}}/g, "there");
-  html = rewriteSiteLinks(html, url);
+  html = rewriteSiteLinks(html, feOrigin);
   await sendEmail(to, "Reset your CrushSVG password", html);
 }

@@ -5,8 +5,8 @@ import { hashToken } from '@/lib/auth/passwords'
 import { createSession } from '@/lib/auth/sessions'
 import { buildTokenPayload } from '@/lib/auth/tokens'
 import { getClientIp } from '@/lib/security/ip'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
-import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
+import { REFRESH_COOKIE_NAME, getRefreshCookieOptions } from '@/lib/auth/auth'
+import { successResponse, errorResponse, getFrontendOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 
@@ -17,7 +17,7 @@ export async function GET(
   const { token } = await params
 
   const wantsHtml = request.headers.get('accept')?.includes('text/html') ?? false
-  const base = getOrigin(request)
+  const base = getFrontendOrigin(request)
 
   const user = await User.findOne({
     emailVerificationToken: hashToken(token),
@@ -55,13 +55,7 @@ export async function GET(
     })
 
     const res = NextResponse.redirect(new URL('/verify?status=success', base))
-    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60,
-    })
+    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(true))
     return res
   }
   return successResponse({ message: 'Email verified. You can now log in.' })
