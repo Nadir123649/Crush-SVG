@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { getAccessToken } from "@/lib/client/http";
+import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -79,7 +79,6 @@ interface BgRemoverDropdownProps {
   customColor?: string;
   onCustomColorChange?: (color: string) => void;
   renderSelected?: (selected: DropdownOption) => React.ReactNode;
-  openUpward?: boolean;
   showDescriptions?: boolean;
   panelMaxHeight?: number;
   optionSwatchColors?: Record<string, string>;
@@ -93,14 +92,13 @@ function BgRemoverDropdown({
   isOpen,
   onToggle,
   dropdownRef,
-  disabled,
-  customColor,
-  onCustomColorChange,
-  renderSelected,
-  openUpward = false,
-  showDescriptions = true,
-  panelMaxHeight = 240,
-  optionSwatchColors,
+disabled,
+   customColor,
+   onCustomColorChange,
+   renderSelected,
+   showDescriptions = true,
+   panelMaxHeight = 240,
+   optionSwatchColors,
 }: BgRemoverDropdownProps) {
   const selected = options.find((o) => o.value === value) || options[0];
 
@@ -291,6 +289,7 @@ function BgRemoverDropdown({
 
 export function BackgroundRemover() {
   const t = useTranslations("bg_remover");
+  const tUsage = useTranslations("usage");
   const { status, sessionVersion } = useAuth();
 
   // Settings
@@ -636,7 +635,9 @@ export function BackgroundRemover() {
 
       if (!apiRes.ok) {
         const body = await apiRes.json().catch(() => null);
-        throw new Error(body?.payload?.message || `Request failed (${apiRes.status})`);
+        const code = body?.payload?.error?.code || "";
+        const message = body?.payload?.error?.message || body?.payload?.message || `Request failed (${apiRes.status})`;
+        throw new ApiError(apiRes.status, code, message);
       }
 
       // Read binary PNG response — avoids base64 inflation and JSON parsing
@@ -693,6 +694,10 @@ export function BackgroundRemover() {
         );
       }
     } catch (err) {
+      if (err instanceof ApiError && err.code === "guest_limit_reached" && status !== "authed") {
+        setShowSignupPrompt(true);
+        return;
+      }
       const msg = err instanceof Error ? err.message : t("errorProcessing");
       setError(msg);
       showToast("error", msg);
@@ -1230,7 +1235,7 @@ export function BackgroundRemover() {
                         onClick={() => setShowSignupPrompt(true)}
                         className="w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
                       >
-                        Sign up for unlimited conversions
+                        {tUsage("signUpForFree")}
                       </button>
                     ) : hasResult && !staleResult ? (
                       <>

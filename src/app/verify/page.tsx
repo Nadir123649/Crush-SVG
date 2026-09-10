@@ -27,11 +27,18 @@ function VerificationContent() {
     return () => clearInterval(timer);
   }, [variant]);
 
-  useEffect(() => {
-    if (variant === "success" && redirectIn === 0) {
-      router.push("/");
-    }
-  }, [variant, redirectIn, router]);
+useEffect(() => {
+     if (variant === "success" && redirectIn === 0) {
+       router.push("/");
+     }
+   }, [variant, redirectIn, router]);
+
+   // Redirect to home for invalid/missing verification status
+   useEffect(() => {
+     if (variant === "invalid") {
+       router.push("/");
+     }
+   }, [variant, router]);
 
   return (
     <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">

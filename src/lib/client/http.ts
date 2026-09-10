@@ -65,8 +65,6 @@ export function setAuthExpiredHandler(handler: AuthExpiredHandler | null): void 
 
 const REFRESH_PATH = apiBase('/api/v1/auth/refresh')
 
-let refreshInFlight: Promise<SessionPayload | null> | null = null
-
 export interface SessionPayload {
   token: TokenPairDTO
   sessionId?: string
@@ -84,7 +82,12 @@ interface RefreshBody {
   }
 }
 
-async function doRefresh(silent = false): Promise<SessionPayload | null> {
+export interface RefreshResult {
+  payload: SessionPayload | null
+  sessionDead: boolean
+}
+
+async function doRefresh(silent = false): Promise<RefreshResult> {
   let res: Response
   try {
     res = await fetch(REFRESH_PATH, {
@@ -94,7 +97,7 @@ async function doRefresh(silent = false): Promise<SessionPayload | null> {
     })
   } catch {
     // Network failures are transient — the session is not dead.
-    return null
+    return { payload: null, sessionDead: false }
   }
   const body = (await res.json().catch(() => null)) as RefreshBody | null
   // The refresh route only reports a dead session authoritatively: 401
@@ -106,17 +109,19 @@ async function doRefresh(silent = false): Promise<SessionPayload | null> {
   const sessionIsDead = res.status === 401 || (res.status === 200 && body?.success !== true)
   if (res.status !== 200 || body?.success !== true || !body?.payload) {
     if (!silent && sessionIsDead) onAuthExpired?.()
-    return null
+    return { payload: null, sessionDead: sessionIsDead }
   }
   const { token, sessionId, remember, user } = body.payload
-  if (!token?.accessToken) return null
+  if (!token?.accessToken) return { payload: null, sessionDead: true }
   setAccessToken(token.accessToken)
   activeSessionId = sessionId ?? null
   activeRemember = remember ?? null
-  return { token, sessionId, remember, user }
+  return { payload: { token, sessionId, remember, user }, sessionDead: false }
 }
 
-export async function refreshSession(opts?: { silent?: boolean }): Promise<SessionPayload | null> {
+let refreshInFlight: Promise<RefreshResult> | null = null
+
+export async function refreshSession(opts?: { silent?: boolean }): Promise<RefreshResult> {
   if (!refreshInFlight) {
     refreshInFlight = doRefresh(opts?.silent).finally(() => {
       refreshInFlight = null
@@ -145,17 +150,18 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   // session genuinely cannot be restored, surface session_expired instead of
   // sending the request unauthenticated.
   if (!token && sessionRestored) {
-    let refreshed = await refreshSession({ silent: true })
-    if (!refreshed || !accessToken) {
-      refreshed = await refreshSession({ silent: true })
+    let result = await refreshSession({ silent: true })
+    if (!result.payload || !accessToken) {
+      result = await refreshSession({ silent: true })
     }
-    if (refreshed && accessToken) {
+    if (result.payload && accessToken) {
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)
-    } else {
+    } else if (result.sessionDead) {
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }
+    // else: transient failure — proceed without token, let the API decide
   }
 
   let res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
@@ -165,14 +171,15 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   // failed). A real authenticated request is the decisive test of a session —
   // a transient failure on load must never log the user out on its own.
   if (res.status === 401 && (token || sessionRestored)) {
-    const refreshed = await refreshSession()
-    if (refreshed && accessToken) {
+    const result = await refreshSession()
+    if (result.payload && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
-    } else {
+    } else if (result.sessionDead) {
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }
+    // else: transient failure — return the original 401 response as-is
   }
 
   return res
@@ -186,12 +193,26 @@ interface ErrorBody {
 function toApiError(status: number, body: ErrorBody | null): ApiError {
   const err = body?.payload?.error ?? body?.error
   if (typeof err === 'object' && err !== null && typeof err.code === 'string') {
-    return new ApiError(status, err.code, err.message ?? err.code)
+    return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status))
   }
   if (typeof err === 'string') {
     return new ApiError(status, 'error', err)
   }
-  return new ApiError(status, `http_${status}`, `Request failed with status ${status}`)
+  if (typeof body?.payload === 'object' && body.payload !== null && typeof (body.payload as Record<string, unknown>).message === 'string') {
+    return new ApiError(status, `http_${status}`, (body.payload as { message: string }).message)
+  }
+  return new ApiError(status, `http_${status}`, humanizeErrorCode(`http_${status}`, status))
+}
+
+function humanizeErrorCode(code: string, status: number): string {
+  if (status === 401) return 'Your session has expired. Please sign in again.'
+  if (status === 403) return 'You do not have permission to perform this action.'
+  if (status === 404) return 'The requested resource was not found.'
+  if (status === 413) return 'The file is too large. Please try a smaller file.'
+  if (status === 429) return 'Too many requests. Please try again later.'
+  if (status === 502 || status === 503) return 'The service is temporarily unavailable. Please try again.'
+  if (status >= 500) return 'Something went wrong on our end. Please try again.'
+  return `Request failed with status ${status}`
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
