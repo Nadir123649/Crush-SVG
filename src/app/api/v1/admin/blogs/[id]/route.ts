@@ -67,7 +67,7 @@ export async function PATCH(
         return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
     }
 
-    const { title, content, excerpt, coverImage, published } = body
+    const { title, content, excerpt, coverImage, category, published } = body
 
     const blog = await Blog.findById(id)
     if (!blog) {
@@ -94,6 +94,10 @@ export async function PATCH(
 
     if (coverImage !== undefined) {
         blog.coverImage = coverImage?.trim() || null
+    }
+
+    if (category !== undefined) {
+        blog.category = category?.trim() || "General"
     }
 
     if (published !== undefined) {

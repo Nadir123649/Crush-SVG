@@ -8,6 +8,7 @@ export interface BlogDoc {
     content: string;
     excerpt: string;
     coverImage: string | null;
+    category: string;
     published: boolean;
     authorId: Types.ObjectId;
     createdAt: Date;
@@ -20,6 +21,7 @@ const blogSchema = new Schema({
     content: { type: String, required: true },
     excerpt: { type: String, trim: true },
     coverImage: { type: String, default: null },
+    category: { type: String, default: "General", trim: true },
     published: { type: Boolean, default: false },
     authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });

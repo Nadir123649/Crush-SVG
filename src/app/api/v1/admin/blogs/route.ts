@@ -98,11 +98,12 @@ export async function POST(request: NextRequest) {
         return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
     }
 
-    const { title, content, excerpt, coverImage, published = false } = body as {
+    const { title, content, excerpt, coverImage, category, published = false } = body as {
         title: string
         content: string
         excerpt?: string
         coverImage?: string
+        category?: string
         published?: boolean
     }
 
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
             content: content.trim(),
             excerpt: autoExcerpt,
             coverImage: coverImage?.trim() || null,
+            category: category?.trim() || "General",
             published,
             authorId: who.user.id,
         })

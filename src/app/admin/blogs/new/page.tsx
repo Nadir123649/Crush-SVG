@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { BlogEditor } from "@/components/admin/BlogEditor/BlogEditor";
+import { CoverImageUpload } from "@/components/admin/BlogEditor/CoverImageUpload";
 import { useAuth } from "@/lib/client/auth-context";
 
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
@@ -199,63 +200,11 @@ export default function NewBlogPage() {
                 <div className="lg:col-span-3 flex flex-col gap-6">
                     <div className="bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] sticky top-24 flex flex-col gap-6">
                         {/* Cover Image */}
-                        <div>
-                            <label className="block font-body text-sm font-medium text-text-dark mb-2">Cover Image</label>
-                            <div className="border-2 border-dashed border-[#F2EDE8] rounded-[8px] p-6 text-center hover:border-brand-primary transition-colors">
-                                {coverImage ? (
-                                    <div className="relative max-w-full mx-auto">
-                                        <img
-                                            src={coverImage}
-                                            alt="Cover preview"
-                                            className="max-h-48 rounded-[6px] object-contain"
-                                            referrerPolicy="no-referrer"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setCoverImage("")}
-                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                                            title="Remove cover image"
-                                        >
-                                            <SvgX className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <label className="flex flex-col items-center gap-2 text-text-muted cursor-pointer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                        <span className="font-body text-sm">Drop cover image or click to upload</span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-                                                if (file.size > 5 * 1024 * 1024) {
-                                                    showToast("error", "Image must be less than 5MB", { id: "cover-image" });
-                                                    return;
-                                                }
-                                                const formData = new FormData();
-                                                formData.append("file", file);
-                                                try {
-                                                    const result = await apiFetch<{ url: string }>("/api/v1/upload/image", {
-                                                        method: "POST",
-                                                        body: formData,
-                                                    });
-                                                    if (result?.url) {
-                                                        setCoverImage(result.url);
-                                                        setIsDirty(true);
-                                                    } else {
-                                                        showToast("error", "Failed to upload image", { id: "cover-image" });
-                                                    }
-                                                } catch (err: any) {
-                                                    showToast("error", err?.message || "Failed to upload image", { id: "cover-image" });
-                                                }
-                                            }}
-                                            className="hidden"
-                                        />
-                                    </label>
-                                )}
-                            </div>
-                        </div>
+                        <CoverImageUpload
+                            value={coverImage}
+                            onChange={setCoverImage}
+                            onDirty={() => setIsDirty(true)}
+                        />
 
                         {/* Excerpt */}
                         <div>

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
+import { apiFetch } from "@/lib/client/http";
+import { emitToast } from "@/lib/client/toast-bridge";
 
 interface BlogEditorProps {
     content: string;
@@ -19,10 +22,77 @@ interface BlogEditorProps {
 const TB = "px-2 py-1 rounded-[6px] font-body text-sm text-text-muted hover:text-text-dark hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none";
 const TB_ON = "bg-brand-primary/15 text-brand-primary font-semibold";
 
+/* ── Resizable Image NodeView ────────────────────────────────────────── */
+
+const ResizableImage = Image.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            width: {
+                default: "100%",
+                renderHTML: (attributes) => ({ width: attributes.width }),
+            },
+            height: {
+                default: "auto",
+                renderHTML: (attributes) => ({ height: attributes.height }),
+            },
+        };
+    },
+    addNodeView() {
+        return ReactNodeViewRenderer((props) => {
+            return (
+                <NodeViewWrapper className="relative inline-block group">
+                    <img
+                        src={props.node.attrs.src}
+                        alt={props.node.attrs.alt || ""}
+                        width={props.node.attrs.width}
+                        height={props.node.attrs.height}
+                        className="max-w-full h-auto block"
+                    />
+                    {/* Resize handle */}
+                    <div
+                        className="absolute bottom-1 right-1 w-4 h-4 bg-brand-primary/70 rounded-sm cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const img = (e.target as HTMLElement)
+                                .closest("[data-node-view-wrapper]")
+                                ?.querySelector("img");
+                            if (!img) return;
+                            const startWidth = img.getBoundingClientRect().width;
+                            const onMouseMove = (moveEvent: MouseEvent) => {
+                                const newWidth = Math.max(80, startWidth + (moveEvent.clientX - startX));
+                                img.style.width = `${newWidth}px`;
+                            };
+                            const onMouseUp = (upEvent: MouseEvent) => {
+                                document.removeEventListener("mousemove", onMouseMove);
+                                document.removeEventListener("mouseup", onMouseUp);
+                                const finalWidth = Math.max(80, startWidth + (upEvent.clientX - startX));
+                                props.updateAttributes({ width: `${finalWidth}px` });
+                            };
+                            document.addEventListener("mousemove", onMouseMove);
+                            document.addEventListener("mouseup", onMouseUp);
+                        }}
+                    >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M9 1L1 9M9 5L5 9M9 9L9 9" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                </NodeViewWrapper>
+            );
+        });
+    },
+});
+
+/* ── Main Component ──────────────────────────────────────────────────── */
+
 export function BlogEditor({ content, onChange, disabled = false, className = "" }: BlogEditorProps) {
     const [linkState, setLinkState] = useState({ isOpen: false, url: "" });
     const [showColorDropdown, setShowColorDropdown] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const linkInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const colorDropdownRef = useRef<HTMLDivElement>(null);
 
     const editor = useEditor({
@@ -30,7 +100,8 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
             StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
             Placeholder.configure({ placeholder: "Write your blog post content here..." }),
             Link.configure({ openOnClick: false }),
-            Image.configure({ inline: false }),
+            ResizableImage.configure({ inline: false }),
+            TextAlign.configure({ types: ["heading", "paragraph", "image"] }),
             TextStyle,
             Color,
         ],
@@ -62,14 +133,40 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
         return () => document.removeEventListener("mousedown", handleClick);
     }, [showColorDropdown]);
 
+    const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !editor) return;
+
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const data = await apiFetch<{ url: string }>("/api/v1/upload/image", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!data.url) {
+                throw new Error("No URL returned from server.");
+            }
+
+            editor.chain().focus().setImage({ src: data.url }).run();
+        } catch (err) {
+            console.error("Image Upload Error:", err);
+            const msg = err instanceof Error ? err.message : "Unknown error";
+            emitToast("error", `Image upload failed: ${msg}`);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }
+    }, [editor]);
+
     if (!editor) return null;
 
     const btn = (active: boolean) => `${TB} ${active ? TB_ON : ""}`;
-
-    const addImage = () => {
-        const url = window.prompt("Enter image URL:");
-        if (url) editor.chain().focus().setImage({ src: url }).run();
-    };
 
     const openLinkInput = () => {
         const prev = editor.getAttributes("link").href || "";
@@ -98,8 +195,16 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
 
     return (
         <div className={className}>
+            <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleImageUpload}
+            />
+
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-50 rounded-t-[8px] border border-[#F2EDE8] border-b-0">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-1 p-2 bg-gray-50 border-b border-gray-200 rounded-t-md">
                 {/* Headings */}
                 <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} disabled={disabled} className={btn(editor.isActive("heading", { level: 1 }))} title="Heading 1">H1</button>
                 <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} disabled={disabled} className={btn(editor.isActive("heading", { level: 2 }))} title="Heading 2">H2</button>
@@ -112,6 +217,22 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
                 <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().toggleItalic().run()} disabled={disabled} className={btn(editor.isActive("italic"))} title="Italic (Ctrl+I)"><em>I</em></button>
                 <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().toggleStrike().run()} disabled={disabled} className={btn(editor.isActive("strike"))} title="Strikethrough"><s>S</s></button>
                 <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().toggleCode().run()} disabled={disabled} className={btn(editor.isActive("code"))} title="Inline Code"><code className="text-xs">{"</>"}</code></button>
+
+                <div className="w-px h-6 bg-gray-200 mx-1" />
+
+                {/* Text alignment */}
+                <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().setTextAlign("left").run()} disabled={disabled} className={btn(editor.isActive({ textAlign: "left" }))} title="Align Left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="15" y1="12" y2="12"/><line x1="3" x2="18" y1="18" y2="18"/></svg>
+                </button>
+                <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().setTextAlign("center").run()} disabled={disabled} className={btn(editor.isActive({ textAlign: "center" }))} title="Align Center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="6" x2="18" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                </button>
+                <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().setTextAlign("right").run()} disabled={disabled} className={btn(editor.isActive({ textAlign: "right" }))} title="Align Right">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="9" x2="21" y1="12" y2="12"/><line x1="6" x2="21" y1="18" y2="18"/></svg>
+                </button>
+                <button type="button" onMouseDown={prevent} onClick={() => editor.chain().focus().setTextAlign("justify").run()} disabled={disabled} className={btn(editor.isActive({ textAlign: "justify" }))} title="Justify">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                </button>
 
                 <div className="w-px h-6 bg-gray-200 mx-1" />
 
@@ -139,8 +260,19 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
                 <button type="button" onMouseDown={prevent} onClick={openLinkInput} disabled={disabled} className={btn(editor.isActive("link"))} title="Add Link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 </button>
-                <button type="button" onMouseDown={prevent} onClick={addImage} disabled={disabled} className={TB} title="Add Image">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <button
+                    type="button"
+                    onMouseDown={prevent}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={disabled || isUploading}
+                    className={btn(false)}
+                    title="Upload Image"
+                >
+                    {isUploading ? (
+                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    )}
                 </button>
 
                 <div className="w-px h-6 bg-gray-200 mx-1" />
