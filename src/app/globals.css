@@ -44,6 +44,12 @@ html {
   scroll-padding-top: 30px;
 }
 
+/* Japanese locale: override heading/body fonts with Noto Sans JP */
+html[lang="ja"] {
+  --font-heading: var(--font-noto-sans-jp);
+  --font-body: var(--font-noto-sans-jp);
+}
+
 body {
   @apply font-body text-text-body bg-background;
 }

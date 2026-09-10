@@ -7,8 +7,9 @@ import React, {
   useLayoutEffect,
 } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
@@ -18,6 +19,8 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("navigation");
+  const tToast = useTranslations("toasts");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -96,7 +99,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
   function handleLogout() {
     setMenuOpen(false);
     logout();
-    showToast("success", "You've been logged out");
+    showToast("success", tToast("loggedOut"));
     router.push("/");
   }
 
@@ -168,21 +171,21 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
               href={pathname === "/png-to-svg" ? "/#converter" : "/png-to-svg#converter"}
               className="inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              {pathname === "/png-to-svg" ? "SVG to PNG" : "PNG to SVG"}
+              {pathname === "/png-to-svg" ? t("svgToPng") : t("pngToSvg")}
             </Link>
 
             <Link
               href="/svg-guides"
               className="hidden lg:inline-block font-body font-semibold text-[14px] md:text-[16px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Guides
+              {t("guides")}
             </Link>
 
             <Link
               href="/contact-us?r=1"
               className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
-              Need Help?
+              {t("needHelp")}
             </Link>
 
             {/* Auth area: BOTH states always in DOM; CSS controls visibility */}
@@ -194,7 +197,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                 variant="outline"
                 className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
               >
-                Log In
+                {t("logIn")}
               </Button>
 
               <Button
@@ -202,18 +205,18 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                 variant="solid"
                 className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] px-[0px]"
               >
-                Sign Up
+                {t("signUp")}
               </Button>
             </div>
 
             {/* Logged-in: Profile dropdown */}
             <div className="logged-in-only relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label="User account menu"
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  aria-label={t("accountMenu")}
                 className="flex items-center gap-[6px] md:gap-[10px] rounded-full border border-[#F2EDE8] bg-white pl-[4px] pr-[10px] py-[4px] md:pl-[6px] md:pr-[14px] md:py-[6px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] hover:shadow-[0px_2px_16px_0px_rgba(0,0,0,0.1)] transition-shadow"
               >
                 {user?.photoURL && !imageError ? (
@@ -280,7 +283,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                       onClick={() => setMenuOpen(false)}
                       className="block w-full text-left px-[16px] py-[10px] font-body text-[14px] text-text-dark hover:bg-gray-50 hover:text-brand-primary transition-colors"
                     >
-                      Admin Dashboard
+                      {t("adminDashboard")}
                     </Link>
                   )}
 
@@ -290,7 +293,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                     onClick={handleLogout}
                     className="w-full text-left px-[16px] py-[10px] font-body text-[14px] text-[#D94A1E] hover:bg-red-50 transition-colors"
                   >
-                    Log out
+                    {t("logOut")}
                   </button>
                 </div>
               )}

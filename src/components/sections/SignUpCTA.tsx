@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/client/auth-context";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -12,6 +12,7 @@ import type { UsageInfo } from "@/lib/shared/shared-types";
 export function SignUpCTA() {
   const { status } = useAuth();
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const t = useTranslations("signup_cta");
 
   useEffect(() => {
     if (status === 'guest') {
@@ -40,19 +41,19 @@ export function SignUpCTA() {
 
   const remaining = usage ? (usage.remaining ?? 0) : 3;
   const used = usage ? usage.conversionsUsed : 0;
-  const totalFree = remaining + used || 3; // Default to 3 if both are 0 but total isn't known
+  const totalFree = remaining + used || 3;
 
   const points = [];
   for (let i = totalFree; i > 0; i--) {
     let text = "";
     if (i === 1) {
-      text = "Last Free Conversion";
+      text = t("lastFree");
     } else {
-      text = `${i} Free Conversions Left`;
+      text = t("freeRemaining", { count: i });
     }
     points.push({ val: i, text });
   }
-  points.push({ val: 0, text: "Sign Up For Free" });
+  points.push({ val: 0, text: t("signUpFree") });
 
   return (
     <section className="w-full flex justify-center mb-[60px] md:mb-[100px]">
@@ -61,12 +62,11 @@ export function SignUpCTA() {
         {/* Left Column */}
         <div className="w-full max-w-[361px] lg:max-w-[600px] flex flex-col gap-[16px] lg:gap-[24px]">
           <h2 className="font-heading font-semibold text-[24px] leading-[30px] lg:text-[48px] lg:leading-[58px] tracking-[0.04em] text-text-dark text-center lg:text-left">
-            Start free today.<br className="hidden lg:inline" />{" "}
-            <span className="text-[#DA582D]">No credit card</span> required.
+            {t("titleLine1")}<br className="hidden lg:inline" />{" "}
+            <span className="text-[#DA582D]">{t("titleLine2")}</span> {t("titleRequired")}
           </h2>
           <p className="font-body font-normal text-[14px] lg:text-[16px] leading-[18.67px] text-text-muted text-center lg:text-left">
-            Enjoy {totalFree} free conversions with no signup required. When you&apos;re ready for more, create a<br className="hidden lg:inline" />{" "}
-            free account to unlock unlimited access.
+            {t("subtitle", { count: totalFree })}
           </p>
 
           {/* Timeline / Points */}
@@ -109,23 +109,23 @@ export function SignUpCTA() {
 
             <h3 className="font-heading font-semibold text-[16px] lg:text-[18px] leading-[22px] lg:leading-[24px] tracking-[0.04em] text-center text-text-dark mb-[10px]">
               {remaining === 0 ? (
-                <>You&apos;ve used your {totalFree} free<br />conversions</>
+                <>{t("usedAllTitle", { total: totalFree })}</>
               ) : (
-                <>You have {remaining} free<br />conversion{remaining === 1 ? '' : 's'} left</>
+                <>{t("remainingTitle", { count: remaining, s: remaining === 1 ? "" : "s" })}</>
               )}
             </h3>
 
             <p className="font-body font-normal text-[14px] lg:text-[14px] leading-[18.67px] text-center text-text-muted mb-[16px] lg:mb-[26px]">
-              Create a free account to keep converting. No credit card<br className="hidden lg:inline" /> required ever.
+              {t("ctaSubtitle")}
             </p>
 
             <div className="flex flex-col w-full gap-[10px]">
-              <Button href="/signup" className="w-full h-[32px] rounded-[8px] px-[10px]">Sign Up</Button>
-              <Button href="/login" variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">Log In</Button>
+              <Button href="/signup" className="w-full h-[32px] rounded-[8px] px-[10px]">{t("signUp")}</Button>
+              <Button href="/login" variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">{t("logIn")}</Button>
             </div>
 
             <p className="font-body font-normal text-[12px] lg:text-[12px] leading-[16px] lg:leading-[18.67px] text-center text-text-muted mt-[16px] lg:mt-[26px]">
-              Your session and files are safe. They stay in this session until you finish<br className="hidden lg:inline" /> signing up.
+              {t("sessionNote")}
             </p>
           </div>
         </div>

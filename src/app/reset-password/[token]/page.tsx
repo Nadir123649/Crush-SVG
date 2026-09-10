@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";

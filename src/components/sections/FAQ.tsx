@@ -2,124 +2,82 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
 import { getFAQSchema } from "@/lib/seo";
+import { useTranslations } from "next-intl";
+
+function renderFaqTitle(title: string) {
+  const match = title.match(/(Questions|Fragen|Preguntas|Perguntas|質問)/i);
+  if (match) {
+    const parts = title.split(match[0]);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-brand-primary">{match[0]}</span>
+        {parts.slice(1).join(match[0])}
+      </>
+    );
+  }
+  return title;
+}
 
 export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+  const tFaq = useTranslations("FAQ");
+  const tFooter = useTranslations("faq_footer");
   const { status } = useAuth();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  let faqs = [];
+  let faqs: { question: string; answer: string }[] = [];
+
+  if (mode === "svg-to-png") {
+    try {
+      const rawFaqs = tFaq.raw("svg") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
+  }
 
   if (mode === "background-remover") {
-    faqs = [
-      {
-        question: "What image formats are supported?",
-        answer: "You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG.",
-      },
-      {
-        question: "Is my image data kept private?",
-        answer: "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.",
-      },
-      {
-        question: "Do I need to install any software?",
-        answer: "No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins.",
-      },
-      {
-        question: "Is CrushSVG free to use?",
-        answer: "Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees.",
-      },
-      {
-        question: "What types of images work best?",
-        answer: "Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up.",
-      },
-      {
-        question: "What is the maximum image size?",
-        answer: "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.",
-      },
-    ];
+    try {
+      const rawFaqs = tFaq.raw("bg") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
   } else if (mode === "image-resizer") {
-    faqs = [
-      {
-        question: "What image formats can I resize?",
-        answer: "You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.",
-      },
-      {
-        question: "Is my image data kept private?",
-        answer: "Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.",
-      },
-      {
-        question: "What is the maximum image size I can resize?",
-        answer: "You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.",
-      },
-      {
-        question: "Can I maintain the aspect ratio while resizing?",
-        answer: "Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.",
-      },
-      {
-        question: "When should I use JPG vs PNG vs WebP?",
-        answer: "Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.",
-      },
-      {
-        question: "Is CrushSVG free to use?",
-        answer: "Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.",
-      },
-    ];
+    try {
+      const rawFaqs = tFaq.raw("resizer") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
   } else if (mode === "raster-to-svg") {
-    faqs = [
-      {
-        question: "Can I control the quality of the vectorized SVG?",
-        answer: "Yes! You can adjust presets (Low, Medium, High), color quantization, background handling, and path smoothing.",
-      },
-      {
-        question: "Are my uploaded PNG and JPG images secure?",
-        answer: "Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.",
-      },
-      {
-        question: "Does this tool support removing backgrounds?",
-        answer: "Yes, you can enable the 'Ignore Background' feature to automatically remove solid backgrounds during vectorization.",
-      },
-      {
-        question: "Do I need to install any software?",
-        answer: "No, CrushSVG is entirely web-based. You can vectorize images directly in your browser without any plugins.",
-      },
-      {
-        question: "Is CrushSVG free to use?",
-        answer: "Yes! You can vectorize images for free. Creating an account unlocks unlimited conversions without any hidden fees.",
-      },
-      {
-        question: "What image formats can I vectorize?",
-        answer: "You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors.",
+    try {
+      const rawFaqs = tFaq.raw("raster") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
       }
-    ];
-  } else {
-    faqs = [
-      {
-        question: "What is the maximum resolution for PNG exports?",
-        answer: "You can export PNGs at up to 4000x4000 pixels while maintaining perfect, crisp quality.",
-      },
-      {
-        question: "Are my SVG files stored on your servers?",
-        answer: "No, your privacy is our priority. Your SVG code is processed securely and is never stored or shared anywhere.",
-      },
-      {
-        question: "Can I export PNGs with transparent backgrounds?",
-        answer: "Yes, CrushSVG perfectly supports transparent backgrounds for logos, icons, and transparent vectors.",
-      },
-      {
-        question: "Do I need to install any software?",
-        answer: "No, CrushSVG is entirely web-based. You can convert files directly in your browser without any plugins.",
-      },
-      {
-        question: "Is CrushSVG free to use?",
-        answer: "Yes! You can convert files for free. Creating an account unlocks unlimited conversions without any hidden fees.",
-      },
-      {
-        question: "Does the conversion maintain the original aspect ratio?",
-        answer: "Yes, our converter automatically locks and maintains the perfect aspect ratio of your original SVG file to prevent distortion.",
+    } catch {
+      // fallback
+    }
+  } else if (faqs.length === 0) {
+    try {
+      const rawFaqs = tFaq.raw("svg") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
       }
-    ];
+    } catch {
+      // fallback
+    }
   }
 
   const toggleFaq = (index: number) => {
@@ -133,7 +91,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getFAQSchema(faqs)) }}
       />
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        Frequently Asked <span className="text-brand-primary">Questions</span>
+        {renderFaqTitle(tFaq("title"))}
       </h2>
 
       <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[24px]">
@@ -178,19 +136,19 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
 
       {/* Helpful FAQ Footer Links */}
       <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-center">
-        <span className="font-afacad text-sm md:text-base text-text-muted">Have a more specific question?</span>
+        <span className="font-afacad text-sm md:text-base text-text-muted">{tFooter("specificQuestion")}</span>
         <div className="flex items-center gap-3">
-          <a href="/help" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
-            View All FAQs &rarr;
-          </a>
+          <Link href="/help" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            {tFooter("viewAllFaqs")} &rarr;
+          </Link>
           <span className="text-text-muted/40">&bull;</span>
-          <a href="/svg-guides" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
-            SVG Guides
-          </a>
+          <Link href="/svg-guides" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            {tFooter("svgGuides")}
+          </Link>
           <span className="text-text-muted/40">&bull;</span>
-          <a href="/contact-us" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
-            Contact Us
-          </a>
+          <Link href="/contact-us" className="font-afacad text-sm md:text-base font-semibold text-brand-primary hover:underline">
+            {tFooter("contactUs")}
+          </Link>
         </div>
       </div>
     </section>

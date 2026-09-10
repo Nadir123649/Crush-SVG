@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import type { BlogPost } from "@/lib/blog";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { BlogCoverVisual } from "@/components/blog/BlogCoverVisual";

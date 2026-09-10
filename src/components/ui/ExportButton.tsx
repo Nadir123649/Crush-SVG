@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Button } from "./Button";
 
 interface ExportButtonProps {
@@ -15,6 +16,7 @@ const SvgDownload = (p: any) => (
 );
 
 export function ExportButton({ onClick, disabled, className = "" }: ExportButtonProps) {
+  const t = useTranslations("export_button");
   return (
     <Button
       variant="outline"
@@ -23,7 +25,7 @@ export function ExportButton({ onClick, disabled, className = "" }: ExportButton
       className={`shadow-sm ${className}`}
     >
       <SvgDownload className="w-4 h-4 shrink-0" />
-      Export
+      {t("label")}
     </Button>
   );
 }

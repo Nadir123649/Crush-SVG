@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
@@ -247,13 +248,14 @@ interface AspectLockProps {
 }
 
 function AspectLock({ locked, onToggle, disabled }: AspectLockProps) {
+  const t = useTranslations("image_resizer");
   return (
     <button
       type="button"
       onClick={onToggle}
       disabled={disabled}
-      aria-label={locked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-      title={locked ? "Aspect ratio locked" : "Aspect ratio unlocked"}
+      aria-label={locked ? t("unlockRatio") : t("lockRatio")}
+      title={locked ? t("lockRatioTitle") : t("unlockRatioTitle")}
       className={`self-center mt-[18px] w-[36px] h-[36px] rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
         disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"
       } ${locked ? "text-brand-primary" : "text-[#94A3B8]"}`}
@@ -277,6 +279,7 @@ function AspectLock({ locked, onToggle, disabled }: AspectLockProps) {
 
 export function ImageResizer() {
   const { status, sessionVersion } = useAuth();
+  const t = useTranslations("image_resizer");
 
   // Settings
   const [scale, setScale] = useState("100");
@@ -470,14 +473,13 @@ export function ImageResizer() {
     const isWebp = f.type === "image/webp" || f.name.toLowerCase().endsWith(".webp");
 
     if (!isPng && !isJpg && !isWebp) {
-      setError("Please choose a valid PNG, JPG, or WebP image file.");
+      setError(t("errorInvalidFile"));
       showToast("error", "Unsupported file type. Please upload PNG, JPG, or WebP.");
       return;
     }
 
     if (f.size > MAX_FILE_SIZE_BYTES) {
-      const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-      setError(`Image too large (${sizeMB}MB). Maximum allowed size is 10MB.`);
+      setError(t("errorTooLarge"));
       showToast("error", "Image exceeds 10MB limit.");
       return;
     }
@@ -584,13 +586,13 @@ export function ImageResizer() {
     const h = parseInt(targetHeight, 10);
 
     if (!w || !h || w < 1 || h < 1) {
-      setError("Please enter valid width and height values.");
+      setError(t("errorInvalidDimensions"));
       showToast("error", "Invalid dimensions.");
       return;
     }
 
     if (w > 10000 || h > 10000) {
-      setError("Maximum dimension is 10,000 pixels.");
+      setError(t("errorMaxDimensions"));
       showToast("error", "Dimensions exceed 10,000px limit.");
       return;
     }
@@ -693,14 +695,14 @@ export function ImageResizer() {
               {/* Column Header */}
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                  Source Image
+                  {t("sourceImage")}
                 </h2>
                 <div className="flex items-center gap-[10px]">
                   <button
                     type="button"
                     onClick={handleClear}
                     disabled={resizing || !hasImage}
-                    aria-label="Clear uploaded image"
+                    aria-label={t("clearUploadedAria")}
                     className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 ${
                       hasImage
                         ? resizing
@@ -720,17 +722,15 @@ export function ImageResizer() {
                     />
                     <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
                     <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
-                      Clear
+                      {t("clearButton")}
                     </span>
                   </button>
 
                   {(usage || status === "authed") && (
                     <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "authed" || usage?.isUnlimited
-                        ? "Unlimited conversions"
-                        : `${usage?.conversionsUsed ?? 0} of ${
-                            (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
-                          } free conversions used`}
+                        ? t("unlimitedConversions")
+                        : t("conversionsUsed", { used: usage?.conversionsUsed ?? 0, total: (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0) })}
                     </span>
                   )}
                 </div>
@@ -741,7 +741,7 @@ export function ImageResizer() {
                 ref={fileInputRef}
                 id="image-resizer-file-upload"
                 type="file"
-                aria-label="Upload image file for resizing"
+                aria-label={t("uploadFileAria")}
                 accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
                 className="absolute w-0 h-0 opacity-0 overflow-hidden"
                 onChange={(e) => {
@@ -767,7 +767,7 @@ export function ImageResizer() {
                 >
                   <img
                     src={dataUrl!}
-                    alt={imageName || "Selected image"}
+                    alt={imageName || t("selectedImageAlt")}
                     className="relative z-10 max-h-[170px] md:max-h-[230px] max-w-[90%] object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
                   />
                   <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-brand-primary backdrop-blur-xs text-white px-2.5 py-1 rounded-md text-[12px] font-heading font-medium tracking-wide">
@@ -797,12 +797,12 @@ export function ImageResizer() {
                     />
                     <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
                     <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
-                      Replace Image
+                      {t("replaceImage")}
                     </span>
                   </button>
                   {dragOver && (
                     <div className="absolute inset-0 z-30 bg-white/90 flex items-center justify-center font-body font-medium text-[15px] text-brand-primary">
-                      Drop new file to replace
+                      {t("dropToReplace")}
                     </div>
                   )}
                 </div>
@@ -817,7 +817,7 @@ export function ImageResizer() {
                   onDrop={handleDrop}
                   role="button"
                   tabIndex={0}
-                  aria-label="Drag and drop or select an image file for resizing"
+                  aria-label={t("dragDropOrSelect")}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
                   }}
@@ -829,24 +829,24 @@ export function ImageResizer() {
                 >
                   <Image
                     src={IMAGES.drag}
-                    alt="Upload Image"
+                    alt={t("uploadImageAlt")}
                     width={72}
                     height={72}
                     className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
                     <span className="font-normal">Drag &amp; Drop or </span>
-                    <span className="font-semibold text-brand-primary">Select Image</span>
+                    <span className="font-semibold text-brand-primary">{t("selectImageButton")}</span>
                   </div>
                   <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
-                    PNG, JPG, or WebP up to 10MB
+                    {t("formatsUpTo")}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
                       <kbd className="font-mono text-[10px] bg-white border border-gray-300 px-1 rounded text-[#475569]">
                         Ctrl+V
                       </kbd>{" "}
-                      paste clipboard image
+                      {t("pasteHint")}
                     </span>
                   </div>
                 </div>
@@ -872,13 +872,13 @@ export function ImageResizer() {
                   </div>
                   <div className="flex items-stretch gap-[6px]">
                     <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                      <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Dimensions</span>
+                      <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">{t("dimensionsLabel")}</span>
                       <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
                         {imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}
                       </strong>
                     </div>
                     <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                      <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Aspect</span>
+                      <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">{t("aspectLabel")}</span>
                       <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
                         {imageDims ? simplifyAspect(imageDims.width, imageDims.height) : "—"}
                       </strong>
@@ -888,33 +888,33 @@ export function ImageResizer() {
                     <span className="truncate">
                       {outputFormat.toUpperCase()} &middot; {scale}%
                     </span>
-                    <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
+                    <span className="text-brand-primary font-medium shrink-0 ml-2">{t("readyStatus")}</span>
                   </div>
                 </div>
               ) : (
                 <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
                   <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex items-center justify-between mb-[6px]">
-                    <span>Client-Side Image Resizing</span>
+                    <span>{t("featureTitle")}</span>
                     <span className="text-[10px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
-                      PNG &amp; JPG &amp; WebP
+                      {t("featureFormats")}
                     </span>
                   </div>
                   <ul className="text-[11px] md:text-[12px] text-[#64748B] flex flex-col gap-[4px]">
                     <li className="flex items-start gap-2">
                       <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                      <span className="leading-[1.3]">Resize by exact pixels or scale percentage</span>
+                      <span className="leading-[1.3]">{t("featureExactPixels")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                      <span className="leading-[1.3]">Aspect ratio lock prevents distortion</span>
+                      <span className="leading-[1.3]">{t("featureRatioLock")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                      <span className="leading-[1.3]">Export as PNG, JPG, or WebP with quality control</span>
+                      <span className="leading-[1.3]">{t("featureExport")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-brand-primary font-bold leading-[1.2]">✓</span>
-                      <span className="leading-[1.3]">100% private images stay in your browser</span>
+                      <span className="leading-[1.3]">{t("featurePrivacy")}</span>
                     </li>
                   </ul>
                 </div>
@@ -929,7 +929,7 @@ export function ImageResizer() {
                   height={12}
                   className="shrink-0"
                 />
-                <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
+                <span>{t("privacyText")}</span>
               </p>
             </div>
 
@@ -941,7 +941,7 @@ export function ImageResizer() {
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {hasResult ? "Result" : "Live Preview"}
+                    {hasResult ? t("resultHeader") : t("livePreview")}
                   </h2>
 
                   {hasResult && (
@@ -955,7 +955,7 @@ export function ImageResizer() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Original
+                        {t("originalTab")}
                       </button>
                       <button
                         type="button"
@@ -966,7 +966,7 @@ export function ImageResizer() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        Resized
+                        {t("resizedTab")}
                       </button>
                     </div>
                   )}
@@ -978,7 +978,7 @@ export function ImageResizer() {
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
                       <span className="font-body font-medium text-[14px] text-text-dark">
-                        Resizing image...
+                        {t("resizingImage")}
                       </span>
                     </div>
                   ) : hasResult && previewUrl ? (
@@ -1001,7 +1001,7 @@ export function ImageResizer() {
                       />
                       <div className="absolute inset-0 bg-white/40 flex items-center justify-center">
                         <span className="bg-white/90 backdrop-blur-xs border border-gray-200 text-text-dark font-body font-medium text-[13px] px-3 py-1.5 rounded-full shadow-sm">
-                          Click &ldquo;Resize Image&rdquo; below
+                          {t("clickResizeBelow")}
                         </span>
                       </div>
                     </div>
@@ -1013,7 +1013,7 @@ export function ImageResizer() {
                         className="w-[64px] h-[64px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
-                        Preview will appear here
+                        {t("previewPlaceholder")}
                       </p>
                     </div>
                   )}
@@ -1031,7 +1031,7 @@ export function ImageResizer() {
                     {/* Dimension Inputs Row */}
                     <div className="flex items-stretch gap-[8px] sm:col-span-2">
                       <DimensionInput
-                        label="Width"
+                        label={t("widthLabel")}
                         value={targetWidth}
                         onChange={handleWidthChange}
                         disabled={resizing}
@@ -1042,7 +1042,7 @@ export function ImageResizer() {
                         disabled={resizing}
                       />
                       <DimensionInput
-                        label="Height"
+                        label={t("heightLabel")}
                         value={targetHeight}
                         onChange={handleHeightChange}
                         disabled={resizing}
@@ -1051,7 +1051,7 @@ export function ImageResizer() {
 
                     {/* Scale Dropdown */}
                     <Dropdown
-                      label="Scale"
+                      label={t("scaleDropdown")}
                       value={scale}
                       options={SCALE_OPTIONS}
                       onChange={(val) => {
@@ -1066,7 +1066,7 @@ export function ImageResizer() {
 
                     {/* Format Dropdown */}
                     <Dropdown
-                      label="Output Format"
+                      label={t("formatDropdown")}
                       value={outputFormat}
                       options={FORMAT_OPTIONS}
                       onChange={(val) => {
@@ -1086,7 +1086,7 @@ export function ImageResizer() {
                     <div className="mt-[12px] md:mt-[16px] w-full">
                       <div className="flex items-center justify-between mb-[6px]">
                         <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
-                          Quality
+                          {t("qualityLabel")}
                         </label>
                         <span className="font-body text-[12px] text-[#64748B]">{quality}%</span>
                       </div>
@@ -1101,12 +1101,12 @@ export function ImageResizer() {
                           setResult(null);
                         }}
                         disabled={resizing}
-                        aria-label="Output quality percentage"
+                        aria-label={t("qualityAria")}
                         className="w-full h-[6px] rounded-full appearance-none cursor-pointer accent-brand-primary bg-[#E2E8F0]"
                       />
                       <div className="flex justify-between text-[10px] text-[#94A3B8] mt-[2px]">
-                        <span>Smaller file</span>
-                        <span>Higher quality</span>
+                        <span>{t("smallerFile")}</span>
+                        <span>{t("higherQuality")}</span>
                       </div>
                     </div>
                   )}
@@ -1135,7 +1135,7 @@ export function ImageResizer() {
                     />
                   </div>
                   <span className="font-body text-[12px] text-[#64748B]">
-                    Resizing image to {targetWidth}×{targetHeight}...
+                    {t("resizingProgress", { width: targetWidth, height: targetHeight })}
                   </span>
                 </div>
               ) : (
@@ -1148,7 +1148,7 @@ export function ImageResizer() {
                         disabled={resizing}
                       >
                         <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                          Download {result!.format.toUpperCase()}
+                          {t("downloadFormat", { format: result!.format.toUpperCase() })}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""
@@ -1168,7 +1168,7 @@ export function ImageResizer() {
                           }}
                           className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer"
                         >
-                          New Image
+                          {t("newImageButton")}
                         </button>
                       </div>
                     </>
@@ -1179,7 +1179,7 @@ export function ImageResizer() {
                       disabled={resizing || !hasImage}
                     >
                       <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
-                        Resize Image
+                        {t("resizeButton")}
                         <Image
                           src={IMAGES.exportIcon}
                           alt=""
