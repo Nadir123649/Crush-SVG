@@ -10,27 +10,6 @@ const CORS_ORIGINS = ['https://crushsvg.net', 'https://www.crushsvg.net', 'https
 
 // ── Route classification ──────────────────────────────────────────────
 
-const PUBLIC_PAGES = new Set([
-  '/',
-  '/login',
-  '/signup',
-  '/forgot-password',
-  '/verify',
-  '/email-verification',
-  '/about',
-  '/terms',
-  '/privacy-policy',
-  '/cookies',
-  '/contact-us',
-  '/help',
-  '/support',
-  '/changelog',
-  '/team',
-  '/svg-guides',
-  '/png-to-svg',
-  '/api-docs',
-])
-
 const PUBLIC_API_PREFIXES = [
   '/api/v1/auth/',
   '/api/v1/health',
@@ -57,13 +36,6 @@ const AUTH_API_EXACT = new Set([
 ])
 
 // ── Helpers ───────────────────────────────────────────────────────────
-
-function isPublicPage(pathname: string): boolean {
-  if (PUBLIC_PAGES.has(pathname)) return true
-  // Public parent routes: /blog, /blog/[slug] — all children are public
-  const publicParents = ['/blog', '/reset-password']
-  return publicParents.some((p) => pathname.startsWith(p + '/'))
-}
 
 function isPublicApi(pathname: string): boolean {
   return PUBLIC_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))
@@ -227,7 +199,22 @@ export function proxy(request: NextRequest): NextResponse {
     return response
   }
 
-  // 4. Public pages & tools — delegate to next-intl middleware for localized routing
+  // 4. Public auth-action pages that must bypass next-intl routing
+  //    These pages live at the root level (no [locale] counterpart) and are
+  //    called from API routes / email links that don't include a locale prefix.
+  //    intlMiddleware would incorrectly redirect non-default-locale users to a
+  //    non-existent /{locale}/... path, causing a 404.
+  if (
+    pathname.startsWith('/reset-password') ||
+    pathname === '/verify' ||
+    pathname === '/email-verification'
+  ) {
+    const response = NextResponse.next()
+    response.headers.set('x-request-id', getRequestId(request))
+    return response
+  }
+
+  // 5. Public pages & tools — delegate to next-intl middleware for localized routing
   const response = intlMiddleware(request)
   response.headers.set('x-request-id', getRequestId(request))
 
