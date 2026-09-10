@@ -670,7 +670,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" style={{ width: "auto", height: "auto" }} />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">{tUpload("dragOrSelectSvg")}</span>
                     <span className="font-medium text-brand-primary">{tUpload("selectSvg")}</span>
@@ -705,7 +705,7 @@ function SvgToPngConverter() {
                   )}
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
-                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>{tUpload("privateNotice")}</span>
                   </p>
                 </div>
