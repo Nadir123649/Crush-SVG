@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Afacad, Noto_Sans_JP } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { ToastProvider } from "@/components/ui/ToastProvider";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/sections/Footer";
+import { AppFeedbackProvider } from "@/components/providers/AppFeedbackProvider";
+import { AnalyticsConsentGate } from "@/components/providers/AnalyticsConsentGate";
+import { AdSenseConsentGate } from "@/components/providers/AdSenseConsentGate";
 import { AuthProvider } from "@/lib/client/auth-context";
 import {
   constructMetadata,
@@ -16,14 +14,14 @@ import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
-import { Settings } from "@/lib/database/db";
+import { getSiteSettings } from "@/lib/data/settings";
 import { getLocale, getMessages } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
+import fallbackMessages from "../../messages/en.json";
 import "./globals.css";
 
-const GA_MEASUREMENT_ID = "G-VCLLSKB082";
-const GTM_ID = "GTM-KK3N72HS";
-const ADSENSE_CLIENT = "ca-pub-2946217028626519";
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-KK3N72HS";
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-2946217028626519";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -61,18 +59,15 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let logoUrl = undefined;
+  let logoUrl: string | undefined;
   try {
-    const settings = await Settings.findOne();
-    if (settings?.logoUrl) {
-      logoUrl = settings.logoUrl;
-    }
-  } catch (e) {
+    logoUrl = (await getSiteSettings()).logoUrl;
+  } catch {
     // Ignore db fetch error
   }
 
   const locale = (await getLocale().catch(() => "en")) || "en";
-  const messages = await getMessages().catch(() => ({}));
+  const messages = await getMessages().catch(() => fallbackMessages);
 
   return (
     <html
@@ -103,6 +98,12 @@ export default async function RootLayout({
         <meta
           name="msvalidate.01"
           content="68434D213B77FA63AE8FFAA76729DCEE"
+        />
+
+        {/* Google AdSense account verification */}
+        <meta
+          name="google-adsense-account"
+          content={ADSENSE_CLIENT}
         />
 
         {/* Font Connections */}
@@ -141,18 +142,10 @@ export default async function RootLayout({
           `}}
         />
 
-        {/* Google AdSense */}
-        <Script
-          id="google-adsense"
-          strategy="afterInteractive"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          crossOrigin="anonymous"
-        />
-
-        {/* GDPR: Default consent denied — must run before GA4 config */}
+        {/* Consent Mode v2 default must run before GTM tags are evaluated. */}
         <Script
           id="consent-default"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -160,29 +153,12 @@ export default async function RootLayout({
               gtag('consent', 'default', {
                 'analytics_storage': 'denied',
                 'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
                 'wait_for_update': 500
               });
             `,
           }}
-        />
-
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
-        />
-
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}}
         />
 
         {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
@@ -243,21 +219,20 @@ export default async function RootLayout({
           Skip to main content
         </a>
 
-        <AuthProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ClientLayoutWrapper logoUrl={logoUrl}>
-              {children}
-            </ClientLayoutWrapper>
-            {/* Cookie Consent Banner - inside NextIntlClientProvider for useTranslations */}
-            <CookieConsentBanner />
-          </NextIntlClientProvider>
-        </AuthProvider>
+        <AppFeedbackProvider>
+          <AuthProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              <ClientLayoutWrapper logoUrl={logoUrl}>
+                {children}
+              </ClientLayoutWrapper>
+              {/* Cookie Consent Banner - inside NextIntlClientProvider for useTranslations */}
+              <CookieConsentBanner />
+            </NextIntlClientProvider>
+          </AuthProvider>
+        </AppFeedbackProvider>
 
-        <ToastProvider />
-
-        <Analytics />
-
-        <SpeedInsights />
+        <AnalyticsConsentGate />
+        <AdSenseConsentGate />
 
         {/* Service Worker */}
         <ServiceWorkerRegistration />

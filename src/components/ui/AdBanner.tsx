@@ -1,16 +1,36 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+  }
+}
 
 export function AdBanner() {
   const { status } = useAuth();
   const adRef = useRef<HTMLModElement>(null);
   const adInitialized = useRef(false);
+  const [consentGranted, setConsentGranted] = useState(false);
+
+  useEffect(() => {
+    const syncConsent = () => {
+      setConsentGranted(localStorage.getItem("crush_cookie_consent") === "granted");
+    };
+    syncConsent();
+    window.addEventListener("crushConsentChanged", syncConsent);
+    window.addEventListener("storage", syncConsent);
+    return () => {
+      window.removeEventListener("crushConsentChanged", syncConsent);
+      window.removeEventListener("storage", syncConsent);
+    };
+  }, []);
 
   useEffect(() => {
     // Only initialize ad for guest (non-authed) users
-    if (status !== "guest") return;
+    if (status !== "guest" || !consentGranted) return;
     if (adInitialized.current) return;
 
     // Do not execute AdSense script on localhost/dev to prevent unapproved domain & zero-width TagErrors
@@ -43,7 +63,6 @@ export function AdBanner() {
       }
 
       try {
-        // @ts-ignore
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         adInitialized.current = true;
       } catch {
@@ -57,10 +76,11 @@ export function AdBanner() {
       cancelAnimationFrame(rafId);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [status]);
+  }, [consentGranted, status]);
 
   // While auth state is loading, render nothing to prevent layout flash
   if (status === "loading") return null;
+  if (!consentGranted) return null;
 
   // Logged-in users: no ad shown
   if (status === "authed") return null;

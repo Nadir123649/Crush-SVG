@@ -39,12 +39,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["@visioncortex/vtracer", "sharp", "onnxruntime-node", "@huggingface/transformers"],
   images: {
-    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "*.googleusercontent.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "firebasestorage.googleapis.com" },
     ],
   },
   async headers() {
