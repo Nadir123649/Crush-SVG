@@ -72,7 +72,9 @@
     "remark-gfm": "^4.0.1",
     "resend": "^6.19.0",
     "sharp": "0.35.4",
+    "server-only": "^0.0.1",
     "swagger-ui-react": "^5.32.14",
+    "@tailwindcss/typography": "^0.5.20",
     "tailwindcss": "^4",
     "typescript": "^5",
     "zod": "^4.4.3"
@@ -101,10 +103,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@tailwindcss/typography": "^0.5.20",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
-    "server-only": "^0.0.1",
     "tsx": "^4.23.12"
   },
   "optionalDependencies": {
