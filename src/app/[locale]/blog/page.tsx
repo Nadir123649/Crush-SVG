@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema } from "@/lib/seo";
-import { Blog, User } from "@/lib/database/db";
+import { Blog, User, connectToDatabase } from "@/lib/database/db";
 import type { BlogDoc } from "@/lib/database/models/blog";
 import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
@@ -72,37 +72,49 @@ interface BlogPost {
 }
 
 async function getAllPosts(): Promise<BlogPost[]> {
-  const docs = await Blog.find({ published: true })
-    .sort({ createdAt: -1 })
-    .populate("authorId", "displayName")
-    .lean();
+  try {
+    await connectToDatabase();
+    const docs = await Blog.find({ published: true })
+      .sort({ createdAt: -1 })
+      .populate("authorId", "displayName")
+      .lean();
 
-  return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
-    const authorName = doc.authorId?.displayName || "CrushSVG Team";
-    const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
-    return {
-      slug: doc.slug,
-      title: doc.title,
-      seo_title: doc.title,
-      seo_description: doc.excerpt || "",
-      description: doc.excerpt || "",
-      excerpt: doc.excerpt || "",
-      date: date.toISOString(),
-      formattedDate: formatDate(date),
-      category: doc.category || "General",
-      readTime: calculateReadTime(doc.content),
-      author: authorName,
-      cover_image: doc.coverImage || "/blog.png",
-      accent_color: "#FF6B00",
-      content: doc.content,
-    };
-  });
+    return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
+      const authorName = doc.authorId?.displayName || "CrushSVG Team";
+      const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+      return {
+        slug: doc.slug,
+        title: doc.title,
+        seo_title: doc.title,
+        seo_description: doc.excerpt || "",
+        description: doc.excerpt || "",
+        excerpt: doc.excerpt || "",
+        date: date.toISOString(),
+        formattedDate: formatDate(date),
+        category: doc.category || "General",
+        readTime: calculateReadTime(doc.content),
+        author: authorName,
+        cover_image: doc.coverImage || "/blog.png",
+        accent_color: "#FF6B00",
+        content: doc.content,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to fetch blog posts:", error);
+    return [];
+  }
 }
 
 async function getCategories(): Promise<string[]> {
-  const docs = await Blog.find({ published: true }).select("category").lean();
-  const categories = Array.from(new Set(docs.map((d) => d.category || "General")));
-  return ["All", ...categories];
+  try {
+    await connectToDatabase();
+    const docs = await Blog.find({ published: true }).select("category").lean();
+    const categories = Array.from(new Set(docs.map((d) => d.category || "General")));
+    return ["All", ...categories];
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    return ["All"];
+  }
 }
 
 export default async function BlogListingPage({
