@@ -44,6 +44,7 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
             width={isSuccess ? 206 : 96}
             height={isSuccess ? 98 : 96}
             className="object-contain"
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
 
