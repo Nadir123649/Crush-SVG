@@ -12,6 +12,7 @@ export interface ConvertOptions {
   quality?: QualityLevel;
   background?: BackgroundMode;
   backgroundColor?: string;
+  signal?: AbortSignal;
 }
 
 export interface ConvertResult {
@@ -737,9 +738,11 @@ function countDistinctColors(imageData: ImageData): number {
 async function processWithBackgroundRemoverEngine(
   file: File,
   bgOption: "Transparent" | "Custom",
-  bgColor?: string
+  bgColor?: string,
+  signal?: AbortSignal
 ): Promise<HTMLImageElement | null> {
   try {
+    signal?.throwIfAborted();
     const formData = new FormData();
     formData.append("file", file);
     formData.append("bgOption", bgOption);
@@ -756,6 +759,7 @@ async function processWithBackgroundRemoverEngine(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: formData,
+      signal,
     });
 
     if (!res.ok) return null;
@@ -785,6 +789,7 @@ export async function convertPngToSvg(
   file: File,
   options?: ConvertOptions
 ): Promise<ConvertResult> {
+  const signal = options?.signal;
   const tracingMode: TracingMode = options?.tracingMode ?? "auto";
   const palette: PaletteLevel = options?.palette ?? "auto";
   const quality: QualityLevel = options?.quality ?? "standard";
@@ -795,8 +800,10 @@ export async function convertPngToSvg(
       : undefined;
 
   validateFile(file);
+  signal?.throwIfAborted();
 
   const { img, dataUrl } = await loadImage(file);
+  signal?.throwIfAborted();
   const origW = img.naturalWidth;
   const origH = img.naturalHeight;
 
@@ -824,8 +831,10 @@ export async function convertPngToSvg(
     engineImg = await processWithBackgroundRemoverEngine(
       file,
       isTransparent ? "Transparent" : "Custom",
-      customHex
+      customHex,
+      signal
     );
+    signal?.throwIfAborted();
   }
 
   let processedImageData: ImageData;
@@ -878,6 +887,7 @@ export async function convertPngToSvg(
   const vtraceOptions = buildVtraceOptions(resolvedMode, quality, bgColor);
 
   /* ── Step 6: Trace or fallback ─────────────────────────────────── */
+  signal?.throwIfAborted();
   try {
     const svg = runVectorTrace(preprocessed, drawW, drawH, vtraceOptions);
     const cleaned = stripBlackPlate(svg);

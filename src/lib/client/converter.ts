@@ -8,6 +8,7 @@ export interface ConvertRequest {
   quality?: number
   bgOption?: "Transparent" | "White" | "Black" | "Custom"
   bgColor?: string
+  signal?: AbortSignal
 }
 
 export interface ConvertResponse {
@@ -34,10 +35,11 @@ function convertBody(svg: string, options: ConvertRequest = {}) {
 }
 
 export async function convertText(svg: string, options: ConvertRequest = {}): Promise<ConvertResponse> {
+  const { signal, ...rest } = options
   return apiFetch<ConvertResponse>('/api/v1/convert', {
     method: 'POST',
-    body: convertBody(svg, options),
-    signal: AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    body: convertBody(svg, rest),
+    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
   })
 }
 
@@ -45,10 +47,11 @@ export async function downloadConverted(
   svg: string,
   options: ConvertRequest = {}
 ): Promise<Blob> {
+  const { signal, ...rest } = options
   return apiBlob('/api/v1/convert?download=1', {
     method: 'POST',
-    body: convertBody(svg, options),
-    signal: AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    body: convertBody(svg, rest),
+    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
   })
 }
 

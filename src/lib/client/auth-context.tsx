@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
       if (cancelled) return
-      const payload = await refreshSession({ silent: true })
+      const { payload } = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
         if (getSessionRestored()) {
@@ -252,7 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Force a background refresh so the server's latest profile (photoURL,
       // role, displayName) is picked up even if the initial exchange returned
       // a stale snapshot. This ensures the profile image updates immediately.
-      refreshSession({ silent: true }).then((fresh) => {
+      refreshSession({ silent: true }).then(({ payload: fresh }) => {
         if (fresh?.user) {
           applySession({
             user: fresh.user,
