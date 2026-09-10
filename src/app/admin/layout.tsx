@@ -72,10 +72,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [status, user, sessionVersion, router, pathname]);
 
-  const isLoading = status === "loading";
+  const isAuthedAdmin = status === "authed" && sessionVersion > 0 && user?.role === "admin";
   const isGuest = status === "guest";
-  const isNonAdmin = status === "authed" && sessionVersion > 0 && user?.role !== "admin";
-  const showOverlay = isLoading || isGuest || isNonAdmin;
 
   const navLinks = [
     { href: "/admin", label: "Overview", icon: SvgDashboard },
@@ -93,25 +91,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/');
   };
 
+  if (!isAuthedAdmin) {
+    return (
+      <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
+        {isGuest && !isLoggingOut ? (
+          <AuthCard type="login" returnTo={pathname} />
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <AppLoader />
+            <span className="font-body text-text-muted text-sm">Loading admin panel...</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen bg-[#FFFCFA] font-body text-text-body antialiased flex overflow-hidden">
-      {/* Auth overlay — always rendered, same outer div */}
-      {showOverlay && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FFFCFA]">
-          {isLoading && (
-            <AppLoader />
-          )}
-          {isGuest && !isLoggingOut && (
-            <AuthCard type="login" returnTo={pathname} />
-          )}
-          {isGuest && isLoggingOut && (
-            <AppLoader />
-          )}
-          {isNonAdmin && (
-            <AppLoader />
-          )}
-        </div>
-      )}
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
