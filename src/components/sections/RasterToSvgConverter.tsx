@@ -696,7 +696,10 @@ export function RasterToSvgConverter() {
       }
     } catch (err) {
       if (controller.signal.aborted) return;
-      const msg = err instanceof Error ? err.message : t("errorConversion");
+      let msg = err instanceof Error ? err.message : t("errorConversion");
+      if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+        msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
+      }
       setError(msg);
       showToast("error", msg);
       
@@ -1067,7 +1070,7 @@ export function RasterToSvgConverter() {
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Vector Controls                 */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full lg:w-[537px] min-w-0 flex flex-col">
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
@@ -1116,7 +1119,7 @@ export function RasterToSvgConverter() {
 
                 {/* Main Preview Container */}
                 <div
-                  className="w-full h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]"
+                  className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]"
                 >
                   {converting ? (
                     /* Converting Animation State */
@@ -1128,7 +1131,7 @@ export function RasterToSvgConverter() {
                     </div>
                   ) : previewMode === "code" && result ? (
                     /* SVG Code Viewer State */
-                    <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
+                    <div className="w-full h-full min-w-0 min-h-0 flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
                       <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
                         <span className="text-[12px] font-mono text-[#353A3E]">
                           {t("svgMarkup", { size: formatFileSize(result.size) })}
@@ -1152,7 +1155,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-words select-all">
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text">
                         {result.svg}
                       </pre>
                     </div>
@@ -1171,10 +1174,21 @@ export function RasterToSvgConverter() {
                   ) : result && previewSvgUrl ? (
                     /* Converted Vector SVG State */
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
+                      {BG_MAP[rasterBackground] === "transparent" && (
+                        <div
+                          className="absolute inset-0 z-0 opacity-40 rounded-[8px]"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+                            backgroundSize: "16px 16px",
+                            backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                          }}
+                        />
+                      )}
                       <img
                         src={previewSvgUrl}
                         alt="Vectorized SVG output"
-                        className="max-w-full max-h-full object-contain drop-shadow-md"
+                        className="max-w-full max-h-full object-contain drop-shadow-md relative z-10"
                       />
                     </div>
                   ) : rasterDataUrl ? (

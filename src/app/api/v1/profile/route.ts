@@ -110,7 +110,7 @@ export async function DELETE(request: NextRequest) {
   await invalidateSessionCache()
 
   const res = successResponse({ message: 'Account deleted successfully' })
-  const { REFRESH_COOKIE_NAME } = await import('@/lib/auth/auth')
-  res.cookies.delete(REFRESH_COOKIE_NAME)
+  const { clearRefreshCookie } = await import('@/lib/auth/auth')
+  clearRefreshCookie(res)
   return res
 }

@@ -18,9 +18,29 @@ export interface ImageAnalysis {
  * decide whether a photo-style input needs an advisory. Samples pixels (with a
  * stride) so it stays bounded on large rasters.
  */
-export async function analyzeImage(png: Buffer, hasAlpha: boolean): Promise<ImageAnalysis> {
-  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
-  const { width, height, channels } = info;
+export async function analyzeImage(
+  png: Buffer,
+  hasAlpha: boolean,
+  rawInput?: { data: Buffer | Uint8Array; width: number; height: number; channels: number }
+): Promise<ImageAnalysis> {
+  let data: Buffer | Uint8Array;
+  let width: number;
+  let height: number;
+  let channels: number;
+
+  if (rawInput) {
+    data = rawInput.data;
+    width = rawInput.width;
+    height = rawInput.height;
+    channels = rawInput.channels;
+  } else {
+    const res = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+    data = res.data;
+    width = res.info.width;
+    height = res.info.height;
+    channels = res.info.channels;
+  }
+
   const count = width * height;
   const stride = Math.max(1, Math.floor(Math.sqrt(count / 200_000))); // ~200k samples cap
   const hasA = channels === 4;

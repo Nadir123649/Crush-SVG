@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (usage.kind === "guest" && usage.limitReached) {
+    const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
+
+    if (!isInternalPipeline && usage.kind === "guest" && usage.limitReached) {
       return errorResponse(
         429,
         "limit_reached",
@@ -110,8 +112,6 @@ export async function POST(request: NextRequest) {
     const originalSize = file.size;
 
     const result = await processBackgroundRemove(buffer, options);
-
-    const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
 
     if (!isInternalPipeline) {
       try {
