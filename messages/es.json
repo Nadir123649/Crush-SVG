@@ -15,6 +15,7 @@
     "auto": "Auto"
   },
   "navigation": {
+    "tools": "Herramientas",
     "svgToPng": "SVG a PNG",
     "pngToSvg": "PNG a SVG",
     "backgroundRemover": "Eliminador de Fondo",

@@ -4,7 +4,13 @@ export type ToastKind = "success" | "error" | "info"
 
 type ToastEmitter = (kind: ToastKind, message: string) => void
 
+type PendingToast = {
+  kind: ToastKind
+  message: string
+}
+
 let emitter: ToastEmitter | null = null
+const pendingToasts: PendingToast[] = []
 let activeToastId: string | null = null
 let lastMessage: string | null = null
 let lastShownAt = 0
@@ -13,12 +19,21 @@ const DEDUPE_WINDOW_MS = 2000
 
 export function setToastEmitter(fn: ToastEmitter | null) {
   emitter = fn
+
+  if (!emitter || pendingToasts.length === 0) return
+
+  const queuedToasts = pendingToasts.splice(0, pendingToasts.length)
+  queuedToasts.forEach(({ kind, message }) => emitter?.(kind, message))
 }
 
 export function emitToast(kind: ToastKind, message: string) {
   if (emitter) {
     emitter(kind, message)
+    return
   }
+
+  if (pendingToasts.length >= 5) pendingToasts.shift()
+  pendingToasts.push({ kind, message })
 }
 
 function InfoIcon() {

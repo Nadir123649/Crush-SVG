@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:e2e": "playwright test",
     "i18n:sync": "tsx scripts/i18n-sync.ts",
     "i18n:validate": "tsx scripts/i18n-validate.ts",
     "i18n:check": "tsx scripts/i18n-validate.ts && echo '✅ i18n validation passed'",
@@ -88,6 +89,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "server-only": "^0.0.1",
