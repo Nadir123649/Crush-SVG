@@ -15,18 +15,60 @@ export interface BlogDoc {
     updatedAt: Date;
 }
 
-const blogSchema = new Schema({
-    title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
-    content: { type: String, required: true },
-    excerpt: { type: String, trim: true },
-    coverImage: { type: String, default: null },
-    category: { type: String, default: "General", trim: true },
-    published: { type: Boolean, default: false },
-    authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-}, { timestamps: true });
+const blogSchema = new Schema(
+    {
+        title: {
+            type: String,
+            required: true,
+            trim: true,
+        },
 
-blogSchema.index({ slug: 1 }, { unique: true });
+        slug: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
+        },
+
+        content: {
+            type: String,
+            required: true,
+        },
+
+        excerpt: {
+            type: String,
+            trim: true,
+        },
+
+        coverImage: {
+            type: String,
+            default: null,
+        },
+
+        category: {
+            type: String,
+            default: "General",
+            trim: true,
+        },
+
+        published: {
+            type: Boolean,
+            default: false,
+        },
+
+        authorId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+// Additional indexes
 blogSchema.index({ published: 1, createdAt: -1 });
 blogSchema.index({ authorId: 1 });
 
@@ -34,4 +76,8 @@ declare global {
     var __crushSvgBlogModel: Model<BlogDoc> | undefined;
 }
 
-export const Blog = (globalThis.__crushSvgBlogModel ??= model<BlogDoc>("Blog", blogSchema));
+export const Blog =
+    (globalThis.__crushSvgBlogModel ??= model<BlogDoc>(
+        "Blog",
+        blogSchema
+    ));
