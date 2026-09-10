@@ -30,11 +30,18 @@ export default function ResetPasswordPage() {
     return () => clearInterval(timer);
   }, [done]);
 
-  useEffect(() => {
-    if (done && redirectIn === 0) {
-      router.push("/login");
-    }
-  }, [done, redirectIn, router]);
+useEffect(() => {
+     if (done && redirectIn === 0) {
+       router.push("/login");
+     }
+   }, [done, redirectIn, router]);
+
+   // Redirect to home for invalid/expired reset token
+   useEffect(() => {
+     if (tokenState === "invalid") {
+       router.push("/");
+     }
+   }, [tokenState, router]);
 
   useEffect(() => {
     let cancelled = false;

@@ -358,12 +358,14 @@ export function RasterToSvgConverter() {
   const colorsRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLDivElement>(null);
+  const convertAbortRef = useRef<AbortController | null>(null);
 
   // Wipe data when signing out
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "authed" && status !== "authed") {
+      convertAbortRef.current?.abort();
       setRasterFile(null);
       setRasterDataUrl(null);
       setImageName(null);
@@ -633,6 +635,10 @@ export function RasterToSvgConverter() {
     }
     setError(null);
     setConverting(true);
+    let conversionSucceeded = false;
+
+    const controller = new AbortController();
+    convertAbortRef.current = controller;
 
     try {
       let fileToConvert: File;
@@ -653,7 +659,10 @@ export function RasterToSvgConverter() {
             : undefined,
         tracingMode: MODE_MAP[rasterMode] ?? "auto",
         palette: PALETTE_MAP[rasterColors] ?? "auto",
+        signal: controller.signal,
       });
+
+      if (controller.signal.aborted) return;
 
       setResult({
         svg: res.svg,
@@ -667,7 +676,7 @@ export function RasterToSvgConverter() {
         advisory: res.advisory,
       });
       setPreviewMode("vector");
-      showToast("success", t("convertButton"));
+      conversionSucceeded = true;
       trackConversion("raster_vectorized", { output_format: "svg" });
       
       try {
@@ -677,15 +686,16 @@ export function RasterToSvgConverter() {
           originalSize: fileToConvert.size,
           success: true,
         });
-        if (status === "authed") {
+        if (!controller.signal.aborted && status === "authed") {
           setUsage({ ...u, isUnlimited: true, remaining: null, limitReached: false });
-        } else {
+        } else if (!controller.signal.aborted) {
           setUsage(u);
         }
       } catch (e) {
         console.error("Failed to track usage", e);
       }
     } catch (err) {
+      if (controller.signal.aborted) return;
       const msg = err instanceof Error ? err.message : t("errorConversion");
       setError(msg);
       showToast("error", msg);
@@ -699,7 +709,10 @@ export function RasterToSvgConverter() {
         });
       } catch (e) {}
     } finally {
-      setConverting(false);
+      if (!controller.signal.aborted) setConverting(false);
+      if (conversionSucceeded && !controller.signal.aborted) {
+        showToast("success", t("toastVectorizationComplete"));
+      }
     }
   }
 
@@ -797,11 +810,13 @@ export function RasterToSvgConverter() {
                     </button>
 
                     {/* Usage Counter */}
-                    {(usage || status === "authed") && (
+                    {status !== "loading" && (usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {status === "authed" || usage?.isUnlimited
                           ? t("unlimitedConversions")
-                          : t("conversionsUsed", { used: usage?.conversionsUsed ?? 0, total: (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0) })}
+                          : usage && !usageFailed
+                          ? t("conversionsUsed", { used: usage.conversionsUsed, total: usage.conversionsUsed + (usage.remaining ?? 0) })
+                          : "\u00A0"}
                       </span>
                     )}
                   </div>
@@ -1137,10 +1152,8 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
-                        {result.svg.length > 3000
-                          ? result.svg.slice(0, 3000) + "\n\n... [Code truncated for performance. Use 'Copy Code' or Download to get the full SVG]"
-                          : result.svg}
+                      <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-words select-all">
+                        {result.svg}
                       </pre>
                     </div>
                   ) : previewMode === "source" && rasterDataUrl ? (
