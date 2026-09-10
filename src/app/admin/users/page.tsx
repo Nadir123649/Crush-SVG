@@ -342,7 +342,7 @@ export default function UsersPage() {
         {/* Actions */}
         <div className="flex gap-3">
           <ExportButton onClick={handleExportCSV} disabled={loading} />
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="gap-2 shadow-sm text-sm">
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
@@ -565,10 +565,10 @@ export default function UsersPage() {
               Are you sure you want to delete <strong>{userToDelete.displayName || userToDelete.email}</strong>? All their data will be permanently removed.
             </p>
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setDeleteModalOpen(false)} disabled={deleting} className="px-4 py-2">
+              <Button variant="outline" onClick={() => setDeleteModalOpen(false)} disabled={deleting}>
                 Cancel
               </Button>
-              <Button variant="solid" onClick={confirmDeleteUser} disabled={deleting} className="px-4 py-2 bg-red-600 hover:bg-red-700">
+              <Button variant="solid" onClick={confirmDeleteUser} disabled={deleting} className="bg-red-600 hover:bg-red-700">
                 {deleting ? "Deleting..." : "Delete User"}
               </Button>
             </div>
@@ -631,10 +631,10 @@ export default function UsersPage() {
                 })()}
               </div>
               <div className="flex justify-end gap-3 mt-2">
-                <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser} className="px-4 py-2">
+                <Button variant="outline" type="button" onClick={() => setEditUserModalOpen(false)} disabled={editingUser}>
                   Cancel
                 </Button>
-                <Button variant="solid" type="submit" disabled={editingUser} className="px-4 py-2">
+                <Button variant="solid" type="submit" disabled={editingUser}>
                   {editingUser ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
@@ -723,10 +723,10 @@ export default function UsersPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-3 mt-2">
-                <Button variant="outline" type="button" onClick={() => setAddUserModalOpen(false)} disabled={addingUser} className="px-4 py-2">
+                <Button variant="outline" type="button" onClick={() => setAddUserModalOpen(false)} disabled={addingUser}>
                   Cancel
                 </Button>
-                <Button variant="solid" type="submit" disabled={addingUser} className="px-4 py-2">
+                <Button variant="solid" type="submit" disabled={addingUser}>
                   {addingUser ? "Creating..." : "Create User"}
                 </Button>
               </div>

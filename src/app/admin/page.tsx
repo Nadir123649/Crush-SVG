@@ -175,7 +175,7 @@ export default function AdminDashboard() {
       <section className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden">
         <div className="p-8 border-b border-[#F2EDE8] flex justify-between items-center">
           <h2 className="font-heading font-bold text-2xl text-text-dark">Recent Conversions</h2>
-          <Button href="/admin/conversions" variant="outline" className="h-[36px] px-4 text-[14px] bg-white">View All</Button>
+          <Button href="/admin/conversions" variant="solid">View All</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse font-body">
