@@ -231,21 +231,26 @@ export function classifyImage(
   // Flat fills with no texture and few unique colors are definitively graphics
   // (e.g. orange cloud logos, flat vector artwork with warm colors).
   // Real photos of humans or natural scenes have natural micro-textures and gradients.
-  if (stats.avgLocalVariance < 15 || (stats.avgLocalVariance < 35 && stats.uniqueColorRatio < 0.025)) {
+  // Never early-exit as graphic if skin tones are detected (> 1.5%).
+  if (
+    (stats.avgLocalVariance < 8 && stats.uniqueColorRatio < 0.02) ||
+    (stats.skinToneRatio <= 0.015 &&
+      (stats.avgLocalVariance < 15 || (stats.avgLocalVariance < 35 && stats.uniqueColorRatio < 0.025)))
+  ) {
     return "graphic";
   }
 
   let photoScore = 0;
 
   // ── Signal 1: Skin-tone presence ───────────────────────────────
-  // Even 3-5% skin-tone pixels strongly indicate a portrait/photograph.
+  // Even 2-5% skin-tone pixels strongly indicate a portrait/photograph.
   // Logos almost never have skin tones.
   if (stats.skinToneRatio > 0.08) {
     photoScore += 5; // strong photo signal
-  } else if (stats.skinToneRatio > 0.03) {
-    photoScore += 3;
+  } else if (stats.skinToneRatio > 0.02) {
+    photoScore += 4;
   } else if (stats.skinToneRatio > 0.01) {
-    photoScore += 1;
+    photoScore += 2;
   }
 
   // ── Signal 2: Local variance (texture) ─────────────────────────

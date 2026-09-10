@@ -185,12 +185,12 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   return res
 }
 
-interface ErrorBody {
+export interface ErrorBody {
   error?: { code?: string; message?: string } | string
   payload?: { error?: { code?: string; message?: string } }
 }
 
-function toApiError(status: number, body: ErrorBody | null): ApiError {
+export function toApiError(status: number, body: ErrorBody | null): ApiError {
   const err = body?.payload?.error ?? body?.error
   if (typeof err === 'object' && err !== null && typeof err.code === 'string') {
     return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status))

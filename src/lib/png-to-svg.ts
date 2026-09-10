@@ -99,38 +99,10 @@ function classifyImage(imageData: ImageData): TracingMode {
   const totalPixels = data.length / 4;
   if (totalPixels === 0) return "photo";
 
-  let grayCount = 0;
-  let edgeCount = 0;
-  const step = Math.max(4, Math.floor(totalPixels / 50000));
-
-  for (let i = 0; i < data.length; i += step * 4) {
-    const r = data[i], g = data[i + 1], b = data[i + 2];
-    const luma = grayLuma(r, g, b);
-    const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-    if (saturation < 20) grayCount++;
-  }
-
-  const grayRatio = grayCount / (totalPixels / step);
-
-  // Edge density: compare each pixel with right neighbor
-  const edgeStep = Math.max(4, Math.floor(totalPixels / 30000));
-  let edgeSamples = 0;
-  for (let i = 0; i < data.length - 4 * edgeStep; i += edgeStep * 4) {
-    const diff =
-      Math.abs(data[i] - data[i + edgeStep * 4]) +
-      Math.abs(data[i + 1] - data[i + edgeStep * 4 + 1]) +
-      Math.abs(data[i + 2] - data[i + edgeStep * 4 + 2]);
-    if (diff > 80) edgeCount++;
-    edgeSamples++;
-  }
-  const edgeDensity = edgeSamples > 0 ? edgeCount / edgeSamples : 0;
-
-  // Line art: mostly grayscale + strong edges (outlines)
-  if (grayRatio > 0.80 && edgeDensity > 0.12) return "line-art";
-
+  // In auto mode, line-art should never be chosen automatically (line-art is explicit user opt-in).
+  // Auto mode classifies between "logo" (clean vector shapes for graphics/logos/icons) and "photo".
   const distinctColors = countDistinctColors(imageData);
-  // Logo: few distinct colors, not mostly gray (has some color)
-  if (distinctColors <= 64 && grayRatio <= 0.60) return "logo";
+  if (distinctColors <= 64) return "logo";
 
   return "photo";
 }

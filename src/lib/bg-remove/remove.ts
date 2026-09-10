@@ -12,7 +12,7 @@ function hexToRgb(hex: string): RgbColor {
 
 /**
  * Remove background pixels by setting alpha to 0 for pixels
- * close to the detected background color.
+ * connected to the perimeter that match the detected background color.
  * If the image already has a transparent background, preserves all pixels as-is.
  */
 export function removeBackground(
@@ -24,26 +24,69 @@ export function removeBackground(
 ): Uint8ClampedArray {
   const out = new Uint8ClampedArray(data);
 
-  // If the image already has a transparent background, do not delete the foreground!
+  // If the image already has a transparent background, do not delete the foreground
   if (bg.isTransparent) return out;
 
-  if (bg.coverage < 0.05) return out;
+  if (bg.coverage < 0.05) {
+    return out;
+  }
 
   const distSq = (r: number, g: number, b: number) =>
     (r - bg.r) ** 2 + (g - bg.g) ** 2 + (b - bg.b) ** 2;
   const thresholdSq = threshold * threshold;
+  const featherDistSq = (threshold + 16) * (threshold + 16);
 
-  for (let i = 0; i < out.length; i += 4) {
-    const r = out[i];
-    const g = out[i + 1];
-    const b = out[i + 2];
-    const a = out[i + 3];
+  const totalPixels = w * h;
+  const visited = new Uint8Array(totalPixels);
+  const queue = new Int32Array(totalPixels);
+  let head = 0;
+  let tail = 0;
 
-    if (a === 0) continue;
-
-    if (distSq(r, g, b) <= thresholdSq) {
-      out[i + 3] = 0;
+  function tryEnqueue(x: number, y: number) {
+    const idx = y * w + x;
+    if (visited[idx]) return;
+    const pi = idx * 4;
+    const a = out[pi + 3];
+    if (a === 0) {
+      visited[idx] = 1;
+      return;
     }
+    const dSq = distSq(out[pi], out[pi + 1], out[pi + 2]);
+    if (dSq <= thresholdSq) {
+      visited[idx] = 1;
+      queue[tail++] = idx;
+    } else if (dSq <= featherDistSq) {
+      // Semi-transparent edge feathering for perimeter pixels
+      const dist = Math.sqrt(dSq);
+      const featherAlpha = Math.min(255, Math.round(((dist - threshold) / 16) * a));
+      if (featherAlpha < out[pi + 3]) {
+        out[pi + 3] = featherAlpha;
+      }
+      visited[idx] = 1;
+    }
+  }
+
+  // Seed BFS queue with pixels along all four borders
+  for (let x = 0; x < w; x++) {
+    tryEnqueue(x, 0);
+    tryEnqueue(x, h - 1);
+  }
+  for (let y = 0; y < h; y++) {
+    tryEnqueue(0, y);
+    tryEnqueue(w - 1, y);
+  }
+
+  // BFS flood-fill from edges
+  while (head < tail) {
+    const idx = queue[head++];
+    const x = idx % w;
+    const y = Math.floor(idx / w);
+    out[idx * 4 + 3] = 0; // erase connected background pixel
+
+    if (x > 0) tryEnqueue(x - 1, y);
+    if (x < w - 1) tryEnqueue(x + 1, y);
+    if (y > 0) tryEnqueue(x, y - 1);
+    if (y < h - 1) tryEnqueue(x, y + 1);
   }
 
   return out;
@@ -62,44 +105,28 @@ export function replaceBackgroundWithColor(
   hex: string,
   threshold = 42,
 ): Uint8ClampedArray {
-  const out = new Uint8ClampedArray(data);
   const { r: tr, g: tg, b: tb } = hexToRgb(hex);
 
-  // When the image already has a transparent background, fill transparent pixels with target color
-  if (bg.isTransparent) {
-    for (let i = 0; i < out.length; i += 4) {
-      const a = out[i + 3];
-      if (a === 0) {
-        out[i] = tr;
-        out[i + 1] = tg;
-        out[i + 2] = tb;
-        out[i + 3] = 255;
-      } else if (a < 255) {
-        const alpha = a / 255;
-        out[i] = Math.round(out[i] * alpha + tr * (1 - alpha));
-        out[i + 1] = Math.round(out[i + 1] * alpha + tg * (1 - alpha));
-        out[i + 2] = Math.round(out[i + 2] * alpha + tb * (1 - alpha));
-        out[i + 3] = 255;
-      }
-    }
-    return out;
-  }
+  // If not already transparent, first remove the connected background to transparent
+  const transparentCutout = bg.isTransparent
+    ? data
+    : removeBackground(data, w, h, bg, threshold);
 
-  // When the image has an opaque detected background, replace matching pixels and any transparent pixels
-  const distSq = (r: number, g: number, b: number) =>
-    (r - bg.r) ** 2 + (g - bg.g) ** 2 + (b - bg.b) ** 2;
-  const thresholdSq = threshold * threshold;
+  const out = new Uint8ClampedArray(transparentCutout);
 
+  // Composite over the target solid background color
   for (let i = 0; i < out.length; i += 4) {
-    const r = out[i];
-    const g = out[i + 1];
-    const b = out[i + 2];
     const a = out[i + 3];
-
-    if (a === 0 || distSq(r, g, b) <= thresholdSq) {
+    if (a === 0) {
       out[i] = tr;
       out[i + 1] = tg;
       out[i + 2] = tb;
+      out[i + 3] = 255;
+    } else if (a < 255) {
+      const alpha = a / 255;
+      out[i] = Math.round(out[i] * alpha + tr * (1 - alpha));
+      out[i + 1] = Math.round(out[i + 1] * alpha + tg * (1 - alpha));
+      out[i + 2] = Math.round(out[i + 2] * alpha + tb * (1 - alpha));
       out[i + 3] = 255;
     }
   }

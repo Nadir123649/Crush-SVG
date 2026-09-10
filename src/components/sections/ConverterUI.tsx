@@ -95,6 +95,7 @@ function SvgToPngConverter() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -128,6 +129,7 @@ function SvgToPngConverter() {
       setError(null);
       setPreviewError(false);
       setUsage(null);
+      setUsageFailed(false);
       setShowSignupPrompt(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("crush_converter_state");
@@ -183,6 +185,7 @@ function SvgToPngConverter() {
         if (cancelled) return;
         if (status !== "authed") {
           setUsage(null);
+          setUsageFailed(true);
         }
       });
     return () => {

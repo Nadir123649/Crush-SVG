@@ -14,7 +14,6 @@ env.useFSCache = true;
 env.useBrowserCache = false;
 
 const MODEL_ID = "Xenova/modnet";
-const WORKING_SIZE = 512;
 
 type RawImageResult = { width: number; height: number; data: Uint8Array };
 
@@ -106,14 +105,10 @@ export async function processWithModnet(
     workingH = resizedDecoded.info.height;
   }
 
-  // Pad to square for model input (MODNet expects square input)
-  const padded = await sharp(workingPixels, { raw: { width: workingW, height: workingH, channels: 4 } })
-    .ensureAlpha()
-    .resize(WORKING_SIZE, WORKING_SIZE, {
-      fit: "contain",
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-      kernel: sharp.kernel.lanczos3,
-    })
+  // Encode working image to PNG for model inference
+  const workingPng = await sharp(workingPixels, {
+    raw: { width: workingW, height: workingH, channels: 4 },
+  })
     .png()
     .toBuffer();
 
@@ -132,7 +127,7 @@ export async function processWithModnet(
   let rawResult: RawImageResult | RawImageResult[] | null = null;
   let tmpPath: string | null = null;
   try {
-    tmpPath = await writeTempPng(padded);
+    tmpPath = await writeTempPng(workingPng);
     rawResult = await bgRemovalPipeline(tmpPath);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -160,59 +155,32 @@ export async function processWithModnet(
     throw new BgRemoveError("processing_failed", "MODNet returned invalid image data.");
   }
 
-  // Extract alpha channel from MODNet result — single sharp pipeline
-  const alphaChannel = await sharp(Buffer.from(resultData), {
-    raw: { width: resultWidth, height: resultHeight, channels: 4 },
-  })
-    .extractChannel(3) // alpha channel
-    .raw()
-    .toBuffer();
-
-  // Compute content region (undo padding)
-  const contentAspect = origWidth / origHeight;
-  let contentW: number;
-  let contentH: number;
-  let padX: number;
-  let padY: number;
-
-if (contentAspect >= 1) {
-        contentH = resultHeight;
-        contentW = Math.round(resultHeight * contentAspect);
-        if (contentW > resultWidth) {
-            contentW = resultWidth;
-            contentH = Math.round(resultWidth / contentAspect);
-        }
-        padX = Math.floor((resultWidth - contentW) / 2);
-        padY = Math.floor((resultHeight - contentH) / 2);
-    } else {
-        contentW = resultWidth;
-        contentH = Math.round(resultWidth / contentAspect);
-        if (contentH > resultHeight) {
-            contentH = resultHeight;
-            contentW = Math.round(resultHeight * contentAspect);
-        }
-        padX = Math.floor((resultWidth - contentW) / 2);
-        padY = Math.floor((resultHeight - contentH) / 2);
+  // Extract alpha mask, scaling back to original dimensions if downscaled
+  let resizedAlpha: Uint8Array;
+  if (resultWidth === origWidth && resultHeight === origHeight) {
+    resizedAlpha = new Uint8Array(origWidth * origHeight);
+    for (let i = 0; i < origWidth * origHeight; i++) {
+      resizedAlpha[i] = resultData[i * 4 + 3];
     }
-
-  contentW = Math.min(contentW, resultWidth - padX);
-  contentH = Math.min(contentH, resultHeight - padY);
-
-  // Resize alpha mask to original dimensions — raw single-channel buffer.
-  // .toColourspace("b-w") is required: Sharp's .raw() silently upscales
-  // 1-channel images to 3-channel RGB after pipeline operations like resize(),
-  // which would cause a 3× buffer overrun and scanline corruption.
-  const resizedAlpha = await sharp(alphaChannel, {
-    raw: { width: resultWidth, height: resultHeight, channels: 1 },
-  })
-    .extract({ left: padX, top: padY, width: contentW, height: contentH })
-    .resize(origWidth, origHeight, {
-      fit: "fill",
-      kernel: sharp.kernel.lanczos3,
+  } else {
+    const singleChannel = await sharp(Buffer.from(resultData), {
+      raw: { width: resultWidth, height: resultHeight, channels: 4 },
     })
-    .toColourspace("b-w")
-    .raw()
-    .toBuffer();
+      .extractChannel(3)
+      .raw()
+      .toBuffer();
+
+    resizedAlpha = await sharp(singleChannel, {
+      raw: { width: resultWidth, height: resultHeight, channels: 1 },
+    })
+      .resize(origWidth, origHeight, {
+        fit: "fill",
+        kernel: sharp.kernel.lanczos3,
+      })
+      .toColourspace("b-w")
+      .raw()
+      .toBuffer();
+  }
 
   const totalPixels = origWidth * origHeight;
   let foregroundCount = 0;

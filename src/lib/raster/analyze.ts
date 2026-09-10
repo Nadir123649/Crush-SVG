@@ -97,6 +97,9 @@ export function resolveImageClass(mode: RasterMode, analysis: ImageAnalysis): Im
       return "photo";
     case "auto":
     default:
+      if (analysis.imageClass === "line-art") {
+        return "photo";
+      }
       return analysis.imageClass;
   }
 }
