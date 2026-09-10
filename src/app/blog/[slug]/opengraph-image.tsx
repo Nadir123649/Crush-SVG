@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { Blog } from '@/lib/database/models/blog';
+import { connectToDatabase } from '@/lib/database/db';
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   let title = 'CrushSVG Blog & Guides';
   try {
+    await connectToDatabase();
     const post = await Blog.findOne({ slug, published: true }).select("title").lean();
     if (post?.title) title = post.title;
   } catch (error) {

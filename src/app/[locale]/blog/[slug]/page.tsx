@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link, routing } from "@/i18n/routing";
-import { Blog, User } from "@/lib/database/db";
+import { Blog, User, connectToDatabase } from "@/lib/database/db";
 import type { BlogDoc } from "@/lib/database/models/blog";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema, getFAQSchema } from "@/lib/seo";
 import { BlogCard } from "@/components/ui/BlogCard";
@@ -53,66 +53,18 @@ interface BlogPost {
 }
 
 async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  const doc = await Blog.findOne({ slug, published: true })
-    .populate("authorId", "displayName")
-    .lean();
-
-  if (!doc) return null;
-
-  const authorDoc = doc.authorId as { displayName?: string } | undefined;
-  const authorName = authorDoc?.displayName || "CrushSVG Team";
-  const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
-
-  return {
-    slug: doc.slug,
-    title: doc.title,
-    seo_title: doc.title,
-    seo_description: doc.excerpt || "",
-    description: doc.excerpt || "",
-    excerpt: doc.excerpt || "",
-    date: date.toISOString(),
-    formattedDate: formatDate(date),
-    category: doc.category || "General",
-    readTime: calculateReadTime(doc.content),
-    author: authorName,
-    cover_image: doc.coverImage || "/blog.png",
-    accent_color: "#FF6B00",
-    content: doc.content,
-  };
-}
-
-async function getRelatedPosts(currentSlug: string, category?: string, limit = 3): Promise<BlogPost[]> {
-  const filter: Record<string, unknown> = {
-    published: true,
-    slug: { $ne: currentSlug },
-  };
-  if (category) {
-    filter.category = category;
-  }
-
-  let docs = await Blog.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .populate("authorId", "displayName")
-    .lean();
-
-  if (category && docs.length < limit) {
-    const moreFilter: Record<string, unknown> = {
-      published: true,
-      slug: { $ne: currentSlug },
-      category: { $ne: category },
-    };
-    const moreDocs = await Blog.find(moreFilter)
-      .sort({ createdAt: -1 })
-      .limit(limit - docs.length)
+  try {
+    await connectToDatabase();
+    const doc = await Blog.findOne({ slug, published: true })
       .populate("authorId", "displayName")
       .lean();
-    docs = [...docs, ...moreDocs];
-  }
 
-  return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
-    const authorName = doc.authorId?.displayName || "CrushSVG Team";
+    if (!doc) return null;
+
+    const authorDoc = doc.authorId as { displayName?: string } | undefined;
+    const authorName = authorDoc?.displayName || "CrushSVG Team";
     const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+
     return {
       slug: doc.slug,
       title: doc.title,
@@ -129,7 +81,67 @@ async function getRelatedPosts(currentSlug: string, category?: string, limit = 3
       accent_color: "#FF6B00",
       content: doc.content,
     };
-  });
+  } catch (error) {
+    console.error("Failed to fetch blog post by slug:", error);
+    return null;
+  }
+}
+
+async function getRelatedPosts(currentSlug: string, category?: string, limit = 3): Promise<BlogPost[]> {
+  try {
+    await connectToDatabase();
+    const filter: Record<string, unknown> = {
+      published: true,
+      slug: { $ne: currentSlug },
+    };
+    if (category) {
+      filter.category = category;
+    }
+
+    let docs = await Blog.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("authorId", "displayName")
+      .lean();
+
+    if (category && docs.length < limit) {
+      const moreFilter: Record<string, unknown> = {
+        published: true,
+        slug: { $ne: currentSlug },
+        category: { $ne: category },
+      };
+      const moreDocs = await Blog.find(moreFilter)
+        .sort({ createdAt: -1 })
+        .limit(limit - docs.length)
+        .populate("authorId", "displayName")
+        .lean();
+      docs = [...docs, ...moreDocs];
+    }
+
+    return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
+      const authorName = doc.authorId?.displayName || "CrushSVG Team";
+      const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+      return {
+        slug: doc.slug,
+        title: doc.title,
+        seo_title: doc.title,
+        seo_description: doc.excerpt || "",
+        description: doc.excerpt || "",
+        excerpt: doc.excerpt || "",
+        date: date.toISOString(),
+        formattedDate: formatDate(date),
+        category: doc.category || "General",
+        readTime: calculateReadTime(doc.content),
+        author: authorName,
+        cover_image: doc.coverImage || "/blog.png",
+        accent_color: "#FF6B00",
+        content: doc.content,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to fetch related blog posts:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: BlogPostProps): Promise<Metadata> {

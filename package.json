@@ -102,6 +102,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
     "@playwright/test": "^1.63.0",
+    "@tailwindcss/typography": "^0.5.20",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "server-only": "^0.0.1",
