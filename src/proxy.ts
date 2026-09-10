@@ -12,6 +12,10 @@ const CORS_ORIGINS = ['https://crushsvg.net', 'https://www.crushsvg.net', 'https
 
 const PUBLIC_PAGES = new Set([
   '/',
+  '/convert-svg-to-png',
+  '/png-to-svg',
+  '/image-resizer',
+  '/background-remover',
   '/login',
   '/signup',
   '/forgot-password',
@@ -27,19 +31,23 @@ const PUBLIC_PAGES = new Set([
   '/changelog',
   '/team',
   '/svg-guides',
-  '/png-to-svg',
   '/api-docs',
 ])
 
 const PUBLIC_API_PREFIXES = [
-  '/api/v1/auth/',
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/v1/auth/refresh',
   '/api/v1/health',
   '/api/v1/convert',
   '/api/v1/vectorize',
+  '/api/v1/background-remove',
   '/api/v1/usage',
   '/api/v1/svg/validate',
   '/api/v1/passwords/',
   '/api/v1/verification/',
+  '/api/v1/oauth',
+  '/api/v1/blog',
   '/api/openapi',
 ]
 
@@ -47,6 +55,7 @@ const AUTH_API_PREFIXES = [
   '/api/v1/profile',
   '/api/v1/conversions',
   '/api/v1/uploads',
+  '/api/v1/upload/',
   '/api/me',
 ]
 
@@ -60,9 +69,9 @@ const AUTH_API_EXACT = new Set([
 
 function isPublicPage(pathname: string): boolean {
   if (PUBLIC_PAGES.has(pathname)) return true
-  // Public parent routes: /blog, /blog/[slug] — all children are public
-  const publicParents = ['/blog', '/reset-password']
-  return publicParents.some((p) => pathname.startsWith(p + '/'))
+  // Public parent routes: /blog, /blog/[slug], /use-case/[slug], /reset-password/[token]
+  const publicParents = ['/blog', '/reset-password', '/use-case']
+  return publicParents.some((p) => pathname === p || pathname.startsWith(p + '/'))
 }
 
 function isPublicApi(pathname: string): boolean {
@@ -70,7 +79,7 @@ function isPublicApi(pathname: string): boolean {
 }
 
 function isAuthApi(pathname: string): boolean {
-  if (AUTH_API_PREFIXES.some((p) => pathname.startsWith(p))) return true
+  if (AUTH_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) return true
   return AUTH_API_EXACT.has(pathname)
 }
 
