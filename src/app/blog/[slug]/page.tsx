@@ -2,9 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { getPostBySlug, getAllPosts, getRelatedPosts } from "@/lib/blog";
+import { Blog } from "@/lib/database/models/blog";
 import { constructMetadata, SITE_URL, getBreadcrumbSchema, getFAQSchema } from "@/lib/seo";
 import { BlogCard } from "@/components/ui/BlogCard";
 import { BlogCoverVisual } from "@/components/blog/BlogCoverVisual";
@@ -13,18 +11,91 @@ import { BlogFAQSection } from "@/components/blog/BlogFAQSection";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface BlogPostProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+function calculateReadTime(text: string): string {
+  const wordsPerMinute = 200;
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} min read`;
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+async function getPostBySlug(slug: string) {
+  try {
+    const doc = await Blog.findOne({ slug, published: true })
+      .populate("authorId", "displayName")
+      .lean();
+
+    if (!doc) return null;
+
+    return {
+      slug: doc.slug,
+      title: doc.title,
+      seo_title: doc.title,
+      seo_description: doc.excerpt || "",
+      excerpt: doc.excerpt || doc.content.replace(/<[^>]*>/g, "").slice(0, 160) + "...",
+      date: doc.createdAt instanceof Date ? doc.createdAt.toISOString().split("T")[0] : String(doc.createdAt),
+      formattedDate: formatDate(new Date(doc.createdAt)),
+      category: "Blog",
+      readTime: calculateReadTime(doc.content),
+      author: (doc.authorId as any)?.displayName || "CrushSVG Team",
+      cover_image: doc.coverImage || "/blog.png",
+      accent_color: "#FF6B00",
+      faqs: [],
+      content: doc.content,
+    };
+  } catch (error) {
+    console.error("Failed to fetch blog post by slug:", error);
+    return null;
+  }
+}
+
+async function getRelatedPosts(currentSlug: string, limit = 3) {
+  try {
+    const docs = await Blog.find({ published: true, slug: { $ne: currentSlug } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("authorId", "displayName")
+      .lean();
+
+    return docs.map((doc) => ({
+      slug: doc.slug,
+      title: doc.title,
+      seo_title: doc.title,
+      seo_description: doc.excerpt || "",
+      excerpt: doc.excerpt || doc.content.replace(/<[^>]*>/g, "").slice(0, 160) + "...",
+      date: doc.createdAt instanceof Date ? doc.createdAt.toISOString().split("T")[0] : String(doc.createdAt),
+      formattedDate: formatDate(new Date(doc.createdAt)),
+      category: "Blog",
+      readTime: calculateReadTime(doc.content),
+      author: (doc.authorId as any)?.displayName || "CrushSVG Team",
+      cover_image: doc.coverImage || "/blog.png",
+      accent_color: "#FF6B00",
+      faqs: [],
+      content: doc.content,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch related posts:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: BlogPostProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return constructMetadata({
@@ -49,16 +120,15 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
 
 export default async function BlogPostDetailPage({ params }: BlogPostProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = getRelatedPosts(post.slug, post.category, 3);
+  const relatedPosts = await getRelatedPosts(post.slug, 3);
   const articleUrl = `${SITE_URL}/blog/${post.slug}`;
 
-  // Article Schema
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -89,20 +159,17 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
     },
   };
 
-  // Breadcrumbs Schema
   const breadcrumbsSchema = getBreadcrumbSchema([
     { name: "Home", item: "" },
     { name: "Blog", item: "/blog" },
     { name: post.title, item: `/blog/${post.slug}` },
   ]);
 
-  // FAQ Schema (if available)
   const faqSchema =
     post.faqs && post.faqs.length > 0 ? getFAQSchema(post.faqs) : null;
 
   return (
     <main className="w-full flex flex-col items-center min-h-screen bg-background pb-[60px] md:pb-[100px]">
-      {/* Structured Data (JSON-LD) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
@@ -118,9 +185,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
         />
       )}
 
-      {/* Article Reading Container */}
       <article className="w-full max-w-[840px] px-[16px] md:px-[24px] pt-[32px] md:pt-[64px]">
-        {/* Back Link & Breadcrumb Bar */}
         <div className="flex items-center justify-between gap-4 mb-[20px] md:mb-[28px] text-[13px] md:text-[14px] font-body">
           <Link
             href="/blog"
@@ -138,9 +203,7 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           </div>
         </div>
 
-        {/* Header Section */}
         <header className="flex flex-col gap-[14px] md:gap-[16px] mb-[28px] md:mb-[40px] items-center text-center">
-          {/* Animated Category Badge */}
           <div
             style={{
               border: "1px solid transparent",
@@ -158,7 +221,6 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
             </span>
           </div>
 
-          {/* Meta Information */}
           <div className="flex items-center gap-[10px] font-body text-[13px] md:text-[14px] text-text-muted">
             <span className="font-semibold text-brand-primary">{post.author}</span>
             <span className="w-1 h-1 rounded-full bg-[#D1D5DB]" />
@@ -167,16 +229,13 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
             <span>{post.readTime}</span>
           </div>
 
-          {/* Title */}
           <h1 className="font-heading font-semibold text-[28px] sm:text-[36px] md:text-[46px] leading-[1.18] tracking-[0.03em] text-text-dark max-w-[800px]">
             {post.title}
           </h1>
 
-          {/* Social Share Bar */}
           <BlogShareBar title={post.title} url={articleUrl} />
         </header>
 
-        {/* Reusable Visual Cover Box (Dynamic Branded Visual or User Image) */}
         <div className="mb-[40px] md:mb-[60px]">
           <BlogCoverVisual
             coverImage={post.cover_image}
@@ -187,38 +246,29 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           />
         </div>
 
-        {/* Markdown Content Section in Brand Card Box */}
         <div
-          className="w-full bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] p-[24px] md:p-[44px] shadow-[0px_4px_40px_rgba(0,0,0,0.04)] font-body text-[16px] md:text-[17px] leading-[1.8] text-[#374151] space-y-[22px]
-          [&>h2]:font-heading [&>h2]:font-semibold [&>h2]:text-[22px] [&>h2]:md:text-[28px] [&>h2]:text-text-dark [&>h2]:mt-[40px] [&>h2]:mb-[16px] [&>h2]:tracking-[0.03em] [&>h2]:pb-[8px] [&>h2]:border-b [&>h2]:border-[#FAF6F3] first:[&>h2]:mt-0
-          [&>h3]:font-heading [&>h3]:font-semibold [&>h3]:text-[18px] [&>h3]:md:text-[22px] [&>h3]:text-text-dark [&>h3]:mt-[28px] [&>h3]:mb-[12px] [&>h3]:tracking-[0.03em]
-          [&>p]:mb-[20px] [&>p]:leading-[1.8]
-          [&>ul]:list-disc [&>ul]:pl-[24px] [&>ul]:space-y-[8px] [&>ul]:mb-[20px]
-          [&>ol]:list-decimal [&>ol]:pl-[24px] [&>ol]:space-y-[8px] [&>ol]:mb-[20px]
-          [&>li]:leading-[1.7]
-          [&>li>strong]:font-semibold [&>li>strong]:text-text-dark
-          [&>p>strong]:font-semibold [&>p>strong]:text-text-dark
-          [&_a]:text-brand-primary [&_a]:font-medium hover:[&_a]:underline
-          [&>blockquote]:border-l-[4px] [&>blockquote]:border-brand-primary [&>blockquote]:pl-[18px] [&>blockquote]:italic [&>blockquote]:text-text-muted [&>blockquote]:my-[24px] [&>blockquote]:bg-[#FAF6F3] [&>blockquote]:p-[16px] [&>blockquote]:rounded-r-[10px]
-          [&>code]:bg-[#FAF6F3] [&>code]:text-brand-primary [&>code]:px-[6px] [&>code]:py-[2px] [&>code]:rounded-[4px] [&>code]:text-[14px] [&>code]:font-mono
-        "
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.content}
-          </ReactMarkdown>
-        </div>
+          className="w-full bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] p-[24px] md:p-[44px] shadow-[0px_4px_40px_rgba(0,0,0,0.04)] prose prose-lg max-w-none
+            prose-headings:font-heading prose-headings:text-text-dark prose-headings:tracking-[0.03em]
+            prose-h2:text-[22px] prose-h2:md:text-[28px] prose-h2:mt-[40px] prose-h2:mb-[16px] prose-h2:pb-[8px] prose-h2:border-b prose-h2:border-[#FAF6F3]
+            prose-h3:text-[18px] prose-h3:md:text-[22px] prose-h3:mt-[28px] prose-h3:mb-[12px]
+            prose-p:mb-[20px] prose-p:leading-[1.8] prose-p:text-[#374151]
+            prose-li:leading-[1.7] prose-li:text-[#374151]
+            prose-strong:font-semibold prose-strong:text-text-dark
+            prose-a:text-brand-primary prose-a:font-medium hover:prose-a:underline
+            prose-blockquote:border-l-4 prose-blockquote:border-brand-primary prose-blockquote:pl-[18px] prose-blockquote:italic prose-blockquote:text-text-muted prose-blockquote:my-[24px] prose-blockquote:bg-[#FAF6F3] prose-blockquote:p-[16px] prose-blockquote:rounded-r-[10px]
+            prose-code:bg-[#FAF6F3] prose-code:text-brand-primary prose-code:px-[6px] prose-code:py-[2px] prose-code:rounded-[4px] prose-code:text-[14px] prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+          "
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
-        {/* Dedicated Interactive FAQ Section */}
         {post.faqs && post.faqs.length > 0 && (
           <BlogFAQSection faqs={post.faqs} />
         )}
 
-        {/* AdSense Unit */}
         <div className="my-[36px] md:my-[56px]">
           <AdBanner />
         </div>
 
-        {/* High-Converting CTA Box (CrushSVG Brand Box) */}
         <div className="mb-[48px] p-[24px] md:p-[40px] rounded-[16px] md:rounded-[24px] bg-[#FAF6F3] border border-[#EAEAEA] flex flex-col sm:flex-row items-center justify-between gap-[20px]">
           <div className="flex flex-col gap-[6px] text-center sm:text-left">
             <span className="text-[12px] font-heading font-semibold uppercase tracking-wider text-brand-primary">
@@ -239,7 +289,6 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           </Link>
         </div>
 
-        {/* Related Articles Section */}
         {relatedPosts.length > 0 && (
           <section className="mt-[56px] pt-[40px] border-t border-[#EAEAEA]">
             <div className="flex items-center justify-between mb-[20px]">
@@ -255,13 +304,12 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[20px]">
               {relatedPosts.map((related) => (
-                <BlogCard key={related.slug} blog={related} />
+                <BlogCard key={related.slug} blog={related as any} />
               ))}
             </div>
           </section>
         )}
 
-        {/* Bottom Explore Banner */}
         <div className="w-full mt-[40px] p-[24px] md:p-[32px] bg-[#FAF6F3] rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] flex flex-col sm:flex-row items-center justify-between gap-[20px] text-center sm:text-left">
           <div>
             <h4 className="font-heading font-semibold text-[18px] md:text-[20px] text-text-dark mb-[4px]">

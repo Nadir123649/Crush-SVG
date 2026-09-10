@@ -227,7 +227,7 @@ export default function SettingsPage() {
             </div>
             
             <div className="flex justify-end mt-auto pt-6">
-              <Button variant="solid" type="submit" disabled={savingSettings || loading} className="px-6 py-2.5 h-auto shadow-sm">
+              <Button variant="solid" type="submit" disabled={savingSettings || loading} className="shadow-sm">
                 {savingSettings ? "Saving..." : "Save Changes"}
               </Button>
             </div>
@@ -318,7 +318,7 @@ export default function SettingsPage() {
             </div>
             
             <div className="flex justify-end mt-auto pt-6">
-              <Button variant="solid" className="px-6 py-2.5 h-auto shadow-sm gap-2" disabled={addingAdmin} type="submit">
+              <Button variant="solid" className="shadow-sm" disabled={addingAdmin} type="submit">
                 {addingAdmin ? (
                   <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-1"></div>
                 ) : (

@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { useCases } from "@/lib/data/use-cases";
-import { getAllPosts } from "@/lib/blog";
+import { Blog } from "@/lib/database/models/blog";
+
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL || "https://www.crushsvg.net";
@@ -33,13 +35,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const posts = getAllPosts();
-  const blogUrls: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.date ? post.date.split("T")[0] : currentDate,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  let blogUrls: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await Blog.find({ published: true })
+      .select("slug createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+    blogUrls = posts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.createdAt instanceof Date
+        ? post.createdAt.toISOString().split("T")[0]
+        : currentDate,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch blog posts for sitemap:", error);
+  }
 
   const useCaseUrls: MetadataRoute.Sitemap = useCases.map((uc) => ({
     url: `${baseUrl}/use-case/${uc.slug}`,
