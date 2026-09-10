@@ -5,15 +5,19 @@
 
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
   }
 }
 
-/** Fire a generic GA4 event. */
+function pushToDataLayer(...args: unknown[]) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(...args);
+}
+
+/** Queue a generic event for the GTM-owned analytics pipeline. */
 export function trackEvent(name: string, params?: Record<string, unknown>) {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
-  window.gtag("event", name, params);
+  pushToDataLayer({ event: name, ...params });
 }
 
 /** Fire a named conversion event. */
@@ -26,19 +30,31 @@ export function trackConversion(
 
 /** Update GA4 and AdSense consent state (called by the cookie banner). */
 export function updateConsentGranted() {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
-  window.gtag("consent", "update", {
+  pushToDataLayer(["consent", "update", {
     analytics_storage: "granted",
     ad_storage: "granted",
-  });
+    ad_user_data: "granted",
+    ad_personalization: "granted",
+  }]);
+}
+
+/** Revoke analytics and advertising consent for the current session. */
+export function updateConsentDenied() {
+  pushToDataLayer(["consent", "update", {
+    analytics_storage: "denied",
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+  }]);
 }
 
 /** Set default consent state to denied (called before GA4 loads). */
 export function setDefaultConsentDenied() {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
-  window.gtag("consent", "default", {
+  pushToDataLayer(["consent", "default", {
     analytics_storage: "denied",
     ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
     wait_for_update: 500,
-  });
+  }]);
 }

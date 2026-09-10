@@ -1,10 +1,18 @@
 import { NextRequest } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { Settings, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { getClientIp } from '@/lib/security/ip'
+import { SITE_SETTINGS_CACHE_TAG } from '@/lib/data/settings'
 
 export const runtime = 'nodejs'
+
+type SettingsPatch = {
+  siteName?: string
+  supportEmail?: string
+  logoUrl?: string
+}
 
 async function getOrCreateSettings() {
   let settings = await Settings.findOne()
@@ -27,9 +35,9 @@ export async function PATCH(request: NextRequest) {
   if ('error' in adminCheck) return adminCheck.error
   const who = adminCheck
 
-  let body: any
+  let body: SettingsPatch
   try {
-    body = await request.json()
+    body = (await request.json()) as SettingsPatch
   } catch {
     return errorResponse(400, 'invalid_json', 'Invalid JSON body', undefined, request)
   }
@@ -52,6 +60,7 @@ export async function PATCH(request: NextRequest) {
 
   if (updated) {
     await settings.save()
+    revalidateTag(SITE_SETTINGS_CACHE_TAG, 'max')
 
     await AuditLog.create({
       adminId: who.user.id,
