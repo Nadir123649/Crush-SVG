@@ -10,7 +10,6 @@ export interface PreprocessResult {
   width: number;
   height: number;
   hasAlpha: boolean;
-  rawPixels?: Buffer | Uint8Array;
 }
 
 /**
@@ -25,15 +24,22 @@ export async function preprocessRaster(
 ): Promise<PreprocessResult> {
   let workingBuffer = buffer;
 
-  // Check image metadata before running expensive operations
-  const meta = await sharp(buffer, { animated: false }).metadata();
-
-  // Run canonical background remover engine only if transparent background is requested
-  // and the source image does not already have an alpha channel
-  if (options.background === "transparent" && !meta.hasAlpha) {
+  // Run canonical background remover engine if transparent or custom background requested
+  if (options.background === "transparent") {
     try {
       const bgResult = await processBackgroundRemove(buffer, {
         bgOption: "Transparent",
+        scale: 100,
+      });
+      workingBuffer = bgResult.buffer;
+    } catch {
+      /* Fallback to original buffer */
+    }
+  } else if (options.background === "custom" && options.bgColor) {
+    try {
+      const bgResult = await processBackgroundRemove(buffer, {
+        bgOption: "Custom",
+        bgColor: options.bgColor,
         scale: 100,
       });
       workingBuffer = bgResult.buffer;
@@ -95,6 +101,5 @@ export async function preprocessRaster(
     width,
     height,
     hasAlpha,
-    rawPixels: pixels,
   };
 }
