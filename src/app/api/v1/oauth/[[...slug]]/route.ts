@@ -8,7 +8,7 @@ import { getClientIp } from '@/lib/security/ip'
 import { createSession } from '@/lib/auth/sessions'
 import { buildTokenPayload } from '@/lib/auth/tokens'
 import { oauthSchema } from '@/lib/shared/validation'
-import { REFRESH_COOKIE_NAME, toUserDTO } from '@/lib/auth/auth'
+import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, toUserDTO } from '@/lib/auth/auth'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { logger } from '@/lib/shared/logger'
 
@@ -121,14 +121,7 @@ export async function POST(
       rateLimitHeaders(rl),
       request
     )
-    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
-      maxAge: remember ? 7 * 24 * 60 * 60 : undefined,
-    })
+    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(remember))
     return res
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid or expired token'

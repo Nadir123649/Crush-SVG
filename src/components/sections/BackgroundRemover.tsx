@@ -7,12 +7,29 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
-import { ApiError, getAccessToken } from "@/lib/client/http";
+import { ApiError, authFetch, getAccessToken, toApiError, type ErrorBody } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const commaIdx = dataUrl.indexOf(",");
+  if (commaIdx === -1) {
+    return new Blob([], { type: "image/png" });
+  }
+  const header = dataUrl.slice(0, commaIdx);
+  const base64 = dataUrl.slice(commaIdx + 1);
+  const mime = header.match(/:(.*?);/)?.[1] || "image/png";
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+}
 
 const STORAGE_KEY = "crush_bg_remover_state";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -306,7 +323,6 @@ export function BackgroundRemover() {
 
   // Processing result
   const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     dataUrl: string;
@@ -340,12 +356,22 @@ export function BackgroundRemover() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Clean up in-flight requests on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // ── Wipe data on sign-out ──────────────────────────────────────────────────
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "authed" && status !== "authed") {
+      abortRef.current?.abort();
+      setProcessing(false);
       setFile(null);
       setDataUrl(null);
       setImageName(null);
@@ -423,15 +449,6 @@ export function BackgroundRemover() {
     };
   }, [status, sessionVersion]);
 
-  // ── Smooth progress bar during processing ──────────────────────────────────
-  useEffect(() => {
-    if (processing) {
-      const timer = setTimeout(() => setProgress(90), 50);
-      return () => clearTimeout(timer);
-    }
-    queueMicrotask(() => setProgress(0));
-  }, [processing]);
-
   // ── Restore state from sessionStorage ──────────────────────────────────────
   useEffect(() => {
     queueMicrotask(() => {
@@ -464,15 +481,17 @@ export function BackgroundRemover() {
   useEffect(() => {
     if (!storageRestoredRef.current) return;
     try {
-      // Object URLs (blob:) can't be persisted — only persist data URLs
+      // Object URLs (blob:) can't be persisted — only persist data URLs within safe size limits
       const persistableResult =
         result && result.dataUrl && !result.dataUrl.startsWith("blob:") && result.dataUrl.length <= MAX_PERSISTED_RESULT_CHARS
           ? result
           : null;
+      const persistableDataUrl =
+        dataUrl && dataUrl.length <= MAX_PERSISTED_RESULT_CHARS ? dataUrl : null;
       sessionStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          dataUrl,
+          dataUrl: persistableDataUrl,
           imageName,
           imageSize,
           imageDims,
@@ -570,6 +589,8 @@ export function BackgroundRemover() {
   }
 
   function handleClear() {
+    abortRef.current?.abort();
+    setProcessing(false);
     setFile(null);
     setDataUrl(null);
     setImageName(null);
@@ -594,30 +615,26 @@ export function BackgroundRemover() {
       showToast("error", "No image selected. Upload an image to get started.");
       return;
     }
+
+    if (status !== "authed" && usage?.limitReached) {
+      setShowSignupPrompt(true);
+      return;
+    }
+
     setError(null);
     setProcessing(true);
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
       const formData = new FormData();
       if (file) {
         formData.append("file", file);
       } else if (dataUrl) {
-        // Convert data URL to blob via canvas (avoids CSP connect-src blocking fetch(dataUrl))
-        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-          const el = document.createElement("img") as HTMLImageElement;
-          el.onload = () => resolve(el);
-          el.onerror = reject;
-          el.src = dataUrl;
-        });
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0);
-        const blob = await new Promise<Blob>((resolve) =>
-          canvas.toBlob((b) => resolve(b!), "image/png"),
-        );
-        const fallbackFile = new File([blob], imageName || "image.png", { type: "image/png" });
+        const blob = dataUrlToBlob(dataUrl);
+        const fallbackFile = new File([blob], imageName || "image.png", { type: blob.type || "image/png" });
         formData.append("file", fallbackFile);
       }
 
@@ -625,23 +642,23 @@ export function BackgroundRemover() {
       formData.append("bgOption", bgOption);
       if (bgOption === "Custom") formData.append("bgColor", normalizeHex(customColor));
 
-      const apiRes = await fetch("/api/v1/background-remove", {
+      const apiRes = await authFetch("/api/v1/background-remove", {
         method: "POST",
-        headers: {
-          ...(getAccessToken() ? { Authorization: `Bearer ${getAccessToken()}` } : {}),
-        },
         body: formData,
+        signal: controller.signal,
       });
 
       if (!apiRes.ok) {
-        const body = await apiRes.json().catch(() => null);
-        const code = body?.payload?.error?.code || "";
-        const message = body?.payload?.error?.message || body?.payload?.message || `Request failed (${apiRes.status})`;
-        throw new ApiError(apiRes.status, code, message);
+        const body = (await apiRes.json().catch(() => null)) as ErrorBody | null;
+        throw toApiError(apiRes.status, body);
       }
+
+      if (controller.signal.aborted) return;
 
       // Read binary PNG response — avoids base64 inflation and JSON parsing
       const blob = await apiRes.blob();
+      if (controller.signal.aborted) return;
+
       const objectUrl = URL.createObjectURL(blob);
 
       // Revoke previous Object URL to prevent memory leaks
@@ -694,15 +711,36 @@ export function BackgroundRemover() {
         );
       }
     } catch (err) {
-      if (err instanceof ApiError && err.code === "guest_limit_reached" && status !== "authed") {
+      if (controller.signal.aborted) return;
+
+      if (
+        err instanceof ApiError &&
+        (err.code === "limit_reached" || err.code === "guest_limit_reached") &&
+        status !== "authed"
+      ) {
         setShowSignupPrompt(true);
         return;
       }
-      const msg = err instanceof Error ? err.message : t("errorProcessing");
+
+      let msg: string;
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof TypeError && (err.message.includes("fetch") || (typeof navigator !== "undefined" && !navigator.onLine))) {
+        msg = "Unable to connect to the server. Please check your network connection and try again.";
+      } else if (err instanceof Error) {
+        msg = err.message.toLowerCase().includes("failed to fetch")
+          ? "Unable to connect to the server. The file may be too large or the network connection was interrupted."
+          : err.message;
+      } else {
+        msg = t("errorProcessing");
+      }
+
       setError(msg);
       showToast("error", msg);
     } finally {
-      setProcessing(false);
+      if (!controller.signal.aborted) {
+        setProcessing(false);
+      }
     }
   }
 
@@ -738,6 +776,7 @@ export function BackgroundRemover() {
     <>
       <section
         id="converter"
+        aria-busy={processing}
         className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
@@ -1214,18 +1253,17 @@ export function BackgroundRemover() {
 
                 {/* Action CTA Buttons Row */}
                 {processing ? (
-                  <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                  <div
+                    className="w-full h-[42px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px] relative"
+                    role="status"
+                    aria-live="polite"
+                  >
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
-                        className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
-                          progress === 0 ? "duration-0" : "duration-[15000ms]"
-                        }`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
+                        style={{ width: "40%" }}
                       />
                     </div>
-                    <span className="font-body text-[12px] text-[#64748B]">
-                      {t("processing")}
-                    </span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[20px] relative">

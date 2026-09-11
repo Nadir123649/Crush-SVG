@@ -56,7 +56,18 @@ export async function rasterToSvg(
 
   const maxPixels = ctx.isQueued ? RASTER_LIMITS.MAX_PIXELS_QUEUED : RASTER_LIMITS.MAX_PIXELS_INLINE;
   const prepared = await preprocessRaster(buffer, options, maxPixels);
-  const analysis = await analyzeImage(prepared.png, prepared.hasAlpha);
+  const analysis = await analyzeImage(
+    prepared.png,
+    prepared.hasAlpha,
+    prepared.rawPixels
+      ? {
+          data: prepared.rawPixels,
+          width: prepared.width,
+          height: prepared.height,
+          channels: 4,
+        }
+      : undefined
+  );
   const imageClass = resolveImageClass(options.mode, analysis);
   const vtOptions = buildVtracerOptions(imageClass, options, prepared.hasAlpha);
 

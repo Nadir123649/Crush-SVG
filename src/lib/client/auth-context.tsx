@@ -14,6 +14,13 @@ import {
 import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
+import {
+  signInWithGoogle,
+  signInWithGitHub,
+  signInWithX,
+  exchangeIdToken,
+  signOut as firebaseSignOut,
+} from '@/lib/firebase/firebase-client'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
 
@@ -99,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // to the next session.
       sessionStorage.removeItem('crush_converter_state')
       sessionStorage.removeItem('crush_vectorizer_state')
+      sessionStorage.removeItem('crush_session_only')
       sessionStorage.setItem('crush_auth_status', 'guest')
     }
   }, [])
@@ -230,28 +238,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithOAuth = useCallback(
     async (provider: 'google' | 'github' | 'x', rememberMe = true) => {
-      const {
-        exchangeIdToken,
-        signInWithGitHub,
-        signInWithGoogle,
-        signInWithX,
-      } = await import('@/lib/firebase/firebase-client')
       const signIn = {
         google: signInWithGoogle,
         github: signInWithGitHub,
         x: signInWithX,
       }[provider]
+      if (!signIn) {
+        throw new Error(`Unsupported provider: ${provider}`)
+      }
       await signIn()
       const session = await exchangeIdToken(rememberMe)
-      applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
+      applySession({ user: session.user, token: session.token, sessionId: session.sessionId, remember: rememberMe })
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
         } catch { }
       }
-      // Force a background refresh so the server's latest profile (photoURL,
-      // role, displayName) is picked up even if the initial exchange returned
-      // a stale snapshot. This ensures the profile image updates immediately.
       refreshSession({ silent: true }).then(({ payload: fresh }) => {
         if (fresh?.user) {
           applySession({
@@ -270,9 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearAuth()
     void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
-    void import('@/lib/firebase/firebase-client')
-      .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
-      .catch(() => { })
+    void firebaseSignOut().catch(() => { })
   }, [clearAuth])
 
   const changePassword = useCallback(

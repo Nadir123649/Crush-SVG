@@ -136,6 +136,30 @@ function attachAuth(headers: Headers): string | null {
   return token
 }
 
+async function executeFetch(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init)
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw err
+    }
+    if (err instanceof DOMException && err.name === 'TimeoutError') {
+      throw new ApiError(504, 'timeout', 'The request timed out. Please try again or use a smaller input.')
+    }
+    const isNetworkOrFetch =
+      (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) ||
+      (err instanceof Error && (err.name === 'NetworkError' || err.message.toLowerCase().includes('network')))
+    if (isNetworkOrFetch) {
+      throw new ApiError(
+        0,
+        'network_error',
+        'Unable to complete request. The image or payload may exceed network limits, or the connection was interrupted.'
+      )
+    }
+    throw err
+  }
+}
+
 export async function authFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
   let token = attachAuth(headers)
@@ -164,7 +188,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
     // else: transient failure — proceed without token, let the API decide
   }
 
-  let res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
+  let res = await executeFetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
 
   // Refresh on 401 when we have a token, or when a session was restored from
   // storage but the token isn't attached yet (e.g. the page-load refresh
@@ -174,7 +198,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
     const result = await refreshSession()
     if (result.payload && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)
-      res = await fetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
+      res = await executeFetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
     } else if (result.sessionDead) {
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
@@ -185,12 +209,12 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   return res
 }
 
-interface ErrorBody {
+export interface ErrorBody {
   error?: { code?: string; message?: string } | string
   payload?: { error?: { code?: string; message?: string } }
 }
 
-function toApiError(status: number, body: ErrorBody | null): ApiError {
+export function toApiError(status: number, body: ErrorBody | null): ApiError {
   const err = body?.payload?.error ?? body?.error
   if (typeof err === 'object' && err !== null && typeof err.code === 'string') {
     return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status))
