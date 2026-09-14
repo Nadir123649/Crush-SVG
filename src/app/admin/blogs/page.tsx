@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { getAdminCached, setAdminCached, invalidateAdminCache } from "@/lib/client/admin-cache";
 
 const BLOGS_PAGE_SIZE = 15;
 
@@ -19,6 +20,7 @@ const SvgEyeOff = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" wid
 
 export default function BlogsPage() {
     const { status: authStatus } = useAuth();
+    const [searchInput, setSearchInput] = useState("");
     const [search, setSearch] = useState("");
     const [published, setPublished] = useState("all");
     const [page, setPage] = useState(1);
@@ -39,6 +41,14 @@ export default function BlogsPage() {
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
+
+    useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
                 setOpenMenuId(null);
@@ -51,17 +61,33 @@ export default function BlogsPage() {
     useEffect(() => {
         let cancelled = false;
         const loadBlogs = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const queryParams = new URLSearchParams();
-                queryParams.set("page", page.toString());
-                queryParams.set("limit", BLOGS_PAGE_SIZE.toString());
-                if (search) queryParams.set("search", search);
-                if (published !== "all") queryParams.set("published", published);
-                if (sortBy) queryParams.set("sortBy", sortBy);
-                if (sortOrder) queryParams.set("sortOrder", sortOrder);
+            const queryParams = new URLSearchParams();
+            queryParams.set("page", page.toString());
+            queryParams.set("limit", BLOGS_PAGE_SIZE.toString());
+            if (search) queryParams.set("search", search);
+            if (published !== "all") queryParams.set("published", published);
+            if (sortBy) queryParams.set("sortBy", sortBy);
+            if (sortOrder) queryParams.set("sortOrder", sortOrder);
 
+            const cacheKey = `admin_blogs_${queryParams.toString()}`;
+            const cached = getAdminCached<{
+                data: any[];
+                meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+            }>(cacheKey, 30_000);
+
+            if (cached) {
+                setBlogs(cached.data);
+                if (cached.meta) {
+                    setTotalPages(cached.meta.total_pages || 1);
+                    setTotalItems(cached.meta.total || 0);
+                }
+                setLoading(false);
+            } else {
+                setLoading(true);
+            }
+            setError(null);
+
+            try {
                 const response = await apiFetch<{
                     data: any[];
                     meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
@@ -70,15 +96,16 @@ export default function BlogsPage() {
                 if (cancelled) return;
                 if (response?.data) {
                     setBlogs(response.data);
+                    setAdminCached(cacheKey, response);
                     if (response.meta) {
                         setTotalPages(response.meta.total_pages || 1);
                         setTotalItems(response.meta.total || 0);
                     }
-                } else {
+                } else if (!cached) {
                     setError("Failed to load blogs");
                 }
             } catch (err) {
-                if (!cancelled) setError("Failed to load blogs");
+                if (!cancelled && !cached) setError("Failed to load blogs");
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -102,6 +129,7 @@ export default function BlogsPage() {
             await apiFetch(`/api/v1/admin/blogs/${blogToDelete._id}`, {
                 method: "DELETE",
             });
+            invalidateAdminCache("admin_blogs");
             setBlogs((prev) => prev.filter((b) => b._id !== blogToDelete._id));
             setDeleteModalOpen(false);
             setBlogToDelete(null);
@@ -190,9 +218,9 @@ export default function BlogsPage() {
                     <p className="font-body text-text-muted">Create, edit, and manage blog posts.</p>
                 </div>
                 {/* Actions */}
-                <div className="flex gap-3">
-                    <ExportButton onClick={handleExportCSV} disabled={loading} />
-                    <Button href="/admin/blogs/new" variant="solid" className="shadow-sm">
+                <div className="flex items-center gap-3">
+                    <ExportButton onClick={handleExportCSV} disabled={loading} className="w-[130px]" />
+                    <Button href="/admin/blogs/new" variant="solid" className="h-[40px] px-4 text-sm font-medium gap-2 shadow-sm flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
                         Add New Blog
                     </Button>
@@ -213,8 +241,8 @@ export default function BlogsPage() {
                             <label className="block font-body text-sm font-medium text-text-dark mb-2">Search</label>
                             <input
                                 type="text"
-                                value={search}
-                                onChange={(e) => handleSearchChange(e.target.value)}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
                                 placeholder="Search by title or slug..."
                                 className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                             />

@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.removeItem('crush_session_only')
       sessionStorage.setItem('crush_auth_status', 'guest')
       // Clear the non-httpOnly session flag so attemptRefresh won't fire on reload.
-      document.cookie = 'crushsvg_session=; path=/; max-age=0'
+      document.cookie = 'crushsvg_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
   }, [])
 
@@ -161,10 +161,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
       if (cancelled) return
-      // If the non-httpOnly session flag was cleared (by clearAuth during
-      // logout), do NOT attempt refresh — the user logged out.  The httpOnly
-      // refresh cookie may still exist server-side but we must not use it.
-      if (typeof document !== 'undefined' && !document.cookie.split(';').some(c => c.trim().startsWith('crushsvg_session='))) {
+      const sessionCookie = typeof document !== 'undefined'
+        ? document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('crushsvg_session='))
+        : null
+      const hasActiveSessionFlag = !!sessionCookie && (sessionCookie.split('=')[1]?.trim() ?? '') !== ''
+      if (typeof document !== 'undefined' && !hasActiveSessionFlag) {
         setStatus('guest')
         return
       }
@@ -282,11 +283,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    clearAuth()
-    await Promise.allSettled([
-      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
-      firebaseSignOut(),
-    ])
+    try {
+      await Promise.allSettled([
+        apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+        firebaseSignOut(),
+      ])
+    } finally {
+      clearAuth()
+    }
   }, [clearAuth])
 
   const changePassword = useCallback(

@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       ConversionLog.countDocuments({ success: true }),
       ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
       ConversionLog.countDocuments({ success: true, inputFormat: 'svg' }),
-      AuditLog.find().sort({ createdAt: -1 }).limit(10),
-      ConversionLog.find().sort({ createdAt: -1 }).limit(5),
+      AuditLog.find().sort({ createdAt: -1 }).limit(10).lean(),
+      ConversionLog.find().sort({ createdAt: -1 }).limit(5).lean(),
       ConversionLog.aggregate([
         { $match: { success: true, createdAt: { $gte: tenDaysAgo } } },
         { $group: {

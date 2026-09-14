@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
 const CONVERSIONS_PAGE_SIZE = 15;
 
@@ -40,10 +41,27 @@ export default function ConversionsPage() {
   };
 
   const loadConversions = async (targetPage = page) => {
-    setLoading(true);
+    const queryParams = buildQueryParams(targetPage);
+    const cacheKey = `admin_conversions_${queryParams}`;
+    const cached = getAdminCached<{
+      data: any[];
+      meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+    }>(cacheKey, 30_000);
+
+    if (cached) {
+      setConversions(cached.data);
+      if (cached.meta) {
+        setPage(cached.meta.page);
+        setTotalPages(cached.meta.total_pages || 1);
+        setTotalItems(cached.meta.total || 0);
+      }
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
+
     try {
-      const queryParams = buildQueryParams(targetPage);
       const response = await apiFetch<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
@@ -52,16 +70,17 @@ export default function ConversionsPage() {
       if (response?.data) {
         const { data, meta } = response;
         setConversions(data);
+        setAdminCached(cacheKey, response);
         if (meta) {
           setPage(meta.page);
           setTotalPages(meta.total_pages || 1);
           setTotalItems(meta.total || 0);
         }
-      } else {
+      } else if (!cached) {
         setError("Failed to load conversions");
       }
     } catch (err) {
-      if (!error) setError("Failed to load conversions");
+      if (!cached && !error) setError("Failed to load conversions");
     } finally {
       setLoading(false);
     }
@@ -140,7 +159,7 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <ExportButton onClick={handleExportCSV} />
+        <ExportButton onClick={handleExportCSV} className="w-[130px]" />
       </div>
 
       {/* Interactive Filters Area (Client-side controlled) */}

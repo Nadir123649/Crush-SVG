@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
+import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -73,6 +74,8 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/auth/login',
   '/api/v1/auth/register',
   '/api/v1/auth/refresh',
+  '/api/v1/auth/logout',
+  '/api/v1/auth/logout-all',
 
   '/api/v1/health',
 
@@ -114,8 +117,6 @@ const AUTH_API_PREFIXES = [
 ]
 
 const AUTH_API_EXACT = new Set([
-  '/api/v1/auth/logout',
-  '/api/v1/auth/logout-all',
   '/api/v1/auth/change-password',
 ])
 
@@ -244,9 +245,9 @@ function addRequestId(
 
 // ── Proxy ─────────────────────────────────────────────────────────────
 
-export function proxy(
+export async function proxy(
   request: NextRequest
-): NextResponse {
+): Promise<NextResponse> {
   const hostname = request.headers.get('host')
   const url = request.nextUrl
   const pathname = url.pathname
@@ -453,6 +454,13 @@ export function proxy(
       )?.value
 
     if (!refreshToken) {
+      return NextResponse.redirect(
+        new URL('/', request.url)
+      )
+    }
+
+    const decoded = await verifyRefreshTokenEdge(refreshToken)
+    if (!decoded || decoded.role !== 'admin') {
       return NextResponse.redirect(
         new URL('/', request.url)
       )
