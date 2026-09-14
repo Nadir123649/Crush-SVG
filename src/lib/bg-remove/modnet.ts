@@ -1,20 +1,30 @@
 import "server-only";
-import { pipeline, env } from "@huggingface/transformers";
 import sharp from "sharp";
 import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
 import type { BgRemoveOptionsParsed } from "./validation";
 import { BG_REMOVE_LIMITS } from "./limits";
 
-// Configure Transformers.js for server-side use
-env.allowRemoteModels = true;
-env.allowLocalModels = true;
+// Force Transformers.js to use WASM backend instead of native onnxruntime-node.
+// onnxruntime-node's native binding (libonnxruntime.so.1) is missing on Vercel,
+// and it's hardcoded as an external package by Next.js, so it can't be un-externalized.
+const ORT_SYMBOL = Symbol.for("onnxruntime");
 
-// On Vercel serverless: ephemeral FS means model cache won't persist between cold starts.
-// Use browser-cache-compatible HTTP caching so the CDN serves the model on re-downloads.
+async function loadTransformers() {
+  // Import WASM ort and register it as the global ONNX runtime
+  // so @huggingface/transformers uses WASM instead of native
+  const ort = await import("onnxruntime-web");
+  if (!(ORT_SYMBOL in globalThis)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[ORT_SYMBOL] = ort;
+  }
+
+  return import("@huggingface/transformers");
+}
+
+// Configure Transformers.js for server-side use
+// (loaded lazily via loadTransformers() to register WASM backend first)
 const isVercel = !!process.env.VERCEL;
-env.useFSCache = !isVercel;
-env.useBrowserCache = isVercel;
 
 const MODEL_ID = "Xenova/modnet";
 
@@ -28,6 +38,14 @@ let initError: Error | null = null;
 async function getPipeline() {
   if (pipelinePromise) return pipelinePromise;
   if (initError) throw initError;
+
+  const { pipeline, env } = await loadTransformers();
+
+  // Configure env after loading — must happen after WASM backend is registered
+  env.allowRemoteModels = true;
+  env.allowLocalModels = true;
+  env.useFSCache = !isVercel;
+  env.useBrowserCache = isVercel;
 
   pipelinePromise = await pipeline("background-removal", MODEL_ID, {
     dtype: "fp32",

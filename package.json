@@ -6,6 +6,7 @@
     "node": ">=22.0.0 <=24.x"
   },
   "scripts": {
+    "postinstall": "node scripts/patch-onnx-binding.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
