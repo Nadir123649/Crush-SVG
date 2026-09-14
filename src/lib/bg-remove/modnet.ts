@@ -44,8 +44,10 @@ async function getPipeline() {
   // Configure env after loading — must happen after WASM backend is registered
   env.allowRemoteModels = true;
   env.allowLocalModels = true;
-  env.useFSCache = !isVercel;
-  env.useBrowserCache = isVercel;
+  // WASM backend doesn't have browser cache in Node.js serverless.
+  // Use HTTP cache headers (CDN) instead — models are re-downloaded on cold starts.
+  env.useFSCache = false;
+  env.useBrowserCache = false;
 
   pipelinePromise = await pipeline("background-removal", MODEL_ID, {
     dtype: "fp32",
