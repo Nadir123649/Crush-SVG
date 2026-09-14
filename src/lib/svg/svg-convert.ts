@@ -62,6 +62,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 export async function convertSvg(svg: string, options: SvgConvertOptions = {}): Promise<SvgConvertResult> {
     ensureFontConfig();
     const sanitizedSvg = sanitizeSvg(svg);
+    if (!sanitizedSvg.startsWith("<")) {
+        console.error(
+            "SVG sanitization produced non-SVG output (starts with):",
+            JSON.stringify(sanitizedSvg.substring(0, 60)),
+        );
+    }
     const dims = parseSvgDimensions(sanitizedSvg);
     const target = computeTargetSize(dims, options);
     const warnings: string[] = [];

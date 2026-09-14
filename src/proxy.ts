@@ -453,18 +453,8 @@ export function proxy(
       )?.value
 
     if (!refreshToken) {
-      const loginUrl = new URL(
-        '/login',
-        request.url
-      )
-
-      loginUrl.searchParams.set(
-        'returnTo',
-        pathname
-      )
-
       return NextResponse.redirect(
-        loginUrl
+        new URL('/', request.url)
       )
     }
 
@@ -505,9 +495,41 @@ export function proxy(
 
   if (
     pathname.startsWith('/reset-password') ||
-    pathname === '/verify' ||
     pathname === '/email-verification'
   ) {
+    const response =
+      NextResponse.next()
+
+    return addRequestId(
+      response,
+      request
+    )
+  }
+
+  // ───────────────────────────────────────────────────────────────────
+  // VERIFY PAGE (requires session)
+  // ───────────────────────────────────────────────────────────────────
+
+  if (pathname === '/verify') {
+    const refreshToken =
+      request.cookies.get(
+        'crushsvg_refresh'
+      )?.value
+
+    if (!refreshToken) {
+      return NextResponse.redirect(
+        new URL('/', request.url)
+      )
+    }
+
+    // Only allow /verify?status=success — anything else is invalid
+    const status = url.searchParams.get('status')
+    if (status !== 'success') {
+      return NextResponse.redirect(
+        new URL('/', request.url)
+      )
+    }
+
     const response =
       NextResponse.next()
 
