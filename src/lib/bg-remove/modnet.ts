@@ -5,25 +5,6 @@ import type { BgRemoveResult } from "./types";
 import type { BgRemoveOptionsParsed } from "./validation";
 import { BG_REMOVE_LIMITS } from "./limits";
 
-// Force Transformers.js to use WASM backend instead of native onnxruntime-node.
-// onnxruntime-node's native binding (libonnxruntime.so.1) is missing on Vercel,
-// and it's hardcoded as an external package by Next.js, so it can't be un-externalized.
-const ORT_SYMBOL = Symbol.for("onnxruntime");
-
-async function loadTransformers() {
-  // Import WASM ort and register it as the global ONNX runtime
-  // so @huggingface/transformers uses WASM instead of native
-  const ort = await import("onnxruntime-web");
-  if (!(ORT_SYMBOL in globalThis)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any)[ORT_SYMBOL] = ort;
-  }
-
-  return import("@huggingface/transformers");
-}
-
-// Configure Transformers.js for server-side use
-// (loaded lazily via loadTransformers() to register WASM backend first)
 const isVercel = !!process.env.VERCEL;
 
 const MODEL_ID = "Xenova/modnet";
@@ -39,9 +20,9 @@ async function getPipeline() {
   if (pipelinePromise) return pipelinePromise;
   if (initError) throw initError;
 
-  const { pipeline, env } = await loadTransformers();
+  const { pipeline, env } = await import("@huggingface/transformers");
 
-  // Configure env after loading — must happen after WASM backend is registered
+  // Configure env after loading
   env.allowRemoteModels = true;
   env.allowLocalModels = true;
   // WASM backend doesn't have browser cache in Node.js serverless.
