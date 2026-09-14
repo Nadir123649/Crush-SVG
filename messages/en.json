@@ -787,6 +787,7 @@
     "svgFormatted": "SVG code formatted",
     "svgAlreadyFormatted": "SVG is already formatted",
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
+    "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "noSvgToCopy": "No custom SVG code to copy",
     "svgCopied": "SVG code copied to clipboard!",
     "copyFailed": "Failed to copy SVG code",

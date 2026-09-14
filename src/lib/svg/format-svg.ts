@@ -19,7 +19,7 @@ export function formatSvgCode(svg: string): FormatSvgResult {
   }
 
   // Tokenize comments, CDATA, XML declarations, tags, and text nodes
-  const tokenRegex = /(<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\?[^>]*\?>|<[^>]+>|[^<]+)/g;
+  const tokenRegex = /(<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\?[^>]*\?>|<("(\\"|[^"])*"|'(\\'|[^'])*'|[^>"'])*>|[^<]+)/g;
   const tokens = svg.match(tokenRegex);
   if (!tokens) {
     return { formatted: svg, changed: false };

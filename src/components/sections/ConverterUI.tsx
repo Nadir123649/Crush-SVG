@@ -298,7 +298,7 @@ function SvgToPngConverter() {
   function handleFormatSvg() {
     if (!svgCode || isPlaceholderCode || converting || isFormatting) return;
     if (svgCode.length > 1_000_000) {
-      showToast("error", tToast("formatError") || "SVG code is too large to safely format (>1MB).");
+      showToast("error", tToast("formatTooLarge") || "SVG is too large to format safely (>1MB).");
       return;
     }
 
