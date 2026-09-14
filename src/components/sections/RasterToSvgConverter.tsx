@@ -8,7 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
 import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
-import { getAccessToken } from "@/lib/client/http";
+import { getAccessToken, ApiError } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -596,6 +596,7 @@ export function RasterToSvgConverter() {
   }
 
   function handleClear() {
+    convertAbortRef.current?.abort();
     setRasterFile(null);
     setRasterDataUrl(null);
     setImageName(null);
@@ -697,7 +698,9 @@ export function RasterToSvgConverter() {
     } catch (err) {
       if (controller.signal.aborted) return;
       let msg = err instanceof Error ? err.message : t("errorConversion");
-      if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
       setError(msg);

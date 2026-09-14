@@ -24,7 +24,13 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   }, [status, router, searchParams]);
 
   if (status === "loading") {
-    return null;
+    return (
+      <div className="w-full flex justify-center py-[60px]">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-full border-2 border-gray-200 border-t-[#D94A1E] animate-spin" />
+        </div>
+      </div>
+    );
   }
 
   if (status === "authed") {

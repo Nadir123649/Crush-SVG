@@ -140,16 +140,15 @@ async function executeFetch(url: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(url, init)
   } catch (err: unknown) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw err
-    }
+    if (err instanceof ApiError) throw err
+    if (err instanceof DOMException && err.name === 'AbortError') throw err
     if (err instanceof DOMException && err.name === 'TimeoutError') {
       throw new ApiError(504, 'timeout', 'The request timed out. Please try again or use a smaller input.')
     }
-    const isNetworkOrFetch =
-      (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) ||
-      (err instanceof Error && (err.name === 'NetworkError' || err.message.toLowerCase().includes('network')))
-    if (isNetworkOrFetch) {
+    if (
+      err instanceof DOMException ||
+      (err instanceof TypeError && err.message.toLowerCase().includes('failed to fetch'))
+    ) {
       throw new ApiError(
         0,
         'network_error',

@@ -93,6 +93,9 @@ const PUBLIC_API_PREFIXES = [
   // Public content
   '/api/v1/blog',
 
+  // Newsletter
+  '/api/v1/newsletter',
+
   // API documentation
   '/api/openapi',
 ]

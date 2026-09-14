@@ -476,7 +476,9 @@ function SvgToPngConverter() {
         return;
       }
       let msg = err instanceof Error ? err.message : tToast("conversionFailed");
-      if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
       }
       showToast("error", msg);
@@ -634,7 +636,7 @@ function SvgToPngConverter() {
                     }}
                     spellCheck={false}
                     aria-label="SVG code editor"
-                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <button

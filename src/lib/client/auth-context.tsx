@@ -39,7 +39,7 @@ interface AuthContextValue {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
   updateUser: (updates: Partial<UserDTO>) => void
@@ -269,10 +269,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession]
   )
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     clearAuth()
-    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
-    void firebaseSignOut().catch(() => { })
+    await Promise.allSettled([
+      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+      firebaseSignOut(),
+    ])
   }, [clearAuth])
 
   const changePassword = useCallback(
