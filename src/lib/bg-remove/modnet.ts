@@ -123,9 +123,12 @@ export async function processWithModnet(
   // Run MODNet inference — pass Buffer directly (works with both Node native and WASM backends)
   let bgRemovalPipeline;
   try {
+    console.log("[modnet] Initializing pipeline, isVercel:", isVercel);
     bgRemovalPipeline = await getPipeline();
+    console.log("[modnet] Pipeline ready");
   } catch (error) {
     initError = error instanceof Error ? error : new Error(String(error));
+    console.error("[modnet] Pipeline init FAILED:", initError.message);
     throw new BgRemoveError(
       "processing_failed",
       `Failed to initialize MODNet model: ${initError.message}`,
@@ -134,12 +137,15 @@ export async function processWithModnet(
 
   let rawResult: RawImageResult | RawImageResult[] | null = null;
   try {
+    console.log("[modnet] Running inference, input size:", workingPng.length, "bytes");
     // Convert PNG buffer to Blob — WASM backend can't read Node fs paths,
     // and the pipeline expects Blob/RawImage/string, not raw Buffer
     const blob = new Blob([workingPng], { type: "image/png" });
     rawResult = await bgRemovalPipeline(blob);
+    console.log("[modnet] Inference complete");
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
+    console.error("[modnet] Inference FAILED:", msg);
     throw new BgRemoveError("processing_failed", `MODNet inference failed: ${msg}`);
   }
 
