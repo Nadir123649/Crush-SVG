@@ -96,11 +96,11 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
     };
   }, []);
 
-  function handleLogout() {
+  async function handleLogout() {
     setMenuOpen(false);
-    logout();
     showToast("success", tToast("loggedOut"));
-    router.push("/");
+    await logout();
+    router.replace("/");
   }
 
   useEffect(() => {

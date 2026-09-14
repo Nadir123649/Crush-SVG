@@ -22,7 +22,7 @@ export function ExportButton({ onClick, disabled, className = "" }: ExportButton
       variant="outline"
       onClick={onClick}
       disabled={disabled}
-      className={`shadow-sm ${className}`}
+      className={`h-[40px] px-4 text-sm font-medium gap-2 shadow-sm flex items-center justify-center ${className}`}
     >
       <SvgDownload className="w-4 h-4 shrink-0" />
       {t("label")}

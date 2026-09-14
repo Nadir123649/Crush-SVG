@@ -88,6 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage_info')
       sessionStorage.setItem('crush_auth_status', 'authed')
+      // Non-httpOnly flag cookie so the client can detect an active session.
+      // The actual refresh cookie is httpOnly and cannot be read or deleted by JS.
+      document.cookie = 'crushsvg_session=1; path=/; max-age=604800; SameSite=Lax'
     }
   }, [])
 
@@ -108,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.removeItem('crush_vectorizer_state')
       sessionStorage.removeItem('crush_session_only')
       sessionStorage.setItem('crush_auth_status', 'guest')
+      // Clear the non-httpOnly session flag so attemptRefresh won't fire on reload.
+      document.cookie = 'crushsvg_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
   }, [])
 
@@ -156,6 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
       if (cancelled) return
+      const sessionCookie = typeof document !== 'undefined'
+        ? document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('crushsvg_session='))
+        : null
+      const hasActiveSessionFlag = !!sessionCookie && (sessionCookie.split('=')[1]?.trim() ?? '') !== ''
+      if (typeof document !== 'undefined' && !hasActiveSessionFlag) {
+        setStatus('guest')
+        return
+      }
       const { payload } = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
@@ -270,11 +283,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    clearAuth()
-    await Promise.allSettled([
-      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
-      firebaseSignOut(),
-    ])
+    try {
+      await Promise.allSettled([
+        apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+        firebaseSignOut(),
+      ])
+    } finally {
+      clearAuth()
+    }
   }, [clearAuth])
 
   const changePassword = useCallback(

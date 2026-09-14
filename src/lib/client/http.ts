@@ -181,6 +181,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)
     } else if (result.sessionDead) {
+      onAuthExpired?.()
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }
@@ -194,11 +195,12 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   // failed). A real authenticated request is the decisive test of a session —
   // a transient failure on load must never log the user out on its own.
   if (res.status === 401 && (token || sessionRestored)) {
-    const result = await refreshSession()
+    const result = await refreshSession({ silent: true })
     if (result.payload && accessToken) {
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await executeFetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
     } else if (result.sessionDead) {
+      onAuthExpired?.()
       emitToast('error', 'Your session has expired. Please sign in again.')
       throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
     }

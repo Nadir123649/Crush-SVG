@@ -613,7 +613,6 @@ export function RasterToSvgConverter() {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
-    showToast("success", t("resetButton"));
   }
 
   async function handleLoadSample() {

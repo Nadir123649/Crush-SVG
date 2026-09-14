@@ -27,4 +27,21 @@ export async function verifyAccessTokenEdge(
   } catch {
     return null;
   }
+}export async function verifyRefreshTokenEdge(
+  token: string
+): Promise<EdgeDecodedToken | null> {
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
+
+    if (!payload || typeof payload.id !== "string") return null;
+
+    return {
+      id: payload.id,
+      role: String(payload.role ?? "user"),
+      jti: typeof payload.jti === "string" ? payload.jti : undefined,
+    };
+  } catch {
+    return null;
+  }
 }

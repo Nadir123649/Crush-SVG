@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
 const AUDITS_PAGE_SIZE = 20;
 
@@ -21,10 +22,19 @@ const SvgChevronRight = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/sv
 export default function AuditsPage() {
   const { status: authStatus } = useAuth();
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [audits, setAudits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -35,10 +45,23 @@ export default function AuditsPage() {
   };
 
   const loadAudits = async (targetPage = page) => {
-    setLoading(true);
+    const queryParams = buildQueryParams(targetPage);
+    const cacheKey = `admin_audits_${queryParams}`;
+    const cached = getAdminCached<{
+      data: any[];
+      meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+    }>(cacheKey, 30_000);
+
+    if (cached) {
+      setAudits(cached.data);
+      setPage(cached.meta.page);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
+
     try {
-      const queryParams = buildQueryParams(targetPage);
       const response = await apiFetch<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
@@ -47,12 +70,13 @@ export default function AuditsPage() {
       if (response?.data) {
         const { data, meta } = response;
         setAudits(data);
+        setAdminCached(cacheKey, response);
         setPage(meta.page);
-      } else {
+      } else if (!cached) {
         setError("Failed to load audit logs");
       }
     } catch (err) {
-      if (!error) setError("Failed to load audit logs");
+      if (!cached && !error) setError("Failed to load audit logs");
     } finally {
       setLoading(false);
     }
@@ -63,11 +87,6 @@ export default function AuditsPage() {
       loadAudits(page);
     }
   }, [authStatus, search]);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
 
   const handlePageChange = (targetPage: number) => {
     setPage(targetPage);
@@ -154,13 +173,13 @@ export default function AuditsPage() {
           <SvgSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
           <input 
             type="text" 
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search logs..." 
             className="pl-10 pr-4 py-2.5 bg-white border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-shadow min-w-[240px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
           />
         </div>
-        <ExportButton onClick={handleExportCSV} />
+        <ExportButton onClick={handleExportCSV} className="w-[130px]" />
       </div>
 
       {/* Main Card containing the Table */}
