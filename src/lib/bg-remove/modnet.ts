@@ -9,9 +9,12 @@ import { BG_REMOVE_LIMITS } from "./limits";
 // Configure Transformers.js for server-side use
 env.allowRemoteModels = true;
 env.allowLocalModels = true;
-// v4 auto-detects FS and cache; force filesystem cache on server, disable browser cache
-env.useFSCache = true;
-env.useBrowserCache = false;
+
+// On Vercel serverless: ephemeral FS means model cache won't persist between cold starts.
+// Use browser-cache-compatible HTTP caching so the CDN serves the model on re-downloads.
+const isVercel = !!process.env.VERCEL;
+env.useFSCache = !isVercel;
+env.useBrowserCache = isVercel;
 
 const MODEL_ID = "Xenova/modnet";
 
