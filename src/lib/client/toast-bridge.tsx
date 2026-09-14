@@ -75,3 +75,19 @@ export function showToast(kind: ToastKind, message: string, opts?: { id?: string
 export function defaultToastEmitter(kind: ToastKind, message: string) {
   showToast(kind, message)
 }
+
+export function dismissAllToasts() {
+  toast.dismiss()
+  activeToastId = null
+  lastMessage = null
+}
+
+export function dismissStaleToastsOnRoute() {
+  // If a toast was shown more than 250ms ago, it belonged to a previous page/interaction
+  // and must NOT leak into the new route (e.g. "Conversion failed" from converter tool).
+  // Programmatic redirect toasts (dispatched right before router.push) are preserved.
+  const elapsed = Date.now() - lastShownAt
+  if (elapsed > 250) {
+    dismissAllToasts()
+  }
+}
