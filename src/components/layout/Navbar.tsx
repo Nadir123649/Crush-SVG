@@ -14,6 +14,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 
 export function Navbar({ logoUrl }: { logoUrl?: string }) {
   const { user, logout } = useAuth();
@@ -188,6 +189,9 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
               {t("needHelp")}
             </Link>
 
+            {/* PWA Install Button */}
+            <PwaInstallButton variant="nav" className="hidden sm:inline-flex" />
+
             {/* Auth area: BOTH states always in DOM; CSS controls visibility */}
 
             {/* Logged-out: Login + Signup buttons */}
@@ -286,6 +290,10 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
                       {t("adminDashboard")}
                     </Link>
                   )}
+
+                  <div className="border-t border-[#F2EDE8] my-[4px] pt-[4px]">
+                    <PwaInstallButton variant="compact" />
+                  </div>
 
                   <button
                     type="button"
