@@ -105,11 +105,6 @@ export const useCases: UseCase[] = [
     h1: 'SVG to Modern WebP Converter',
     description: 'Convert complex SVG vector graphics into modern, lightweight WebP raster images with full alpha transparency and maximum compression for Google Core Web Vitals.',
     keywords: ['svg to webp', 'convert svg to webp', 'vector to webp online', 'lightweight webp from svg'],
-    icon: 'WEBP',
-    features: ['Up to 80% smaller file sizes than PNG', 'Full 32-bit alpha transparency', 'Improves Google Core Web Vitals & LCP'],
-  },
-  {
-    slug: 'convert-illustrator-svg-to-png',
     title: 'Convert Adobe Illustrator SVG to Transparent PNG',
     h1: 'Adobe Illustrator SVG to PNG Converter',
     description: 'Clean up bloated Adobe Illustrator SVG exports, strip Illustrator XML doctypes and namespaces, and render pixel-perfect high-resolution PNG images instantly.',
@@ -176,3 +171,4 @@ export const useCases: UseCase[] = [
 export function getUseCaseBySlug(slug: string): UseCase | undefined {
   return useCases.find((uc) => uc.slug === slug);
 }
+
