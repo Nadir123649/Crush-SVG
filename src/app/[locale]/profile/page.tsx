@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { constructLocalizedMetadata, DEFAULT_KEYWORDS } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
-import { ConverterUI } from "@/components/sections/ConverterUI";
-import { Features } from "@/components/sections/Features";
-import { SignUpCTA } from "@/components/sections/SignUpCTA";
-import { StepsSection } from "@/components/sections/StepsSection";
-import { TargetAudience } from "@/components/sections/TargetAudience";
-import { FAQ } from "@/components/sections/FAQ";
-import { AdBanner } from "@/components/ui/AdBanner";
+import { ProfileDashboardUI } from "@/components/sections/ProfileDashboardUI";
 import { routing } from "@/i18n/routing";
 
 export function generateStaticParams() {
@@ -25,15 +19,24 @@ export async function generateMetadata({
 
   return constructLocalizedMetadata({
     locale,
-    routeKey: "/png-to-svg",
-    title: t("pngToSvgTitle"),
-    description: t("pngToSvgDescription"),
-    keywords: DEFAULT_KEYWORDS,
+    routeKey: "/profile",
+    title: t("profileTitle"),
+    description: t("profileDescription"),
+    keywords: [
+      "developer api",
+      "api keys",
+      "rest api access",
+      "svg conversion api",
+      "vector api",
+      "background removal api",
+      "conversion quota",
+      ...DEFAULT_KEYWORDS,
+    ],
   });
 }
 
 function renderHeroTitle(title: string) {
-  const match = title.match(/(PNG (?:to|zu|a|en|para) SVG|PNGからSVGへ)/i);
+  const match = title.match(/(API Keys|Developer API|Claves de API|API-Schlüssel|Clés API|Chaves de API|APIキー)/i);
   if (!match) return title;
 
   const parts = title.split(match[0]);
@@ -46,14 +49,14 @@ function renderHeroTitle(title: string) {
   );
 }
 
-export default async function PngToSvgPage({
+export default async function ProfilePage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const tTools = await getTranslations({ locale, namespace: "tool_pages.pngToSvg" });
+  const tTools = await getTranslations({ locale, namespace: "tool_pages.developerApi" });
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -61,13 +64,7 @@ export default async function PngToSvgPage({
         title={renderHeroTitle(tTools("h1"))}
         subtitle={tTools("subtitle")}
       />
-      <ConverterUI mode="raster-to-svg" />
-      <Features mode="raster-to-svg" />
-      <SignUpCTA />
-      <StepsSection mode="raster-to-svg" />
-      <TargetAudience mode="raster-to-svg" />
-      <AdBanner />
-      <FAQ mode="raster-to-svg" />
+      <ProfileDashboardUI />
     </div>
   );
 }

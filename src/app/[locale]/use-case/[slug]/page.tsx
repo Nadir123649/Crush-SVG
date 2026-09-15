@@ -5,6 +5,7 @@ import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { ConverterUI } from "@/components/sections/ConverterUI";
 import { FAQ } from "@/components/sections/FAQ";
 import { Hero } from "@/components/sections/Hero";
+import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
 import { Link, routing } from "@/i18n/routing";
 
@@ -139,6 +140,9 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
 
       {/* The Core Converter UI */}
       <ConverterUI />
+
+      {/* AdSense Unit */}
+      <AdBanner />
 
       {/* FAQ */}
       <FAQ />

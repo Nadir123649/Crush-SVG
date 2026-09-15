@@ -41,6 +41,30 @@ export const routing = defineRouting({
       pt: "/redimensionar-imagem",
       ja: "/gazou-saizu-henkou",
     },
+    "/svg-optimizer": {
+      en: "/svg-optimizer",
+      es: "/optimizador-svg",
+      de: "/svg-optimierer",
+      fr: "/optimiseur-svg",
+      pt: "/otimizador-svg",
+      ja: "/svg-saitekika",
+    },
+    "/favicon-generator": {
+      en: "/favicon-generator",
+      es: "/generador-favicon",
+      de: "/favicon-generator",
+      fr: "/generateur-favicon",
+      pt: "/gerador-favicon",
+      ja: "/favicon-seisei",
+    },
+    "/profile": {
+      en: "/profile",
+      es: "/perfil",
+      de: "/profil",
+      fr: "/profil",
+      pt: "/perfil",
+      ja: "/purofiiru",
+    },
   },
 });
 
