@@ -108,13 +108,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         }`}
         ref={navContainerRef}
       >
-        <nav className="w-full max-w-[1280px] grid grid-cols-[auto_1fr_auto] items-center gap-[20px] h-[36px] md:h-[44px]">
+        <nav className="w-full max-w-[1280px] relative flex items-center justify-between h-[36px] md:h-[44px]">
           {/* Left: Logo */}
           <Link
             href="/"
             onClick={handleLogoClick}
             aria-label={tNav("homeAria")}
-            className="flex items-center gap-[6px] md:gap-[8px] group shrink-0"
+            className="flex items-center gap-[6px] md:gap-[8px] group shrink-0 z-10"
           >
             <Image
               src={logoUrl || IMAGES.logo}
@@ -131,7 +131,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </Link>
 
           {/* Center: Desktop Navigation Options */}
-          <div className="hidden lg:flex items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] px-[5px] py-[4px]">
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] px-[5px] py-[4px] z-10">
             {/* SVG to PNG (Primary Tool Link) */}
             <Link
               href="/"
@@ -353,7 +353,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Right Side: Language Switcher + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[12px] md:gap-[16px] border-l border-[#E8DED7] pl-[12px] md:pl-[16px]">
+          <div className="flex items-center gap-[8px] sm:gap-[12px] md:gap-[16px] border-l border-[#E8DED7] pl-[12px] md:pl-[16px] z-10 ml-auto">
             {/* Language Switcher (Tablet & Desktop) */}
             <div className="hidden sm:inline-block">
               <LanguageSwitcher
@@ -362,28 +362,28 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            {status === "guest" && (
-              <div className="hidden md:flex items-center gap-[8px] md:gap-[12px]">
-                <Button
-                  href="/login"
-                  variant="outline"
-                  className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
-                >
-                  {tAuth("login")}
-                </Button>
+            <div className={`logged-out-only hidden md:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+              <Button
+                href="/login"
+                variant="outline"
+                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
+              >
+                {tAuth("login")}
+              </Button>
 
-                <Button
-                  href="/signup"
-                  variant="solid"
-                  className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
-                >
-                  {tAuth("signup")}
-                </Button>
-              </div>
-            )}
+              <Button
+                href="/signup"
+                variant="solid"
+                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
+              >
+                {tAuth("signup")}
+              </Button>
+            </div>
 
             {/* Authenticated profile menu */}
-            {isAuthenticated && <div className="relative">
+            <div className={`logged-in-only relative ${status === "guest" ? "!hidden" : ""}`}>
+              {(isAuthenticated || user) && (
+                <>
               <button
                 type="button"
                 onClick={() =>
@@ -474,7 +474,9 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   </button>
                 </div>
               )}
-            </div>}
+                </>
+              )}
+            </div>
 
             {/* Mobile Hamburger Button */}
             <div className="lg:hidden flex items-center">
@@ -614,61 +616,63 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Mobile guest actions */}
-          {status === "guest" && (
-            <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
-              <Button
-                href="/login"
-                variant="outline"
-                className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {tAuth("login")}
-              </Button>
-              <Button
-                href="/signup"
-                variant="solid"
-                className="w-full h-[40px] rounded-[10px] text-[15px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {tAuth("signup")}
-              </Button>
-            </div>
-          )}
+          <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "authed" ? "!hidden" : ""}`}>
+            <Button
+              href="/login"
+              variant="outline"
+              className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {tAuth("login")}
+            </Button>
+            <Button
+              href="/signup"
+              variant="solid"
+              className="w-full h-[40px] rounded-[10px] text-[15px]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {tAuth("signup")}
+            </Button>
+          </div>
 
           {/* Mobile authenticated actions */}
-          {isAuthenticated && <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
-            <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
-              <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[13px]">
-                {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="font-body font-medium text-[14px] text-text-dark truncate">
-                  {user?.displayName || "User"}
-                </span>
-                <span className="font-body text-[12px] text-text-muted truncate">
-                  {user?.email}
-                </span>
-              </div>
-            </div>
+          <div className={`logged-in-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "guest" ? "!hidden" : ""}`}>
+            {(isAuthenticated || user) && (
+              <>
+                <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
+                  <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[13px]">
+                    {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-body font-medium text-[14px] text-text-dark truncate">
+                      {user?.displayName || "User"}
+                    </span>
+                    <span className="font-body text-[12px] text-text-muted truncate">
+                      {user?.email}
+                    </span>
+                  </div>
+                </div>
 
-            {user?.role === "admin" && (
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
-              >
-                {tNav("adminDashboard")}
-              </Link>
+                {user?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
+                  >
+                    {tNav("adminDashboard")}
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full text-center py-2.5 rounded-[10px] font-body font-semibold text-[14px] text-[#D94A1E] bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  {tNav("logOut")}
+                </button>
+              </>
             )}
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full text-center py-2.5 rounded-[10px] font-body font-semibold text-[14px] text-[#D94A1E] bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
-            >
-              {tNav("logOut")}
-            </button>
-          </div>}
+          </div>
         </div>
       )}
     </header>

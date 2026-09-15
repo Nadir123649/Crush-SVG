@@ -91,6 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Non-httpOnly flag cookie so the client can detect an active session.
       // The actual refresh cookie is httpOnly and cannot be read or deleted by JS.
       document.cookie = 'crushsvg_session=1; path=/; max-age=604800; SameSite=Lax'
+      document.documentElement.classList.add('user-logged-in')
+      document.documentElement.classList.remove('user-logged-out')
     }
   }, [])
 
@@ -113,6 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem('crush_auth_status', 'guest')
       // Clear the non-httpOnly session flag so attemptRefresh won't fire on reload.
       document.cookie = 'crushsvg_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.documentElement.classList.add('user-logged-out')
+      document.documentElement.classList.remove('user-logged-in')
     }
   }, [])
 
@@ -126,12 +130,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(parsed)
           setSessionRestored(true)
           setStatus('authed')
+          document.documentElement.classList.add('user-logged-in')
+          document.documentElement.classList.remove('user-logged-out')
         } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
           setStatus('guest')
+          document.documentElement.classList.add('user-logged-out')
+          document.documentElement.classList.remove('user-logged-in')
         }
       } catch { }
     }
   }, [status])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const syncAuthClass = () => {
+      try {
+        const hasUser = !!localStorage.getItem('crush_user')
+        if (hasUser) {
+          document.documentElement.classList.add('user-logged-in')
+          document.documentElement.classList.remove('user-logged-out')
+        } else {
+          document.documentElement.classList.add('user-logged-out')
+          document.documentElement.classList.remove('user-logged-in')
+        }
+      } catch { }
+    }
+    window.addEventListener('storage', syncAuthClass)
+    return () => window.removeEventListener('storage', syncAuthClass)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
