@@ -15,6 +15,7 @@
     "auto": "Auto"
   },
   "navigation": {
+    "svgToReact": "SVG in React",
     "tools": "Werkzeuge",
     "svgToPng": "SVG in PNG",
     "pngToSvg": "PNG in SVG",
@@ -57,6 +58,10 @@
     "bgRemoverCtaButton": "Hintergrund-Entferner testen"
   },
   "tool_pages": {
+    "svgToReact": {
+      "h1": "SVG in React-Komponenten umwandeln",
+      "subtitle": "Verwandeln Sie SVG-Dateien sofort in produktionsbereite Frontend-Komponenten mit currentColor-Unterstützung."
+    },
     "svgToPng": {
       "title": "SVG in PNG Konverter",
       "h1": "Von SVG zu PNG, Genau wie gewünscht",
@@ -191,6 +196,11 @@
     "conversionsUsed": "{used} of {total} free conversions used"
   },
   "features": {
+    "reactTitle": "Vektoren in produktionsreifen Code verwandeln ohne überladener Software",
+    "reactDesc": "Erstellen Sie saubere, moderne und barrierefreie Frontend-Komponenten aus Ihren SVGs in Millisekunden.",
+    "badgeTypeScriptReady": "TypeScript & TSX bereit",
+    "badgeFrameworkSupport": "React, Vue & Svelte",
+    "badgeLucideStyle": "Lucide & Heroicons Props",
     "svgTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
     "rasterTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
     "bgTitle": "Schluss mit komplizierten Bildbearbeitungsprogrammen",
@@ -223,6 +233,20 @@
     "badgeZipExport": "1-Klick ZIP-Export"
   },
   "steps": {
+    "react": [
+      {
+        "title": "SVG hochladen oder einfügen",
+        "description": "Ziehen Sie Ihre .svg-Datei in den Arbeitsbereich oder fügen Sie den SVG-Code ein."
+      },
+      {
+        "title": "Framework auswählen",
+        "description": "Wählen Sie React (TSX/JSX), Vue 3, Svelte oder Tailwind und passen Sie den Namen an."
+      },
+      {
+        "title": "Kopieren oder herunterladen",
+        "description": "Kopieren Sie den Code mit 1 Klick oder laden Sie die Komponentendatei herunter."
+      }
+    ],
     "svg": [
       {
         "title": "Einfügen oder Hochladen",
@@ -338,6 +362,24 @@
     "resizerMarketersLink": "Resize for Campaigns"
   },
   "FAQ": {
+    "react": [
+      {
+        "question": "Wie funktioniert der SVG-zu-React-Konverter?",
+        "answer": "CrushSVG analysiert Ihr SVG im Browser, wandelt HTML-Attribute in camelCase um und erzeugt eine typsichere React-Komponente."
+      },
+      {
+        "question": "Funktioniert der Code in Next.js und Vite?",
+        "answer": "Ja, der generierte Code ist vollständig kompatibel mit Next.js, Vite, Remix und Astro."
+      },
+      {
+        "question": "Was bewirkt die currentColor-Option?",
+        "answer": "Feste Farben werden durch currentColor ersetzt, sodass Icons automatisch die Schriftfarbe von CSS/Tailwind übernehmen."
+      },
+      {
+        "question": "Werden meine SVGs auf Ihren Servern gespeichert?",
+        "answer": "Nein, alle Transformationen finden 100% lokal in Ihrem Browser statt."
+      }
+    ],
     "title": "Häufig gestellte Fragen (FAQ)",
     "svg": [
       {
@@ -402,6 +444,7 @@
     ]
   },
   "footer": {
+    "svgToReact": "SVG in React",
     "taglineSvg": "Von SVG zu PNG, genau wie gewünscht.",
     "taglineRaster": "Von PNG zu SVG, genau wie gewünscht.",
     "subtaglineSvg": "Konvertieren, optimieren und perfekte Grafiken bereitstellen.",
@@ -448,6 +491,8 @@
     "support": "Support"
   },
   "SEO": {
+    "svgToReactTitle": "SVG in React JSX/TSX, Vue & Svelte Komponenten online umwandeln",
+    "svgToReactDescription": "Kostenloser SVG-zu-Code-Generator. Verwandeln Sie SVG-Vektoren sofort in typsichere React-, Vue 3-, Svelte- und React Native-Komponenten.",
     "svgToPngTitle": "SVG in PNG umwandeln – Kostenlos & Online | CrushSVG",
     "svgToPngDescription": "SVG-Dateien sekundenschnell in gestochen scharfe PNG-Bilder umwandeln. Kostenlos, browserbasiert mit transparentem Hintergrund. Keine Installation.",
     "pngToSvgTitle": "PNG in SVG umwandeln – Kostenlos Bilder vektorisieren online",
@@ -1184,5 +1229,28 @@
     "revokeKey": "Schlüssel widerrufen",
     "noKeyPrompt": "Sie haben noch keinen API-Schlüssel generiert. Erstellen Sie einen, um CrushSVG per REST-API zu nutzen.",
     "generateKeyBtn": "Geheimen API-Schlüssel erstellen"
+  },
+  "svg_to_code_ui": {
+    "editorTitle": "SVG-zu-Komponenten Compiler",
+    "liveCompilerBadge": "Live-Vorschau",
+    "editorSubtitle": "SVG hochladen oder einfügen und sauberen React TSX, JSX, Vue 3, Svelte oder Tailwind Code erzeugen.",
+    "presetsLabel": "Vorlagen",
+    "svgOnlyNote": "Unterstützt .SVG-Vektordateien bis zu 10MB",
+    "livePreview": "Visuelle Vorschau",
+    "clearInput": "SVG löschen",
+    "rawSvgLabel": "SVG-Quellcode",
+    "componentNameLabel": "Komponentenname",
+    "useCurrentColor": "Farben durch currentColor ersetzen",
+    "generatedCodeLabel": "Generierter Komponentencode",
+    "copied": "Kopiert!",
+    "copyCode": "Code kopieren",
+    "downloadFile": "Komponente herunterladen",
+    "invalidSvgFile": "Bitte wählen Sie eine gültige SVG-Datei (.svg)",
+    "fileTooLarge": "Die Datei überschreitet das Limit von 10MB.",
+    "fileLoaded": "SVG erfolgreich geladen.",
+    "fileReadError": "SVG-Datei konnte nicht gelesen werden.",
+    "codeCopied": "Komponentencode in die Zwischenablage kopiert!",
+    "copyFailed": "Kopieren fehlgeschlagen.",
+    "fileDownloaded": "Komponentendatei erfolgreich heruntergeladen."
   }
 }

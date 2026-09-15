@@ -22,7 +22,7 @@ export function trackEvent(name: string, params?: Record<string, unknown>) {
 
 /** Fire a named conversion event. */
 export function trackConversion(
-  eventName: "svg_converted" | "png_downloaded" | "sign_up" | "raster_vectorized" | "svg_downloaded" | "svg_optimized" | "favicon_generated",
+  eventName: "svg_converted" | "png_downloaded" | "sign_up" | "raster_vectorized" | "svg_downloaded" | "svg_optimized" | "favicon_generated" | "svg_to_react",
   params?: Record<string, unknown>
 ) {
   trackEvent(eventName, params);

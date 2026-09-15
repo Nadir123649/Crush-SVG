@@ -3,7 +3,11 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema } from "@/lib/seo";
+<<<<<<< HEAD
 import { Blog, User } from "@/lib/database/db";
+=======
+import { connectToDatabase, Blog, User } from "@/lib/database/db";
+>>>>>>> f4f21265e93a6c60c340ed6656dfba53ba5d1dba
 import type { BlogDoc } from "@/lib/database/models/blog";
 import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
