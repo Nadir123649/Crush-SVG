@@ -237,6 +237,14 @@ export default async function RootLayout({
         <AnalyticsConsentGate />
         <AdSenseConsentGate />
 
+        {/* Google AdSense core script */}
+        <Script
+          async
+          crossOrigin="anonymous"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2946217028626519"
+          strategy="afterInteractive"
+        />
+
         {/* Service Worker */}
         <ServiceWorkerRegistration />
       </body>
