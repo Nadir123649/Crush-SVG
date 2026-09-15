@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [addingAdmin, setAddingAdmin] = useState(false);
   
-  const [cachedSettings] = useState(() => getAdminCached<any>("admin_settings", 60_000));
+  const [cachedSettings] = useState(() => getAdminCached<any>("admin_settings", 120_000));
   const [loading, setLoading] = useState(!cachedSettings);
   const [savingSettings, setSavingSettings] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
