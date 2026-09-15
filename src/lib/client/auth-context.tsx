@@ -192,26 +192,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         : null
       const hasActiveSessionFlag = !!sessionCookie && (sessionCookie.split('=')[1]?.trim() ?? '') !== ''
       if (typeof document !== 'undefined' && !hasActiveSessionFlag) {
-        setStatus('guest')
+        clearAuth()
         return
       }
-      const { payload } = await refreshSession({ silent: true })
+      const { payload, sessionDead } = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
+        if (sessionDead) {
+          clearAuth()
+          return
+        }
+        // If offline (e.g. PWA offline mode) and session was restored, maintain state
+        if (typeof navigator !== 'undefined' && !navigator.onLine && getSessionRestored()) {
+          return
+        }
         if (getSessionRestored()) {
-          // Keep the optimistic authed snapshot and retry to attach the access
-          // token. If it never attaches, resolve to guest so the UI does not
-          // stay stuck in a broken "authed but no token" state.
+          // Retry for transient connection drops
           if (attempt < REFRESH_BACKOFF_MS.length - 1) {
             setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
             return
           }
-          setStatus('guest')
+          clearAuth()
           return
         }
-        // No stored user: no optimistic session to protect. Resolve to the
-        // guest state right away instead of waiting for backoff retries.
-        setStatus('guest')
+        clearAuth()
         return
       }
 
@@ -310,14 +314,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    try {
-      await Promise.allSettled([
-        apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
-        firebaseSignOut(),
-      ])
-    } finally {
-      clearAuth()
-    }
+    // Clear local auth state immediately so UI feels instant.
+    clearAuth()
+    // Fire server/session revocation in the background — non-blocking.
+    Promise.allSettled([
+      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+      firebaseSignOut(),
+    ]).catch(() => { /* non-critical */ })
   }, [clearAuth])
 
   const changePassword = useCallback(

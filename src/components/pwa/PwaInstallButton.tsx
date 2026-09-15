@@ -55,7 +55,7 @@ export function PwaInstallButton({
             onFocus={() => setShowTooltip(true)}
             onBlur={() => setShowTooltip(false)}
             aria-label={t("installApp")}
-            className={`group relative flex items-center justify-center w-[34px] h-[34px] md:w-[36px] md:h-[36px] rounded-[9px] border border-[#E8DED7] bg-white hover:bg-[#FAF6F3] text-text-dark hover:text-brand-primary hover:border-brand-primary/40 transition-all duration-200 shadow-[0px_1px_4px_rgba(32,36,39,0.04)] hover:shadow-[0px_3px_10px_rgba(217,74,30,0.12)] cursor-pointer ${className}`}
+            className={`group relative flex items-center justify-center w-[34px] h-[34px] md:w-[36px] md:h-[36px] rounded-[9px] border border-[#EEE5DE] bg-[#FAF6F3] hover:bg-[#F2EDE8] text-text-dark hover:text-brand-primary hover:border-brand-primary/40 transition-all duration-200 shadow-[0px_1px_4px_rgba(32,36,39,0.04)] hover:shadow-[0px_3px_10px_rgba(217,74,30,0.12)] cursor-pointer ${className}`}
           >
             {/* Install / Download Icon */}
             <svg

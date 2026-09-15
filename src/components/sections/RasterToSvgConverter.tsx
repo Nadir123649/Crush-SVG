@@ -17,6 +17,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
+const STORAGE_KEY_IMAGE = "crush_vectorizer_image";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
@@ -246,42 +247,39 @@ function VectorDropdown({
                   {opt.value === "Custom" && onCustomColorChange && customColor && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 flex items-center justify-between gap-1 flex-wrap"
+                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 px-[10px] py-[6px] flex items-center gap-[5px] bg-[#FAF9F6] flex-wrap shrink-0"
                     >
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCustomColorChange(c.hex);
-                            }}
-                            className={`w-[18px] h-[18px] rounded-full border border-gray-300 transition-transform ${
-                              customColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "scale-115 ring-2 ring-brand-primary"
-                                : "hover:scale-105"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          className="w-[20px] h-[20px] p-0 border-none rounded cursor-pointer"
+                      {COLOR_PRESETS.map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          title={c.name}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCustomColorChange(c.hex);
+                          }}
+                          className={`w-[14px] h-[14px] rounded-full border border-gray-300 transition-transform shrink-0 ${
+                            customColor.toLowerCase() === c.hex.toLowerCase()
+                              ? "scale-115 ring-2 ring-brand-primary"
+                              : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: c.hex }}
                         />
-                        <input
-                          type="text"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          maxLength={7}
-                          className="w-[58px] h-[22px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center"
-                        />
-                      </div>
+                      ))}
+                      <input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        className="w-[16px] h-[16px] p-0 border-none rounded cursor-pointer shrink-0"
+                        aria-label="Pick custom color"
+                      />
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        maxLength={7}
+                        className="w-[50px] h-[20px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center ml-auto"
+                      />
                     </div>
                   )}
                 </div>
@@ -378,6 +376,7 @@ export function RasterToSvgConverter() {
       setShowSignupPrompt(false);
       try {
         sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
       } catch {}
     }
   }, [status]);
@@ -459,9 +458,6 @@ export function RasterToSvgConverter() {
         const raw = sessionStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = JSON.parse(raw);
-          if (typeof saved.rasterDataUrl === "string") {
-            setRasterDataUrl(saved.rasterDataUrl);
-          }
           if (typeof saved.imageName === "string") {
             setImageName(saved.imageName);
           }
@@ -480,13 +476,21 @@ export function RasterToSvgConverter() {
             setResult(saved.result);
           }
         }
+        // Restore image data URL from a separate key to avoid QuotaExceededError
+        // when the full state including the large base64 string is saved as one blob.
+        try {
+          const imgRaw = sessionStorage.getItem(STORAGE_KEY_IMAGE);
+          if (imgRaw && typeof imgRaw === "string") {
+            setRasterDataUrl(imgRaw);
+          }
+        } catch {}
       } catch {}
       finally {
         storageRestoredRef.current = true;
         setStorageRestored(true);
       }
     });
-  }, []);
+  }, [status, sessionVersion]);
 
   // Save state to sessionStorage
   useEffect(() => {
@@ -497,18 +501,29 @@ export function RasterToSvgConverter() {
       sessionStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          rasterDataUrl,
           imageName,
           imageSize,
           imageDims,
           quality: rasterQuality,
           colors: rasterColors,
           background: rasterBackground,
-           bgColor: rasterBgColor,
-           mode: rasterMode,
-           result: persistableResult,
+          bgColor: rasterBgColor,
+          mode: rasterMode,
+          result: persistableResult,
         })
       );
+      // Save image data URL separately — it can be very large and exceed the
+      // 5 MB sessionStorage limit when bundled with settings and result.
+      if (rasterDataUrl) {
+        try {
+          sessionStorage.setItem(STORAGE_KEY_IMAGE, rasterDataUrl);
+        } catch {
+          // QuotaExceededError — image is too large to persist; settings and
+          // result are still saved above so the conversion output survives.
+        }
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      }
     } catch {}
   }, [
     rasterDataUrl,
@@ -612,6 +627,7 @@ export function RasterToSvgConverter() {
     setRasterBgColor("#ffffff");
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
     } catch {}
   }
 
@@ -791,7 +807,7 @@ export function RasterToSvgConverter() {
                       onClick={handleClear}
                       disabled={converting || !rasterDataUrl}
                       aria-label="Clear uploaded image"
-                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 ${
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
                         rasterDataUrl
                           ? converting
                             ? "opacity-50 cursor-not-allowed pointer-events-none"
@@ -808,8 +824,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
-                      <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                         Clear
                       </span>
                     </button>

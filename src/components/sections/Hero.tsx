@@ -39,8 +39,15 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
             <span className="relative inline-flex rounded-full h-[6px] w-[6px] bg-brand-primary"></span>
           </div>
           <span className="font-body font-medium text-[12px] sm:text-[12px] md:text-[14px] leading-[14px] md:leading-[18.67px] text-text-dark whitespace-nowrap overflow-hidden text-ellipsis">
-            <span className="logged-in-only">{t("badgeLoggedIn")}</span>
-            <span className="logged-out-only">{t("badgeLoggedOut")}</span>
+            {mounted ? (
+              viewStatus === "authed" ? (
+                <span>{t("badgeLoggedIn")}</span>
+              ) : (
+                <span>{t("badgeLoggedOut")}</span>
+              )
+            ) : (
+              <span className="logged-out-only">{t("badgeLoggedOut")}</span>
+            )}
           </span>
         </div>
       ) : badge ? (

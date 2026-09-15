@@ -55,7 +55,16 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        source: "/(CrushSVG-logo\\.svg|icon\\.svg|manifest\\.webmanifest)",
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/(CrushSVG-logo\\.svg|icon\\.svg|icon-192\\.png|icon-512\\.png|favicon-48x48\\.png|favicon-32x32\\.png|favicon\\.ico|manifest\\.webmanifest|site\\.webmanifest|.*\\.(?:webp|png|jpg|jpeg|gif|ico|svg|woff2|woff|ttf))",
         headers: [
           {
             key: "Cache-Control",

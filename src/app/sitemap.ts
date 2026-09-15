@@ -53,6 +53,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { key: "/png-to-svg", priority: 0.9, freq: "weekly" as const },
     { key: "/background-remover", priority: 0.9, freq: "weekly" as const },
     { key: "/image-resizer", priority: 0.9, freq: "weekly" as const },
+    { key: "/svg-optimizer", priority: 0.9, freq: "weekly" as const },
+    { key: "/favicon-generator", priority: 0.9, freq: "weekly" as const },
+    { key: "/svg-to-react", priority: 0.9, freq: "weekly" as const },
   ];
 
   for (const config of coreConverters) {

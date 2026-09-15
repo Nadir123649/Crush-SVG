@@ -34,6 +34,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const touchStartXRef = React.useRef<number | null>(null);
   const dragInfoRef = React.useRef({ startX: 0, hasDragged: false });
 
+  // Clear failed photo URL when user data changes (fresh photo from token refresh)
+  useEffect(() => {
+    setFailedImageUrl(null);
+  }, [user?.photoURL]);
+
   useEffect(() => {
     // Drag behavior removed per user request: click only.
   }, [isDesktopSidebarOpen]);
@@ -72,17 +77,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/settings", label: "Settings", icon: SvgSettings },
   ];
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsLoggingOut(true);
-    await logout();
+    logout();
     router.replace('/');
     showToast("success", "You've been logged out.", { id: "logout" });
   };
 
-  if (!isAuthedAdmin) {
+  // Show a lightweight skeleton while auth is resolving to avoid a full-page
+  // loader flash on internal admin route changes.
+  if (status === "loading") {
     return (
       <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
         <AdminLoader message="Loading admin panel..." />
+      </div>
+    );
+  }
+
+  // If auth has resolved but user is not an admin, redirect (handled by useEffect above).
+  // Show nothing while the redirect is in progress to avoid a flash of the admin shell.
+  if (!isAuthedAdmin) {
+    return (
+      <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
+        <AdminLoader message="Redirecting..." />
       </div>
     );
   }

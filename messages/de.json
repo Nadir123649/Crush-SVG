@@ -15,6 +15,7 @@
     "auto": "Auto"
   },
   "navigation": {
+    "svgToReact": "SVG in React",
     "tools": "Werkzeuge",
     "svgToPng": "SVG in PNG",
     "pngToSvg": "PNG in SVG",
@@ -29,7 +30,10 @@
     "logOut": "Abmelden",
     "openMenu": "Menü öffnen",
     "accountMenu": "Benutzerkonto-Menü",
-    "homeAria": "CrushSVG Startseite"
+    "homeAria": "CrushSVG Startseite",
+    "svgOptimizer": "SVG-Optimierer",
+    "faviconGenerator": "Favicon-Generator",
+    "profileDashboard": "Profil & Entwickler-API"
   },
   "language": {
     "label": "Sprache",
@@ -54,6 +58,10 @@
     "bgRemoverCtaButton": "Hintergrund-Entferner testen"
   },
   "tool_pages": {
+    "svgToReact": {
+      "h1": "SVG in React-Komponenten umwandeln",
+      "subtitle": "Verwandeln Sie SVG-Dateien sofort in produktionsbereite Frontend-Komponenten mit currentColor-Unterstützung."
+    },
     "svgToPng": {
       "title": "SVG in PNG Konverter",
       "h1": "Von SVG zu PNG, Genau wie gewünscht",
@@ -73,6 +81,20 @@
       "title": "Bildgröße ändern",
       "h1": "Bildgröße sofort anpassen",
       "subtitle": "Bilder in Sekundenschnelle auf exakte Maße anpassen. Unterstützt PNG, JPG und WebP direkt im Browser."
+    },
+    "svgOptimizer": {
+      "h1": "SVG-Dateien sofort komprimieren und optimieren",
+      "subtitle": "Überflüssige Metadaten entfernen, Pfadkoordinaten runden, ungenutzte Attribute bereinigen und Farben in Sekundenschnelle minimieren. Kostenlos, ultraschnell und 100% im Browser.",
+      "title": "SVG-Optimierer & Minifier"
+    },
+    "faviconGenerator": {
+      "h1": "SVG zu Favicon (.ICO) & WebP Generator",
+      "subtitle": "Verwandeln Sie jedes SVG in Sekunden in ein vollständiges Favicon-Paket mit Apple Touch Icons, Android Manifest und WebP-Formaten."
+    },
+    "developerApi": {
+      "title": "Entwickler API-Schlüssel",
+      "h1": "Entwickler API-Schlüssel & REST-Zugriff",
+      "subtitle": "Erstellen und verwalten Sie API-Schlüssel, um SVG-Konvertierung, Vektorisierung und Freistellen direkt in Ihre Anwendungen zu integrieren."
     }
   },
   "upload_interface": {
@@ -93,7 +115,10 @@
     "proPngExport": "Pro PNG Export",
     "selectSvg": "Select SVG",
     "sourceSize": "Source size: {width} x {height} px{aspect}",
-    "sourceSizeUnknown": "Source size: unknown — set width/height or viewBox on your SVG"
+    "sourceSizeUnknown": "Source size: unknown — set width/height or viewBox on your SVG",
+    "dragDrop": "Datei hierher ziehen oder",
+    "browse": "durchsuchen",
+    "supportedFormats": "Unterstützt SVG, PNG, JPG, WebP — Max 10MB"
   },
   "conversion_states": {
     "converting": "Konvertierung läuft...",
@@ -171,6 +196,11 @@
     "conversionsUsed": "{used} of {total} free conversions used"
   },
   "features": {
+    "reactTitle": "Vektoren in produktionsreifen Code verwandeln ohne überladener Software",
+    "reactDesc": "Erstellen Sie saubere, moderne und barrierefreie Frontend-Komponenten aus Ihren SVGs in Millisekunden.",
+    "badgeTypeScriptReady": "TypeScript & TSX bereit",
+    "badgeFrameworkSupport": "React, Vue & Svelte",
+    "badgeLucideStyle": "Lucide & Heroicons Props",
     "svgTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
     "rasterTitle": "Schluss mit unzuverlässigen Konvertern und überladener Software",
     "bgTitle": "Schluss mit komplizierten Bildbearbeitungsprogrammen",
@@ -190,9 +220,33 @@
     "badgeExactPixels": "Exakte Pixelabmessungen",
     "badgeRatioLock": "Seitenverhältnis sperren",
     "badgeFormatsOutput": "Export als PNG, JPG und WebP",
-    "badgeThreeFree": "3 kostenlose Konvertierungen ohne Anmeldung"
+    "badgeThreeFree": "3 kostenlose Konvertierungen ohne Anmeldung",
+    "badgeMinify": "Verlustfreie SVG-Komprimierung",
+    "badgePrecision": "Konfigurierbare Präzision",
+    "badgeZeroLag": "Sofortige Browser-Verarbeitung",
+    "optimizerDesc": "SVG-Code minifizieren, Illustrator/Figma-Metadaten entfernen, ungenutzte Attribute bereinigen und Pfade ohne visuellen Qualitätsverlust komprimieren.",
+    "optimizerTitle": "Schluss mit überdimensionierten Vektordateien und langsamen Websites",
+    "faviconTitle": "Keine manuelle Größenanpassung von Icons und Manifesten mehr",
+    "faviconDesc": "Erstellen Sie automatisch alle modernen Icon-Auflösungen für Chrome, Safari, iOS und Android aus einer einzigen SVG-Vektordatei.",
+    "badgeMultiRes": "Multi-Auflösungs .ICO",
+    "badgeAppleAndroid": "Apple Touch & Android Manifest",
+    "badgeZipExport": "1-Klick ZIP-Export"
   },
   "steps": {
+    "react": [
+      {
+        "title": "SVG hochladen oder einfügen",
+        "description": "Ziehen Sie Ihre .svg-Datei in den Arbeitsbereich oder fügen Sie den SVG-Code ein."
+      },
+      {
+        "title": "Framework auswählen",
+        "description": "Wählen Sie React (TSX/JSX), Vue 3, Svelte oder Tailwind und passen Sie den Namen an."
+      },
+      {
+        "title": "Kopieren oder herunterladen",
+        "description": "Kopieren Sie den Code mit 1 Klick oder laden Sie die Komponentendatei herunter."
+      }
+    ],
     "svg": [
       {
         "title": "Einfügen oder Hochladen",
@@ -248,6 +302,34 @@
         "title": "Bild herunterladen",
         "description": "Export als PNG, JPG oder WebP in optimierter Qualität speichern."
       }
+    ],
+    "optimizer": [
+      {
+        "title": "SVG einfügen oder hochladen",
+        "description": "Ziehe deine SVG-Datei herein oder füge den Code direkt in den Optimierer ein."
+      },
+      {
+        "title": "Komprimierungsstufe wählen",
+        "description": "Dezimalpräzision anpassen, Metadaten entfernen und leere Container bereinigen."
+      },
+      {
+        "title": "Minifiziertes SVG herunterladen",
+        "description": "Erhalte ein leichtes, sauberes SVG für Web, React oder Icons."
+      }
+    ],
+    "favicon": [
+      {
+        "title": "SVG-Vektor hochladen",
+        "description": "Ziehen Sie Ihr SVG-Icon hinein oder fügen Sie den Vektorcode ein. Unterstützt alle Standardpfade."
+      },
+      {
+        "title": "Anpassen & Vorschau",
+        "description": "Legen Sie App-Name, Hintergrundfarbe, Innenabstand und Eckenradius mit Live-Vorschau fest."
+      },
+      {
+        "title": "Favicon-Paket herunterladen",
+        "description": "Laden Sie die favicon.ico oder das vollständige .ZIP-Paket mit Webmanifest und HTML-Tags herunter."
+      }
     ]
   },
   "target_audience": {
@@ -280,6 +362,24 @@
     "resizerMarketersLink": "Resize for Campaigns"
   },
   "FAQ": {
+    "react": [
+      {
+        "question": "Wie funktioniert der SVG-zu-React-Konverter?",
+        "answer": "CrushSVG analysiert Ihr SVG im Browser, wandelt HTML-Attribute in camelCase um und erzeugt eine typsichere React-Komponente."
+      },
+      {
+        "question": "Funktioniert der Code in Next.js und Vite?",
+        "answer": "Ja, der generierte Code ist vollständig kompatibel mit Next.js, Vite, Remix und Astro."
+      },
+      {
+        "question": "Was bewirkt die currentColor-Option?",
+        "answer": "Feste Farben werden durch currentColor ersetzt, sodass Icons automatisch die Schriftfarbe von CSS/Tailwind übernehmen."
+      },
+      {
+        "question": "Werden meine SVGs auf Ihren Servern gespeichert?",
+        "answer": "Nein, alle Transformationen finden 100% lokal in Ihrem Browser statt."
+      }
+    ],
     "title": "Häufig gestellte Fragen (FAQ)",
     "svg": [
       {
@@ -305,9 +405,46 @@
     ],
     "bg": "[{\"question\":\"What image formats are supported?\",\"answer\":\"You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.\"},{\"question\":\"Do I need to install any software?\",\"answer\":\"No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees.\"},{\"question\":\"What types of images work best?\",\"answer\":\"Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up.\"},{\"question\":\"What is the maximum image size?\",\"answer\":\"You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.\"}]",
     "raster": "[{\"question\":\"Can I control the quality of the vectorized SVG?\",\"answer\":\"Yes! You can adjust presets (Low, Medium, High), color quantization, background handling, and path smoothing.\"},{\"question\":\"Are my uploaded PNG and JPG images secure?\",\"answer\":\"Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.\"},{\"question\":\"Does this tool support removing backgrounds?\",\"answer\":\"Yes, you can enable the 'Ignore Background' feature to automatically remove solid backgrounds during vectorization.\"},{\"question\":\"Do I need to install any software?\",\"answer\":\"No, CrushSVG is entirely web-based. You can vectorize images directly in your browser without any plugins.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can vectorize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"},{\"question\":\"What image formats can I vectorize?\",\"answer\":\"You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors.\"}]",
-    "resizer": "[{\"question\":\"What image formats can I resize?\",\"answer\":\"You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.\"},{\"question\":\"What is the maximum image size I can resize?\",\"answer\":\"You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.\"},{\"question\":\"Can I maintain the aspect ratio while resizing?\",\"answer\":\"Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.\"},{\"question\":\"When should I use JPG vs PNG vs WebP?\",\"answer\":\"Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"}]"
+    "resizer": "[{\"question\":\"What image formats can I resize?\",\"answer\":\"You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.\"},{\"question\":\"What is the maximum image size I can resize?\",\"answer\":\"You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.\"},{\"question\":\"Can I maintain the aspect ratio while resizing?\",\"answer\":\"Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.\"},{\"question\":\"When should I use JPG vs PNG vs WebP?\",\"answer\":\"Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"}]",
+    "optimizer": [
+      {
+        "question": "Was macht dieser SVG-Optimierer?",
+        "answer": "Der Optimierer von CrushSVG entfernt überflüssige XML-Deklarationen, Editor-Metadaten (aus Figma, Illustrator, Inkscape), ungenutzte Namespaces, Kommentare und leere Gruppen und rundet Pfadkoordinaten, um die Dateigröße drastisch zu reduzieren."
+      },
+      {
+        "question": "Verringert die Optimierung die visuelle Qualität?",
+        "answer": "Nein. Unsere Kompressionsalgorithmen sind visuell verlustfrei. Sie können die Dezimalpräzision nach Bedarf anpassen."
+      },
+      {
+        "question": "Bleibt mein SVG-Code privat?",
+        "answer": "Ja! Die Optimierung läuft zu 100% clientseitig im Browser. Ihre SVG-Dateien werden niemals auf Server hochgeladen."
+      },
+      {
+        "question": "Kann ich den minifizierten SVG-Code direkt kopieren?",
+        "answer": "Ja! Sie können mit einem Klick den Code oder eine Data-URI kopieren."
+      }
+    ],
+    "favicon": [
+      {
+        "question": "Was ist im Favicon-Paket (ZIP) enthalten?",
+        "answer": "Das Paket enthält eine Multi-Auflösungs favicon.ico (16x16, 32x32, 48x48), apple-touch-icon.png (180x180), android-chrome Icons (192x192, 512x512), site.webmanifest und HTML-Header-Tags."
+      },
+      {
+        "question": "Kann ich SVG direkt in WebP konvertieren?",
+        "answer": "Ja! Sie können Ihre Vektorgrafik direkt in das hochwertige WebP-Format mit individueller Qualität exportieren."
+      },
+      {
+        "question": "Unterstützt favicon.ico transparente Hintergründe?",
+        "answer": "Ja, unser ICO-Encoder bewahrt die 32-Bit-Alpha-Transparenz in allen Auflösungen."
+      },
+      {
+        "question": "Wie binde ich das generierte Favicon in meine Website ein?",
+        "answer": "Entpacken Sie die ZIP-Datei im Root- oder Public-Ordner Ihrer Website und fügen Sie den HTML-Code in das <head>-Tag ein."
+      }
+    ]
   },
   "footer": {
+    "svgToReact": "SVG in React",
     "taglineSvg": "Von SVG zu PNG, genau wie gewünscht.",
     "taglineRaster": "Von PNG zu SVG, genau wie gewünscht.",
     "subtaglineSvg": "Konvertieren, optimieren und perfekte Grafiken bereitstellen.",
@@ -332,6 +469,15 @@
     "ourTeam": "Unser Team",
     "privacyPolicy": "Datenschutzerklärung",
     "termsOfService": "Nutzungsbedingungen",
+    "convertersEngines": "Converter & Engines",
+    "svgToPngFull": "SVG zu PNG",
+    "svgToPngDesc": "Vektorcode in scharfe PNG-Bilder konvertieren",
+    "pngToSvgFull": "PNG zu SVG",
+    "pngToSvgDesc": "Rasterbilder in skalierbare SVG vektorisieren",
+    "imageResizerFull": "Bildgrösse ändern",
+    "imageResizerDesc": "Bilder auf exakte Dimensionen skalieren und optimieren",
+    "bgRemoverFull": "Hintergrundentferner",
+    "bgRemoverDesc": "KI-gestützte transparente Hintergrundentfernung",
     "useCases": "Anwendungsfälle",
     "reactNext": "React & Next.js",
     "emailSignatures": "E-Mail-Signaturen",
@@ -345,6 +491,8 @@
     "support": "Support"
   },
   "SEO": {
+    "svgToReactTitle": "SVG in React JSX/TSX, Vue & Svelte Komponenten online umwandeln",
+    "svgToReactDescription": "Kostenloser SVG-zu-Code-Generator. Verwandeln Sie SVG-Vektoren sofort in typsichere React-, Vue 3-, Svelte- und React Native-Komponenten.",
     "svgToPngTitle": "SVG in PNG umwandeln – Kostenlos & Online | CrushSVG",
     "svgToPngDescription": "SVG-Dateien sekundenschnell in gestochen scharfe PNG-Bilder umwandeln. Kostenlos, browserbasiert mit transparentem Hintergrund. Keine Installation.",
     "pngToSvgTitle": "PNG in SVG umwandeln – Kostenlos Bilder vektorisieren online",
@@ -352,7 +500,13 @@
     "bgRemoverTitle": "Bild-Hintergrund kostenlos online entfernen – CrushSVG",
     "bgRemoverDescription": "Bildhintergründe sofort entfernen. Kostenlos, im Browser mit transparenter PNG-Ausgabe. Ohne Installation.",
     "imageResizerTitle": "Bildgröße online ändern – Kostenloses Tool | CrushSVG",
-    "imageResizerDescription": "Bilder sofort zuschneiden und anpassen. Kostenlos im Browser für PNG, JPG und WebP mit Qualitätskontrolle."
+    "imageResizerDescription": "Bilder sofort zuschneiden und anpassen. Kostenlos im Browser für PNG, JPG und WebP mit Qualitätskontrolle.",
+    "svgOptimizerDescription": "SVG-Dateien online komprimieren und optimieren. Metadaten entfernen, leere Tags löschen, Dezimalstellen runden und Dateigröße sofort reduzieren. 100% kostenlos und privat.",
+    "svgOptimizerTitle": "SVG-Optimierer – Kostenloser Online-SVG-Minifier & Kompressor",
+    "faviconGeneratorTitle": "SVG zu Favicon (.ICO) & WebP Generator — Kostenloses App-Icon-Paket | CrushSVG",
+    "faviconGeneratorDescription": "Erstellen Sie hochauflösende favicon.ico (16/32/48), Apple Touch Icons, Android Webmanifest und WebP aus SVG in Sekunden.",
+    "profileTitle": "Benutzerprofil & Entwickler-API Dashboard | CrushSVG",
+    "profileDescription": "Verwalten Sie Ihre Kontoeinstellungen, Konvertierungskontingente und API-Schlüssel für automatisierte Konvertierungen."
   },
   "accessibility": {
     "skipToContent": "Zum Hauptinhalt springen",
@@ -687,7 +841,13 @@
     "howToRasterSvg": "How to Convert Raster Images to SVG Vector",
     "howToRasterSvgDesc": "Convert PNG or JPG raster images into scalable SVG vectors.",
     "howToSvgPng": "How to Convert SVG to PNG Online",
-    "howToSvgPngDesc": "Convert SVG code or files into crisp transparent PNG images in three steps."
+    "howToSvgPngDesc": "Convert SVG code or files into crisp transparent PNG images in three steps.",
+    "headingSvgOptimizerHighlight": "Maximale Kompression.",
+    "headingSvgOptimizerLine1": "Eine Datei.",
+    "howToSvgOptimizer": "So optimieren und komprimieren Sie SVG-Dateien online",
+    "howToSvgOptimizerDesc": "Komprimieren und bereinigen Sie SVG-Vektordateien in drei einfachen Schritten.",
+    "howToFaviconGenerator": "So erstellen Sie Favicons & App-Icons aus SVG",
+    "howToFaviconGeneratorDesc": "Befolgen Sie drei einfache Schritte, um gestochen scharfe Favicons und Manifeste für Ihre Webprojekte zu erstellen."
   },
   "toasts": {
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
@@ -713,7 +873,11 @@
     "svgFormatted": "SVG code formatted",
     "svgPasted": "SVG pasted from clipboard",
     "passwordUpdated": "Password updated. Please sign in again.",
-    "signedIn": "Signed in successfully. Welcome back!"
+    "signedIn": "Signed in successfully. Welcome back!",
+    "accountCreatedSuccess": "Konto erstellt! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.",
+    "somethingWentWrong": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "resendLinkSuccess": "Bestätigungs-E-Mail erfolgreich erneut gesendet.",
+    "couldNotResend": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden."
   },
   "bg_remover": {
     "downloadButton": "Download PNG",
@@ -969,5 +1133,124 @@
     "iosStep3": "Tippen Sie oben rechts auf 'Hinzufügen'",
     "offlineMode": "Offline-Modus aktiv — lokale Konvertierung bereit",
     "backOnline": "Wieder online"
+  },
+  "svg_optimizer_ui": {
+    "browseFile": "vom Gerät auswählen",
+    "cleanEmptyTags": "Leere Gruppen & Defs löschen",
+    "copied": "In Zwischenablage kopiert!",
+    "copyCode": "Code kopieren",
+    "copyDataUri": "Data-URI kopieren",
+    "copyFailed": "Kopieren fehlgeschlagen",
+    "downloadMinifiedSvg": "Minifiziertes SVG herunterladen",
+    "downloadStarted": "Optimiertes SVG wird heruntergeladen...",
+    "dragOrSelect": "SVG-Datei hierher ziehen oder",
+    "fileLoaded": "SVG erfolgreich geladen",
+    "fileReadError": "SVG-Datei konnte nicht gelesen werden",
+    "fileTooLarge": "Datei ist zu groß (max. 10MB)",
+    "inputLabel": "SVG-Code & Datei",
+    "invalidSvgFile": "Bitte wählen Sie eine gültige .svg Datei",
+    "invalidSvgNotice": "Fügen Sie gültigen SVG-Code ein, um die Vorschau zu sehen",
+    "minifyColors": "Farben & Stile minimieren",
+    "optionsTitle": "Komprimierungs-Einstellungen",
+    "precisionExact": "Exakt",
+    "precisionLabel": "Koordinaten-Präzision",
+    "previewTitle": "Optimierte Live-Vorschau",
+    "savingsBadge": "{percent}% Kleiner!",
+    "statOptimized": "Optimiert",
+    "statOriginal": "Original",
+    "statSavings": "Ersparnis",
+    "stripComments": "XML-Kommentare entfernen",
+    "stripMetadata": "Editor-Metadaten entfernen",
+    "codeCopied": "Optimiertes SVG in die Zwischenablage kopiert!",
+    "dataUriCopied": "Data-URI in die Zwischenablage kopiert!"
+  },
+  "favicon_generator_ui": {
+    "tabPreview": "Browser-Tab",
+    "iosPreview": "iOS Startbildschirm",
+    "androidPreview": "Android Startbildschirm",
+    "packReadyBadge": "Paket bereit",
+    "generatingBadge": "Erstellen...",
+    "tabPreviewNote": "Echtzeit-Vorschau in Browser-Tab und Lesezeichen",
+    "customizationTitle": "Favicon-Anpassung",
+    "appNameLabel": "Anwendungsname",
+    "themeColorLabel": "Designfarbe (Hex)",
+    "paddingLabel": "Icon-Abstand",
+    "radiusLabel": "Eckenradius",
+    "downloadIcoOnly": "favicon.ico herunterladen",
+    "downloadWebpOnly": "512px WebP herunterladen",
+    "copyHeadTags": "HTML <head> Tags kopieren",
+    "downloadFullPackZip": "Vollständiges Paket herunterladen (.ZIP)",
+    "zippingPack": "ZIP-Archiv wird erstellt...",
+    "invalidSvgFile": "Bitte wählen Sie eine gültige .svg-Datei aus.",
+    "fileTooLarge": "Die SVG-Datei überschreitet das 10-MB-Limit.",
+    "invalidSvgStructure": "Die Datei enthält kein gültiges SVG-Markup.",
+    "fileLoadedSuccess": "SVG erfolgreich in den Favicon-Generator geladen!",
+    "fileReadError": "Fehler beim Lesen der SVG-Datei.",
+    "zipDownloadedSuccess": "Favicon-Paket (ZIP) erfolgreich heruntergeladen!",
+    "zipFailed": "Fehler beim Erstellen der ZIP-Datei.",
+    "icoDownloadedSuccess": "favicon.ico erfolgreich heruntergeladen!",
+    "webpDownloadedSuccess": "WebP-Bild erfolgreich exportiert!",
+    "webpFailed": "Fehler beim Generieren des WebP-Bildes.",
+    "snippetCopied": "HTML <head> Code in Zwischenablage kopiert!",
+    "copyFailed": "Fehler beim Kopieren in die Zwischenablage."
+  },
+  "profile_dashboard": {
+    "nameRequired": "Bitte geben Sie Ihren Anzeigenamen ein.",
+    "updateFailed": "Aktualisierung des Profils fehlgeschlagen.",
+    "profileUpdatedSuccess": "Profil erfolgreich aktualisiert!",
+    "keyGenerateFailed": "Generierung des API-Schlüssels fehlgeschlagen.",
+    "keyGeneratedSuccess": "Neuer Entwickler-API-Schlüssel generiert!",
+    "revokeConfirm": "Sind Sie sicher, dass Sie diesen API-Schlüssel widerrufen möchten?",
+    "revokeFailed": "Widerrufen des API-Schlüssels fehlgeschlagen.",
+    "keyRevokedSuccess": "API-Schlüssel erfolgreich widerrufen.",
+    "apiKeyCopied": "API-Schlüssel in Zwischenablage kopiert!",
+    "copyFailed": "Kopieren fehlgeschlagen.",
+    "snippetCopied": "Code-Beispiel kopiert!",
+    "loginRequiredTitle": "Anmeldung erforderlich",
+    "loginRequiredDesc": "Bitte melden Sie sich an, um auf Ihr Profil, Kontingente und API-Schlüssel zuzugreifen.",
+    "activeMemberBadge": "Aktives Mitglied",
+    "monthlyUsageTitle": "Monatliches Konvertierungskontingent",
+    "usedPercent": "{percent}% verwendet",
+    "resetsMonthly": "Wird monatlich zurückgesetzt",
+    "profileSettingsTitle": "Profileinstellungen",
+    "displayNameLabel": "Anzeigename",
+    "saving": "Wird gespeichert...",
+    "saveChanges": "Änderungen speichern",
+    "apiKeySectionTitle": "Entwickler REST API-Schlüssel",
+    "apiKeySectionDesc": "Authentifizieren Sie automatisierte Anfragen an /api/v1/convert mit diesem Schlüssel.",
+    "hideKey": "Verbergen",
+    "showKey": "Anzeigen",
+    "copyKey": "Schlüssel kopieren",
+    "copied": "Kopiert!",
+    "copyCode": "Code kopieren",
+    "generating": "Wird generiert...",
+    "regenerateKey": "Schlüssel neu generieren",
+    "revoking": "Wird widerrufen...",
+    "revokeKey": "Schlüssel widerrufen",
+    "noKeyPrompt": "Sie haben noch keinen API-Schlüssel generiert. Erstellen Sie einen, um CrushSVG per REST-API zu nutzen.",
+    "generateKeyBtn": "Geheimen API-Schlüssel erstellen"
+  },
+  "svg_to_code_ui": {
+    "editorTitle": "SVG-zu-Komponenten Compiler",
+    "liveCompilerBadge": "Live-Vorschau",
+    "editorSubtitle": "SVG hochladen oder einfügen und sauberen React TSX, JSX, Vue 3, Svelte oder Tailwind Code erzeugen.",
+    "presetsLabel": "Vorlagen",
+    "svgOnlyNote": "Unterstützt .SVG-Vektordateien bis zu 10MB",
+    "livePreview": "Visuelle Vorschau",
+    "clearInput": "SVG löschen",
+    "rawSvgLabel": "SVG-Quellcode",
+    "componentNameLabel": "Komponentenname",
+    "useCurrentColor": "Farben durch currentColor ersetzen",
+    "generatedCodeLabel": "Generierter Komponentencode",
+    "copied": "Kopiert!",
+    "copyCode": "Code kopieren",
+    "downloadFile": "Komponente herunterladen",
+    "invalidSvgFile": "Bitte wählen Sie eine gültige SVG-Datei (.svg)",
+    "fileTooLarge": "Die Datei überschreitet das Limit von 10MB.",
+    "fileLoaded": "SVG erfolgreich geladen.",
+    "fileReadError": "SVG-Datei konnte nicht gelesen werden.",
+    "codeCopied": "Komponentencode in die Zwischenablage kopiert!",
+    "copyFailed": "Kopieren fehlgeschlagen.",
+    "fileDownloaded": "Komponentendatei erfolgreich heruntergeladen."
   }
 }

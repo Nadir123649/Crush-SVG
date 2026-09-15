@@ -19,7 +19,7 @@ function renderFeaturesTitle(title: string) {
   return title;
 }
 
-export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("features");
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -39,6 +39,12 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("bgTitle")
               : mode === "image-resizer"
               ? t("resizerTitle")
+              : mode === "svg-optimizer"
+              ? t("optimizerTitle")
+              : mode === "favicon-generator"
+              ? t("faviconTitle")
+              : mode === "svg-to-react"
+              ? t("reactTitle")
               : mode === "raster-to-svg"
               ? t("rasterTitle")
               : t("svgTitle")
@@ -49,6 +55,12 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
             t("bgDesc")
           ) : mode === "image-resizer" ? (
             t("resizerDesc")
+          ) : mode === "svg-optimizer" ? (
+            t("optimizerDesc")
+          ) : mode === "favicon-generator" ? (
+            t("faviconDesc")
+          ) : mode === "svg-to-react" ? (
+            t("reactDesc")
           ) : mode === "svg-to-png" ? (
             t("svgDesc")
           ) : (
@@ -60,11 +72,44 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       {/* Badges Row */}
       <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[30px] md:mt-[62px] max-w-[361px] md:max-w-[1000px]">
         <Badge text={t("badgeFree")} />
-        <Badge text={mode === "background-remover" ? t("badgeTransparentPng") : mode === "raster-to-svg" ? t("badgeScalableVector") : mode === "image-resizer" ? t("badgeExactPixels") : t("badgeMultipleSizes")} />
-        <Badge text={mode === "background-remover" ? t("badgePrivate") : mode === "image-resizer" ? t("badgeRatioLock") : t("badgeTransparentBg")} />
+        <Badge
+          text={
+            mode === "background-remover"
+              ? t("badgeTransparentPng")
+              : mode === "raster-to-svg"
+              ? t("badgeScalableVector")
+              : mode === "image-resizer"
+              ? t("badgeExactPixels")
+              : mode === "svg-optimizer"
+              ? t("badgeMinify")
+              : mode === "favicon-generator"
+              ? t("badgeMultiRes")
+              : mode === "svg-to-react"
+              ? t("badgeTypeScriptReady")
+              : t("badgeMultipleSizes")
+          }
+        />
+        <Badge
+          text={
+            mode === "background-remover"
+              ? t("badgePrivate")
+              : mode === "image-resizer"
+              ? t("badgeRatioLock")
+              : mode === "svg-optimizer"
+              ? t("badgePrecision")
+              : mode === "favicon-generator"
+              ? t("badgeAppleAndroid")
+              : mode === "svg-to-react"
+              ? t("badgeFrameworkSupport")
+              : t("badgeTransparentBg")
+          }
+        />
         {mode === "raster-to-svg" && <Badge text={t("badgeColorControls")} />}
         {mode === "background-remover" && <Badge text={t("badgeNoInstall")} />}
         {mode === "image-resizer" && <Badge text={t("badgeFormatsOutput")} />}
+        {mode === "svg-optimizer" && <Badge text={t("badgeZeroLag")} />}
+        {mode === "favicon-generator" && <Badge text={t("badgeZipExport")} />}
+        {mode === "svg-to-react" && <Badge text={t("badgeLucideStyle")} />}
         {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
       </div>
 

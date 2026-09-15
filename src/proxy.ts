@@ -515,29 +515,10 @@ export async function proxy(
   }
 
   // ───────────────────────────────────────────────────────────────────
-  // VERIFY PAGE (requires session)
+  // VERIFY PAGE (public — modal-only, no auth needed)
   // ───────────────────────────────────────────────────────────────────
 
   if (pathname === '/verify') {
-    const refreshToken =
-      request.cookies.get(
-        'crushsvg_refresh'
-      )?.value
-
-    if (!refreshToken) {
-      return NextResponse.redirect(
-        new URL('/', request.url)
-      )
-    }
-
-    // Only allow /verify?status=success — anything else is invalid
-    const status = url.searchParams.get('status')
-    if (status !== 'success') {
-      return NextResponse.redirect(
-        new URL('/', request.url)
-      )
-    }
-
     const response =
       NextResponse.next()
 

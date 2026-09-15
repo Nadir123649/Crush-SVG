@@ -6,40 +6,51 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net";
 
 const content = `# CrushSVG
 
-> CrushSVG is a lightning-fast, browser-based SVG to PNG converter that preserves pixel-perfect accuracy — including CSS filters, inline images, custom fonts, and transparent backgrounds.
+> CrushSVG is a high-performance vector and raster graphics platform. It features an ultra-accurate SVG to PNG converter, PNG to SVG vectorizer, AI Background Remover, and high-precision Image Resizer with offline PWA support and multi-language localization.
 
-CrushSVG was built to solve the frustration of broken or inaccurate SVG conversions. Paste SVG code, upload a file, or drag-and-drop — and get a crisp, production-ready PNG in seconds. It works for email clients (Outlook, Gmail), newsletters, websites, presentations, and more.
+CrushSVG was built to solve the frustration of broken vector conversions and rasterization errors. Whether converting vector code to crisp PNGs, tracing raster images into scalable SVGs, removing photo backgrounds using neural AI, or batch-resizing assets, CrushSVG provides studio-grade quality in seconds.
 
-## Key Features
+## Key Tools & Features
 
-- Paste SVG code directly or upload/drag-and-drop .svg files
-- Custom output width, height, and scale (up to 4000px)
-- Transparent background support
-- Guest conversions (no sign-up required, limited)
-- Unlimited conversions with a free account
-- Pixel-perfect rendering — preserves CSS, fonts, patterns, and embedded images
+1. **SVG to PNG Converter**: Converts SVG code, uploaded files, or URLs to high-resolution PNGs (up to 16x scale and 4000px) with full transparency, embedded fonts, and CSS filter preservation.
+2. **PNG to SVG Vectorizer**: Traces bitmap/raster images (PNG, JPG, WebP) into clean, scalable SVG vector paths with custom color quantization and path smoothing.
+3. **AI Background Remover**: Instant browser-side and neural AI background removal for photos, graphics, and e-commerce product images.
+4. **Image Resizer**: Exact pixel dimension scaling, aspect ratio preservation, and compression optimization.
+5. **SVG Optimizer & Minifier**: Instant lossless SVG code compressor, stripping metadata, unused defs, and rounding coordinate decimals.
+6. **Favicon & WebP Pack Generator**: Multi-resolution ICO (16x16, 32x32, 48x48), Apple Touch (180x180), Android Chrome (192x192, 512x512), WebManifest, and WebP generator with 1-click ZIP archive.
+7. **Developer REST API & Dashboard**: API key management, usage monitoring, and endpoints for programmatic vector conversion and optimization.
+8. **PWA & Offline Mode**: Installable Progressive Web App with service worker caching for offline access on Windows, macOS, Linux, Android, and iOS.
+9. **Multi-Language Support**: Fully localized in English, Spanish (Español), German (Deutsch), French (Français), Portuguese (Português), and Japanese (日本語).
 
-## Pages
+## Pages & Tools
 
-- [Home / Converter](${BASE_URL}): Main SVG to PNG conversion tool
+- [SVG to PNG Converter](${BASE_URL}/): Main SVG to PNG conversion tool
+- [PNG to SVG Vectorizer](${BASE_URL}/png-to-svg): Raster to vector tracing tool
+- [AI Background Remover](${BASE_URL}/background-remover): Automatic transparent background generator
+- [Image Resizer](${BASE_URL}/image-resizer): Pixel scaling and image optimization
+- [SVG Optimizer](${BASE_URL}/svg-optimizer): SVG minifier and compressor tool
+- [Favicon Generator](${BASE_URL}/favicon-generator): Multi-resolution Favicon ICO & WebP pack generator
+- [Developer API & Profile](${BASE_URL}/profile): API key generator, quotas, and account dashboard
+- [Blog](${BASE_URL}/blog): Designer and developer articles on vector graphics and web design
 - [SVG Guides](${BASE_URL}/svg-guides): Tutorials and guides on working with SVG files
 - [About](${BASE_URL}/about): About CrushSVG and its mission
 - [Team](${BASE_URL}/team): Meet the creators and engineers at The Nevon
 - [Changelog](${BASE_URL}/changelog): Recent updates, releases, and feature improvements
-- [Help](${BASE_URL}/help): Help center and frequently asked questions
+- [Help & FAQ](${BASE_URL}/help): Help center and frequently asked questions
 - [Support Hub](${BASE_URL}/support): Technical support and common solutions
 - [Contact Us](${BASE_URL}/contact-us): Contact and support form
 - [Privacy Policy](${BASE_URL}/privacy-policy): How user data is handled
 - [Terms of Service](${BASE_URL}/terms): Terms of use
 - [Cookies Policy](${BASE_URL}/cookies): Cookie usage information
 
-## API
+## Pricing & Access
 
-CrushSVG does not offer a public API. Conversions are performed via the web interface only.
+- **Guest:** 3 free conversions per tool session.
+- **Free Account:** Unlimited access to all tools, batch processing, and history. No credit card required.
 
 ## Contact
 
-For support or inquiries, visit ${BASE_URL}/contact-us or email privacy@crushsvg.net
+For support or inquiries, visit ${BASE_URL}/contact-us or email support@crushsvg.net
 `;
 
 export function GET() {

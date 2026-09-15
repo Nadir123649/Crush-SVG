@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Bricolage_Grotesque, Afacad, Noto_Sans_JP } from "next/font/google";
 import { AppFeedbackProvider } from "@/components/providers/AppFeedbackProvider";
 import { AnalyticsConsentGate } from "@/components/providers/AnalyticsConsentGate";
@@ -10,7 +11,6 @@ import {
   getWebApplicationSchema,
   getWebSiteSchema,
 } from "@/lib/seo";
-import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
@@ -81,9 +81,9 @@ export default async function RootLayout({
         {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
             wrong auth panel on the very first frame. Reads the same
             localStorage key AuthProvider uses — no second auth system. */}
-        <Script
+        <script
           id="auth-sync"
-          strategy="beforeInteractive"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
           }}
@@ -121,10 +121,29 @@ export default async function RootLayout({
           href="https://www.googletagmanager.com"
         />
 
+        {/* Consent Mode v2 default must run before GTM tags are evaluated. */}
+        <script
+          id="consent-default"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                'wait_for_update': 500
+              });
+            `,
+          }}
+        />
+
         {/* Google Tag Manager */}
-        <Script
+        <script
           id="google-tag-manager"
-          strategy="afterInteractive"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
             (function(w,d,s,l,i){
@@ -141,25 +160,6 @@ export default async function RootLayout({
               f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}}
-        />
-
-        {/* Consent Mode v2 default must run before GTM tags are evaluated. */}
-        <Script
-          id="consent-default"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('consent', 'default', {
-                'analytics_storage': 'denied',
-                'ad_storage': 'denied',
-                'ad_user_data': 'denied',
-                'ad_personalization': 'denied',
-                'wait_for_update': 500
-              });
-            `,
-          }}
         />
 
         {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
@@ -236,6 +236,14 @@ export default async function RootLayout({
 
         <AnalyticsConsentGate />
         <AdSenseConsentGate />
+
+        {/* Google AdSense core script */}
+        <Script
+          async
+          crossOrigin="anonymous"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2946217028626519"
+          strategy="afterInteractive"
+        />
 
         {/* Service Worker */}
         <ServiceWorkerRegistration />

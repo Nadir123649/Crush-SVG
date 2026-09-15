@@ -4,99 +4,105 @@ export const dynamic = "force-static";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net";
 
-const content = `# CrushSVG — Full Site Reference
+const content = `# CrushSVG — Full Site & Platform Reference
 
-> CrushSVG is a lightning-fast, browser-based SVG to PNG converter that preserves pixel-perfect accuracy — including CSS filters, inline images, custom fonts, and transparent backgrounds. Built for designers, developers, and email marketers.
+> CrushSVG is a high-performance vector and raster graphics platform. It features an ultra-accurate SVG to PNG converter, PNG to SVG vectorizer, AI Background Remover, and high-precision Image Resizer with offline PWA support and multi-language localization. Built for designers, developers, marketers, and digital creators.
 
-## What Is CrushSVG?
+## Platform Tools & Capabilities
 
-CrushSVG converts Scalable Vector Graphics (SVG) to raster PNG images with perfect fidelity. Unlike most converters that miss embedded fonts, CSS styles, patterns, or filters, CrushSVG uses advanced server-side rendering to ensure your output matches your design exactly.
+### 1. SVG to PNG Converter (\`/\`)
+- Converts Scalable Vector Graphics (SVG code, files, or remote URLs) to raster PNG images with pixel-perfect fidelity.
+- Preserves CSS styles, inline fonts, embedded images (base64 and linked), CSS filters, gradients, patterns, clip paths, and masks.
+- Custom output width and height (px or cm) and scale multipliers up to 16x (up to 4000x4000 px output).
+- Full transparent background support.
 
-Common use cases:
-- Exporting SVG icons and logos to PNG for use in email clients (Outlook, Gmail)
-- Generating high-resolution PNG assets for websites, presentations, and app stores
-- Converting SVG illustrations to PNG for social media or newsletters
-- Producing transparent-background PNGs from SVG files
+### 2. PNG to SVG Vectorizer (\`/png-to-svg\`)
+- Traces raster images (PNG, JPG, WebP) into scalable vector SVG graphics.
+- Features multi-layer color quantization, corner threshold smoothing, and path optimization.
+- Ideal for logo recreation, silhouette extraction, and converting pixel art into vectors.
 
----
+### 3. AI Background Remover (\`/background-remover\`)
+- Automatic AI-powered foreground segmentation and background removal.
+- Works directly in modern browsers for instant transparency.
+- Optimized for portrait photography, e-commerce product listings, and digital illustrations.
 
-## How It Works
+### 4. Image Resizer (\`/image-resizer\`)
+- High-precision image dimension scaling and compression.
+- Locks aspect ratio, supports custom pixel bounds, and optimizes file sizes.
 
-1. Paste SVG code into the editor, upload a .svg file, or drag-and-drop it
-2. Choose output settings: width (px or cm), height, scale multiplier (1x–16x), and background transparency
-3. Click Convert — a crisp PNG is generated in seconds
-4. Download the PNG or copy it to clipboard
+### 5. SVG Optimizer & Minifier (\`/svg-optimizer\`)
+- Lossless vector code compression and minification.
+- Strips editor metadata (Illustrator, Figma, Inkscape), removes unused defs and comments, rounds path coordinate decimals.
+- Live before/after size reduction stats and instant in-browser processing.
 
-The converter runs server-side. SVG code is processed securely and never stored or shared.
+### 6. Favicon & WebP Pack Generator (\`/favicon-generator\`)
+- Generates complete multi-resolution icon packages: \`favicon.ico\` (16x16, 32x32, 48x48), \`apple-touch-icon.png\` (180x180), \`android-chrome-192x192.png\`, \`android-chrome-512x512.png\`, \`site.webmanifest\`, and modern \`.webp\` format.
+- Live browser tab and device icon preview mockups with 1-click ZIP archive download and ready-to-use HTML \`<head>\` snippet.
+
+### 7. Developer REST API & Profile Dashboard (\`/profile\`)
+- Developer API key creation, rotation, and revocation (\`crush_live_...\`).
+- Programmatic REST API endpoints with Bearer / API-Key authentication.
+- Real-time monthly conversion quota tracking and multi-language code snippets (cURL, JS, Python).
+
+### 8. Progressive Web App (PWA) & Offline Mode
+- Installable desktop and mobile application (Chrome, Safari iOS, Edge, Android).
+- Service worker caching with offline fallback page (\`/offline.html\`) and local tool cache.
+
+### 9. Multi-Language Internationalization
+- Available in English (en), Spanish (es), German (de), French (fr), Portuguese (pt), and Japanese (ja).
 
 ---
 
 ## Pricing & Accounts
 
-- **Guest (no account):** 3 free conversions per session
-- **Free account:** Unlimited conversions, no credit card required, no subscription
-- There are no paid plans. CrushSVG is entirely free.
+- **Guest (no account):** 3 free conversions per tool session.
+- **Free account:** Unlimited conversions across all tools, API key access, conversion history, and priority processing. No credit card required.
 
 ---
 
-## Frequently Asked Questions
-
-**Is CrushSVG free?**
-Yes. Up to 3 conversions without an account. Create a free account for unlimited conversions — no credit card, no subscription.
-
-**Do I need to install anything?**
-No. CrushSVG is entirely web-based. Works in any modern browser.
-
-**Is my SVG code stored?**
-No. SVG code is processed securely on our servers and is never stored, logged, or shared.
-
-**Can I choose the output size?**
-Yes. Set a custom width and/or height in pixels or centimetres, or use a scale multiplier (1x to 16x) based on the SVG's intrinsic dimensions.
-
-**Does it support transparent backgrounds?**
-Yes. Toggle the transparency option before converting to get a PNG with a transparent background.
-
-**What SVG features are supported?**
-CrushSVG supports CSS styles, inline fonts, embedded images (base64 and linked), CSS filters, gradients, patterns, clip paths, and masks.
-
----
-
-## Site Pages
+## Site Navigation & Routes
 
 | Page | URL | Description |
 |---|---|---|
-| Home / Converter | ${BASE_URL} | Main SVG to PNG conversion tool |
-| SVG Guides | ${BASE_URL}/svg-guides | Tutorials and guides on working with SVGs |
-| About | ${BASE_URL}/about | About CrushSVG, our mission and parent company The Nevon |
-| Meet the Team | ${BASE_URL}/team | Engineering and product leadership behind CrushSVG |
-| Changelog | ${BASE_URL}/changelog | Release notes, updates, and feature history |
-| Help & FAQ | ${BASE_URL}/help | Frequently asked questions and help center |
-| Support Hub | ${BASE_URL}/support | Technical troubleshooting and vector support |
-| Contact Us | ${BASE_URL}/contact-us | Direct feedback and support contact form |
-| Sign Up | ${BASE_URL}/signup | Create a free account for unlimited conversions |
-| Log In | ${BASE_URL}/login | Sign in to an existing account |
-| Privacy Policy | ${BASE_URL}/privacy-policy | How user data is collected and used |
-| Terms of Service | ${BASE_URL}/terms | Terms and conditions of use |
-| Cookies Policy | ${BASE_URL}/cookies | Cookie usage and consent information |
+| SVG to PNG Converter | ${BASE_URL}/ | Primary SVG to PNG rendering engine |
+| PNG to SVG Vectorizer | ${BASE_URL}/png-to-svg | Bitmap image to vector converter |
+| AI Background Remover | ${BASE_URL}/background-remover | Neural background transparency tool |
+| Image Resizer | ${BASE_URL}/image-resizer | Dimensional scaling and image compressor |
+| SVG Optimizer | ${BASE_URL}/svg-optimizer | SVG minifier and vector code cleaner |
+| Favicon Generator | ${BASE_URL}/favicon-generator | Multi-resolution Favicon ICO & WebP pack generator |
+| Profile & Developer API | ${BASE_URL}/profile | API key generation, quotas, and account settings |
+| Blog | ${BASE_URL}/blog | Technical articles and design workflows |
+| SVG Guides | ${BASE_URL}/svg-guides | In-depth tutorials on working with vector graphics |
+| About | ${BASE_URL}/about | About CrushSVG and parent engineering company The Nevon |
+| Meet the Team | ${BASE_URL}/team | Product and engineering leadership |
+| Changelog | ${BASE_URL}/changelog | Version updates and release history |
+| Help & FAQ | ${BASE_URL}/help | Frequently asked questions and help documentation |
+| Support Hub | ${BASE_URL}/support | Technical support and vector troubleshooting |
+| Contact Us | ${BASE_URL}/contact-us | Direct feedback and support inquiries |
+| Sign Up | ${BASE_URL}/signup | Free account creation |
+| Log In | ${BASE_URL}/login | User sign-in |
+| Privacy Policy | ${BASE_URL}/privacy-policy | User data protection and security |
+| Terms of Service | ${BASE_URL}/terms | Terms of service and usage conditions |
+| Cookies Policy | ${BASE_URL}/cookies | Cookie usage and consent management |
 
 ---
 
-## Technical Details
+## Technical Specifications
 
-- Built with Next.js (App Router), TypeScript, and Tailwind CSS
-- Server-side SVG rendering for maximum fidelity
-- Supports SVG files up to 5MB
-- Maximum output resolution: 4000 x 4000 px
-- Output formats: PNG (default), JPEG
-- Authentication: Email/password and Google OAuth
-- Hosting: Vercel
+- **Frontend:** Next.js (App Router, Turbopack), React, TypeScript, Tailwind CSS
+- **i18n Engine:** next-intl with localized route aliases and bidirectional slug resolution
+- **PWA:** Service Worker (CacheFirst assets, NetworkFirst navigation), Web App Manifest v2
+- **Vector Rendering:** Server-side high-fidelity rendering pipeline
+- **Hosting:** Vercel Edge Network
+- **Max File Size:** 5MB per upload
+- **Max Output Resolution:** 4000 x 4000 px
 
 ---
 
-## Contact
+## Contact & Support
 
 - Support email: support@crushsvg.net
-- Privacy / legal: privacy@crushsvg.net
+- Parent company: The Nevon (https://www.thenevon.com)
 - Contact form: ${BASE_URL}/contact-us
 `;
 

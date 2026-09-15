@@ -13,33 +13,41 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Check if running in standalone mode (already installed)
-    const isStandalone =
+  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return (
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
-      document.referrer.includes("android-app://");
+      document.referrer.includes("android-app://")
+    );
+  });
 
-    setIsInstalled(isStandalone);
+  const [isIOS, setIsIOS] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return (
+      /iphone|ipad|ipod/.test(userAgent) &&
+      !(window as unknown as { MSStream?: unknown }).MSStream
+    );
+  });
 
-    // Detect iOS devices
+  const [isInstallable, setIsInstallable] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice =
       /iphone|ipad|ipod/.test(userAgent) &&
       !(window as unknown as { MSStream?: unknown }).MSStream;
-    setIsIOS(isIosDevice);
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+      document.referrer.includes("android-app://");
+    return isIosDevice && !isStandalone;
+  });
 
-    // If iOS and not standalone, it is installable via Safari share sheet
-    if (isIosDevice && !isStandalone) {
-      setIsInstallable(true);
-    }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
     // Listen for beforeinstallprompt on Chromium / Android / Desktop
     const handleBeforeInstallPrompt = (e: Event) => {
