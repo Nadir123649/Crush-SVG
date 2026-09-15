@@ -636,7 +636,8 @@
       "resendCooldown": "Resend available in {seconds}s",
       "subtitle": "We've sent a verification link to {email}",
       "successMessage": "Verification email sent!",
-      "title": "Verify Your Email"
+      "title": "Verify Your Email",
+      "invalidMessage": "This link is invalid or has expired. Please request a new one from the sign-up flow."
     }
   },
   "cookie_consent": {
@@ -951,5 +952,22 @@
   },
   "export_button": {
     "label": "Export"
+  },
+  "pwa": {
+    "installApp": "App installieren",
+    "installTitle": "CrushSVG installieren",
+    "installDescription": "Schnelle, offline-fähige SVG-Konvertierungen direkt auf Ihrem Desktop oder Startbildschirm.",
+    "installBenefitSpeed": "Sofortiger Start ohne Latenz",
+    "installBenefitOffline": "Funktioniert 100% offline ohne Internet",
+    "installBenefitPrivate": "Privates clientseitiges Rendering",
+    "installNow": "Jetzt installieren",
+    "maybeLater": "Vielleicht später",
+    "close": "Schließen",
+    "iosInstructionsTitle": "So installieren Sie auf iPhone & iPad",
+    "iosStep1": "Tippen Sie in Safari auf die Teilen-Schaltfläche",
+    "iosStep2": "Scrollen Sie nach unten und wählen Sie 'Zum Home-Bildschirm'",
+    "iosStep3": "Tippen Sie oben rechts auf 'Hinzufügen'",
+    "offlineMode": "Offline-Modus aktiv — lokale Konvertierung bereit",
+    "backOnline": "Wieder online"
   }
 }

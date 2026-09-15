@@ -1027,5 +1027,22 @@
     "headingBgRemoverHighlight": "Three Simple Steps.",
     "headingImageResizerLine1": "One Image.",
     "headingImageResizerHighlight": "Perfectly Sized."
+  },
+  "pwa": {
+    "installApp": "Install App",
+    "installTitle": "Install CrushSVG",
+    "installDescription": "Get fast, offline-ready SVG conversions right from your desktop or home screen.",
+    "installBenefitSpeed": "Instant launch with zero latency",
+    "installBenefitOffline": "Works 100% offline without internet",
+    "installBenefitPrivate": "Private client-side processing",
+    "installNow": "Install Now",
+    "maybeLater": "Maybe Later",
+    "close": "Close",
+    "iosInstructionsTitle": "How to install on iPhone & iPad",
+    "iosStep1": "Tap the Share button in the Safari bottom toolbar",
+    "iosStep2": "Scroll down and tap 'Add to Home Screen'",
+    "iosStep3": "Tap 'Add' in the top right corner",
+    "offlineMode": "Offline mode active — local conversions ready",
+    "backOnline": "Back online"
   }
 }

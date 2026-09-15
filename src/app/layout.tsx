@@ -13,6 +13,7 @@ import {
 import Script from "next/script";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
+import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { ClientLayoutWrapper } from "@/components/layout/ClientLayoutWrapper";
 import { getSiteSettings } from "@/lib/data/settings";
 import { getLocale, getMessages } from "next-intl/server";
@@ -227,6 +228,8 @@ export default async function RootLayout({
               </ClientLayoutWrapper>
               {/* Cookie Consent Banner - inside NextIntlClientProvider for useTranslations */}
               <CookieConsentBanner />
+              {/* Real-time offline status indicator */}
+              <OfflineIndicator />
             </NextIntlClientProvider>
           </AuthProvider>
         </AppFeedbackProvider>

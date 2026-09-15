@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
@@ -352,8 +353,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </Link>
           </div>
 
-          {/* Right Side: Language Switcher + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[12px] md:gap-[16px] border-l border-[#E8DED7] pl-[12px] md:pl-[16px] z-10 ml-auto">
+          {/* Right Side: Language Switcher + PWA Install + Auth */}
+          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px]">
+            {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
+            <PwaInstallButton variant="icon" className="hidden sm:inline-flex" />
+
             {/* Language Switcher (Tablet & Desktop) */}
             <div className="hidden sm:inline-block">
               <LanguageSwitcher
@@ -463,6 +467,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                       {tNav("adminDashboard")}
                     </Link>
                   )}
+
+                  <div className="border-t border-[#F2EDE8] my-[4px] pt-[4px]">
+                    <PwaInstallButton variant="compact" />
+                  </div>
 
                   <button
                     type="button"
@@ -605,6 +613,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             >
               {tNav("needHelp")}
             </Link>
+          </div>
+
+          {/* PWA Install in Mobile Drawer */}
+          <div className="pt-2 border-t border-[#F2EDE8]">
+            <PwaInstallButton
+              variant="drawer"
+            />
           </div>
 
           {/* Language Switcher in Mobile Drawer */}
