@@ -56,7 +56,7 @@ export function SignUpCTA() {
   points.push({ val: 0, text: t("signUpFree") });
 
   return (
-    <section className="w-full flex justify-center mb-[60px] md:mb-[100px]">
+    <section className="logged-out-only w-full flex justify-center mb-[60px] md:mb-[100px]">
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center gap-[40px]">
 
         {/* Left Column */}

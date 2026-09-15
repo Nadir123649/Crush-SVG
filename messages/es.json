@@ -636,7 +636,8 @@
       "resendCooldown": "Resend available in {seconds}s",
       "subtitle": "We've sent a verification link to {email}",
       "successMessage": "Verification email sent!",
-      "title": "Verify Your Email"
+      "title": "Verify Your Email",
+      "invalidMessage": "This link is invalid or has expired. Please request a new one from the sign-up flow."
     }
   },
   "cookie_consent": {
@@ -951,5 +952,22 @@
   },
   "export_button": {
     "label": "Export"
+  },
+  "pwa": {
+    "installApp": "Instalar App",
+    "installTitle": "Instalar CrushSVG",
+    "installDescription": "Obtén conversiones SVG rápidas y sin conexión desde tu escritorio o pantalla de inicio.",
+    "installBenefitSpeed": "Inicio instantáneo sin latencia",
+    "installBenefitOffline": "Funciona 100% sin conexión a internet",
+    "installBenefitPrivate": "Procesamiento privado en el cliente",
+    "installNow": "Instalar ahora",
+    "maybeLater": "Quizás más tarde",
+    "close": "Cerrar",
+    "iosInstructionsTitle": "Cómo instalar en iPhone y iPad",
+    "iosStep1": "Toca el botón Compartir en la barra inferior de Safari",
+    "iosStep2": "Desplázate hacia abajo y toca 'Agregar a pantalla de inicio'",
+    "iosStep3": "Toca 'Agregar' en la esquina superior derecha",
+    "offlineMode": "Modo sin conexión activo: conversiones locales listas",
+    "backOnline": "Conexión restablecida"
   }
 }
