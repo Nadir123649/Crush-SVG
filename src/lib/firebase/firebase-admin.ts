@@ -34,3 +34,16 @@ export async function verifyIdToken(idToken: string): Promise<DecodedIdToken> {
 export async function generatePasswordResetLink(email: string): Promise<string> {
   return adminAuth().generatePasswordResetLink(email);
 }
+
+/**
+ * Fetch the current profile photoURL for a Firebase Auth user.
+ * Returns null if the user is not found or has no photo.
+ */
+export async function getFreshPhotoURL(firebaseUid: string): Promise<string | null> {
+  try {
+    const userRecord = await adminAuth().getUser(firebaseUid);
+    return userRecord.photoURL ?? null;
+  } catch {
+    return null;
+  }
+}

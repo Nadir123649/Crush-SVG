@@ -174,11 +174,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!payload) {
         if (getSessionRestored()) {
           // Keep the optimistic authed snapshot and retry to attach the access
-          // token. If it never attaches, the next real API call decides.
+          // token. If it never attaches, resolve to guest so the UI does not
+          // stay stuck in a broken "authed but no token" state.
           if (attempt < REFRESH_BACKOFF_MS.length - 1) {
             setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
             return
           }
+          setStatus('guest')
           return
         }
         // No stored user: no optimistic session to protect. Resolve to the
@@ -202,9 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (!payload.user) {
         // A successful refresh should always carry the user; if it somehow
-        // does not, keep the optimistic authed state for a restored user rather
-        // than dropping into the guest UI.
-        if (getSessionRestored()) return
+        // does not, resolve to guest rather than leaving the UI in a broken
+        // "authed but no user data" state.
         setStatus('guest')
         return
       }

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { apiFetch, authFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
-import { AppLoader } from "@/components/ui/AppLoader";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
 export default function SettingsPage() {
@@ -168,10 +168,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-140px)] w-full gap-3">
-        <AppLoader />
-        <span className="font-body text-sm font-medium text-text-muted">Loading settings...</span>
-      </div>
+      <AdminLoader message="Loading settings..." className="min-h-[calc(100vh-140px)]" />
     );
   }
 

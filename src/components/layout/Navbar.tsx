@@ -98,9 +98,9 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
 
   async function handleLogout() {
     setMenuOpen(false);
-    showToast("success", tToast("loggedOut"));
     await logout();
     router.replace("/");
+    showToast("success", tToast("loggedOut"));
   }
 
   useEffect(() => {

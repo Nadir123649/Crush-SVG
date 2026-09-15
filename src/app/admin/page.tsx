@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
 import { KpiCard } from "@/components/admin/KpiCard";
-import { AppLoader } from "@/components/ui/AppLoader";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
@@ -48,10 +48,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-140px)] w-full gap-3">
-        <AppLoader />
-        <span className="font-body text-sm font-medium text-text-muted">Loading dashboard...</span>
-      </div>
+      <AdminLoader message="Loading dashboard..." className="min-h-[calc(100vh-140px)]" />
     );
   }
 

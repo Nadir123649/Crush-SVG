@@ -8,8 +8,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const AUDITS_PAGE_SIZE = 20;
+const DEFAULT_AUDITS_CACHE_KEY = "admin_audits_page=1&limit=20";
 
 const SvgSearch = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>;
 const SvgFilter = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
@@ -21,11 +23,16 @@ const SvgChevronRight = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/sv
 
 export default function AuditsPage() {
   const { status: authStatus } = useAuth();
-  const [page, setPage] = useState(1);
+  const initialCached = getAdminCached<{
+    data: any[];
+    meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+  }>(DEFAULT_AUDITS_CACHE_KEY, 30_000);
+
+  const [page, setPage] = useState(() => initialCached?.meta?.page || 1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [audits, setAudits] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [audits, setAudits] = useState<any[]>(() => initialCached?.data || []);
+  const [loading, setLoading] = useState(() => !initialCached);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +51,7 @@ export default function AuditsPage() {
     return params.toString();
   };
 
-  const loadAudits = async (targetPage = page) => {
+  const loadAudits = async (targetPage = page, isCancelled?: () => boolean) => {
     const queryParams = buildQueryParams(targetPage);
     const cacheKey = `admin_audits_${queryParams}`;
     const cached = getAdminCached<{
@@ -67,6 +74,8 @@ export default function AuditsPage() {
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
       }>(`/api/v1/admin/audits?${queryParams}`);
 
+      if (isCancelled?.()) return;
+
       if (response?.data) {
         const { data, meta } = response;
         setAudits(data);
@@ -76,15 +85,22 @@ export default function AuditsPage() {
         setError("Failed to load audit logs");
       }
     } catch (err) {
+      if (isCancelled?.()) return;
       if (!cached && !error) setError("Failed to load audit logs");
     } finally {
-      setLoading(false);
+      if (!isCancelled?.()) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     if (authStatus === "authed") {
-      loadAudits(page);
+      let cancelled = false;
+      loadAudits(page, () => cancelled);
+      return () => {
+        cancelled = true;
+      };
     }
   }, [authStatus, search]);
 
@@ -186,12 +202,7 @@ export default function AuditsPage() {
       <div className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
         
         {loading && (
-          <div className="p-8">
-            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
-              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-              <span className="font-body text-text-muted">Loading audits...</span>
-            </div>
-          </div>
+          <AdminLoader message="Loading audits..." className="min-h-[350px]" />
         )}
 
         {error && (
@@ -276,32 +287,34 @@ export default function AuditsPage() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="p-5 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FFFCFA]">
-              <span className="font-body text-sm text-text-muted">
-                Showing {((page - 1) * AUDITS_PAGE_SIZE) + 1} to {Math.min(page * AUDITS_PAGE_SIZE, audits.length)} of {audits.length > 0 ? audits.length : 0} entries
-              </span>
-              <div className="flex gap-1.5">
-                <button 
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  className={`p-2 border border-[#F2EDE8] rounded-[8px] bg-white text-text-muted hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  <SvgChevronLeft className="w-4 h-4" />
-                </button>
-                
-                <div className="flex items-center px-2 font-body font-bold text-brand-primary text-sm">
-                  {page} / {Math.ceil((audits.length > 0 ? audits.length : 0) / AUDITS_PAGE_SIZE) || 1}
-                </div>
+            {audits.length > 0 && (
+              <div className="p-5 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FFFCFA]">
+                <span className="font-body text-sm text-text-muted">
+                  Showing {((page - 1) * AUDITS_PAGE_SIZE) + 1} to {Math.min(page * AUDITS_PAGE_SIZE, audits.length)} of {audits.length} entries
+                </span>
+                <div className="flex gap-1.5">
+                  <button 
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                    className={`p-2 border border-[#F2EDE8] rounded-[8px] bg-white text-text-muted hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    <SvgChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex items-center px-2 font-body font-bold text-brand-primary text-sm">
+                    {page} / {Math.ceil(audits.length / AUDITS_PAGE_SIZE) || 1}
+                  </div>
 
-                <button 
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={!audits.length || audits.length < AUDITS_PAGE_SIZE}
-                  className={`p-2 border border-[#F2EDE8] rounded-[8px] bg-white text-text-muted hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 ${!audits.length || audits.length < AUDITS_PAGE_SIZE ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  <SvgChevronRight className="w-4 h-4" />
-                </button>
+                  <button 
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={!audits.length || audits.length < AUDITS_PAGE_SIZE}
+                    className={`p-2 border border-[#F2EDE8] rounded-[8px] bg-white text-text-muted hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 ${!audits.length || audits.length < AUDITS_PAGE_SIZE ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    <SvgChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>
