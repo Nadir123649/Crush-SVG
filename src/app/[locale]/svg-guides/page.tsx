@@ -5,6 +5,7 @@ import { Link, routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
 import { Button } from "@/components/ui/Button";
+import { AdBanner } from "@/components/ui/AdBanner";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -342,6 +343,9 @@ export default async function SvgGuidesPage({
         </section>
 
       </div>
+
+      {/* AdSense Unit */}
+      <AdBanner />
 
       {/* Bottom Footer Help Banner */}
       <div className="w-full max-w-[800px] mt-12 p-8 bg-[#FCF1ED] rounded-[24px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">

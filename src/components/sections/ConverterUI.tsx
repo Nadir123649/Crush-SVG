@@ -108,6 +108,7 @@ function SvgToPngConverter() {
   const [limitDownloadDone, setLimitDownloadDone] = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedImage, setCopiedImage] = useState(false);
 
   const widthRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef<HTMLDivElement>(null);
@@ -477,6 +478,28 @@ function SvgToPngConverter() {
     if (limitReached && status !== "authed") {
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
+    }
+  }
+
+  async function handleCopyImageToClipboard() {
+    if (!result?.data) return;
+    try {
+      const byteCharacters = atob(result.data);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const blob = new Blob([byteNumbers], { type: result.mimeType || "image/png" });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ]);
+      setCopiedImage(true);
+      setTimeout(() => setCopiedImage(false), 2000);
+      showToast("success", tToast("svgCopied"));
+    } catch {
+      showToast("error", tToast("copyFailed"));
     }
   }
 
@@ -1302,6 +1325,39 @@ function SvgToPngConverter() {
                             />
                           </span>
                         </Button>
+
+                        {/* Secondary Actions */}
+                        <div className="flex items-center gap-[16px] mt-[2px]">
+                          <button
+                            type="button"
+                            onClick={handleCopyImageToClipboard}
+                            className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <svg
+                              width="13"
+                              height="13"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            {copiedImage ? tDownload("copied") : tDownload("copyImage")}
+                          </button>
+                          <span className="text-[#CBD5E1]">&bull;</span>
+                          <button
+                            type="button"
+                            onClick={handleConvert}
+                            disabled={converting}
+                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
+                          >
+                            {tDownload("reconvert")}
+                          </button>
+                        </div>
                       </>
                     ) : (
                       <Button

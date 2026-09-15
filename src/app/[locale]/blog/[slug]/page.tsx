@@ -297,6 +297,9 @@ export default async function BlogPostDetailPage({ params }: BlogPostProps) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        {/* AdSense Unit */}
+        <AdBanner />
+
         {/* Related Articles Section */}
         {relatedPosts.length > 0 && (
           <section className="mt-[56px] pt-[40px] border-t border-[#EAEAEA]">
