@@ -4,7 +4,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { getHowToSchema } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 
-export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" }) {
+export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("steps");
   const tSection = useTranslations("steps_section");
 
@@ -26,6 +26,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
         ? "optimizer"
         : mode === "favicon-generator"
         ? "favicon"
+        : mode === "svg-to-react"
+        ? "react"
         : mode === "raster-to-svg"
         ? "raster"
         : "svg";

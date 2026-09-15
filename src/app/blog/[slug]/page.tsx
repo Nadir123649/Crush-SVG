@@ -2,8 +2,6 @@ import BlogPostDetailPage, {
   generateMetadata as baseGenerateMetadata,
 } from "../../[locale]/blog/[slug]/page";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata({
   params,
 }: {

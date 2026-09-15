@@ -15,6 +15,7 @@
     "auto": "自動"
   },
   "navigation": {
+    "svgToReact": "SVG to React",
     "tools": "ツール",
     "svgToPng": "SVG を PNG に変換",
     "pngToSvg": "PNG を SVG に変換",
@@ -57,6 +58,10 @@
     "bgRemoverCtaButton": "背景透過ツールを試す"
   },
   "tool_pages": {
+    "svgToReact": {
+      "h1": "SVGをReact コンポーネントに変換",
+      "subtitle": "SVGファイルをcurrentColor対応のTypeScriptおよびJavaScriptフロントエンドコンポーネントに即座に変換します。"
+    },
     "svgToPng": {
       "title": "SVG PNG 変換コンバーター",
       "h1": "SVGからPNGへ、思い通りの高画質変換",
@@ -191,6 +196,11 @@
     "conversionsUsed": "{used} of {total} free conversions used"
   },
   "features": {
+    "reactTitle": "ベクターを重いデザインソフトなしでプロダクションコードに変換",
+    "reactDesc": "SVGベクターからクリーンでアクセシブルなモダンフロントエンドコンポーネントを瞬時に生成します。",
+    "badgeTypeScriptReady": "TypeScript & TSX対応",
+    "badgeFrameworkSupport": "React, Vue & Svelte対応",
+    "badgeLucideStyle": "Lucide & Heroiconsスタイル",
     "svgTitle": "重いデザインソフトや不安定な変換ツールはもう不要",
     "rasterTitle": "重いデザインソフトや不安定な変換ツールはもう不要",
     "bgTitle": "複雑な画像編集ソフトでの切り抜き作業にさようなら",
@@ -223,6 +233,20 @@
     "badgeZipExport": "ワンクリック ZIP 一括出力"
   },
   "steps": {
+    "react": [
+      {
+        "title": "SVGをアップロードまたは貼り付け",
+        "description": ".svgファイルをドロップするか、SVGマークアップを直接貼り付けます。"
+      },
+      {
+        "title": "フレームワークを選択",
+        "description": "React (TSX/JSX)、Vue 3、Svelte、Tailwind、React Nativeを選択し、名前を設定します。"
+      },
+      {
+        "title": "コピーまたはダウンロード",
+        "description": "ワンクリックでコードをコピーするか、コンポーネントファイルを直接ダウンロードします。"
+      }
+    ],
     "svg": [
       {
         "title": "貼り付けまたはアップロード",
@@ -338,6 +362,24 @@
     "resizerMarketersLink": "Resize for Campaigns"
   },
   "FAQ": {
+    "react": [
+      {
+        "question": "SVG to Reactコンバーターはどのように動作しますか？",
+        "answer": "CrushSVGはブラウザ上でSVGマークアップを直接解析し、属性をJSX形式に変換して型安全なReactコンポーネントを生成します。"
+      },
+      {
+        "question": "Next.jsやViteで使用できますか？",
+        "answer": "はい！生成されたコンポーネントはNext.js App Router、Vite、Astro、Remixと完全に互換性があります。"
+      },
+      {
+        "question": "「currentColor」オプションとは何ですか？",
+        "answer": "固定カラーをcurrentColorに置き換えることで、Tailwind CSSクラス（例: text-blue-500）からアイコンの色を柔軟に変更できるようになります。"
+      },
+      {
+        "question": "SVGデータはサーバーに送信されますか？",
+        "answer": "いいえ。すべての処理はお使いのブラウザ上で100%ローカルに実行され、安全に保護されます。"
+      }
+    ],
     "title": "よくある質問 (FAQ)",
     "svg": [
       {
@@ -402,6 +444,7 @@
     ]
   },
   "footer": {
+    "svgToReact": "SVG to React",
     "taglineSvg": "SVGからPNGへ、思い通りの高画質変換。",
     "taglineRaster": "PNGからSVGへ、思い通りの高画質変換。",
     "subtaglineSvg": "変換、最適化、そして完璧なアセットを出力。",
@@ -448,6 +491,8 @@
     "support": "サポート"
   },
   "SEO": {
+    "svgToReactTitle": "SVGをReact JSX/TSX、Vue、Svelteコンポーネントに変換 | オンライン無料",
+    "svgToReactDescription": "無料のオンラインSVGコードジェネレーター。SVGベクターをReact（TSX/JSX）、Vue 3、Svelte、Tailwind、React Nativeコンポーネントに瞬時に変換します。",
     "svgToPngTitle": "SVG PNG 変換 – 無料オンライン高画質コンバーター | CrushSVG",
     "svgToPngDescription": "SVGを数秒で鮮明なPNGに変換。無料、ブラウザ完結、透過背景対応。ソフトのインストール不要で高解像度書き出し可能。",
     "pngToSvgTitle": "PNG SVG 変換 – 無料で画像をベクター化 | CrushSVG",
@@ -1184,5 +1229,28 @@
     "revokeKey": "キーを無効化",
     "noKeyPrompt": "まだAPIキーが生成されていません。REST APIを利用するには作成してください。",
     "generateKeyBtn": "シークレットAPIキーを生成"
+  },
+  "svg_to_code_ui": {
+    "editorTitle": "SVGコンポーネントコンパイラ",
+    "liveCompilerBadge": "リアルタイムプレビュー",
+    "editorSubtitle": "SVGをアップロードまたは貼り付けて、React TSX、JSX、Vue 3、Svelte、Tailwind、React Nativeコードを生成します。",
+    "presetsLabel": "サンプル",
+    "svgOnlyNote": "最大10MBの.SVGベクターファイルをサポート",
+    "livePreview": "プレビュー",
+    "clearInput": "クリア",
+    "rawSvgLabel": "SVGソースコード",
+    "componentNameLabel": "コンポーネント名",
+    "useCurrentColor": "色をcurrentColorに置換",
+    "generatedCodeLabel": "生成されたコード",
+    "copied": "コピー完了！",
+    "copyCode": "コードをコピー",
+    "downloadFile": "ファイルをダウンロード",
+    "invalidSvgFile": "有効なSVGファイル（.svg）を選択してください",
+    "fileTooLarge": "ファイルサイズが10MBを超えています。",
+    "fileLoaded": "SVGが正常に読み込まれました。",
+    "fileReadError": "SVGファイルの読み込みに失敗しました。",
+    "codeCopied": "コンポーネントコードをクリップボードにコピーしました！",
+    "copyFailed": "コピーに失敗しました。",
+    "fileDownloaded": "コンポーネントファイルをダウンロードしました。"
   }
 }

@@ -57,6 +57,14 @@ export const routing = defineRouting({
       pt: "/gerador-favicon",
       ja: "/favicon-seisei",
     },
+    "/svg-to-react": {
+      en: "/svg-to-react",
+      es: "/svg-a-react",
+      de: "/svg-in-react",
+      fr: "/svg-en-react",
+      pt: "/svg-para-react",
+      ja: "/svg-react-henkan",
+    },
     "/profile": {
       en: "/profile",
       es: "/perfil",
