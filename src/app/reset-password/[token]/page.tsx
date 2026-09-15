@@ -6,13 +6,15 @@ import Image from "next/image";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { IMAGES } from "@/lib/shared/images";
-import { GuestOnly } from "@/components/auth/GuestOnly";
+import { useAuth } from "@/lib/client/auth-context";
 import { InvalidLinkCard } from "@/components/ui/InvalidLinkCard";
+import { AppLoader } from "@/components/ui/AppLoader";
 
 type TokenState = "checking" | "valid" | "invalid";
 
 export default function ResetPasswordPage() {
   const { token } = useParams<{ token: string }>();
+  const { status } = useAuth();
   const [tokenState, setTokenState] = useState<TokenState>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,12 +34,14 @@ export default function ResetPasswordPage() {
     return () => clearInterval(timer);
   }, [done]);
 
-useEffect(() => {
-     if (done && redirectIn === 0) {
-       router.push("/login");
-     }
-   }, [done, redirectIn, router]);
+  useEffect(() => {
+    if (done && redirectIn === 0) {
+      router.push("/login");
+    }
+  }, [done, redirectIn, router]);
 
+  // Validate the token — must run regardless of auth state so expired links
+  // are shown even when the user is already logged in.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -53,6 +57,32 @@ useEffect(() => {
     })()
     return () => { cancelled = true }
   }, [token])
+
+  // If token is valid AND user is already authed, redirect to home.
+  // But if token is invalid/expired, show the error even when authed.
+  useEffect(() => {
+    if (status === "authed" && tokenState === "valid" && !done) {
+      router.replace("/")
+    }
+  }, [status, tokenState, done, router])
+
+  // Show loader while auth state or token is still resolving
+  if (status === "loading" || tokenState === "checking") {
+    return (
+      <div className="w-full min-h-[75vh] flex items-center justify-center py-[40px] md:py-[60px] px-[16px] md:px-0">
+        <AppLoader />
+      </div>
+    );
+  }
+
+  // Authed user with valid token — show loader briefly while redirect fires
+  if (status === "authed" && tokenState === "valid") {
+    return (
+      <div className="w-full min-h-[75vh] flex items-center justify-center py-[40px] md:py-[60px] px-[16px] md:px-0">
+        <AppLoader />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -89,17 +119,9 @@ useEffect(() => {
   }
 
   return (
-    <GuestOnly>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px] min-h-[200px]">
-          {tokenState === "checking" && (
-            <div className="flex flex-col items-center gap-[12px]">
-              <div className="w-[28px] h-[28px] rounded-full border-[3px] border-[#F2EDE8] border-t-[#D94A1E] animate-spin" />
-              <p className="font-afacad text-[14px] text-[#4B5563]">Checking your reset link…</p>
-            </div>
-          )}
-
           {tokenState === "invalid" && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
               <InvalidLinkCard
@@ -232,7 +254,7 @@ useEffect(() => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Updating…" : "Set New Password"}
                 </button>
@@ -249,6 +271,5 @@ useEffect(() => {
         </div>
       </div>
       </div>
-    </GuestOnly>
   );
 }

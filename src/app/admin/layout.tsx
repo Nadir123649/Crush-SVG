@@ -77,9 +77,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/settings", label: "Settings", icon: SvgSettings },
   ];
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsLoggingOut(true);
-    await logout();
+    logout();
     router.replace('/');
     showToast("success", "You've been logged out.", { id: "logout" });
   };
