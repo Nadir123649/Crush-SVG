@@ -1,12 +1,13 @@
 import "server-only";
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "@/lib/database/db";
+import { Session, User } from "@/lib/database/db";
 import { verifyAccessToken, type DecodedAccessToken } from "@/lib/auth/tokens";
 import { getRateStore } from "@/lib/security/rate-store";
 export interface AuthUser {
     id: string;
     role: string;
     jti?: string;
+    isApiKey?: boolean;
 }
 const SESSION_CACHE_TTL_MS = 5000;
 function allowedOrigins(): string[] {
@@ -64,20 +65,42 @@ export async function auth(request: NextRequest): Promise<{
 } | {
     error: Response;
 }> {
+    // 1. Check for Developer API Key (x-api-key header or Authorization: Bearer crush_live_...)
+    const apiKeyHeader = request.headers.get("x-api-key");
+    const authHeader = request.headers.get("authorization");
+    
+    let apiKey: string | null = null;
+    if (apiKeyHeader && apiKeyHeader.startsWith("crush_live_")) {
+        apiKey = apiKeyHeader.trim();
+    } else if (authHeader && authHeader.toLowerCase().startsWith("bearer crush_live_")) {
+        apiKey = authHeader.slice("bearer ".length).trim();
+    }
+
+    if (apiKey) {
+        const user = await User.findOne({ apiKey });
+        if (!user) {
+            return {
+                error: NextResponse.json({ error: "Invalid or revoked API key" }, { status: 401 }),
+            };
+        }
+        return {
+            user: { id: user._id.toString(), role: user.role, isApiKey: true },
+        };
+    }
+
     if (!isMethodExempt(request) && !isAllowedOrigin(request)) {
         return {
             error: NextResponse.json({ error: "Forbidden origin" }, { status: 403 }),
         };
     }
-    const header = request.headers.get("authorization");
-    if (!header?.toLowerCase().startsWith("bearer ")) {
+    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
         return {
             error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
         };
     }
     let decoded: DecodedAccessToken;
     try {
-        decoded = await verifyAccessToken(header.slice("bearer ".length));
+        decoded = await verifyAccessToken(authHeader.slice("bearer ".length));
     }
     catch {
         return {

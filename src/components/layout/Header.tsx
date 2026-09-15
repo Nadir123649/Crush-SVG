@@ -129,6 +129,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
+    if (pathname === "/favicon-generator") {
+      return {
+        label: tNav("faviconGenerator"),
+        href: "/favicon-generator",
+        isActive: true,
+      };
+    }
     if (pathname === "/" || pathname === "/convert-svg-to-png") {
       return {
         label: tNav("svgToPng"),
@@ -145,7 +152,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
   const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
   const isPngToSvgActive = pathname === "/png-to-svg";
-  const isOtherToolActive = pathname === "/background-remover" || pathname === "/image-resizer" || pathname === "/svg-optimizer";
+  const isOtherToolActive =
+    pathname === "/background-remover" ||
+    pathname === "/image-resizer" ||
+    pathname === "/svg-optimizer" ||
+    pathname === "/favicon-generator";
   const isAuthenticated = status === "authed" && !!user;
 
   return (
@@ -347,6 +358,28 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                         </span>
                       </div>
                     </Link>
+
+                    <Link
+                      href="/favicon-generator"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        pathname === "/favicon-generator"
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        ICO
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("faviconGenerator")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          Multi-resolution ICO & WebP pack
+                        </span>
+                      </div>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -521,6 +554,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     </p>
                   </div>
 
+                  <Link
+                    href="/profile"
+                    onClick={() => setActiveDropdown("none")}
+                    className="block w-full text-left px-[16px] py-[9px] font-body text-[14px] text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
+                  >
+                    {tNav("profileDashboard")}
+                  </Link>
+
                   {user?.role === "admin" && (
                     <Link
                       href="/admin"
@@ -662,6 +703,21 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 </span>
                 <span className="font-body text-[15px]">{tNav("svgOptimizer")}</span>
               </Link>
+
+              <Link
+                href="/favicon-generator"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  pathname === "/favicon-generator"
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  ICO
+                </span>
+                <span className="font-body text-[15px]">{tNav("faviconGenerator")}</span>
+              </Link>
             </div>
           </div>
 
@@ -745,6 +801,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     </span>
                   </div>
                 </div>
+
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
+                >
+                  {tNav("profileDashboard")}
+                </Link>
 
                 {user?.role === "admin" && (
                   <Link

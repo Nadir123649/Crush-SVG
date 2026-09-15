@@ -10,6 +10,9 @@ export interface UserDTO {
     hasPassword: boolean;
     isVerified: boolean;
     conversionsUsed: number;
+    apiKey?: string | null;
+    apiKeyCreatedAt?: string | null;
+    apiMonthlyQuota?: number;
     createdAt: string;
     lastLoginAt: string;
 }

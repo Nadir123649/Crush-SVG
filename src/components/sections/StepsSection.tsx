@@ -4,7 +4,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { getHowToSchema } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 
-export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" }) {
+export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" }) {
   const t = useTranslations("steps");
   const tSection = useTranslations("steps_section");
 
@@ -24,6 +24,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
         ? "resizer"
         : mode === "svg-optimizer"
         ? "optimizer"
+        : mode === "favicon-generator"
+        ? "favicon"
         : mode === "raster-to-svg"
         ? "raster"
         : "svg";
@@ -86,6 +88,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToImageResizer") 
     : mode === "svg-optimizer"
     ? tSection("howToSvgOptimizer")
+    : mode === "favicon-generator"
+    ? tSection("howToFaviconGenerator")
     : mode === "raster-to-svg" 
     ? tSection("howToRasterSvg") 
     : tSection("howToSvgPng");
@@ -96,6 +100,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToImageResizerDesc")
     : mode === "svg-optimizer"
     ? tSection("howToSvgOptimizerDesc")
+    : mode === "favicon-generator"
+    ? tSection("howToFaviconGeneratorDesc")
     : mode === "raster-to-svg"
     ? tSection("howToRasterSvgDesc")
     : tSection("howToSvgPngDesc");

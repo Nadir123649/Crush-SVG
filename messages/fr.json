@@ -30,7 +30,9 @@
     "openMenu": "Ouvrir le menu",
     "accountMenu": "Menu du compte utilisateur",
     "homeAria": "Page d'accueil CrushSVG",
-    "svgOptimizer": "Optimiseur SVG"
+    "svgOptimizer": "Optimiseur SVG",
+    "faviconGenerator": "Générateur de Favicon",
+    "profileDashboard": "Profil et API Développeur"
   },
   "language": {
     "label": "Langue",
@@ -79,6 +81,15 @@
       "h1": "Compressez et Optimisez vos Fichiers SVG Instantanément",
       "subtitle": "Supprimez les métadonnées superflues, arrondissez les coordonnées de tracés, nettoyez les attributs inutilisés et compressez les couleurs en quelques secondes. Gratuit, ultra rapide et 100% dans votre navigateur.",
       "title": "Optimiseur et Minificateur SVG"
+    },
+    "faviconGenerator": {
+      "h1": "Générateur de Favicon (.ICO) et WebP depuis SVG",
+      "subtitle": "Transformez n'importe quel SVG en pack complet de favicons multirésolution, icônes Apple Touch, manifeste Android et formats WebP en quelques secondes."
+    },
+    "developerApi": {
+      "title": "Clés API Développeur",
+      "h1": "Clés API et Accès REST Développeur",
+      "subtitle": "Générez et gérez des clés secrètes d'API pour intégrer la conversion SVG, la vectorisation et le détourage dans vos applications."
     }
   },
   "upload_interface": {
@@ -99,7 +110,10 @@
     "proPngExport": "Pro PNG Export",
     "selectSvg": "Select SVG",
     "sourceSize": "Source size: {width} x {height} px{aspect}",
-    "sourceSizeUnknown": "Source size: unknown — set width/height or viewBox on your SVG"
+    "sourceSizeUnknown": "Source size: unknown — set width/height or viewBox on your SVG",
+    "dragDrop": "Glissez-déposez votre fichier ici, ou",
+    "browse": "parcourir",
+    "supportedFormats": "Prend en charge SVG, PNG, JPG, WebP — Max 10 Mo"
   },
   "conversion_states": {
     "converting": "Conversion en cours...",
@@ -201,7 +215,12 @@
     "badgePrecision": "Précision configurable",
     "badgeZeroLag": "Traitement instantané dans le navigateur",
     "optimizerDesc": "Minifiez le code SVG, supprimez les métadonnées Illustrator/Figma, nettoyez les attributs inutilisés et réduisez les tracés sans perte de qualité visuelle.",
-    "optimizerTitle": "Arrêtez de déployer des fichiers vectoriels volumineux et des sites lents"
+    "optimizerTitle": "Arrêtez de déployer des fichiers vectoriels volumineux et des sites lents",
+    "faviconTitle": "Fini les réglages fastidieux d'icônes et de fichiers manifestes",
+    "faviconDesc": "Générez automatiquement toutes les résolutions d'icônes modernes pour Chrome, Safari, iOS et Android à partir d'un seul fichier vectoriel SVG.",
+    "badgeMultiRes": ".ICO Multirésolution",
+    "badgeAppleAndroid": "Apple Touch & Manifest Android",
+    "badgeZipExport": "Exportation ZIP en 1 Clic"
   },
   "steps": {
     "svg": [
@@ -272,6 +291,20 @@
       {
         "title": "Téléchargez le SVG Minifié",
         "description": "Obtenez un SVG léger et propre prêt pour le web, React ou les icônes."
+      }
+    ],
+    "favicon": [
+      {
+        "title": "Téléverser le Vecteur SVG",
+        "description": "Déposez votre icône SVG ou collez le code vectoriel. Compatible avec toutes les structures SVG."
+      },
+      {
+        "title": "Personnaliser et Prévisualiser",
+        "description": "Définissez le nom, la couleur de fond, les marges et le rayon des coins avec prévisualisation en direct."
+      },
+      {
+        "title": "Télécharger le Pack Favicon",
+        "description": "Téléchargez un fichier favicon.ico multirésolution ou le pack .ZIP complet avec manifeste et balises HTML."
       }
     ]
   },
@@ -348,6 +381,24 @@
         "question": "Puis-je copier directement le code SVG minifié ?",
         "answer": "Oui ! Cliquez simplement sur 'Copier le Code' ou 'Copier Data URI'."
       }
+    ],
+    "favicon": [
+      {
+        "question": "Que contient le pack Favicon (ZIP) ?",
+        "answer": "Le pack inclut un favicon.ico multirésolution (16x16, 32x32, 48x48), apple-touch-icon.png (180x180), les icônes android-chrome (192x192, 512x512), site.webmanifest et les balises HTML d'en-tête."
+      },
+      {
+        "question": "Puis-je convertir un SVG en WebP directement ?",
+        "answer": "Oui ! Vous pouvez exporter directement votre graphique vectoriel au format WebP de haute qualité avec réglage de compression."
+      },
+      {
+        "question": "Le favicon.ico prend-il en charge la transparence ?",
+        "answer": "Oui, notre encodeur ICO préserve la transparence alpha 32 bits sur toutes les résolutions."
+      },
+      {
+        "question": "Comment ajouter le favicon généré à mon site web ?",
+        "answer": "Extrayez le fichier ZIP dans la racine ou le dossier public de votre site et collez le code HTML dans vos balises <head>."
+      }
     ]
   },
   "footer": {
@@ -397,7 +448,11 @@
     "imageResizerTitle": "Redimensionner Image en Ligne Gratuit – CrushSVG",
     "imageResizerDescription": "Redimensionnez vos images instantanément. Gratuit, dans le navigateur, prend en charge PNG, JPG et WebP.",
     "svgOptimizerDescription": "Compressez et optimisez des fichiers SVG en ligne. Supprimez les métadonnées, nettoyez les balises vides et réduisez la taille des SVG instantanément. 100% gratuit et privé.",
-    "svgOptimizerTitle": "Optimiseur SVG – Minificateur et Compresseur SVG Gratuit en Ligne"
+    "svgOptimizerTitle": "Optimiseur SVG – Minificateur et Compresseur SVG Gratuit en Ligne",
+    "faviconGeneratorTitle": "Générateur de Favicon (.ICO) et WebP depuis SVG — Pack d'Icônes Gratuit | CrushSVG",
+    "faviconGeneratorDescription": "Générez un favicon.ico multirésolution (16/32/48), icônes Apple Touch, manifeste Android et WebP depuis SVG en quelques secondes.",
+    "profileTitle": "Profil Utilisateur et Tableau de Bord API | CrushSVG",
+    "profileDescription": "Gérez votre compte, suivez vos quotas de conversion et générez des clés API pour les conversions automatisées."
   },
   "accessibility": {
     "skipToContent": "Passer au contenu principal",
@@ -736,7 +791,9 @@
     "headingSvgOptimizerHighlight": "Compression Maximale.",
     "headingSvgOptimizerLine1": "Un Fichier.",
     "howToSvgOptimizer": "Comment Optimiser et Minifier des Fichiers SVG en Ligne",
-    "howToSvgOptimizerDesc": "Compressez et nettoyez vos fichiers vectoriels SVG en trois étapes simples."
+    "howToSvgOptimizerDesc": "Compressez et nettoyez vos fichiers vectoriels SVG en trois étapes simples.",
+    "howToFaviconGenerator": "Comment générer des favicons et icônes depuis un SVG",
+    "howToFaviconGeneratorDesc": "Suivez trois étapes simples pour créer des favicons, icônes tactiles et manifestes haute résolution."
   },
   "toasts": {
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
@@ -762,7 +819,11 @@
     "svgFormatted": "SVG code formatted",
     "svgPasted": "SVG pasted from clipboard",
     "passwordUpdated": "Password updated. Please sign in again.",
-    "signedIn": "Signed in successfully. Welcome back!"
+    "signedIn": "Signed in successfully. Welcome back!",
+    "accountCreatedSuccess": "Compte créé ! Veuillez vérifier vos e-mails pour valider votre compte.",
+    "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
+    "resendLinkSuccess": "E-mail de vérification renvoyé avec succès.",
+    "couldNotResend": "Impossible de renvoyer l'e-mail de vérification."
   },
   "bg_remover": {
     "downloadButton": "Download PNG",
@@ -1045,6 +1106,74 @@
     "statOriginal": "Original",
     "statSavings": "Économie",
     "stripComments": "Supprimer les Commentaires XML",
-    "stripMetadata": "Supprimer les Métadonnées"
+    "stripMetadata": "Supprimer les Métadonnées",
+    "codeCopied": "SVG optimisé copié dans le presse-papier !",
+    "dataUriCopied": "Data URI copié dans le presse-papier !"
+  },
+  "favicon_generator_ui": {
+    "tabPreview": "Onglet de Navigateur",
+    "iosPreview": "Écran d'accueil iOS",
+    "androidPreview": "Écran d'accueil Android",
+    "packReadyBadge": "Pack Prêt",
+    "generatingBadge": "Génération...",
+    "tabPreviewNote": "Aperçu en temps réel dans l'onglet et les favoris",
+    "customizationTitle": "Personnalisation du Favicon",
+    "appNameLabel": "Nom de l'application",
+    "themeColorLabel": "Couleur du thème (Hex)",
+    "paddingLabel": "Marge interne de l'icône",
+    "radiusLabel": "Rayon des coins",
+    "downloadIcoOnly": "Télécharger favicon.ico",
+    "downloadWebpOnly": "Télécharger WebP 512px",
+    "copyHeadTags": "Copier les balises HTML <head>",
+    "downloadFullPackZip": "Télécharger le pack complet (.ZIP)",
+    "zippingPack": "Création de l'archive ZIP...",
+    "invalidSvgFile": "Veuillez sélectionner un fichier .svg valide.",
+    "fileTooLarge": "Le fichier SVG dépasse la limite de 10 Mo.",
+    "invalidSvgStructure": "Le fichier ne contient pas de balises SVG valides.",
+    "fileLoadedSuccess": "SVG chargé avec succès dans le générateur de favicon !",
+    "fileReadError": "Échec de la lecture du fichier SVG.",
+    "zipDownloadedSuccess": "Pack Favicon ZIP téléchargé avec succès !",
+    "zipFailed": "Échec de création de l'archive ZIP.",
+    "icoDownloadedSuccess": "favicon.ico téléchargé avec succès !",
+    "webpDownloadedSuccess": "Image WebP exportée avec succès !",
+    "webpFailed": "Échec de génération de l'image WebP.",
+    "snippetCopied": "Balises HTML copiées dans le presse-papier !",
+    "copyFailed": "Échec de la copie."
+  },
+  "profile_dashboard": {
+    "nameRequired": "Veuillez saisir votre nom.",
+    "updateFailed": "Échec de la mise à jour du profil.",
+    "profileUpdatedSuccess": "Profil mis à jour avec succès !",
+    "keyGenerateFailed": "Échec de la génération de la clé API.",
+    "keyGeneratedSuccess": "Nouvelle clé API développeur générée !",
+    "revokeConfirm": "Êtes-vous sûr de vouloir révoquer cette clé API ?",
+    "revokeFailed": "Échec de la révocation de la clé API.",
+    "keyRevokedSuccess": "Clé API révoquée avec succès.",
+    "apiKeyCopied": "Clé API copiée dans le presse-papier !",
+    "copyFailed": "Échec de la copie.",
+    "snippetCopied": "Extrait de code copié !",
+    "loginRequiredTitle": "Connexion Requise",
+    "loginRequiredDesc": "Veuillez vous connecter pour accéder à votre profil, vos quotas mensuels et vos clés API.",
+    "activeMemberBadge": "Membre Actif",
+    "monthlyUsageTitle": "Quota Mensuel de Conversion",
+    "usedPercent": "{percent}% utilisé",
+    "resetsMonthly": "Réinitialisé chaque mois",
+    "profileSettingsTitle": "Paramètres du Profil",
+    "displayNameLabel": "Nom d'affichage",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer les modifications",
+    "apiKeySectionTitle": "Clé API REST Développeur",
+    "apiKeySectionDesc": "Authentifiez vos requêtes automatisées vers /api/v1/convert avec cette clé secrète.",
+    "hideKey": "Masquer",
+    "showKey": "Afficher",
+    "copyKey": "Copier la Clé",
+    "copied": "Copié !",
+    "copyCode": "Copier le Code",
+    "generating": "Génération...",
+    "regenerateKey": "Régénérer la Clé",
+    "revoking": "Révocation...",
+    "revokeKey": "Révoquer la Clé",
+    "noKeyPrompt": "Vous n'avez pas encore généré de clé API. Créez-en une pour intégrer CrushSVG par API REST.",
+    "generateKeyBtn": "Générer une Clé API Secrète"
   }
 }

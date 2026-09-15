@@ -23,7 +23,7 @@ function renderFaqTitle(title: string) {
   return title;
 }
 
-export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" }) {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" }) {
   const tFaq = useTranslations("FAQ");
   const tFooter = useTranslations("faq_footer");
   const { status } = useAuth();
@@ -63,6 +63,15 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
   } else if (mode === "svg-optimizer") {
     try {
       const rawFaqs = tFaq.raw("optimizer") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
+  } else if (mode === "favicon-generator") {
+    try {
+      const rawFaqs = tFaq.raw("favicon") as { question: string; answer: string }[];
       if (Array.isArray(rawFaqs)) {
         faqs = rawFaqs;
       }

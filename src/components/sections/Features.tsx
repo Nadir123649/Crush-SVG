@@ -19,7 +19,7 @@ function renderFeaturesTitle(title: string) {
   return title;
 }
 
-export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" }) {
+export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" }) {
   const t = useTranslations("features");
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -41,6 +41,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("resizerTitle")
               : mode === "svg-optimizer"
               ? t("optimizerTitle")
+              : mode === "favicon-generator"
+              ? t("faviconTitle")
               : mode === "raster-to-svg"
               ? t("rasterTitle")
               : t("svgTitle")
@@ -53,6 +55,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
             t("resizerDesc")
           ) : mode === "svg-optimizer" ? (
             t("optimizerDesc")
+          ) : mode === "favicon-generator" ? (
+            t("faviconDesc")
           ) : mode === "svg-to-png" ? (
             t("svgDesc")
           ) : (
@@ -74,6 +78,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeExactPixels")
               : mode === "svg-optimizer"
               ? t("badgeMinify")
+              : mode === "favicon-generator"
+              ? t("badgeMultiRes")
               : t("badgeMultipleSizes")
           }
         />
@@ -85,6 +91,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeRatioLock")
               : mode === "svg-optimizer"
               ? t("badgePrecision")
+              : mode === "favicon-generator"
+              ? t("badgeAppleAndroid")
               : t("badgeTransparentBg")
           }
         />
@@ -92,6 +100,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         {mode === "background-remover" && <Badge text={t("badgeNoInstall")} />}
         {mode === "image-resizer" && <Badge text={t("badgeFormatsOutput")} />}
         {mode === "svg-optimizer" && <Badge text={t("badgeZeroLag")} />}
+        {mode === "favicon-generator" && <Badge text={t("badgeZipExport")} />}
         {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
       </div>
 

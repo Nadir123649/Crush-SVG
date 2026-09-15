@@ -35,11 +35,20 @@ const content = `# CrushSVG — Full Site & Platform Reference
 - Strips editor metadata (Illustrator, Figma, Inkscape), removes unused defs and comments, rounds path coordinate decimals.
 - Live before/after size reduction stats and instant in-browser processing.
 
-### 6. Progressive Web App (PWA) & Offline Mode
+### 6. Favicon & WebP Pack Generator (\`/favicon-generator\`)
+- Generates complete multi-resolution icon packages: \`favicon.ico\` (16x16, 32x32, 48x48), \`apple-touch-icon.png\` (180x180), \`android-chrome-192x192.png\`, \`android-chrome-512x512.png\`, \`site.webmanifest\`, and modern \`.webp\` format.
+- Live browser tab and device icon preview mockups with 1-click ZIP archive download and ready-to-use HTML \`<head>\` snippet.
+
+### 7. Developer REST API & Profile Dashboard (\`/profile\`)
+- Developer API key creation, rotation, and revocation (\`crush_live_...\`).
+- Programmatic REST API endpoints with Bearer / API-Key authentication.
+- Real-time monthly conversion quota tracking and multi-language code snippets (cURL, JS, Python).
+
+### 8. Progressive Web App (PWA) & Offline Mode
 - Installable desktop and mobile application (Chrome, Safari iOS, Edge, Android).
 - Service worker caching with offline fallback page (\`/offline.html\`) and local tool cache.
 
-### 7. Multi-Language Internationalization
+### 9. Multi-Language Internationalization
 - Available in English (en), Spanish (es), German (de), French (fr), Portuguese (pt), and Japanese (ja).
 
 ---
@@ -47,7 +56,7 @@ const content = `# CrushSVG — Full Site & Platform Reference
 ## Pricing & Accounts
 
 - **Guest (no account):** 3 free conversions per tool session.
-- **Free account:** Unlimited conversions across all tools, conversion history, and priority processing. No credit card required.
+- **Free account:** Unlimited conversions across all tools, API key access, conversion history, and priority processing. No credit card required.
 
 ---
 
@@ -58,8 +67,10 @@ const content = `# CrushSVG — Full Site & Platform Reference
 | SVG to PNG Converter | ${BASE_URL}/ | Primary SVG to PNG rendering engine |
 | PNG to SVG Vectorizer | ${BASE_URL}/png-to-svg | Bitmap image to vector converter |
 | AI Background Remover | ${BASE_URL}/background-remover | Neural background transparency tool |
-| Image Resizer | ${BASE_URL}/image-resizer | Precise image dimension and scale tool |
-| SVG Optimizer | ${BASE_URL}/svg-optimizer | Lossless SVG minifier and compressor |
+| Image Resizer | ${BASE_URL}/image-resizer | Dimensional scaling and image compressor |
+| SVG Optimizer | ${BASE_URL}/svg-optimizer | SVG minifier and vector code cleaner |
+| Favicon Generator | ${BASE_URL}/favicon-generator | Multi-resolution Favicon ICO & WebP pack generator |
+| Profile & Developer API | ${BASE_URL}/profile | API key generation, quotas, and account settings |
 | Blog | ${BASE_URL}/blog | Technical articles and design workflows |
 | SVG Guides | ${BASE_URL}/svg-guides | In-depth tutorials on working with vector graphics |
 | About | ${BASE_URL}/about | About CrushSVG and parent engineering company The Nevon |

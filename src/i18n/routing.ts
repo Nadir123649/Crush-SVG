@@ -49,6 +49,22 @@ export const routing = defineRouting({
       pt: "/otimizador-svg",
       ja: "/svg-saitekika",
     },
+    "/favicon-generator": {
+      en: "/favicon-generator",
+      es: "/generador-favicon",
+      de: "/favicon-generator",
+      fr: "/generateur-favicon",
+      pt: "/gerador-favicon",
+      ja: "/favicon-seisei",
+    },
+    "/profile": {
+      en: "/profile",
+      es: "/perfil",
+      de: "/profil",
+      fr: "/profil",
+      pt: "/perfil",
+      ja: "/purofiiru",
+    },
   },
 });
 
