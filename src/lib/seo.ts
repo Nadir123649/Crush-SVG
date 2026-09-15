@@ -316,9 +316,17 @@ export function getWebSiteSchema() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${SITE_URL}/#website`,
-    "name": "CrushSVG",
-    "alternateName": "CrushSVG Converter",
-    "url": SITE_URL,
+    name: "CrushSVG",
+    alternateName: ["CrushSVG Converter", "Crush SVG to PNG"],
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/use-case/{search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 }
 

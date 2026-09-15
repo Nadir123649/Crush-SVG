@@ -1,0 +1,27 @@
+# CrushSVG — Free Online SVG to PNG Converter & Vector Optimization Platform
+
+> CrushSVG (https://www.crushsvg.net) is a high-performance, browser-based vector processing utility designed for web developers, UI/UX designers, and digital marketers. It converts SVG files to crisp transparent PNGs, vectorizes PNG/JPG images into SVG, removes image backgrounds using AI, optimizes SVG code, generates multi-resolution favicon packs, and compiles SVG code into React (TSX/JSX), Vue, and Svelte components.
+
+## Core Features & Tools
+- [SVG to PNG Converter](https://www.crushsvg.net/convert-svg-to-png): Convert SVG code or files to transparent, high-res PNGs up to 16x scaling (ideal for Outlook, Gmail, Canva, Cricut, and Word).
+- [PNG to SVG Vectorizer](https://www.crushsvg.net/png-to-svg): Trace bitmap PNG/JPG images into clean, scalable SVG vector paths.
+- [Background Remover](https://www.crushsvg.net/background-remover): Client-side AI background removal for product photos and logos with instant transparent PNG export.
+- [Image Resizer](https://www.crushsvg.net/image-resizer): Fast image resizing for PNG, JPG, and WebP with custom dimensions and quality settings.
+- [SVG Optimizer & Minifier](https://www.crushsvg.net/svg-optimizer): Strip editor metadata, clean empty tags, round decimal precision, and compress SVG file sizes.
+- [Favicon Pack Generator](https://www.crushsvg.net/favicon-generator): Turn any SVG into multi-resolution favicon.ico (16/32/48), Apple Touch icons, and site.webmanifest.
+- [SVG to React Component Compiler](https://www.crushsvg.net/svg-to-react): Transform raw SVG vectors into TypeScript React (TSX/JSX), Vue 3, Svelte, and React Native code.
+
+## Key Use Cases
+- [SVG to PNG for React & Next.js](https://www.crushsvg.net/use-case/svg-to-png-for-react)
+- [SVG to PNG for HTML Email Signatures](https://www.crushsvg.net/use-case/svg-to-png-for-email-signatures)
+- [SVG to PNG for Cricut Design Space & Silhouette](https://www.crushsvg.net/use-case/svg-to-png-for-cricut)
+- [SVG to PNG for Canva Banners & Stories](https://www.crushsvg.net/use-case/svg-to-png-for-canva)
+- [SVG to PNG for Microsoft Word & PowerPoint](https://www.crushsvg.net/use-case/svg-to-png-for-word-powerpoint)
+- [Figma SVG to 16x High-Resolution PNG](https://www.crushsvg.net/use-case/figma-svg-to-high-res-png)
+- [300 DPI Print-Ready PNG Converter](https://www.crushsvg.net/use-case/svg-to-png-for-print-300-dpi)
+
+## Privacy & Technology
+CrushSVG processes vector and image files client-side in the user's browser using HTML5 Canvas, WebAssembly (WASM), and Web Workers. User data and uploaded files are never saved, stored, or sold.
+
+## API Documentation
+Developers can generate REST API keys at https://www.crushsvg.net/profile to programmatically perform SVG conversion and vectorization via `/api/v1/convert` and `/api/v1/vectorize`.
