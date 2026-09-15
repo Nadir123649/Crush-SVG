@@ -6,8 +6,11 @@ import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { getAdminCached, setAdminCached, invalidateAdminCache } from "@/lib/client/admin-cache";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const BLOGS_PAGE_SIZE = 15;
+const DEFAULT_BLOGS_CACHE_KEY = "admin_blogs_page=1&limit=15&sortBy=createdAt&sortOrder=desc";
 
 const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
 const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
@@ -19,16 +22,22 @@ const SvgEyeOff = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" wid
 
 export default function BlogsPage() {
     const { status: authStatus } = useAuth();
+    const initialCached = getAdminCached<{
+        data: any[];
+        meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+    }>(DEFAULT_BLOGS_CACHE_KEY, 30_000);
+
+    const [searchInput, setSearchInput] = useState("");
     const [search, setSearch] = useState("");
     const [published, setPublished] = useState("all");
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(() => initialCached?.meta?.page || 1);
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortOrder, setSortOrder] = useState("desc");
-    const [blogs, setBlogs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [blogs, setBlogs] = useState<any[]>(() => initialCached?.data || []);
+    const [loading, setLoading] = useState(() => !initialCached);
     const [error, setError] = useState<string | null>(null);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(() => initialCached?.meta?.total_pages || 1);
+    const [totalItems, setTotalItems] = useState(() => initialCached?.meta?.total || 0);
 
     // Modals
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -37,6 +46,14 @@ export default function BlogsPage() {
 
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -51,17 +68,33 @@ export default function BlogsPage() {
     useEffect(() => {
         let cancelled = false;
         const loadBlogs = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const queryParams = new URLSearchParams();
-                queryParams.set("page", page.toString());
-                queryParams.set("limit", BLOGS_PAGE_SIZE.toString());
-                if (search) queryParams.set("search", search);
-                if (published !== "all") queryParams.set("published", published);
-                if (sortBy) queryParams.set("sortBy", sortBy);
-                if (sortOrder) queryParams.set("sortOrder", sortOrder);
+            const queryParams = new URLSearchParams();
+            queryParams.set("page", page.toString());
+            queryParams.set("limit", BLOGS_PAGE_SIZE.toString());
+            if (search) queryParams.set("search", search);
+            if (published !== "all") queryParams.set("published", published);
+            if (sortBy) queryParams.set("sortBy", sortBy);
+            if (sortOrder) queryParams.set("sortOrder", sortOrder);
 
+            const cacheKey = `admin_blogs_${queryParams.toString()}`;
+            const cached = getAdminCached<{
+                data: any[];
+                meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+            }>(cacheKey, 30_000);
+
+            if (cached) {
+                setBlogs(cached.data);
+                if (cached.meta) {
+                    setTotalPages(cached.meta.total_pages || 1);
+                    setTotalItems(cached.meta.total || 0);
+                }
+                setLoading(false);
+            } else {
+                setLoading(true);
+            }
+            setError(null);
+
+            try {
                 const response = await apiFetch<{
                     data: any[];
                     meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
@@ -70,15 +103,16 @@ export default function BlogsPage() {
                 if (cancelled) return;
                 if (response?.data) {
                     setBlogs(response.data);
+                    setAdminCached(cacheKey, response);
                     if (response.meta) {
                         setTotalPages(response.meta.total_pages || 1);
                         setTotalItems(response.meta.total || 0);
                     }
-                } else {
+                } else if (!cached) {
                     setError("Failed to load blogs");
                 }
             } catch (err) {
-                if (!cancelled) setError("Failed to load blogs");
+                if (!cancelled && !cached) setError("Failed to load blogs");
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -102,6 +136,7 @@ export default function BlogsPage() {
             await apiFetch(`/api/v1/admin/blogs/${blogToDelete._id}`, {
                 method: "DELETE",
             });
+            invalidateAdminCache("admin_blogs");
             setBlogs((prev) => prev.filter((b) => b._id !== blogToDelete._id));
             setDeleteModalOpen(false);
             setBlogToDelete(null);
@@ -190,9 +225,9 @@ export default function BlogsPage() {
                     <p className="font-body text-text-muted">Create, edit, and manage blog posts.</p>
                 </div>
                 {/* Actions */}
-                <div className="flex gap-3">
-                    <ExportButton onClick={handleExportCSV} disabled={loading} />
-                    <Button href="/admin/blogs/new" variant="solid" className="shadow-sm">
+                <div className="flex items-center gap-3">
+                    <ExportButton onClick={handleExportCSV} disabled={loading} className="w-[130px]" />
+                    <Button href="/admin/blogs/new" variant="solid" className="h-[40px] px-4 text-sm font-medium gap-2 shadow-sm flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
                         Add New Blog
                     </Button>
@@ -213,8 +248,8 @@ export default function BlogsPage() {
                             <label className="block font-body text-sm font-medium text-text-dark mb-2">Search</label>
                             <input
                                 type="text"
-                                value={search}
-                                onChange={(e) => handleSearchChange(e.target.value)}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
                                 placeholder="Search by title or slug..."
                                 className="w-full px-3 py-2 border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
                             />
@@ -240,12 +275,7 @@ export default function BlogsPage() {
 
                     {/* Table Loading/Empty/Error States */}
                     {loading && (
-                        <div className="flex items-center justify-center w-full min-h-[400px]">
-                            <div className="flex flex-col items-center justify-center gap-3">
-                                <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-                                <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading blogs...</span>
-                            </div>
-                        </div>
+                        <AdminLoader message="Loading blogs..." className="min-h-[400px]" />
                     )}
 
                     {error && (
@@ -355,8 +385,21 @@ export default function BlogsPage() {
 
                                     {blogs.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="py-12 text-center text-text-muted font-body">
-                                                No blog posts found matching the selected filters.
+                                            <td colSpan={6} className="py-16 text-center text-text-muted font-body">
+                                                <div className="flex flex-col items-center justify-center gap-3">
+                                                    <SvgFileText className="w-10 h-10 text-text-muted/40" />
+                                                    <p className="font-medium text-text-dark">No blog posts found</p>
+                                                    <p className="text-xs text-text-muted max-w-sm">
+                                                        {search || published !== "all" 
+                                                            ? "No posts match your selected search or filters. Try adjusting them to see more results." 
+                                                            : "No blog posts have been created yet."}
+                                                    </p>
+                                                    {!search && published === "all" && (
+                                                        <Button href="/admin/blogs/new" variant="solid" className="mt-2 text-xs h-8 px-3">
+                                                            Create your first blog post
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     )}
@@ -365,7 +408,7 @@ export default function BlogsPage() {
                         </div>
 
                         {/* Pagination */}
-                        {totalPages > 0 && (
+                        {totalItems > 0 && (
                             <div className="mt-auto px-5 py-4 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <span className="font-body text-sm text-text-muted">
                                     Showing {((page - 1) * BLOGS_PAGE_SIZE) + 1} to {Math.min(page * BLOGS_PAGE_SIZE, totalItems)} of {totalItems} blog posts
@@ -373,8 +416,8 @@ export default function BlogsPage() {
                                 <div className="flex gap-1.5">
                                     <button
                                         onClick={() => prevPage()}
-                                        className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === 1 ? 'opacity-50 pointer-events-none' : ''}`}
-                                        disabled={page === 1}
+                                        className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page <= 1 ? 'opacity-50 pointer-events-none' : ''}`}
+                                        disabled={page <= 1}
                                     >
                                         Previous
                                     </button>
@@ -385,8 +428,8 @@ export default function BlogsPage() {
 
                                     <button
                                         onClick={() => nextPage()}
-                                        className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page === totalPages ? 'opacity-50 pointer-events-none' : ''}`}
-                                        disabled={page === totalPages}
+                                        className={`px-3 py-1.5 border border-[#F2EDE8] rounded-[6px] hover:bg-gradient-to-r hover:from-[#D94A1E] hover:to-[#FF9A3D] hover:text-white transition-all duration-300 text-text-dark font-body font-medium text-sm ${page >= totalPages ? 'opacity-50 pointer-events-none' : ''}`}
+                                        disabled={page >= totalPages}
                                     >
                                         Next
                                     </button>

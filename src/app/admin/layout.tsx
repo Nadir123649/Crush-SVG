@@ -6,9 +6,8 @@ import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
-import { AppLoader } from "@/components/ui/AppLoader";
-import { AuthCard } from "@/components/auth/AuthCard";
-import { showToast } from "@/lib/client/toast-bridge";
+import { AdminLoader } from "@/components/admin/AdminLoader";
+import { showToast, dismissStaleToastsOnRoute } from "@/lib/client/toast-bridge";
 
 // Inline SVGs to avoid dependency issues
 const SvgDashboard = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
@@ -43,37 +42,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (scrollRef.current) {
       scrollRef.current.scrollTo(0, 0);
     }
+    dismissStaleToastsOnRoute();
   }, [pathname]);
 
   const redirectRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Wait until session is fully resolved (not loading, user available)
+    // Wait until session is fully resolved (not loading)
     if (status === "loading" || (status === "authed" && !user)) return;
 
-    // CRITICAL: Wait for background refresh to complete (sessionVersion > 0)
-    // before evaluating admin role to prevent redirect loops from stale localStorage data
-    if (status === "authed" && sessionVersion === 0) return;
-
-    if (status === "guest") {
-      const target = `/login?returnTo=${encodeURIComponent(pathname)}`;
-      if (redirectRef.current !== target) {
-        redirectRef.current = target;
-        router.push(target);
-      }
-    } else if (status === "authed" && user && user.role !== "admin") {
+    if (status === "guest" || (status === "authed" && user && user.role !== "admin")) {
       if (redirectRef.current !== "/") {
         redirectRef.current = "/";
-        router.push("/");
+        router.replace("/");
       }
-    } else {
-      // authed admin — clear any pending redirect
+    } else if (status === "authed" && user?.role === "admin") {
       redirectRef.current = null;
     }
-  }, [status, user, sessionVersion, router, pathname]);
+  }, [status, user, router, pathname]);
 
-  const isAuthedAdmin = status === "authed" && sessionVersion > 0 && user?.role === "admin";
-  const isGuest = status === "guest";
+  const isAuthedAdmin = status === "authed" && user?.role === "admin";
 
   const navLinks = [
     { href: "/admin", label: "Overview", icon: SvgDashboard },
@@ -84,24 +72,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/settings", label: "Settings", icon: SvgSettings },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
+    await logout();
+    router.replace('/');
     showToast("success", "You've been logged out.", { id: "logout" });
-    logout();
-    router.push('/');
   };
 
   if (!isAuthedAdmin) {
     return (
       <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
-        {isGuest && !isLoggingOut ? (
-          <AuthCard type="login" returnTo={pathname} />
-        ) : (
-          <div className="flex flex-col items-center gap-4">
-            <AppLoader />
-            <span className="font-body text-text-muted text-sm">Loading admin panel...</span>
-          </div>
-        )}
+        <AdminLoader message="Loading admin panel..." />
       </div>
     );
   }

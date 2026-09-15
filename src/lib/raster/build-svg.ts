@@ -37,28 +37,8 @@ export function injectMetadata(svg: string, ctx: MetadataContext): string {
 
   const open = svg.match(/<svg\b[^>]*>/i)?.[0];
   if (!open) return svg;
-
-  let contentToInsert = metadata;
-  let workingSvg = svg;
-
-  if (ctx.options.background === "transparent") {
-    // Strip full-canvas background rect if present
-    workingSvg = workingSvg.replace(
-      /<rect[^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
-      ""
-    );
-  } else if (ctx.options.background === "custom" && ctx.options.bgColor) {
-    workingSvg = workingSvg.replace(
-      /<rect[^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
-      ""
-    );
-    contentToInsert += `<rect width="${ctx.width}" height="${ctx.height}" fill="${escapeXml(ctx.options.bgColor)}"/>`;
-  }
-
-  const freshOpen = workingSvg.match(/<svg\b[^>]*>/i)?.[0];
-  if (!freshOpen) return workingSvg;
-  const insertAt = workingSvg.indexOf(freshOpen) + freshOpen.length;
-  return workingSvg.slice(0, insertAt) + contentToInsert + workingSvg.slice(insertAt);
+  const insertAt = svg.indexOf(open) + open.length;
+  return svg.slice(0, insertAt) + metadata + svg.slice(insertAt);
 }
 
 function escapeXml(s: string): string {

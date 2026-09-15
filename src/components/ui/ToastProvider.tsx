@@ -1,8 +1,22 @@
 "use client";
-
+ 
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import { dismissStaleToastsOnRoute } from "@/lib/client/toast-bridge";
 
 export function ToastProvider() {
+  const pathname = usePathname();
+  const isFirstMount = useRef(true);
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    dismissStaleToastsOnRoute();
+  }, [pathname]);
+
   return (
     <Toaster
       position="top-right"

@@ -8,6 +8,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { BlogEditor } from "@/components/admin/BlogEditor/BlogEditor";
 import { CoverImageUpload } from "@/components/admin/BlogEditor/CoverImageUpload";
 import { useAuth } from "@/lib/client/auth-context";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
@@ -119,10 +120,7 @@ export default function NewBlogPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col justify-center items-center min-h-[calc(100vh-70px)] w-full gap-3">
-                <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-                <span className="font-body text-sm font-medium text-text-muted">Loading editor...</span>
-            </div>
+            <AdminLoader message="Loading editor..." className="min-h-[400px]" />
         );
     }
 

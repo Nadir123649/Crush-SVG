@@ -15,7 +15,6 @@ import {
   type ConvertResponse,
 } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg/svg-dims";
-import { formatSvgCode } from "@/lib/svg/format-svg";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -93,7 +92,7 @@ function SvgToPngConverter() {
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
-  const [isFormatting, setIsFormatting] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
@@ -295,31 +294,7 @@ function SvgToPngConverter() {
     return () => window.removeEventListener("paste", handleGlobalPaste);
   }, [tToast]);
 
-  function handleFormatSvg() {
-    if (!svgCode || isPlaceholderCode || converting || isFormatting) return;
-    if (svgCode.length > 1_000_000) {
-      showToast("error", tToast("formatError") || "SVG code is too large to safely format (>1MB).");
-      return;
-    }
 
-    setIsFormatting(true);
-    // Yield to event loop so button disabled/loading state renders immediately without blocking UI
-    setTimeout(() => {
-      try {
-        const { formatted, changed } = formatSvgCode(svgCode);
-        if (!changed) {
-          showToast("success", tToast("svgAlreadyFormatted"));
-          return;
-        }
-        setSvgCode(formatted);
-        showToast("success", tToast("svgFormatted"));
-      } catch (err) {
-        showToast("error", err instanceof Error ? err.message : tToast("formatError"));
-      } finally {
-        setIsFormatting(false);
-      }
-    }, 16);
-  }
 
   async function handleCopySvgCode() {
     const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
@@ -476,7 +451,9 @@ function SvgToPngConverter() {
         return;
       }
       let msg = err instanceof Error ? err.message : tToast("conversionFailed");
-      if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
       }
       showToast("error", msg);
@@ -560,22 +537,6 @@ function SvgToPngConverter() {
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex items-center gap-[10px]">
-                    {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
-                      <button
-                        type="button"
-                        onClick={handleFormatSvg}
-                        disabled={converting || isFormatting}
-                        aria-label="Format SVG code"
-                        className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${
-                          converting || isFormatting
-                            ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none"
-                            : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary cursor-pointer"
-                        }`}
-                        title="Format SVG Code"
-                      >
-                        {isFormatting ? "Formatting…" : tUpload("formatCode")}
-                      </button>
-                    )}
                     <button
                       type="button"
                       onClick={handleClearSvg}
@@ -634,7 +595,7 @@ function SvgToPngConverter() {
                     }}
                     spellCheck={false}
                     aria-label="SVG code editor"
-                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <button

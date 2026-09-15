@@ -725,12 +725,10 @@ export function BackgroundRemover() {
       let msg: string;
       if (err instanceof ApiError) {
         msg = err.message;
-      } else if (err instanceof TypeError && (err.message.includes("fetch") || (typeof navigator !== "undefined" && !navigator.onLine))) {
-        msg = "Unable to connect to the server. Please check your network connection and try again.";
+      } else if (err instanceof DOMException || (err instanceof TypeError && (err.message.includes("fetch") || (typeof navigator !== "undefined" && !navigator.onLine)))) {
+        msg = "Unable to connect to the server. The file may be too large or the network connection was interrupted.";
       } else if (err instanceof Error) {
-        msg = err.message.toLowerCase().includes("failed to fetch")
-          ? "Unable to connect to the server. The file may be too large or the network connection was interrupted."
-          : err.message;
+        msg = err.message;
       } else {
         msg = t("errorProcessing");
       }

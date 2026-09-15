@@ -1,18 +1,25 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
-import { Button } from "@/components/ui/Button";
 import { useTranslations } from "next-intl";
 
-interface VerificationModalProps {
-  variant?: "success" | "invalid";
-  onClose?: () => void;
-  onContinue?: () => void;
+interface InvalidLinkCardProps {
+  /** The message to display. Falls back to i18n if not provided. */
+  message?: string;
+  /** The CTA link destination. */
+  ctaHref?: string;
+  /** The CTA button label. Falls back to i18n if not provided. */
+  ctaLabel?: string;
 }
 
-export function VerificationModal({ variant = "success", onClose, onContinue }: VerificationModalProps) {
-  const isSuccess = variant === "success";
+export function InvalidLinkCard({
+  message,
+  ctaHref = "/signup",
+  ctaLabel,
+}: InvalidLinkCardProps) {
   const t = useTranslations("auth_pages.verification");
 
   return (
@@ -32,42 +39,31 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
           </div>
         </div>
 
-        {/* Heading */}
         <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center">
           {t("title")}
         </h2>
 
         <div className="flex items-center justify-center">
           <Image
-            src={isSuccess ? IMAGES.verification : IMAGES.lock}
+            src={IMAGES.lock}
             alt=""
-            width={isSuccess ? 206 : 96}
-            height={isSuccess ? 98 : 96}
+            width={96}
+            height={96}
             className="object-contain"
             style={{ width: "auto", height: "auto" }}
           />
         </div>
 
-        {/* Text Body */}
         <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px]">
-          {isSuccess
-            ? t("successMessage")
-            : t("invalidMessage")}
+          {message || t("invalidMessage")}
         </p>
 
-        {isSuccess && (
-          <Button variant="solid" className="w-[238px] h-[42px]" onClick={onContinue}>
-            {t("continueButton")}
-          </Button>
-        )}
-        {!isSuccess && (
-          <Link
-            href="/signup"
-            className="w-[238px] h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
-          >
-            {t("backToLogin")}
-          </Link>
-        )}
+        <Link
+          href={ctaHref}
+          className="w-[238px] h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
+        >
+          {ctaLabel || t("backToLogin")}
+        </Link>
       </div>
     </div>
   );

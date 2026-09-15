@@ -7,6 +7,8 @@ import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
+import { getAdminCached, setAdminCached, invalidateAdminCache } from "@/lib/client/admin-cache";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const USERS_PAGE_SIZE = 15;
 
@@ -14,20 +16,27 @@ const SvgError = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" widt
 const SvgTrash = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
 const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 
+const DEFAULT_USERS_CACHE_KEY = "admin_users_page=1&limit=15&sortBy=createdAt&sortOrder=desc";
+
 export default function UsersPage() {
   const { status: authStatus, user: currentUser, updateUser } = useAuth();
+  const initialCached = getAdminCached<{
+    data: any[];
+    meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+  }>(DEFAULT_USERS_CACHE_KEY, 60_000);
+
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>(() => initialCached?.data || []);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !initialCached);
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
+  const [totalItems, setTotalItems] = useState<number>(() => initialCached?.meta?.total || 0);
   
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -69,18 +78,34 @@ export default function UsersPage() {
   useEffect(() => {
     let cancelled = false;
     const loadUsers = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const queryParams = new URLSearchParams();
-        queryParams.set("page", page.toString());
-        queryParams.set("limit", USERS_PAGE_SIZE.toString());
-        if (search) queryParams.set("search", search);
-        if (role !== "all") queryParams.set("role", role);
-        if (status !== "all") queryParams.set("status", status);
-        if (sortBy) queryParams.set("sortBy", sortBy);
-        if (sortOrder) queryParams.set("sortOrder", sortOrder);
+      const queryParams = new URLSearchParams();
+      queryParams.set("page", page.toString());
+      queryParams.set("limit", USERS_PAGE_SIZE.toString());
+      if (search) queryParams.set("search", search);
+      if (role !== "all") queryParams.set("role", role);
+      if (status !== "all") queryParams.set("status", status);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortOrder) queryParams.set("sortOrder", sortOrder);
 
+      const cacheKey = `admin_users_${queryParams.toString()}`;
+      const cached = getAdminCached<{
+        data: any[];
+        meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+      }>(cacheKey, 30_000);
+
+      if (cached) {
+        setUsers(cached.data);
+        if (cached.meta) {
+          setTotalPages(cached.meta.total_pages || 1);
+          setTotalItems(cached.meta.total || 0);
+        }
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      try {
         const response = await apiFetch<{
           data: any[];
           meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
@@ -89,15 +114,16 @@ export default function UsersPage() {
         if (cancelled) return;
         if (response?.data) {
           setUsers(response.data);
+          setAdminCached(cacheKey, response);
           if (response.meta) {
             setTotalPages(response.meta.total_pages || 1);
             setTotalItems(response.meta.total || 0);
           }
-        } else {
+        } else if (!cached) {
           setError("Failed to load users");
         }
       } catch (err) {
-        if (!cancelled) setError("Failed to load users");
+        if (!cancelled && !cached) setError("Failed to load users");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -121,6 +147,7 @@ export default function UsersPage() {
       await apiFetch(`/api/v1/admin/users/${userToDelete.uid}`, {
         method: "DELETE",
       });
+      invalidateAdminCache("admin_users");
       setUsers((prev) => prev.filter((u) => u.uid !== userToDelete.uid));
       setDeleteModalOpen(false);
       setUserToDelete(null);
@@ -165,6 +192,7 @@ export default function UsersPage() {
         }),
       });
       if (response?.user) {
+        invalidateAdminCache("admin_users");
         setUsers((prev) => [response.user, ...prev]);
         setAddUserModalOpen(false);
         const emailSent = newUserEmail;
@@ -224,6 +252,7 @@ export default function UsersPage() {
         }),
       });
       if (response?.user) {
+        invalidateAdminCache("admin_users");
         setUsers((prev) => prev.map((u) => u.uid === response.user.uid ? response.user : u));
         if (currentUser && currentUser.uid === response.user.uid) {
           updateUser({ displayName: response.user.displayName, role: response.user.role });
@@ -340,9 +369,9 @@ export default function UsersPage() {
           <p className="font-body text-text-muted">Manage accounts, roles, and platform access.</p>
         </div>
         {/* Actions */}
-        <div className="flex gap-3">
-          <ExportButton onClick={handleExportCSV} disabled={loading} />
-          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="shadow-sm">
+        <div className="flex items-center gap-3">
+          <ExportButton onClick={handleExportCSV} disabled={loading} className="w-[130px]" />
+          <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] h-[40px] text-sm font-medium gap-2 shadow-sm flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
           </Button>
@@ -366,12 +395,7 @@ export default function UsersPage() {
 
           {/* Table Loading/Empty/Error States */}
           {loading && (
-            <div className="flex items-center justify-center w-full min-h-[400px]">
-              <div className="flex flex-col items-center justify-center gap-3">
-                <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-                <span className="font-body text-sm font-medium text-text-muted tracking-wide">Loading users...</span>
-              </div>
-            </div>
+            <AdminLoader message="Loading users..." className="min-h-[400px]" />
           )}
 
           {error && (
@@ -514,7 +538,7 @@ export default function UsersPage() {
             </div>
             
             {/* Pagination */}
-            {totalPages > 0 && (
+            {totalItems > 0 && (
               <div className="mt-auto p-5 border-t border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FFFCFA]">
                 <span className="font-body text-sm text-text-muted">
                   Showing {((page - 1) * USERS_PAGE_SIZE) + 1} to {Math.min(page * USERS_PAGE_SIZE, totalItems)} of {totalItems} users

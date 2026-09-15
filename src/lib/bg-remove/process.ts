@@ -86,22 +86,26 @@ export async function processBackgroundRemove(
   const h = decoded.info.height;
 
   if (!shouldUseModnetEngine()) {
+    console.log("[bg-remove] MODNet disabled via feature flag, using legacy");
     return processLegacyFromRaw(rawData, w, h, options);
   }
 
   const bg = detectBackgroundColor(rawData, w, h);
   if (bg.isTransparent) {
+    console.log("[bg-remove] Image already transparent, using legacy");
     return processLegacyFromRaw(rawData, w, h, options);
   }
 
   const classification = classifyImage(rawData, w, h);
+  console.log("[bg-remove] Classification:", classification);
 
   if (classification === "photo") {
     try {
       const processModnet = await getModnetProcessor();
       return await processModnet(workingBuffer, options);
-    } catch {
-      // MODNet failed — fall back to legacy connected flood-fill engine
+    } catch (err) {
+      // Log the actual error so we can debug Vercel failures
+      console.error("[bg-remove] MODNet failed, falling back to legacy:", err);
       return processLegacyFromRaw(rawData, w, h, options);
     }
   }

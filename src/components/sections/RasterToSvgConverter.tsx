@@ -8,7 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
 import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
-import { getAccessToken } from "@/lib/client/http";
+import { getAccessToken, ApiError } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -134,7 +134,7 @@ function VectorDropdown({
 
   return (
     <div className="flex flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
-      <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
+      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
         {label}
       </label>
       <div
@@ -152,7 +152,7 @@ function VectorDropdown({
             onToggle();
           }
         }}
-        className={`relative w-full h-[46px] md:h-[52px] rounded-[12px] border ${
+        className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
           isOpen ? "border-[#D94A1E]" : "border-[#8F8F8F]"
         } flex items-center justify-between bg-white px-[12px] md:px-[14px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary transition-colors select-none ${
           disabled ? "opacity-50 cursor-not-allowed" : "hover:border-[#D94A1E]"
@@ -160,7 +160,7 @@ function VectorDropdown({
       >
         {value === "Custom" && customColor ? (
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] truncate">
               Custom
             </span>
             <span
@@ -172,7 +172,7 @@ function VectorDropdown({
             </span>
           </div>
         ) : (
-          <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] truncate">
             {selected.label}
           </span>
         )}
@@ -202,8 +202,8 @@ function VectorDropdown({
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[260px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
-          <div role="listbox" className="w-full max-h-[258px] overflow-y-auto py-[6px] brand-scrollbar">
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
+          <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;
               return (
@@ -212,12 +212,12 @@ function VectorDropdown({
                   role="option"
                   aria-selected={isSelected}
                   onClick={() => onChange(opt.value)}
-                  className={`px-[14px] py-[8px] flex flex-col gap-[2px] cursor-pointer transition-colors ${
+                  className={`px-[16px] py-[10px] flex flex-col gap-[2px] cursor-pointer transition-colors ${
                     isSelected ? "bg-[#FFF1EC] text-[#D94A1E]" : "hover:bg-[#FFF7F4] text-[#353A3E]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-body font-semibold text-[13px] md:text-[14px]">
+                    <span className="font-body font-semibold text-[14px] md:text-[16px]">
                       {opt.label}
                     </span>
                     {isSelected && (
@@ -596,6 +596,7 @@ export function RasterToSvgConverter() {
   }
 
   function handleClear() {
+    convertAbortRef.current?.abort();
     setRasterFile(null);
     setRasterDataUrl(null);
     setImageName(null);
@@ -612,7 +613,6 @@ export function RasterToSvgConverter() {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
-    showToast("success", t("resetButton"));
   }
 
   async function handleLoadSample() {
@@ -697,7 +697,9 @@ export function RasterToSvgConverter() {
     } catch (err) {
       if (controller.signal.aborted) return;
       let msg = err instanceof Error ? err.message : t("errorConversion");
-      if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
       setError(msg);
@@ -772,7 +774,7 @@ export function RasterToSvgConverter() {
           {/* Inner Dashed Border Box */}
           <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
@@ -1119,7 +1121,7 @@ export function RasterToSvgConverter() {
 
                 {/* Main Preview Container */}
                 <div
-                  className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]"
+                  className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[24px] md:p-[40px]"
                 >
                   {converting ? (
                     /* Converting Animation State */
@@ -1132,7 +1134,7 @@ export function RasterToSvgConverter() {
                   ) : previewMode === "code" && result ? (
                     /* SVG Code Viewer State */
                     <div className="w-full h-full min-w-0 min-h-0 flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
-                      <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
+                      <div className="flex items-center justify-between pb-[8px] border-b border-gray-200 mb-[8px] shrink-0">
                         <span className="text-[12px] font-mono text-[#353A3E]">
                           {t("svgMarkup", { size: formatFileSize(result.size) })}
                         </span>
@@ -1155,7 +1157,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text">
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text [scrollbar-gutter:stable]">
                         {result.svg}
                       </pre>
                     </div>
@@ -1224,11 +1226,11 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full h-auto mt-[16px] transition-all duration-300 flex flex-col justify-between ${
+                  className={`w-full h-auto mt-[16px] md:mt-[20px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[20px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
                       label={t("qualityLabel")}
@@ -1320,7 +1322,7 @@ export function RasterToSvgConverter() {
 
                 {/* Action CTA Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                  <div className="w-full h-[48px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
@@ -1329,7 +1331,7 @@ export function RasterToSvgConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"
@@ -1345,13 +1347,13 @@ export function RasterToSvgConverter() {
                           onClick={handleDownload}
                           disabled={converting}
                         >
-                          <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
+                          <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                             {t("downloadButton")}
                             <Image
                               src={IMAGES.exportIcon}
                               alt=""
-                              width={18}
-                              height={18}
+                              width={16}
+                              height={16}
                               className="brightness-0 invert"
                             />
                           </span>
@@ -1394,13 +1396,13 @@ export function RasterToSvgConverter() {
                         onClick={handleConvert}
                         disabled={converting || !rasterDataUrl}
                       >
-                        <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
+                        <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           {t("convertButton")}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""
-                            width={18}
-                            height={18}
+                            width={20}
+                            height={20}
                             className="brightness-0 invert"
                           />
                         </span>
