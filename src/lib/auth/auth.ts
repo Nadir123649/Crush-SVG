@@ -41,6 +41,9 @@ export function toUserDTO(user: UserDoc): UserDTO {
         hasPassword: !!user.password,
         isVerified: user.isVerified ?? false,
         conversionsUsed: user.conversionsUsed,
+        apiKey: user.apiKey ?? null,
+        apiKeyCreatedAt: user.apiKeyCreatedAt ? user.apiKeyCreatedAt.toISOString() : null,
+        apiMonthlyQuota: user.apiMonthlyQuota ?? 1000,
         createdAt: user.createdAt.toISOString(),
         lastLoginAt: user.lastLoginAt.toISOString(),
     };

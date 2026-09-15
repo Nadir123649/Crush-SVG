@@ -7,6 +7,7 @@ import { Features } from "@/components/sections/Features";
 import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
 import { FAQ } from "@/components/sections/FAQ";
+import { AdBanner } from "@/components/ui/AdBanner";
 import { routing } from "@/i18n/routing";
 
 export function generateStaticParams() {
@@ -49,6 +50,7 @@ export default async function ImageResizerPage({
       <Features mode="image-resizer" />
       <SignUpCTA />
       <StepsSection mode="image-resizer" />
+      <AdBanner />
       <FAQ mode="image-resizer" />
     </div>
   );

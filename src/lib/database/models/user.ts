@@ -24,6 +24,9 @@ export interface UserDoc {
     resetPasswordToken?: string;
     resetPasswordTokenExpire?: number;
     conversionsUsed: number;
+    apiKey?: string | null;
+    apiKeyCreatedAt?: Date | null;
+    apiMonthlyQuota?: number;
     createdAt: Date;
     updatedAt: Date;
     lastLoginAt: Date;
@@ -44,10 +47,14 @@ const userSchema = new Schema({
     resetPasswordToken: { type: String },
     resetPasswordTokenExpire: { type: Number },
     conversionsUsed: { type: Number, default: 0 },
+    apiKey: { type: String, default: null },
+    apiKeyCreatedAt: { type: Date, default: null },
+    apiMonthlyQuota: { type: Number, default: 1000 },
     lastLoginAt: { type: Date, required: true },
 }, { timestamps: true });
 userSchema.index({ uid: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { sparse: true });
+userSchema.index({ apiKey: 1 }, { sparse: true });
 declare global {
     var __crushSvgUserModel: Model<UserDoc> | undefined;
 }
