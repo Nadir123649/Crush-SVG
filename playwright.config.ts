@@ -7,13 +7,13 @@ export default defineConfig({
   fullyParallel: true,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npx next dev --hostname 127.0.0.1",
-    url: "http://127.0.0.1:3000",
+    command: "npx next dev -p 3000",
+    url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 120_000,
   },

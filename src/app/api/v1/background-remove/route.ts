@@ -5,10 +5,12 @@ import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import {
   ensureGuestId,
-  getGuestUsage,
-  incrementGuestUsage,
   GUEST_CONVERSION_LIMIT,
 } from "@/lib/usage/guest-usage";
+import {
+  getConversionUsage,
+  incrementConversionUsage,
+} from "@/lib/usage/conversion-usage";
 import { classifyBgRemoveError } from "@/lib/bg-remove/errors";
 import { bgRemoveOptionsSchema } from "@/lib/bg-remove/validation";
 import { BG_REMOVE_LIMITS, isAcceptedImage } from "@/lib/bg-remove/limits";
@@ -21,67 +23,10 @@ export const maxDuration = 30;
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60_000;
 
-async function getUsage(request: NextRequest) {
-  const guestId = ensureGuestId(request).guestId ?? crypto.randomUUID();
-  try {
-    const used = Math.min(await getGuestUsage(guestId), GUEST_CONVERSION_LIMIT);
-    return {
-      guestId,
-      maxConversions: GUEST_CONVERSION_LIMIT,
-      used,
-      remaining: Math.max(GUEST_CONVERSION_LIMIT - used, 0),
-    };
-  } catch {
-    return {
-      guestId,
-      maxConversions: GUEST_CONVERSION_LIMIT,
-      used: 0,
-      remaining: GUEST_CONVERSION_LIMIT,
-    };
-  }
-}
-
-function isAuthenticated(request: NextRequest): boolean {
-  return !!(
-    request.headers.get("x-user-id") ||
-    request.headers.get("authorization")?.toLowerCase().startsWith("bearer ")
-  );
-}
-
-async function enforceGuestLimit(
-  request: NextRequest,
-): Promise<
-  | NextResponse
-  | {
-      guestId: string;
-      maxConversions: number;
-      used: number;
-      remaining: number;
-    }
-> {
-  if (isAuthenticated(request)) return getUsage(request);
-  const usage = await getUsage(request);
-  if (usage.remaining <= 0) {
-    return errorResponse(
-      429,
-      "guest_limit_reached",
-      "Daily guest conversion limit reached. Sign in or try again tomorrow.",
-      undefined,
-      request,
-    );
-  }
-  return usage;
-}
-
-async function incrementUsage(guestId: string) {
-  try {
-    await incrementGuestUsage(guestId);
-  } catch {
-    /* non-fatal */
-  }
-}
-
 export async function POST(request: NextRequest) {
+  const { guestId, setCookie } = ensureGuestId(request);
+  let currentUsage: Awaited<ReturnType<typeof getConversionUsage>> | null = null;
+
   try {
     const rate = await checkRateLimit(
       request,
@@ -99,9 +44,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const limitOrResponse = await enforceGuestLimit(request);
-    if (limitOrResponse instanceof NextResponse) return limitOrResponse;
-    const limit = limitOrResponse;
+    const usage = await getConversionUsage(request, guestId ?? undefined);
+    currentUsage = usage;
+
+    if (usage.kind === "auth-error") {
+      return errorResponse(
+        401,
+        "unauthorized",
+        "Session expired. Please sign in again.",
+        undefined,
+        request,
+      );
+    }
+
+    const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
+
+    if (!isInternalPipeline && usage.kind === "guest" && usage.limitReached) {
+      return errorResponse(
+        429,
+        "limit_reached",
+        "You've used your 3 free conversions. Create a free account to keep converting.",
+        undefined,
+        request,
+      );
+    }
 
     const form = await request.formData();
     const file = form.get("file");
@@ -147,25 +113,29 @@ export async function POST(request: NextRequest) {
 
     const result = await processBackgroundRemove(buffer, options);
 
-    const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
-
     if (!isInternalPipeline) {
-      await logConversion({
-        userId: request.headers.get("x-user-id"),
-        guestId: limit.guestId,
-        inputFormat: file.type || "image",
-        outputFormat: "png",
-        originalSize,
-        success: true,
-      });
-
-      if (!isAuthenticated(request)) await incrementUsage(limit.guestId);
+      try {
+        await incrementConversionUsage(request, guestId ?? undefined);
+        await logConversion({
+          userId: usage.userId,
+          guestId: usage.kind === "guest" ? guestId : undefined,
+          inputFormat: file.type || "image",
+          outputFormat: "png",
+          originalSize,
+          success: true,
+        });
+      } catch (logErr) {
+        console.error("[bg-remove] Failed to record conversion usage:", logErr);
+      }
     }
 
     // Invalidate admin dashboard cache for real-time metrics
-    revalidatePath('/admin')
+    revalidatePath('/admin');
 
-    const usage = await getUsage(request);
+    const nextUsed =
+      usage.kind === "guest" ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined;
+    const remaining =
+      nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined;
 
     // Return binary PNG — avoids base64 inflation (+33%) and JSON serialization overhead
     const headers = new Headers();
@@ -173,12 +143,10 @@ export async function POST(request: NextRequest) {
     headers.set("Content-Length", String(result.size));
     headers.set("X-Image-Width", String(result.width));
     headers.set("X-Image-Height", String(result.height));
-    if (!isAuthenticated(request)) {
-      headers.set("X-Conversions-Used", String(usage.used));
-      headers.set("X-Conversions-Remaining", String(usage.remaining));
+    if (usage.kind === "guest" && nextUsed !== undefined && remaining !== undefined) {
+      headers.set("X-Conversions-Used", String(nextUsed));
+      headers.set("X-Conversions-Remaining", String(remaining));
     }
-
-    const { setCookie } = ensureGuestId(request);
 
     const response = new NextResponse(new Uint8Array(result.buffer), { status: 200, headers });
 
@@ -204,7 +172,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const failure = classifyBgRemoveError(error);
-    await logConversionError(request, error);
+    await logConversionError(request, guestId, currentUsage?.userId, error);
     console.error("[bg-remove] Processing error:", error);
     return errorResponse(
       failure.status,
@@ -216,17 +184,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function logConversionError(request: NextRequest, error: unknown) {
-  const userId = request.headers.get("x-user-id");
-  const guestId =
-    userId || isAuthenticated(request) ? null : ensureGuestId(request).guestId;
-  await logConversion({
-    userId,
-    guestId,
-    inputFormat: "image",
-    outputFormat: "png",
-    success: false,
-    errorReason:
-      error instanceof Error ? error.message : "processing_failed",
-  });
+async function logConversionError(
+  request: NextRequest,
+  guestId: string | null | undefined,
+  userId: string | undefined,
+  error: unknown,
+) {
+  try {
+    await logConversion({
+      userId,
+      guestId: userId ? null : (guestId ?? null),
+      inputFormat: "image",
+      outputFormat: "png",
+      success: false,
+      errorReason:
+        error instanceof Error ? error.message : "processing_failed",
+    });
+  } catch {
+    /* non-fatal */
+  }
 }

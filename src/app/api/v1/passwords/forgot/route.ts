@@ -5,7 +5,7 @@ import { forgotPasswordSchema } from '@/lib/auth/auth-validation'
 import { User } from '@/lib/database/db'
 import { generateToken, hashToken, RESET_TOKEN_MINUTES } from '@/lib/auth/passwords'
 import { sendResetPasswordEmail } from '@/lib/integrations/email'
-import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
+import { successResponse, errorResponse, getFrontendOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 
@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
     }
   )
 
-  const resetUrl = `${getOrigin(request)}/reset-password/${token}`
+  const resetUrl = `${getFrontendOrigin(request)}/reset-password/${token}`
   try {
-    await sendResetPasswordEmail(email, resetUrl)
+    await sendResetPasswordEmail(email, resetUrl, getFrontendOrigin(request))
   } catch (e) {
     console.error('Reset password email failed to send:', e)
   }

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
 import { KpiCard } from "@/components/admin/KpiCard";
-import { AppLoader } from "@/components/ui/AppLoader";
+import { AdminLoader } from "@/components/admin/AdminLoader";
+
+import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
 // Inline SVGs to avoid dependency issues
 const SvgUsers = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
@@ -24,8 +26,9 @@ const formatK = (num: number) => {
 };
 
 export default function AdminDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  const [cachedOverview] = useState(() => getAdminCached<any>("admin_overview", 60_000));
+  const [loading, setLoading] = useState(!cachedOverview);
+  const [data, setData] = useState<any>(cachedOverview);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +36,7 @@ export default function AdminDashboard() {
       .then((res) => {
         if (!cancelled) {
           setData(res);
+          setAdminCached("admin_overview", res);
           setLoading(false);
         }
       })
@@ -44,10 +48,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-140px)] w-full gap-3">
-        <AppLoader />
-        <span className="font-body text-sm font-medium text-text-muted">Loading dashboard...</span>
-      </div>
+      <AdminLoader message="Loading dashboard..." className="min-h-[calc(100vh-140px)]" />
     );
   }
 

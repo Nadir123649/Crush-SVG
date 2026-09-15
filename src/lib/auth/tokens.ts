@@ -15,6 +15,7 @@ export interface DecodedAccessToken {
 export interface DecodedRefreshToken {
     id: string;
     jti: string;
+    role?: string;
     ver?: number;
 }
 const ACCESS_EXPIRES: jwt.SignOptions["expiresIn"] = (process.env.ACCESS_TOKEN_EXPIRES || "15m") as jwt.SignOptions["expiresIn"];
@@ -36,9 +37,10 @@ export function generateAccessToken(input: {
 export function generateRefreshToken(input: {
     id: string;
     sessionId: string;
+    role?: string;
     tokenVersion?: number;
 }): string {
-    const payload: Record<string, unknown> = { id: input.id, jti: input.sessionId };
+    const payload: Record<string, unknown> = { id: input.id, jti: input.sessionId, role: input.role ?? "user" };
     if (input.tokenVersion !== undefined)
         payload.ver = input.tokenVersion;
     return jwt.sign(payload, requireSecret("JWT_REFRESH_SECRET"), {
@@ -65,6 +67,7 @@ export function buildTokenPayload(input: {
         accessTokenExpires: ACCESS_EXPIRES as string,
         refreshToken: generateRefreshToken({
             id: input.id,
+            role: input.role,
             sessionId: input.sessionId,
             tokenVersion: input.tokenVersion,
         }),
@@ -96,6 +99,7 @@ export function verifyRefreshToken(token: string): Promise<DecodedRefreshToken> 
             resolve({
                 id: String(decoded.id),
                 jti: String(decoded.jti),
+                role: decoded.role ? String(decoded.role) : undefined,
                 ver: typeof decoded.ver === "number" ? decoded.ver : undefined,
             });
         });

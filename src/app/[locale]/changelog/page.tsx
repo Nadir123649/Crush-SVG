@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link, routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
+import { ChangelogSubscribeForm } from "@/components/sections/ChangelogSubscribeForm";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -136,6 +137,13 @@ export default async function ChangelogPage({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Subscribe to Changelog */}
+      <div className="w-full max-w-[800px] flex flex-col items-center gap-4 p-8 bg-white rounded-[20px] border border-[#F2EDE8] mb-12 text-center" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <h3 className="font-heading font-semibold text-xl text-text-dark">Stay in the loop</h3>
+        <p className="font-afacad text-[16px] text-text-muted">Get notified when we ship new features and improvements.</p>
+        <ChangelogSubscribeForm />
       </div>
 
       {/* Bottom Cross-links Banner */}

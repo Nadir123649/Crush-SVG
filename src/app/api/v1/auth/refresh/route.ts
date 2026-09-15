@@ -3,14 +3,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { Session, User } from '@/lib/database/db'
+import { getFreshPhotoURL } from '@/lib/firebase/firebase-admin'
 import { logger } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
 
-const ROTATION_GRACE_MS = 10_000
+const ROTATION_GRACE_MS = 60_000
 
 function rateLimitedResponse(rl: RateLimitResult) {
   return NextResponse.json(
@@ -35,11 +36,7 @@ function errorResponse(code: string, status: number, rl: RateLimitResult) {
     },
     { status, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.delete({
-    name: REFRESH_COOKIE_NAME,
-    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
-    path: '/',
-  })
+  clearRefreshCookie(res)
   return res
 }
 
@@ -100,6 +97,23 @@ export async function POST(request: NextRequest) {
     return errorResponse('user_not_found', 401, rl)
   }
 
+  // Refresh Google profile photoURL if the user has a Google provider.
+  // Google profile picture URLs contain session tokens that expire; fetching
+  // a fresh URL on each refresh keeps the avatar current.
+  const hasGoogleProvider = user.providers?.some(
+    (p) => p === 'google' || p === 'google.com'
+  )
+  if (hasGoogleProvider && user.uid) {
+    const freshPhoto = await getFreshPhotoURL(user.uid)
+    if (freshPhoto && freshPhoto !== user.photoURL) {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { photoURL: freshPhoto } }
+      ).catch(() => {})
+      user.photoURL = freshPhoto
+    }
+  }
+
   const tokenPair = buildTokenPayload({
     id: user._id.toString(),
     role: user.role ?? 'user',
@@ -121,13 +135,6 @@ export async function POST(request: NextRequest) {
     },
     { status: 200, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.crushsvg.net' : undefined,
-    maxAge: result.remember ? 7 * 24 * 60 * 60 : undefined,
-  })
+  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(result.remember))
   return res
 }

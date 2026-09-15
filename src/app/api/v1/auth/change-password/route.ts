@@ -7,7 +7,7 @@ import { User } from '@/lib/database/db'
 import { hashPassword, verifyPassword } from '@/lib/auth/passwords'
 import { revokeAllSessions } from '@/lib/auth/sessions'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { clearRefreshCookie } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 
@@ -67,6 +67,6 @@ export async function POST(request: NextRequest) {
     { message: 'Password changed successfully. Please sign in again.' },
     200
   )
-  res.cookies.delete(REFRESH_COOKIE_NAME)
+  clearRefreshCookie(res)
   return res
 }

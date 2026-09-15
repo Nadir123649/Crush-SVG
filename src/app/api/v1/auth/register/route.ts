@@ -7,7 +7,7 @@ import { User, isDuplicateKeyError } from '@/lib/database/db'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
 import { sendVerificationEmail } from '@/lib/integrations/email'
 import { isAdminEmail } from '@/lib/auth/roles'
-import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
+import { successResponse, errorResponse, getOrigin, getFrontendOrigin, getApiOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
 
@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+    const verifyUrl = `${getApiOrigin(request)}/api/v1/verification/email/verify/${token}`
     try {
-      await sendVerificationEmail(email, verifyUrl)
+      await sendVerificationEmail(email, verifyUrl, getFrontendOrigin(request))
     } catch (e) {
       console.error('Verification email failed to send:', e)
     }
@@ -108,9 +108,9 @@ export async function POST(request: NextRequest) {
     throw error
   }
 
-  const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+  const verifyUrl = `${getApiOrigin(request)}/api/v1/verification/email/verify/${token}`
   try {
-    await sendVerificationEmail(email, verifyUrl)
+    await sendVerificationEmail(email, verifyUrl, getFrontendOrigin(request))
   } catch (e) {
     console.error('Verification email failed to send:', e)
   }

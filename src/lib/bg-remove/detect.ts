@@ -117,7 +117,16 @@ export function detectBackgroundColor(
     }
   }
 
-  clusters.sort((a, b) => b.count - a.count);
+  // The true background of an image begins at its perimeter.
+  // Prioritize clusters with the highest borderCount so large central foreground subjects
+  // are never misclassified as the background.
+  clusters.sort((a, b) => {
+    if (b.borderCount !== a.borderCount) {
+      return b.borderCount - a.borderCount;
+    }
+    return b.count - a.count;
+  });
+
   const dominant = clusters[0];
   const coverage = dominant.count / samples.length;
   const borderTransparentRatio = totalBorderSamples > 0 ? transparentBorderSamples / totalBorderSamples : 0;

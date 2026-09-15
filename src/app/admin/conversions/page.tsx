@@ -9,8 +9,11 @@ import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
+import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const CONVERSIONS_PAGE_SIZE = 15;
+const DEFAULT_CONVERSIONS_CACHE_KEY = "admin_conversions_page=1&limit=15";
 
 const SvgCalendar = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
 const SvgCheck = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
@@ -19,15 +22,20 @@ const SvgArrowForward = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/sv
 
 export default function ConversionsPage() {
   const { status: authStatus } = useAuth();
+  const initialCached = getAdminCached<{
+    data: any[];
+    meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+  }>(DEFAULT_CONVERSIONS_CACHE_KEY, 60_000);
+
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [conversions, setConversions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [conversions, setConversions] = useState<any[]>(() => initialCached?.data || []);
+  const [loading, setLoading] = useState<boolean>(() => !initialCached);
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
+  const [totalItems, setTotalItems] = useState<number>(() => initialCached?.meta?.total || 0);
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -39,38 +47,62 @@ export default function ConversionsPage() {
     return params.toString();
   };
 
-  const loadConversions = async (targetPage = page) => {
-    setLoading(true);
+  const loadConversions = async (targetPage = page, isCancelled?: () => boolean) => {
+    const queryParams = buildQueryParams(targetPage);
+    const cacheKey = `admin_conversions_${queryParams}`;
+    const cached = getAdminCached<{
+      data: any[];
+      meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+    }>(cacheKey, 60_000);
+
+    if (cached) {
+      setConversions(cached.data);
+      if (cached.meta) {
+        setPage(cached.meta.page);
+        setTotalPages(cached.meta.total_pages || 1);
+        setTotalItems(cached.meta.total || 0);
+      }
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
+
     try {
-      const queryParams = buildQueryParams(targetPage);
       const response = await apiFetch<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
       }>(`/api/v1/admin/conversions?${queryParams}`);
 
+      if (isCancelled?.()) return;
       if (response?.data) {
         const { data, meta } = response;
         setConversions(data);
+        setAdminCached(cacheKey, response);
         if (meta) {
           setPage(meta.page);
           setTotalPages(meta.total_pages || 1);
           setTotalItems(meta.total || 0);
         }
-      } else {
+      } else if (!cached) {
         setError("Failed to load conversions");
       }
     } catch (err) {
-      if (!error) setError("Failed to load conversions");
+      if (isCancelled?.()) return;
+      if (!cached && !error) setError("Failed to load conversions");
     } finally {
-      setLoading(false);
+      if (!isCancelled?.()) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    let cancelled = false;
     if (authStatus === "authed") {
-      loadConversions(page);
+      loadConversions(page, () => cancelled);
     }
+    return () => { cancelled = true; };
   }, [authStatus, status, startDate, endDate]);
 
   const handlePageChange = (targetPage: number) => {
@@ -140,7 +172,7 @@ export default function ConversionsPage() {
           <p className="font-body text-text-muted">Review and manage all file processing activity across the platform.</p>
         </div>
         {/* Primary Action */}
-        <ExportButton onClick={handleExportCSV} />
+        <ExportButton onClick={handleExportCSV} className="w-[130px]" />
       </div>
 
       {/* Interactive Filters Area (Client-side controlled) */}
@@ -235,12 +267,7 @@ export default function ConversionsPage() {
       {/* Data Table Card */}
       <section className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
         {loading && (
-          <div className="p-8">
-            <div className="flex justify-center my-8 text-center flex-col items-center gap-4">
-              <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-              <span className="font-body text-text-muted">Loading conversions...</span>
-            </div>
-          </div>
+          <AdminLoader message="Loading conversions..." className="min-h-[350px]" />
         )}
 
         {error && (
@@ -336,7 +363,7 @@ export default function ConversionsPage() {
             </div>
 
             {/* Pagination Footer */}
-            {totalPages > 0 && (
+            {totalItems > 0 && (
               <div className="bg-[#FFFCFA] border-t border-[#F2EDE8] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <span className="font-body text-sm text-text-muted">
                   Showing {((page - 1) * CONVERSIONS_PAGE_SIZE) + 1} to {Math.min(page * CONVERSIONS_PAGE_SIZE, totalItems)} of {totalItems} entries

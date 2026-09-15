@@ -69,9 +69,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Custom Scrollbar for brand colors */
+.brand-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #D94A1E transparent;
+}
 .brand-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background-color: transparent;
 }
 .brand-scrollbar::-webkit-scrollbar-track {

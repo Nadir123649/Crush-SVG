@@ -92,9 +92,11 @@ function SvgToPngConverter() {
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -128,6 +130,7 @@ function SvgToPngConverter() {
       setError(null);
       setPreviewError(false);
       setUsage(null);
+      setUsageFailed(false);
       setShowSignupPrompt(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("crush_converter_state");
@@ -183,6 +186,7 @@ function SvgToPngConverter() {
         if (cancelled) return;
         if (status !== "authed") {
           setUsage(null);
+          setUsageFailed(true);
         }
       });
     return () => {
@@ -290,37 +294,7 @@ function SvgToPngConverter() {
     return () => window.removeEventListener("paste", handleGlobalPaste);
   }, [tToast]);
 
-  function handleFormatSvg() {
-    if (!svgCode || isPlaceholderCode) return;
-    try {
-      let formatted = "";
-      const reg = /(>)(<)(\/*)/g;
-      const xml = svgCode.replace(reg, "$1\r\n$2$3");
-      let pad = 0;
-      xml.split("\r\n").forEach((line) => {
-        let indent = 0;
-        if (line.match(/.+<\/\w[^>]*>$/)) {
-          indent = 0;
-        } else if (line.match(/^<\/\w/)) {
-          if (pad !== 0) pad -= 1;
-        } else if (line.match(/^<\w[^>]*[^\/]>$/)) {
-          indent = 1;
-        } else {
-          indent = 0;
-        }
-        formatted += "  ".repeat(pad) + line.trim() + "\n";
-        pad += indent;
-      });
-      if (svgCode.trim() === formatted.trim()) {
-        showToast("success", tToast("svgAlreadyFormatted"));
-        return;
-      }
-      setSvgCode(formatted.trim());
-      showToast("success", tToast("svgFormatted"));
-    } catch {
-      showToast("error", tToast("formatError"));
-    }
-  }
+
 
   async function handleCopySvgCode() {
     const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
@@ -476,7 +450,13 @@ function SvgToPngConverter() {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
-      showToast("error", err instanceof Error ? err.message : tToast("conversionFailed"));
+      let msg = err instanceof Error ? err.message : tToast("conversionFailed");
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
+        msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
+      }
+      showToast("error", msg);
     } finally {
       if (!controller.signal.aborted) setConverting(false);
     }
@@ -557,22 +537,6 @@ function SvgToPngConverter() {
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex items-center gap-[10px]">
-                    {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
-                      <button
-                        type="button"
-                        onClick={handleFormatSvg}
-                        disabled={converting}
-                        aria-label="Format SVG code"
-                        className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${
-                          converting
-                            ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none"
-                            : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary"
-                        }`}
-                        title="Format SVG Code"
-                      >
-                        {tUpload("formatCode")}
-                      </button>
-                    )}
                     <button
                       type="button"
                       onClick={handleClearSvg}
@@ -605,7 +569,7 @@ function SvgToPngConverter() {
                         ? "\u00A0"
                         : status === "authed" || usage?.isUnlimited
                         ? tUsage("unlimitedConversions")
-                        : usage
+                        : usage && !usageFailed
                         ? tUsage("conversionsUsed", {
                             used: usage.conversionsUsed,
                             total: usage.conversionsUsed + (usage.remaining ?? 0),
@@ -631,7 +595,7 @@ function SvgToPngConverter() {
                     }}
                     spellCheck={false}
                     aria-label="SVG code editor"
-                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <button

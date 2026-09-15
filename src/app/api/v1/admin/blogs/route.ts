@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
             total,
             page,
             per_page: limit,
-            total_pages: Math.ceil(total / limit),
+            total_pages: Math.max(1, Math.ceil(total / limit)),
             has_next: page * limit < total,
             has_prev: page > 1,
         },
