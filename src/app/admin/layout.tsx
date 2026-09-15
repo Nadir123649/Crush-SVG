@@ -34,6 +34,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const touchStartXRef = React.useRef<number | null>(null);
   const dragInfoRef = React.useRef({ startX: 0, hasDragged: false });
 
+  // Clear failed photo URL when user data changes (fresh photo from token refresh)
+  useEffect(() => {
+    setFailedImageUrl(null);
+  }, [user?.photoURL]);
+
   useEffect(() => {
     // Drag behavior removed per user request: click only.
   }, [isDesktopSidebarOpen]);

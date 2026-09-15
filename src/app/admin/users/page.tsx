@@ -32,7 +32,6 @@ export default function UsersPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [users, setUsers] = useState<any[]>(() => initialCached?.data || []);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<boolean>(() => !initialCached);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
@@ -91,7 +90,7 @@ export default function UsersPage() {
       const cached = getAdminCached<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-      }>(cacheKey, 30_000);
+      }>(cacheKey, 120_000);
 
       if (cached) {
         setUsers(cached.data);
@@ -438,17 +437,16 @@ export default function UsersPage() {
                         <td className="p-5">
                           <div className="flex items-center gap-3">
 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
-                               {failedImages.has(u.uid) || !u.photoURL ? (
-                                 <span className="flex items-center justify-center w-full h-full">{initials}</span>
-                               ) : (
-                                 <img
-                                   src={u.photoURL}
-                                   alt=""
-                                   className="w-full h-full object-cover"
-                                   referrerPolicy="no-referrer"
-                                   onError={() => setFailedImages(prev => new Set(prev).add(u.uid))}
-                                 />
-                               )}
+                               {u.photoURL ? (
+                                  <img
+                                    src={u.photoURL}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <span className="flex items-center justify-center w-full h-full">{initials}</span>
+                                )}
                              </div>
                             <div className="min-w-0">
                               <div className="font-body font-bold text-sm text-text-dark truncate">{u.displayName || 'Unnamed User'}</div>
