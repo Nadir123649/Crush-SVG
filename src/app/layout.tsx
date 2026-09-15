@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Bricolage_Grotesque, Afacad, Noto_Sans_JP } from "next/font/google";
 import { AppFeedbackProvider } from "@/components/providers/AppFeedbackProvider";
 import { AnalyticsConsentGate } from "@/components/providers/AnalyticsConsentGate";
