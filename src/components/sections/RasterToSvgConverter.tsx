@@ -247,42 +247,39 @@ function VectorDropdown({
                   {opt.value === "Custom" && onCustomColorChange && customColor && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 flex items-center justify-between gap-1 flex-wrap"
+                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 px-[10px] py-[6px] flex items-center gap-[5px] bg-[#FAF9F6] flex-wrap shrink-0"
                     >
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCustomColorChange(c.hex);
-                            }}
-                            className={`w-[18px] h-[18px] rounded-full border border-gray-300 transition-transform ${
-                              customColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "scale-115 ring-2 ring-brand-primary"
-                                : "hover:scale-105"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          className="w-[20px] h-[20px] p-0 border-none rounded cursor-pointer"
+                      {COLOR_PRESETS.map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          title={c.name}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCustomColorChange(c.hex);
+                          }}
+                          className={`w-[14px] h-[14px] rounded-full border border-gray-300 transition-transform shrink-0 ${
+                            customColor.toLowerCase() === c.hex.toLowerCase()
+                              ? "scale-115 ring-2 ring-brand-primary"
+                              : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: c.hex }}
                         />
-                        <input
-                          type="text"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          maxLength={7}
-                          className="w-[58px] h-[22px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center"
-                        />
-                      </div>
+                      ))}
+                      <input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        className="w-[16px] h-[16px] p-0 border-none rounded cursor-pointer shrink-0"
+                        aria-label="Pick custom color"
+                      />
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        maxLength={7}
+                        className="w-[50px] h-[20px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center ml-auto"
+                      />
                     </div>
                   )}
                 </div>

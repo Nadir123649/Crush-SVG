@@ -71,17 +71,21 @@ interface BlogPost {
   content: string;
 }
 
-async function getAllPosts(): Promise<BlogPost[]> {
+async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] }> {
   try {
     await connectToDatabase();
     const docs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
       .populate("authorId", "displayName")
+      .select("-content")
       .lean();
 
-    return docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
+    const categorySet = new Set<string>();
+    const posts = docs.map((doc: BlogDoc & { authorId?: { displayName?: string } }) => {
       const authorName = doc.authorId?.displayName || "CrushSVG Team";
       const date = doc.createdAt instanceof Date ? doc.createdAt : new Date(doc.createdAt);
+      const cat = doc.category || "General";
+      categorySet.add(cat);
       return {
         slug: doc.slug,
         title: doc.title,
@@ -91,29 +95,19 @@ async function getAllPosts(): Promise<BlogPost[]> {
         excerpt: doc.excerpt || "",
         date: date.toISOString(),
         formattedDate: formatDate(date),
-        category: doc.category || "General",
-        readTime: calculateReadTime(doc.content),
+        category: cat,
+        readTime: calculateReadTime(doc.content || ""),
         author: authorName,
         cover_image: doc.coverImage || "/blog.png",
         accent_color: "#FF6B00",
-        content: doc.content,
+        content: "",
       };
     });
+
+    return { posts, categories: ["All", ...categorySet] };
   } catch (error) {
     console.error("Failed to fetch blog posts:", error);
-    return [];
-  }
-}
-
-async function getCategories(): Promise<string[]> {
-  try {
-    await connectToDatabase();
-    const docs = await Blog.find({ published: true }).select("category").lean();
-    const categories = Array.from(new Set(docs.map((d) => d.category || "General")));
-    return ["All", ...categories];
-  } catch (error) {
-    console.error("Failed to fetch categories:", error);
-    return ["All"];
+    return { posts: [], categories: ["All"] };
   }
 }
 
@@ -126,8 +120,7 @@ export default async function BlogListingPage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "blog_page" });
 
-  const posts = await getAllPosts();
-  const categories = await getCategories();
+  const { posts, categories } = await getAllPosts();
 
   const blogSchema = {
     "@context": "https://schema.org",
@@ -189,7 +182,7 @@ export default async function BlogListingPage({
           </>
         }
         subtitle={t("heroSubtitle")}
-        className="mb-2 md:mb-4"
+        className="mb-6 md:mb-10"
       />
 
       {/* Interactive Blog Listing Component */}
