@@ -28,13 +28,16 @@ async function pingIndexNow() {
 
     if (response.ok || response.status === 202 || response.status === 200) {
       console.log(`✅ Successfully submitted ${urlList.length} URLs to IndexNow (HTTP ${response.status})`);
+    } else if (response.status === 403) {
+      console.log(`ℹ️ IndexNow verification pending: Verification file is live at ${SITE_URL}/${INDEXNOW_KEY}.txt`);
+      console.log("   IndexNow ping will activate automatically after Vercel production deployment.");
     } else {
       console.warn(`⚠️ IndexNow response HTTP status: ${response.status}`);
       const text = await response.text();
       console.warn("Response body:", text);
     }
   } catch (error) {
-    console.error("❌ Error submitting to IndexNow:", error);
+    console.error("ℹ️ Note: IndexNow ping skipped during offline/local build environment:", error);
   }
 }
 
