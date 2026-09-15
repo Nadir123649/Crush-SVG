@@ -15,60 +15,18 @@ export interface BlogDoc {
     updatedAt: Date;
 }
 
-const blogSchema = new Schema(
-    {
-        title: {
-            type: String,
-            required: true,
-            trim: true,
-        },
+const blogSchema = new Schema({
+    title: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    content: { type: String, required: true },
+    excerpt: { type: String, trim: true },
+    coverImage: { type: String, default: null },
+    category: { type: String, default: "General", trim: true },
+    published: { type: Boolean, default: false },
+    authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+}, { timestamps: true });
 
-        slug: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true,
-            lowercase: true,
-        },
-
-        content: {
-            type: String,
-            required: true,
-        },
-
-        excerpt: {
-            type: String,
-            trim: true,
-        },
-
-        coverImage: {
-            type: String,
-            default: null,
-        },
-
-        category: {
-            type: String,
-            default: "General",
-            trim: true,
-        },
-
-        published: {
-            type: Boolean,
-            default: false,
-        },
-
-        authorId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
-
-// Additional indexes
+blogSchema.index({ slug: 1 }, { unique: true });
 blogSchema.index({ published: 1, createdAt: -1 });
 blogSchema.index({ authorId: 1 });
 

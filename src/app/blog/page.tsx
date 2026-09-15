@@ -2,8 +2,6 @@ import BlogListingPage, {
   generateMetadata as baseGenerateMetadata,
 } from "../[locale]/blog/page";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata() {
   return baseGenerateMetadata({ params: Promise.resolve({ locale: "en" }) });
 }
