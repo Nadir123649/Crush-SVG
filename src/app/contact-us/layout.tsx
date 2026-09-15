@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { constructMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = constructMetadata({
@@ -19,7 +20,8 @@ export default function ContactLayout({ children }: { children: React.ReactNode 
 
   return (
     <>
-      <script
+      <Script
+        id="jsonld-contact"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
       />

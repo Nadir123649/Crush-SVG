@@ -81,9 +81,9 @@ export default async function RootLayout({
         {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
             wrong auth panel on the very first frame. Reads the same
             localStorage key AuthProvider uses — no second auth system. */}
-        <script
+        <Script
           id="auth-sync"
-          suppressHydrationWarning
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
           }}
@@ -122,9 +122,9 @@ export default async function RootLayout({
         />
 
         {/* Consent Mode v2 default must run before GTM tags are evaluated. */}
-        <script
+        <Script
           id="consent-default"
-          suppressHydrationWarning
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -141,9 +141,9 @@ export default async function RootLayout({
         />
 
         {/* Google Tag Manager */}
-        <script
+        <Script
           id="google-tag-manager"
-          suppressHydrationWarning
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
             (function(w,d,s,l,i){
@@ -176,24 +176,24 @@ export default async function RootLayout({
         className="min-h-full flex flex-col items-center bg-background overflow-x-hidden"
         suppressHydrationWarning
       >
-        {/* Structured Data (JSON-LD) - in body to avoid hydration mismatch from browser extensions injecting scripts in head */}
-        <script
+        {/* Structured Data (JSON-LD) */}
+        <Script
+          id="jsonld-website"
           type="application/ld+json"
-          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(getWebSiteSchema()),
           }}
         />
-        <script
+        <Script
+          id="jsonld-org"
           type="application/ld+json"
-          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(getOrganizationSchema()),
           }}
         />
-        <script
+        <Script
+          id="jsonld-webapp"
           type="application/ld+json"
-          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(getWebApplicationSchema()),
           }}
