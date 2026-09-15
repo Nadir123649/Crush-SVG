@@ -5,13 +5,14 @@ const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const ASSETS_CACHE = `${CACHE_VERSION}-assets`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 
-const OFFLINE_FALLBACK_URL = "/";
+const OFFLINE_FALLBACK_URL = "/offline.html";
 
 /**
  * Shell routes and essential brand assets to pre-cache on installation
  */
 const PRE_CACHE_URLS = [
   "/",
+  "/offline.html",
   "/convert-svg-to-png",
   "/png-to-svg",
   "/background-remover",

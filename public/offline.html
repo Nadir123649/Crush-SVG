@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline · CrushSVG</title>
+  <meta name="theme-color" content="#D94A1E">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #FFFCFA;
+      color: #202427;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .container {
+      max-width: 480px;
+      width: 100%;
+      background: #FFFFFF;
+      border: 1px solid #EEE5DE;
+      border-radius: 20px;
+      padding: 40px 28px;
+      box-shadow: 0 12px 36px rgba(217, 74, 30, 0.06);
+    }
+    .icon-badge {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
+      background: #FFF1EB;
+      border: 1px solid #F0C9B9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: #D94A1E;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .logo-crush { color: #1C1917; }
+    .logo-svg { color: #D94A1E; }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #202427;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 14.5px;
+      line-height: 1.5;
+      color: #6B7280;
+      margin-bottom: 24px;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: #D94A1E;
+      color: #FFFFFF;
+      border: none;
+    }
+    .btn-primary:hover {
+      background: #C23E15;
+    }
+    .btn-secondary {
+      background: #FAF6F3;
+      color: #374151;
+      border: 1px solid #EEE5DE;
+    }
+    .btn-secondary:hover {
+      background: #F3ECE5;
+      color: #D94A1E;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: #FFF5F2;
+      border: 1px solid #FFD8CC;
+      color: #D94A1E;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #D94A1E;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-badge">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.58 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+      </svg>
+    </div>
+
+    <div class="logo">
+      <span class="logo-crush">Crush</span><span class="logo-svg">SVG</span>
+    </div>
+
+    <h1>You are currently offline</h1>
+    <p>No internet connection detected. Previously visited conversion tools and cached vector assets remain available.</p>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="window.location.reload()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        Retry Connection
+      </button>
+
+      <a href="/" class="btn btn-secondary">
+        Return to Home / Converter
+      </a>
+    </div>
+
+    <div>
+      <span class="badge">
+        <span class="dot"></span>
+        Offline Storage Active
+      </span>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('online', function() {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>
