@@ -65,13 +65,10 @@ export function ForgotPasswordCard() {
 
         {sent ? (
           <div className="flex flex-col items-center gap-[12px]">
-<PasswordResetSuccessAlert
+            <PasswordResetSuccessAlert
               message={t("successMessage", { email })}
               onClose={() => setSent(false)}
             />
-            <p className="font-afacad text-[14px] text-[#4B5563] text-center leading-[20px] mt-[12px]">
-              {t("successMessage", { email })}
-            </p>
             <Link href="/login" className="font-afacad font-medium text-[14px] text-[#D94A1E] hover:underline mt-[8px]">
               {t("backToLogin")}
             </Link>

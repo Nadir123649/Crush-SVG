@@ -314,14 +314,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
-    try {
-      await Promise.allSettled([
-        apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
-        firebaseSignOut(),
-      ])
-    } finally {
-      clearAuth()
-    }
+    // Clear local auth state immediately so UI feels instant.
+    clearAuth()
+    // Fire server/session revocation in the background — non-blocking.
+    Promise.allSettled([
+      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+      firebaseSignOut(),
+    ]).catch(() => { /* non-critical */ })
   }, [clearAuth])
 
   const changePassword = useCallback(
