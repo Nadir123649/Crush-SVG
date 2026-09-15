@@ -20,6 +20,7 @@
     "pngToSvg": "PNG to SVG",
     "backgroundRemover": "Background Remover",
     "imageResizer": "Image Resizer",
+    "svgOptimizer": "SVG Optimizer",
     "guides": "Guides",
     "needHelp": "Need Help?",
     "blog": "Blog",
@@ -73,6 +74,11 @@
       "title": "Image Resizer",
       "h1": "Resize Images Instantly",
       "subtitle": "Upload any image and resize it in seconds. Free, private, and runs entirely in your browser. Supports PNG, JPG, and WebP."
+    },
+    "svgOptimizer": {
+      "title": "SVG Optimizer & Minifier",
+      "h1": "Compress and Optimize SVG Files Instantly",
+      "subtitle": "Strip bloated metadata, round path coordinates, clean unused attributes, and minify colors in seconds. Free, ultra-fast, and runs 100% in your browser."
     }
   },
   "upload_interface": {
@@ -183,10 +189,12 @@
     "rasterTitle": "Stop juggling design tools and unreliable converters",
     "bgTitle": "Stop struggling with complex editing tools",
     "resizerTitle": "Stop fumbling with desktop image editors",
+    "optimizerTitle": "Stop shipping bloated vector files and slow websites",
     "svgDesc": "Simply paste your SVG code, upload a file, or drag and drop it to create a high-quality PNG in seconds perfect for Gmail, Outlook, Canva, websites, newsletters, and more.",
     "rasterDesc": "Simply upload a PNG or JPG, or drag and drop it to create a crisp, scalable SVG in seconds perfect for logos, icons, vector graphics, websites, and more.",
     "bgDesc": "Simply upload any image and let our tool handle the rest. Perfect for product photos, social media, headshots, and design assets.",
     "resizerDesc": "Upload any image and resize it to exact dimensions in seconds. Perfect for thumbnails, social media, web graphics, and print-ready assets.",
+    "optimizerDesc": "Minify SVG code, strip illustrator/figma metadata, clean unused attributes, and collapse paths in seconds with zero visual quality loss.",
     "badgeFree": "Free",
     "badgeMultipleSizes": "Multiple export sizes",
     "badgeTransparentBg": "Transparent background",
@@ -198,6 +206,9 @@
     "badgeExactPixels": "Exact pixel dimensions",
     "badgeRatioLock": "Aspect ratio lock",
     "badgeFormatsOutput": "PNG, JPG, and WebP output",
+    "badgeMinify": "Lossless SVG Compression",
+    "badgePrecision": "Configurable Precision",
+    "badgeZeroLag": "Instant in-browser processing",
     "badgeThreeFree": "3 free conversions, no login required"
   },
   "steps": {
@@ -255,6 +266,20 @@
       {
         "title": "Download Result",
         "description": "Export as PNG, JPG, or WebP with quality control. Your resized image is ready for any platform."
+      }
+    ],
+    "optimizer": [
+      {
+        "title": "Paste or Upload SVG",
+        "description": "Drop your SVG file or paste raw vector code directly into the optimizer."
+      },
+      {
+        "title": "Choose Compression Level",
+        "description": "Adjust decimal precision, strip metadata, and remove empty container tags."
+      },
+      {
+        "title": "Download Minified SVG",
+        "description": "Get a lightweight, clean SVG ready for web production, React, or icons."
       }
     ]
   },
@@ -388,6 +413,24 @@
         "question": "What image formats can I vectorize?",
         "answer": "You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors."
       }
+    ],
+    "optimizer": [
+      {
+        "question": "What does this SVG Optimizer do?",
+        "answer": "CrushSVG's optimizer strips redundant XML declarations, editor metadata (from Figma, Illustrator, Inkscape), unused namespaces, comments, and empty groups, while rounding path decimal precision to dramatically reduce file size."
+      },
+      {
+        "question": "Will optimizing my SVG reduce its visual quality?",
+        "answer": "No. Our compression algorithms are designed to be visually lossless. You can configure decimal precision depending on how much precision your complex vector paths require."
+      },
+      {
+        "question": "Is my SVG code kept private?",
+        "answer": "Yes! The optimization engine runs 100% client-side inside your browser. Your SVG files and code never touch our servers."
+      },
+      {
+        "question": "Can I copy the minified SVG code directly?",
+        "answer": "Yes! You can click 'Copy Code' to copy the minified SVG markup or 'Copy Data URI' for inline CSS/HTML backgrounds."
+      }
     ]
   },
   "footer": {
@@ -435,7 +478,9 @@
     "bgRemoverTitle": "Background Remover – Free AI Image Background Removal Online",
     "bgRemoverDescription": "Remove image backgrounds instantly. Free, browser-based, transparent output. No install needed.",
     "imageResizerTitle": "Image Resizer – Free Online Image Resizing Tool",
-    "imageResizerDescription": "Resize images instantly. Free, browser-based, supports PNG, JPG, and WebP. Adjust width, height, scale, and quality. No install needed."
+    "imageResizerDescription": "Resize images instantly. Free, browser-based, supports PNG, JPG, and WebP. Adjust width, height, scale, and quality. No install needed.",
+    "svgOptimizerTitle": "SVG Optimizer – Free Online SVG Minifier & Compressor",
+    "svgOptimizerDescription": "Compress and optimize SVG files online. Strip metadata, clean empty tags, round coordinate decimals, and reduce SVG file size instantly. 100% free and private."
   },
   "accessibility": {
     "skipToContent": "Skip to main content",
@@ -1021,12 +1066,44 @@
     "howToBgRemoverDesc": "Remove background from photos in three simple steps.",
     "howToImageResizer": "How to Resize Images Online",
     "howToImageResizerDesc": "Resize PNG, JPG, and WebP images in seconds.",
+    "howToSvgOptimizer": "How to Optimize & Minify SVG Files Online",
+    "howToSvgOptimizerDesc": "Compress and clean SVG vector files in three simple steps.",
     "headingSvgPngLine1": "One File.",
     "headingSvgPngHighlight": "Three Simple Steps.",
     "headingBgRemoverLine1": "One Image.",
     "headingBgRemoverHighlight": "Three Simple Steps.",
     "headingImageResizerLine1": "One Image.",
-    "headingImageResizerHighlight": "Perfectly Sized."
+    "headingImageResizerHighlight": "Perfectly Sized.",
+    "headingSvgOptimizerLine1": "One File.",
+    "headingSvgOptimizerHighlight": "Maximum Compression."
+  },
+  "svg_optimizer_ui": {
+    "inputLabel": "SVG Code & File",
+    "dragOrSelect": "Drag & drop an SVG file or",
+    "browseFile": "browse from device",
+    "optionsTitle": "Compression Settings",
+    "stripMetadata": "Strip Editor Metadata",
+    "stripComments": "Strip XML Comments",
+    "cleanEmptyTags": "Remove Empty Groups & Defs",
+    "minifyColors": "Minify Colors & Styles",
+    "precisionLabel": "Coordinate Precision",
+    "precisionExact": "Exact",
+    "previewTitle": "Optimized Live Preview",
+    "savingsBadge": "{percent}% Smaller!",
+    "invalidSvgNotice": "Paste or upload valid SVG markup to see live preview",
+    "statOriginal": "Original",
+    "statOptimized": "Optimized",
+    "statSavings": "Savings",
+    "downloadMinifiedSvg": "Download Minified SVG",
+    "copyCode": "Copy Code",
+    "copyDataUri": "Copy Data URI",
+    "copied": "Copied to clipboard!",
+    "copyFailed": "Failed to copy to clipboard",
+    "fileLoaded": "SVG loaded successfully",
+    "fileReadError": "Could not read SVG file",
+    "invalidSvgFile": "Please select a valid .svg file",
+    "fileTooLarge": "File is too large (max 10MB)",
+    "downloadStarted": "Downloading optimized SVG..."
   },
   "pwa": {
     "installApp": "Install App",

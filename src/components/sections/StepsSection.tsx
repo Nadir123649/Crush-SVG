@@ -4,7 +4,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { getHowToSchema } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 
-export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" }) {
+export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" }) {
   const t = useTranslations("steps");
   const tSection = useTranslations("steps_section");
 
@@ -17,7 +17,16 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
 
   let stepData: { title: string; description: string }[] = [];
   try {
-    const rawKey = mode === "background-remover" ? "bg" : mode === "image-resizer" ? "resizer" : mode === "raster-to-svg" ? "raster" : "svg";
+    const rawKey =
+      mode === "background-remover"
+        ? "bg"
+        : mode === "image-resizer"
+        ? "resizer"
+        : mode === "svg-optimizer"
+        ? "optimizer"
+        : mode === "raster-to-svg"
+        ? "raster"
+        : "svg";
     const rawSteps = t.raw(rawKey) as { title: string; description: string }[];
     if (Array.isArray(rawSteps)) {
       stepData = rawSteps;
@@ -75,6 +84,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToBgRemover") 
     : mode === "image-resizer" 
     ? tSection("howToImageResizer") 
+    : mode === "svg-optimizer"
+    ? tSection("howToSvgOptimizer")
     : mode === "raster-to-svg" 
     ? tSection("howToRasterSvg") 
     : tSection("howToSvgPng");
@@ -83,6 +94,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToBgRemoverDesc")
     : mode === "image-resizer"
     ? tSection("howToImageResizerDesc")
+    : mode === "svg-optimizer"
+    ? tSection("howToSvgOptimizerDesc")
     : mode === "raster-to-svg"
     ? tSection("howToRasterSvgDesc")
     : tSection("howToSvgPngDesc");
@@ -107,6 +120,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
           <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
           <>{tSection("headingImageResizerLine1")} <span className="text-[#D94A1E]">{tSection("headingImageResizerHighlight")}</span></>
+        ) : mode === "svg-optimizer" ? (
+          <>{tSection("headingSvgOptimizerLine1")} <span className="text-[#D94A1E]">{tSection("headingSvgOptimizerHighlight")}</span></>
         ) : (
           <>{tSection("headingSvgPngLine1")} <span className="text-[#D94A1E]">{tSection("headingSvgPngHighlight")}</span></>
         )}

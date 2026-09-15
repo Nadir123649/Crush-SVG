@@ -30,11 +30,16 @@ const content = `# CrushSVG — Full Site & Platform Reference
 - High-precision image dimension scaling and compression.
 - Locks aspect ratio, supports custom pixel bounds, and optimizes file sizes.
 
-### 5. Progressive Web App (PWA) & Offline Mode
+### 5. SVG Optimizer & Minifier (\`/svg-optimizer\`)
+- Lossless vector code compression and minification.
+- Strips editor metadata (Illustrator, Figma, Inkscape), removes unused defs and comments, rounds path coordinate decimals.
+- Live before/after size reduction stats and instant in-browser processing.
+
+### 6. Progressive Web App (PWA) & Offline Mode
 - Installable desktop and mobile application (Chrome, Safari iOS, Edge, Android).
 - Service worker caching with offline fallback page (\`/offline.html\`) and local tool cache.
 
-### 6. Multi-Language Internationalization
+### 7. Multi-Language Internationalization
 - Available in English (en), Spanish (es), German (de), French (fr), Portuguese (pt), and Japanese (ja).
 
 ---
@@ -54,6 +59,7 @@ const content = `# CrushSVG — Full Site & Platform Reference
 | PNG to SVG Vectorizer | ${BASE_URL}/png-to-svg | Bitmap image to vector converter |
 | AI Background Remover | ${BASE_URL}/background-remover | Neural background transparency tool |
 | Image Resizer | ${BASE_URL}/image-resizer | Precise image dimension and scale tool |
+| SVG Optimizer | ${BASE_URL}/svg-optimizer | Lossless SVG minifier and compressor |
 | Blog | ${BASE_URL}/blog | Technical articles and design workflows |
 | SVG Guides | ${BASE_URL}/svg-guides | In-depth tutorials on working with vector graphics |
 | About | ${BASE_URL}/about | About CrushSVG and parent engineering company The Nevon |

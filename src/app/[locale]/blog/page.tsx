@@ -7,6 +7,7 @@ import { Blog, User, connectToDatabase } from "@/lib/database/db";
 import type { BlogDoc } from "@/lib/database/models/blog";
 import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
+import { AdBanner } from "@/components/ui/AdBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -187,6 +188,9 @@ export default async function BlogListingPage({
 
       {/* Interactive Blog Listing Component */}
       <BlogListing posts={posts} categories={categories} />
+
+      {/* AdSense Unit */}
+      <AdBanner />
     </main>
   );
 }

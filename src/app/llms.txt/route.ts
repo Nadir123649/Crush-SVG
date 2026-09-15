@@ -16,8 +16,9 @@ CrushSVG was built to solve the frustration of broken vector conversions and ras
 2. **PNG to SVG Vectorizer**: Traces bitmap/raster images (PNG, JPG, WebP) into clean, scalable SVG vector paths with custom color quantization and path smoothing.
 3. **AI Background Remover**: Instant browser-side and neural AI background removal for photos, graphics, and e-commerce product images.
 4. **Image Resizer**: Exact pixel dimension scaling, aspect ratio preservation, and compression optimization.
-5. **PWA & Offline Mode**: Installable Progressive Web App with service worker caching for offline access on Windows, macOS, Linux, Android, and iOS.
-6. **Multi-Language Support**: Fully localized in English, Spanish (Español), German (Deutsch), French (Français), Portuguese (Português), and Japanese (日本語).
+5. **SVG Optimizer & Minifier**: Instant lossless SVG code compressor, stripping metadata, unused defs, and rounding coordinate decimals.
+6. **PWA & Offline Mode**: Installable Progressive Web App with service worker caching for offline access on Windows, macOS, Linux, Android, and iOS.
+7. **Multi-Language Support**: Fully localized in English, Spanish (Español), German (Deutsch), French (Français), Portuguese (Português), and Japanese (日本語).
 
 ## Pages & Tools
 
@@ -25,6 +26,7 @@ CrushSVG was built to solve the frustration of broken vector conversions and ras
 - [PNG to SVG Vectorizer](${BASE_URL}/png-to-svg): Raster to vector tracing tool
 - [AI Background Remover](${BASE_URL}/background-remover): Automatic transparent background generator
 - [Image Resizer](${BASE_URL}/image-resizer): Pixel scaling and image optimization
+- [SVG Optimizer](${BASE_URL}/svg-optimizer): SVG minifier and compressor tool
 - [Blog](${BASE_URL}/blog): Designer and developer articles on vector graphics and web design
 - [SVG Guides](${BASE_URL}/svg-guides): Tutorials and guides on working with SVG files
 - [About](${BASE_URL}/about): About CrushSVG and its mission

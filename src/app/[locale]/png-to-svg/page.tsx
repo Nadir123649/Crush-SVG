@@ -8,6 +8,7 @@ import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
 import { TargetAudience } from "@/components/sections/TargetAudience";
 import { FAQ } from "@/components/sections/FAQ";
+import { AdBanner } from "@/components/ui/AdBanner";
 import { routing } from "@/i18n/routing";
 
 export function generateStaticParams() {
@@ -65,6 +66,7 @@ export default async function PngToSvgPage({
       <SignUpCTA />
       <StepsSection mode="raster-to-svg" />
       <TargetAudience mode="raster-to-svg" />
+      <AdBanner />
       <FAQ mode="raster-to-svg" />
     </div>
   );

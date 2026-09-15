@@ -122,6 +122,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
+    if (pathname === "/svg-optimizer") {
+      return {
+        label: tNav("svgOptimizer"),
+        href: "/svg-optimizer",
+        isActive: true,
+      };
+    }
     if (pathname === "/" || pathname === "/convert-svg-to-png") {
       return {
         label: tNav("svgToPng"),
@@ -138,7 +145,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
   const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
   const isPngToSvgActive = pathname === "/png-to-svg";
-  const isOtherToolActive = pathname === "/background-remover" || pathname === "/image-resizer";
+  const isOtherToolActive = pathname === "/background-remover" || pathname === "/image-resizer" || pathname === "/svg-optimizer";
   const isAuthenticated = status === "authed" && !!user;
 
   return (
@@ -315,6 +322,28 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                         </span>
                         <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
                           Dimension scaling & optimization
+                        </span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/svg-optimizer"
+                      onClick={() => setActiveDropdown("none")}
+                      className={`flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all ${
+                        pathname === "/svg-optimizer"
+                          ? "bg-gradient-to-r from-[#FFF5F0] to-[#FFF9F5] text-brand-primary font-semibold border border-[#D94A1E]/30"
+                          : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                      }`}
+                    >
+                      <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 font-heading font-bold text-[11px]">
+                        OPT
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13.5px] font-heading font-semibold truncate leading-tight">
+                          {tNav("svgOptimizer")}
+                        </span>
+                        <span className="text-[11px] text-text-muted truncate leading-tight mt-[2px]">
+                          Minify & compress vector code
                         </span>
                       </div>
                     </Link>
@@ -617,6 +646,21 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   PX
                 </span>
                 <span className="font-body text-[15px]">{tNav("imageResizer")}</span>
+              </Link>
+
+              <Link
+                href="/svg-optimizer"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
+                  pathname === "/svg-optimizer"
+                    ? "bg-[#FFF5F2] text-brand-primary font-semibold"
+                    : "text-text-dark hover:bg-[#FAF6F3] hover:text-brand-primary"
+                }`}
+              >
+                <span className="w-[26px] h-[26px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20 text-[11px] font-bold">
+                  OPT
+                </span>
+                <span className="font-body text-[15px]">{tNav("svgOptimizer")}</span>
               </Link>
             </div>
           </div>

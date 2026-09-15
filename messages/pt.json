@@ -29,7 +29,8 @@
     "logOut": "Sair",
     "openMenu": "Abrir menu",
     "accountMenu": "Menu da conta do usuário",
-    "homeAria": "Página inicial do CrushSVG"
+    "homeAria": "Página inicial do CrushSVG",
+    "svgOptimizer": "Otimizador SVG"
   },
   "language": {
     "label": "Idioma",
@@ -73,6 +74,11 @@
       "title": "Redimensionador de Imagens",
       "h1": "Redimensione Imagens Instantaneamente",
       "subtitle": "Ajuste o tamanho de suas fotos e imagens em segundos. Suporte a PNG, JPG e WebP sem instalar nada."
+    },
+    "svgOptimizer": {
+      "h1": "Comprima e Otimize Arquivos SVG Instantaneamente",
+      "subtitle": "Remova metadados desnecessários, arredonde coordenadas de caminhos, limpe atributos não utilizados e minifique cores em segundos. Grátis, ultra rápido e 100% no seu navegador.",
+      "title": "Otimizador e Minificador SVG"
     }
   },
   "upload_interface": {
@@ -190,7 +196,12 @@
     "badgeExactPixels": "Dimensões exatas em pixels",
     "badgeRatioLock": "Bloqueio de proporção",
     "badgeFormatsOutput": "Exportação em PNG, JPG e WebP",
-    "badgeThreeFree": "3 conversões gratuitas sem cadastro"
+    "badgeThreeFree": "3 conversões gratuitas sem cadastro",
+    "badgeMinify": "Compressão SVG sem perdas",
+    "badgePrecision": "Precisão configurável",
+    "badgeZeroLag": "Processamento instantâneo no navegador",
+    "optimizerDesc": "Minifique código SVG, remova metadados do Illustrator/Figma, limpe atributos não usados e comprima caminhos sem perda de qualidade visual.",
+    "optimizerTitle": "Pare de enviar arquivos vetoriais pesados e sites lentos"
   },
   "steps": {
     "svg": [
@@ -247,6 +258,20 @@
       {
         "title": "Baixe a Imagem",
         "description": "Exporte em formato PNG, JPG ou WebP otimizado com controle de qualidade."
+      }
+    ],
+    "optimizer": [
+      {
+        "title": "Cole ou Envie o SVG",
+        "description": "Arraste seu arquivo SVG ou cole o código vetorial diretamente no otimizador."
+      },
+      {
+        "title": "Escolha o Nível de Compressão",
+        "description": "Ajuste a precisão decimal, remova metadados e limpe tags vazias."
+      },
+      {
+        "title": "Baixe o SVG Minificado",
+        "description": "Obtenha um SVG leve e limpo pronto para produção web, React ou ícones."
       }
     ]
   },
@@ -305,7 +330,25 @@
     ],
     "bg": "[{\"question\":\"What image formats are supported?\",\"answer\":\"You can upload PNG, JPG, JPEG, and WebP images. The output is always a transparent PNG.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.\"},{\"question\":\"Do I need to install any software?\",\"answer\":\"No, CrushSVG is entirely web-based. You can remove backgrounds directly in your browser without any plugins.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can remove backgrounds for free. Creating an account unlocks unlimited processing without any hidden fees.\"},{\"question\":\"What types of images work best?\",\"answer\":\"Product photos, headshots, social media images, and design assets with clear foreground subjects work best. Complex scenes with similar foreground/background colors may need manual touch-up.\"},{\"question\":\"What is the maximum image size?\",\"answer\":\"You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution.\"}]",
     "raster": "[{\"question\":\"Can I control the quality of the vectorized SVG?\",\"answer\":\"Yes! You can adjust presets (Low, Medium, High), color quantization, background handling, and path smoothing.\"},{\"question\":\"Are my uploaded PNG and JPG images secure?\",\"answer\":\"Absolutely. Your images are processed securely and we never store, share, or use your uploaded files for anything else.\"},{\"question\":\"Does this tool support removing backgrounds?\",\"answer\":\"Yes, you can enable the 'Ignore Background' feature to automatically remove solid backgrounds during vectorization.\"},{\"question\":\"Do I need to install any software?\",\"answer\":\"No, CrushSVG is entirely web-based. You can vectorize images directly in your browser without any plugins.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can vectorize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"},{\"question\":\"What image formats can I vectorize?\",\"answer\":\"You can upload PNG, JPG, JPEG, and WebP images to convert them into crisp, scalable SVG vectors.\"}]",
-    "resizer": "[{\"question\":\"What image formats can I resize?\",\"answer\":\"You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.\"},{\"question\":\"What is the maximum image size I can resize?\",\"answer\":\"You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.\"},{\"question\":\"Can I maintain the aspect ratio while resizing?\",\"answer\":\"Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.\"},{\"question\":\"When should I use JPG vs PNG vs WebP?\",\"answer\":\"Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"}]"
+    "resizer": "[{\"question\":\"What image formats can I resize?\",\"answer\":\"You can upload and resize PNG, JPG, JPEG, and WebP images. You can also export to any of these formats regardless of the input format.\"},{\"question\":\"Is my image data kept private?\",\"answer\":\"Absolutely. All resizing happens in your browser using Canvas. Your images are never uploaded to our servers.\"},{\"question\":\"What is the maximum image size I can resize?\",\"answer\":\"You can upload images up to 10MB in size. Maximum output dimensions are 10,000 pixels on any side.\"},{\"question\":\"Can I maintain the aspect ratio while resizing?\",\"answer\":\"Yes! The aspect ratio lock is enabled by default. When you change the width, the height adjusts automatically to prevent distortion, and vice versa.\"},{\"question\":\"When should I use JPG vs PNG vs WebP?\",\"answer\":\"Use PNG for images requiring transparency. Use JPG for photos where smaller file size matters more than perfect quality. Use WebP for the best compression-to-quality ratio.\"},{\"question\":\"Is CrushSVG free to use?\",\"answer\":\"Yes! You can resize images for free. Creating an account unlocks unlimited conversions without any hidden fees.\"}]",
+    "optimizer": [
+      {
+        "question": "O que este Otimizador SVG faz?",
+        "answer": "O otimizador do CrushSVG remove declarações XML redundantes, metadados de editores (Figma, Illustrator, Inkscape), namespaces não usados, comentários e grupos vazios, além de arredondar decimais para diminuir drasticamente o tamanho do arquivo."
+      },
+      {
+        "question": "A otimização reduz a qualidade visual?",
+        "answer": "Não. Nossos algoritmos de compressão são visualmente sem perdas. Você pode configurar a precisão decimal conforme a complexidade dos caminhos."
+      },
+      {
+        "question": "Meu código SVG é mantido privado?",
+        "answer": "Sim! O motor de otimização roda 100% no seu navegador. Seus arquivos e código SVG nunca chegam aos nossos servidores."
+      },
+      {
+        "question": "Posso copiar o código SVG minificado diretamente?",
+        "answer": "Sim! Você pode clicar em 'Copiar Código' ou 'Copiar Data URI'."
+      }
+    ]
   },
   "footer": {
     "taglineSvg": "De SVG para PNG, exatamente como deveria ser.",
@@ -352,7 +395,9 @@
     "bgRemoverTitle": "Remover Fundo de Imagem Grátis Online – CrushSVG",
     "bgRemoverDescription": "Remova o fundo de imagens instantaneamente. Grátis, no navegador e com saída em PNG transparente.",
     "imageResizerTitle": "Redimensionar Imagens Grátis Online – CrushSVG",
-    "imageResizerDescription": "Ajuste o tamanho de suas imagens instantaneamente. Grátis, no navegador, com suporte a PNG, JPG e WebP."
+    "imageResizerDescription": "Ajuste o tamanho de suas imagens instantaneamente. Grátis, no navegador, com suporte a PNG, JPG e WebP.",
+    "svgOptimizerDescription": "Comprima e otimize arquivos SVG online. Remova metadados, limpe tags vazias, arredonde decimais e reduza o tamanho do SVG instantaneamente. 100% gratuito e privado.",
+    "svgOptimizerTitle": "Otimizador SVG – Minificador e Compressor SVG Online Grátis"
   },
   "accessibility": {
     "skipToContent": "Pular para o conteúdo principal",
@@ -687,7 +732,11 @@
     "howToRasterSvg": "How to Convert Raster Images to SVG Vector",
     "howToRasterSvgDesc": "Convert PNG or JPG raster images into scalable SVG vectors.",
     "howToSvgPng": "How to Convert SVG to PNG Online",
-    "howToSvgPngDesc": "Convert SVG code or files into crisp transparent PNG images in three steps."
+    "howToSvgPngDesc": "Convert SVG code or files into crisp transparent PNG images in three steps.",
+    "headingSvgOptimizerHighlight": "Máxima Compressão.",
+    "headingSvgOptimizerLine1": "Um Arquivo.",
+    "howToSvgOptimizer": "Como Otimizar e Minificar Arquivos SVG Online",
+    "howToSvgOptimizerDesc": "Comprima e limpe arquivos vetoriais SVG em três etapas simples."
   },
   "toasts": {
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
@@ -969,5 +1018,33 @@
     "iosStep3": "Toque em 'Adicionar' no canto superior direito",
     "offlineMode": "Modo offline ativo — conversão local pronta",
     "backOnline": "Novamente online"
+  },
+  "svg_optimizer_ui": {
+    "browseFile": "procure no dispositivo",
+    "cleanEmptyTags": "Remover Grupos e Defs Vazios",
+    "copied": "Copiado para a área de transferência!",
+    "copyCode": "Copiar Código",
+    "copyDataUri": "Copiar Data URI",
+    "copyFailed": "Falha ao copiar para a área de transferência",
+    "downloadMinifiedSvg": "Baixar SVG Minificado",
+    "downloadStarted": "Baixando SVG otimizado...",
+    "dragOrSelect": "Arraste e solte um arquivo SVG ou",
+    "fileLoaded": "SVG carregado com sucesso",
+    "fileReadError": "Não foi possível ler o arquivo SVG",
+    "fileTooLarge": "Arquivo muito grande (máx. 10MB)",
+    "inputLabel": "Código SVG e Arquivo",
+    "invalidSvgFile": "Por favor, selecione um arquivo .svg válido",
+    "invalidSvgNotice": "Cole ou envie um SVG válido para ver a prévia",
+    "minifyColors": "Minificar Cores e Estilos",
+    "optionsTitle": "Configurações de Compressão",
+    "precisionExact": "Exata",
+    "precisionLabel": "Precisão das Coordenadas",
+    "previewTitle": "Pré-visualização Otimizada",
+    "savingsBadge": "{percent}% Menor!",
+    "statOptimized": "Otimizado",
+    "statOriginal": "Original",
+    "statSavings": "Economia",
+    "stripComments": "Remover Comentários XML",
+    "stripMetadata": "Remover Metadados de Editores"
   }
 }

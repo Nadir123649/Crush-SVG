@@ -41,6 +41,14 @@ export const routing = defineRouting({
       pt: "/redimensionar-imagem",
       ja: "/gazou-saizu-henkou",
     },
+    "/svg-optimizer": {
+      en: "/svg-optimizer",
+      es: "/optimizador-svg",
+      de: "/svg-optimierer",
+      fr: "/optimiseur-svg",
+      pt: "/otimizador-svg",
+      ja: "/svg-saitekika",
+    },
   },
 });
 
