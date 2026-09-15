@@ -24,14 +24,7 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   }, [status, router, searchParams]);
 
   if (status === "authed") {
-    // Show a loading state instead of the login card while redirecting
-    return (
-      <div className="w-full flex justify-center py-[60px]">
-        <div className="animate-pulse flex items-center gap-2 font-heading font-medium text-text-muted">
-          Redirecting...
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Show the login form immediately for guests and during loading (avoids flash)
