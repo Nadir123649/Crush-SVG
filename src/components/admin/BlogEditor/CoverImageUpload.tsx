@@ -118,6 +118,23 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
         setRawImage(null);
     }, []);
 
+    // Map zoom (1–3) to percent (1–100) for display and slider
+    const zoomToPercent = (z: number) => Math.round(((z - 1) / 2) * 99) + 1;
+    const percentToZoom = (p: number) => 1 + ((p - 1) / 99) * 2;
+    const zoomPercent = zoomToPercent(zoom);
+
+    const handlePercentChange = useCallback((val: number) => {
+        setZoom(percentToZoom(Math.min(100, Math.max(1, val))));
+    }, []);
+
+    const incrementZoom = useCallback(() => {
+        setZoom((prev) => Math.min(3, percentToZoom(zoomToPercent(prev) + 1)));
+    }, []);
+
+    const decrementZoom = useCallback(() => {
+        setZoom((prev) => Math.max(1, percentToZoom(zoomToPercent(prev) - 1)));
+    }, []);
+
     return (
         <>
             <div>
@@ -134,10 +151,10 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                             <button
                                 type="button"
                                 onClick={() => onChange("")}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
                                 title="Remove cover image"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                             </button>
                         </div>
                     ) : (
@@ -158,11 +175,21 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
 
             {/* Cropping Modal */}
             {isCropping && rawImage && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-[16px] shadow-2xl w-[90vw] max-w-[600px] flex flex-col overflow-hidden">
-                        <div className="px-6 py-4 border-b border-[#F2EDE8]">
-                            <h3 className="font-heading font-semibold text-lg text-text-dark">Crop Cover Image</h3>
-                            <p className="font-body text-sm text-text-muted mt-1">Adjust the crop area to fit 16:9</p>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancelCrop}>
+                    <div className="bg-white rounded-[16px] shadow-2xl w-[90vw] max-w-[600px] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-6 py-4 border-b border-[#F2EDE8] flex items-start justify-between">
+                            <div>
+                                <h3 className="font-heading font-semibold text-lg text-text-dark">Crop Cover Image</h3>
+                                <p className="font-body text-sm text-text-muted mt-1">Adjust the crop area to fit 16:9</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleCancelCrop}
+                                disabled={uploading}
+                                className="p-1 rounded-full text-text-muted hover:text-text-dark hover:bg-gray-100 transition-colors disabled:opacity-50"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                            </button>
                         </div>
 
                         <div className="relative w-full aspect-video bg-gray-900">
@@ -179,22 +206,64 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                             />
                         </div>
 
-                        <div className="px-6 py-4 border-t border-[#F2EDE8] flex items-center gap-4">
-                            <label className="flex items-center gap-2 flex-1">
-                                <span className="font-body text-sm text-text-muted shrink-0">Zoom</span>
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={3}
-                                    step={0.1}
-                                    value={zoom}
-                                    onChange={(e) => setZoom(Number(e.target.value))}
-                                    className="flex-1 accent-[#D94A1E]"
-                                />
-                            </label>
+                        <div className="px-6 py-4 border-t border-[#F2EDE8] flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={decrementZoom}
+                                disabled={zoomPercent <= 1}
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#F2EDE8] text-text-muted hover:bg-[#FFFCFA] hover:text-text-dark transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                            </button>
+                            <span className="font-body text-sm text-text-muted shrink-0">Zoom</span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={100}
+                                step={1}
+                                value={zoomPercent}
+                                onChange={(e) => handlePercentChange(Number(e.target.value))}
+                                className="flex-1 h-1.5 rounded-full appearance-none bg-[#F2EDE8] accent-[#D94A1E] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D94A1E] [&::-webkit-slider-thumb]:shadow-[0_1px_4px_rgba(217,74,30,0.3)] [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#D94A1E] [&::-moz-range-thumb]:border-0"
+                            />
+                            <span className="font-body text-sm font-medium text-text-dark tabular-nums shrink-0 w-10 text-right">{zoomPercent}%</span>
+                            <button
+                                type="button"
+                                onClick={incrementZoom}
+                                disabled={zoomPercent >= 100}
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#F2EDE8] text-text-muted hover:bg-[#FFFCFA] hover:text-text-dark transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                            </button>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-[#F2EDE8] flex items-center justify-end gap-3 bg-gray-50">
+                        <div className="px-6 py-4 border-t border-[#F2EDE8] flex items-center gap-3 bg-gray-50">
+                            <label
+                                className={`px-4 py-2 font-body text-sm font-medium text-text-muted border border-gray-200 rounded-full hover:bg-gray-100 transition-colors ${uploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
+                            >
+                                Replace
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            showToast("error", "Image must be less than 5MB", { id: "cover-image" });
+                                            return;
+                                        }
+                                        const reader = new FileReader();
+                                        reader.onload = () => {
+                                            setRawImage(reader.result as string);
+                                            setCrop({ x: 0, y: 0 });
+                                            setZoom(1);
+                                        };
+                                        reader.readAsDataURL(file);
+                                        e.target.value = "";
+                                    }}
+                                    className="hidden"
+                                />
+                            </label>
+                            <div className="flex-1" />
                             <button
                                 type="button"
                                 onClick={handleCancelCrop}
@@ -215,7 +284,7 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                                         Uploading...
                                     </>
                                 ) : (
-                                    "Crop & Upload"
+                                    "Upload"
                                 )}
                             </button>
                         </div>

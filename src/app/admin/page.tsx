@@ -26,7 +26,7 @@ const formatK = (num: number) => {
 };
 
 export default function AdminDashboard() {
-  const [cachedOverview] = useState(() => getAdminCached<any>("admin_overview", 60_000));
+  const [cachedOverview] = useState(() => getAdminCached<any>("admin_overview", 120_000));
   const [loading, setLoading] = useState(!cachedOverview);
   const [data, setData] = useState<any>(cachedOverview);
 
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <AdminLoader message="Loading dashboard..." className="min-h-[calc(100vh-140px)]" />
     );

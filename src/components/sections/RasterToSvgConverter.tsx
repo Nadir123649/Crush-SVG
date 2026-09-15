@@ -17,6 +17,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
+const STORAGE_KEY_IMAGE = "crush_vectorizer_image";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
@@ -378,6 +379,7 @@ export function RasterToSvgConverter() {
       setShowSignupPrompt(false);
       try {
         sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
       } catch {}
     }
   }, [status]);
@@ -459,9 +461,6 @@ export function RasterToSvgConverter() {
         const raw = sessionStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = JSON.parse(raw);
-          if (typeof saved.rasterDataUrl === "string") {
-            setRasterDataUrl(saved.rasterDataUrl);
-          }
           if (typeof saved.imageName === "string") {
             setImageName(saved.imageName);
           }
@@ -480,13 +479,21 @@ export function RasterToSvgConverter() {
             setResult(saved.result);
           }
         }
+        // Restore image data URL from a separate key to avoid QuotaExceededError
+        // when the full state including the large base64 string is saved as one blob.
+        try {
+          const imgRaw = sessionStorage.getItem(STORAGE_KEY_IMAGE);
+          if (imgRaw && typeof imgRaw === "string") {
+            setRasterDataUrl(imgRaw);
+          }
+        } catch {}
       } catch {}
       finally {
         storageRestoredRef.current = true;
         setStorageRestored(true);
       }
     });
-  }, []);
+  }, [status, sessionVersion]);
 
   // Save state to sessionStorage
   useEffect(() => {
@@ -497,18 +504,29 @@ export function RasterToSvgConverter() {
       sessionStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          rasterDataUrl,
           imageName,
           imageSize,
           imageDims,
           quality: rasterQuality,
           colors: rasterColors,
           background: rasterBackground,
-           bgColor: rasterBgColor,
-           mode: rasterMode,
-           result: persistableResult,
+          bgColor: rasterBgColor,
+          mode: rasterMode,
+          result: persistableResult,
         })
       );
+      // Save image data URL separately — it can be very large and exceed the
+      // 5 MB sessionStorage limit when bundled with settings and result.
+      if (rasterDataUrl) {
+        try {
+          sessionStorage.setItem(STORAGE_KEY_IMAGE, rasterDataUrl);
+        } catch {
+          // QuotaExceededError — image is too large to persist; settings and
+          // result are still saved above so the conversion output survives.
+        }
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      }
     } catch {}
   }, [
     rasterDataUrl,
@@ -612,6 +630,7 @@ export function RasterToSvgConverter() {
     setRasterBgColor("#ffffff");
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
     } catch {}
   }
 
@@ -791,7 +810,7 @@ export function RasterToSvgConverter() {
                       onClick={handleClear}
                       disabled={converting || !rasterDataUrl}
                       aria-label="Clear uploaded image"
-                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 ${
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
                         rasterDataUrl
                           ? converting
                             ? "opacity-50 cursor-not-allowed pointer-events-none"
@@ -808,8 +827,8 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
-                      <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                         Clear
                       </span>
                     </button>

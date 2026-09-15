@@ -25,7 +25,7 @@ export default function BlogsPage() {
     const initialCached = getAdminCached<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-    }>(DEFAULT_BLOGS_CACHE_KEY, 30_000);
+    }>(DEFAULT_BLOGS_CACHE_KEY, 120_000);
 
     const [searchInput, setSearchInput] = useState("");
     const [search, setSearch] = useState("");
@@ -80,7 +80,7 @@ export default function BlogsPage() {
             const cached = getAdminCached<{
                 data: any[];
                 meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-            }>(cacheKey, 30_000);
+            }>(cacheKey, 120_000);
 
             if (cached) {
                 setBlogs(cached.data);
