@@ -1134,7 +1134,7 @@ export function RasterToSvgConverter() {
                   ) : previewMode === "code" && result ? (
                     /* SVG Code Viewer State */
                     <div className="w-full h-full min-w-0 min-h-0 flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
-                      <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
+                      <div className="flex items-center justify-between pb-[8px] border-b border-gray-200 mb-[8px] shrink-0">
                         <span className="text-[12px] font-mono text-[#353A3E]">
                           {t("svgMarkup", { size: formatFileSize(result.size) })}
                         </span>
@@ -1157,7 +1157,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text">
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text [scrollbar-gutter:stable]">
                         {result.svg}
                       </pre>
                     </div>

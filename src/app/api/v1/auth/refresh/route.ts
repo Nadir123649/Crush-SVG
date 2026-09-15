@@ -6,6 +6,7 @@ import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
 import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { Session, User } from '@/lib/database/db'
+import { getFreshPhotoURL } from '@/lib/firebase/firebase-admin'
 import { logger } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
@@ -94,6 +95,23 @@ export async function POST(request: NextRequest) {
   const user = await User.findById(decoded.id)
   if (!user) {
     return errorResponse('user_not_found', 401, rl)
+  }
+
+  // Refresh Google profile photoURL if the user has a Google provider.
+  // Google profile picture URLs contain session tokens that expire; fetching
+  // a fresh URL on each refresh keeps the avatar current.
+  const hasGoogleProvider = user.providers?.some(
+    (p) => p === 'google' || p === 'google.com'
+  )
+  if (hasGoogleProvider && user.uid) {
+    const freshPhoto = await getFreshPhotoURL(user.uid)
+    if (freshPhoto && freshPhoto !== user.photoURL) {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { photoURL: freshPhoto } }
+      ).catch(() => {})
+      user.photoURL = freshPhoto
+    }
   }
 
   const tokenPair = buildTokenPayload({

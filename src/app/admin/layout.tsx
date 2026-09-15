@@ -74,9 +74,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    showToast("success", "You've been logged out.", { id: "logout" });
     await logout();
     router.replace('/');
+    showToast("success", "You've been logged out.", { id: "logout" });
   };
 
   if (!isAuthedAdmin) {

@@ -56,9 +56,9 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const handleLogout = useCallback(async () => {
     setActiveDropdown("none");
     setMobileMenuOpen(false);
-    showToast("success", tToasts("loggedOut"));
     await logout();
     router.replace("/");
+    showToast("success", tToasts("loggedOut"));
   }, [logout, router, tToasts]);
 
   // Close all menus on pathname navigation

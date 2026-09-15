@@ -694,6 +694,7 @@
       "resendButton": "Resend Verification Email",
       "resendCooldown": "Resend available in {seconds}s",
       "successMessage": "Verification email sent!",
+      "invalidMessage": "This link is invalid or has expired. Please request a new one from the sign-up flow.",
       "backToLogin": "Back to login",
       "continueButton": "Continue"
     },

@@ -7,6 +7,7 @@ import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { IMAGES } from "@/lib/shared/images";
 import { GuestOnly } from "@/components/auth/GuestOnly";
+import { InvalidLinkCard } from "@/components/ui/InvalidLinkCard";
 
 type TokenState = "checking" | "valid" | "invalid";
 
@@ -37,13 +38,6 @@ useEffect(() => {
      }
    }, [done, redirectIn, router]);
 
-   // Redirect to home for invalid/expired reset token
-   useEffect(() => {
-     if (tokenState === "invalid") {
-       router.push("/");
-     }
-   }, [tokenState, router]);
-
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -51,13 +45,9 @@ useEffect(() => {
         const body = await apiFetch<{ valid: boolean }>(`/api/v1/passwords/reset?token=${encodeURIComponent(token)}`)
         if (cancelled) return
         setTokenState(body.valid === true ? "valid" : "invalid")
-        if (body.valid !== true) {
-          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
-        }
       } catch {
         if (!cancelled) {
           setTokenState("invalid")
-          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
         }
       }
     })()
@@ -112,32 +102,10 @@ useEffect(() => {
 
           {tokenState === "invalid" && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
-                <div className="flex flex-col items-center text-center gap-6">
-                  <div className="flex items-center gap-[4px]">
-                    <Image src={IMAGES.logo} alt="CrushSVG Icon" width={26} height={26} className="object-contain" />
-                    <div className="font-heading font-semibold text-[16px] leading-[100%] tracking-[0%] flex items-center">
-                      <span className="text-text-dark">Crush</span>
-                      <span className="text-[#D94A1E]">SVG</span>
-                    </div>
-                  </div>
-                  <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center">
-                    Reset Link Invalid
-                  </h2>
-                  <div className="flex items-center justify-center">
-                    <Image src={IMAGES.lock} alt="" width={96} height={96} className="object-contain" style={{ width: "auto", height: "auto" }} />
-                  </div>
-                  <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px]">
-                    This reset link is invalid or has expired. Please request a new one from the forgot password flow.
-                  </p>
-                  <Link
-                    href="/forgot-password"
-                    className="w-[238px] h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
-                  >
-                    Request New Link
-                  </Link>
-                </div>
-              </div>
+              <InvalidLinkCard
+                ctaHref="/forgot-password"
+                ctaLabel="Request New Link"
+              />
             </div>
           )}
 
