@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
@@ -69,7 +69,7 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
       if (isLogin) {
         await login(email, password, rememberMe);
         loginSucceeded = true;
-        router.push(redirectTo);
+        router.push(redirectTo as any);
       } else {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
@@ -95,7 +95,7 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
-      router.push(redirectTo);
+      router.push(redirectTo as any);
     } catch (err) {
       // Closing the popup (or a cancelled popup request) is a cancellation,
       // not an error — keep the form clean and silent.

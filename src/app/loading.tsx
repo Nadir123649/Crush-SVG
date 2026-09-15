@@ -2,7 +2,7 @@ import { AppLoader } from "@/components/ui/AppLoader";
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[100] bg-[#FFFCFA] flex items-center justify-center">
+    <div className="w-full min-h-[75vh] flex items-center justify-center py-[60px]">
       <AppLoader />
     </div>
   );
