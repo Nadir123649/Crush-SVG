@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
-import { successResponse, errorResponse, getOrigin } from '@/lib/http/api-response'
+import { successResponse, errorResponse, getFrontendOrigin, getApiOrigin } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
 import { sendVerificationEmail } from '@/lib/integrations/email'
@@ -196,9 +196,9 @@ export async function POST(request: NextRequest) {
     throw error
   }
 
-  const verifyUrl = `${getOrigin(request)}/api/v1/verification/email/verify/${token}`
+  const verifyUrl = `${getApiOrigin(request)}/api/v1/verification/email/verify/${token}`
   try {
-    await sendVerificationEmail(targetEmail, verifyUrl)
+    await sendVerificationEmail(targetEmail, verifyUrl, getFrontendOrigin(request))
   } catch (e) {
     console.error('Verification email failed to send:', e)
   }

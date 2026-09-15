@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { auth, invalidateSessionCache } from '@/lib/middleware/auth-middleware'
 import { revokeAllSessions } from '@/lib/auth/sessions'
-import { REFRESH_COOKIE_NAME } from '@/lib/auth/auth'
+import { clearRefreshCookie } from '@/lib/auth/auth'
 
 export const runtime = 'nodejs'
 
@@ -17,6 +17,6 @@ export async function POST(request: NextRequest) {
     { success: true, payload: { message: 'Logged out from all devices' } },
     { status: 200 }
   )
-  res.cookies.delete(REFRESH_COOKIE_NAME)
+  clearRefreshCookie(res)
   return res
 }

@@ -14,6 +14,13 @@ import {
 import { apiFetch, getAccessToken, getSessionId, getSessionRemember, getSessionRestored, refreshSession, setAccessToken, setAuthExpiredHandler, setSessionRemember, setSessionRestored } from '@/lib/client/http'
 import type { TokenPairDTO, UserDTO } from '@/lib/shared/shared-types'
 import { defaultToastEmitter, setToastEmitter, showToast } from '@/lib/client/toast-bridge'
+import {
+  signInWithGoogle,
+  signInWithGitHub,
+  signInWithX,
+  exchangeIdToken,
+  signOut as firebaseSignOut,
+} from '@/lib/firebase/firebase-client'
 
 export type AuthStatus = 'loading' | 'authed' | 'guest'
 
@@ -32,7 +39,7 @@ interface AuthContextValue {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   loginWithOAuth: (provider: 'google' | 'github' | 'x', rememberMe?: boolean) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
   updateUser: (updates: Partial<UserDTO>) => void
@@ -81,6 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage_info')
       sessionStorage.setItem('crush_auth_status', 'authed')
+      // Non-httpOnly flag cookie so the client can detect an active session.
+      // The actual refresh cookie is httpOnly and cannot be read or deleted by JS.
+      document.cookie = 'crushsvg_session=1; path=/; max-age=604800; SameSite=Lax'
+      document.documentElement.classList.add('user-logged-in')
+      document.documentElement.classList.remove('user-logged-out')
     }
   }, [])
 
@@ -99,7 +111,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // to the next session.
       sessionStorage.removeItem('crush_converter_state')
       sessionStorage.removeItem('crush_vectorizer_state')
+      sessionStorage.removeItem('crush_session_only')
       sessionStorage.setItem('crush_auth_status', 'guest')
+      // Clear the non-httpOnly session flag so attemptRefresh won't fire on reload.
+      document.cookie = 'crushsvg_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.documentElement.classList.add('user-logged-out')
+      document.documentElement.classList.remove('user-logged-in')
     }
   }, [])
 
@@ -113,12 +130,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(parsed)
           setSessionRestored(true)
           setStatus('authed')
+          document.documentElement.classList.add('user-logged-in')
+          document.documentElement.classList.remove('user-logged-out')
         } else if (sessionStorage.getItem('crush_auth_status') === 'guest' && status === 'loading') {
           setStatus('guest')
+          document.documentElement.classList.add('user-logged-out')
+          document.documentElement.classList.remove('user-logged-in')
         }
       } catch { }
     }
   }, [status])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const syncAuthClass = () => {
+      try {
+        const hasUser = !!localStorage.getItem('crush_user')
+        if (hasUser) {
+          document.documentElement.classList.add('user-logged-in')
+          document.documentElement.classList.remove('user-logged-out')
+        } else {
+          document.documentElement.classList.add('user-logged-out')
+          document.documentElement.classList.remove('user-logged-in')
+        }
+      } catch { }
+    }
+    window.addEventListener('storage', syncAuthClass)
+    return () => window.removeEventListener('storage', syncAuthClass)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -148,21 +187,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const attemptRefresh = async (attempt: number): Promise<void> => {
       if (cancelled) return
-      const payload = await refreshSession({ silent: true })
+      const sessionCookie = typeof document !== 'undefined'
+        ? document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('crushsvg_session='))
+        : null
+      const hasActiveSessionFlag = !!sessionCookie && (sessionCookie.split('=')[1]?.trim() ?? '') !== ''
+      if (typeof document !== 'undefined' && !hasActiveSessionFlag) {
+        clearAuth()
+        return
+      }
+      const { payload, sessionDead } = await refreshSession({ silent: true })
       if (cancelled) return
       if (!payload) {
+        if (sessionDead) {
+          clearAuth()
+          return
+        }
+        // If offline (e.g. PWA offline mode) and session was restored, maintain state
+        if (typeof navigator !== 'undefined' && !navigator.onLine && getSessionRestored()) {
+          return
+        }
         if (getSessionRestored()) {
-          // Keep the optimistic authed snapshot and retry to attach the access
-          // token. If it never attaches, the next real API call decides.
+          // Retry for transient connection drops
           if (attempt < REFRESH_BACKOFF_MS.length - 1) {
             setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
             return
           }
+          clearAuth()
           return
         }
-        // No stored user: no optimistic session to protect. Resolve to the
-        // guest state right away instead of waiting for backoff retries.
-        setStatus('guest')
+        clearAuth()
         return
       }
 
@@ -181,9 +234,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (!payload.user) {
         // A successful refresh should always carry the user; if it somehow
-        // does not, keep the optimistic authed state for a restored user rather
-        // than dropping into the guest UI.
-        if (getSessionRestored()) return
+        // does not, resolve to guest rather than leaving the UI in a broken
+        // "authed but no user data" state.
         setStatus('guest')
         return
       }
@@ -230,29 +282,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithOAuth = useCallback(
     async (provider: 'google' | 'github' | 'x', rememberMe = true) => {
-      const {
-        exchangeIdToken,
-        signInWithGitHub,
-        signInWithGoogle,
-        signInWithX,
-      } = await import('@/lib/firebase/firebase-client')
       const signIn = {
         google: signInWithGoogle,
         github: signInWithGitHub,
         x: signInWithX,
       }[provider]
+      if (!signIn) {
+        throw new Error(`Unsupported provider: ${provider}`)
+      }
       await signIn()
       const session = await exchangeIdToken(rememberMe)
-      applySession({ user: session.user, token: session.token, sessionId: session.sessionId })
+      applySession({ user: session.user, token: session.token, sessionId: session.sessionId, remember: rememberMe })
       if (rememberMe === false && typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('crush_session_only', '1')
         } catch { }
       }
-      // Force a background refresh so the server's latest profile (photoURL,
-      // role, displayName) is picked up even if the initial exchange returned
-      // a stale snapshot. This ensures the profile image updates immediately.
-      refreshSession({ silent: true }).then((fresh) => {
+      refreshSession({ silent: true }).then(({ payload: fresh }) => {
         if (fresh?.user) {
           applySession({
             user: fresh.user,
@@ -267,12 +313,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession]
   )
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Clear local auth state immediately so UI feels instant.
     clearAuth()
-    void apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }).catch(() => { })
-    void import('@/lib/firebase/firebase-client')
-      .then(({ signOut: firebaseSignOut }) => firebaseSignOut())
-      .catch(() => { })
+    // Fire server/session revocation in the background — non-blocking.
+    Promise.allSettled([
+      apiFetch<void>('/api/v1/auth/logout', { method: 'POST' }),
+      firebaseSignOut(),
+    ]).catch(() => { /* non-critical */ })
   }, [clearAuth])
 
   const changePassword = useCallback(

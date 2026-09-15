@@ -19,19 +19,36 @@ export async function GET(request: NextRequest) {
 
     const [
       totalUsers,
-      totalConversions,
-      rasterConversions,
-      svgConversions,
+      conversionTotals,
       recentAudits,
       rawRecentConversions,
       conversionsLast10Days
     ] = await Promise.all([
-      User.countDocuments(VALID_USER_FILTER),
-      ConversionLog.countDocuments({ success: true }),
-      ConversionLog.countDocuments({ success: true, inputFormat: { $in: ['png', 'jpg', 'jpeg', 'webp'] } }),
-      ConversionLog.countDocuments({ success: true, inputFormat: 'svg' }),
-      AuditLog.find().sort({ createdAt: -1 }).limit(10),
-      ConversionLog.find().sort({ createdAt: -1 }).limit(5),
+      User.aggregate([
+        { $match: VALID_USER_FILTER },
+        { $count: "total" }
+      ]).then(r => r[0]?.total ?? 0).catch(() => 0),
+      ConversionLog.aggregate([
+        { $match: { success: true } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            raster: {
+              $sum: {
+                $cond: [{ $in: ["$inputFormat", ["png", "jpg", "jpeg", "webp"]] }, 1, 0]
+              }
+            },
+            svg: {
+              $sum: {
+                $cond: [{ $eq: ["$inputFormat", "svg"] }, 1, 0]
+              }
+            }
+          }
+        }
+      ]).then(r => r[0] ?? { total: 0, raster: 0, svg: 0 }).catch(() => ({ total: 0, raster: 0, svg: 0 })),
+      AuditLog.find().sort({ createdAt: -1 }).limit(10).lean(),
+      ConversionLog.find().sort({ createdAt: -1 }).limit(5).lean(),
       ConversionLog.aggregate([
         { $match: { success: true, createdAt: { $gte: tenDaysAgo } } },
         { $group: {
@@ -41,6 +58,10 @@ export async function GET(request: NextRequest) {
         { $sort: { _id: 1 } }
       ])
     ]);
+
+    const totalConversions = (conversionTotals as any)?.total ?? 0;
+    const rasterConversions = (conversionTotals as any)?.raster ?? 0;
+    const svgConversions = (conversionTotals as any)?.svg ?? 0;
 
     const userIds = [...new Set(rawRecentConversions.map((c: any) => c.userId).filter(Boolean))];
     const conversionUsers = userIds.length > 0

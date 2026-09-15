@@ -75,7 +75,9 @@ export function getErrorMessage(error: unknown): string {
 }
 
 export async function signInWithGoogle() {
-  return signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return signInWithPopup(getFirebaseAuth(), provider);
 }
 
 export async function signInWithGitHub() {
@@ -105,7 +107,7 @@ export async function exchangeIdToken(rememberMe = true): Promise<SessionRespons
   }
   const providerId = currentUser.providerData[0]?.providerId;
   const provider = providerId ? (PROVIDER_URL_MAP[providerId] ?? "password") : "password";
-  const idToken = await currentUser.getIdToken();
+  const idToken = await currentUser.getIdToken(true);
   const response = await fetch(apiBase(`/api/v1/oauth/${provider}`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -144,6 +146,9 @@ export async function resendVerificationEmail(): Promise<void> {
 }
 
 export async function signOut() {
-  await fetch(apiBase("/api/v1/auth/logout"), { method: "POST" });
-  await firebaseSignOut(getFirebaseAuth());
-}
+  try {
+    await firebaseSignOut(getFirebaseAuth());
+  } catch {
+    /* non-critical */
+  }
+}

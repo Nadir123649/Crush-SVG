@@ -51,27 +51,59 @@ function originFromHost(request: NextRequest, host: string): string {
         (host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https");
     return `${protocol}://${host}`;
 }
-export function getOrigin(request: NextRequest): string {
-    const host = request.headers.get("x-forwarded-host") ||
-        request.headers.get("host") ||
-        "";
-    if (host && (hostAllowed(host) || trustProxy())) {
-        // API subdomain should never be the canonical origin for email links,
-        // password resets, or any user-facing redirect — fall back to frontend.
-        const normalized = host.toLowerCase().replace(/:\d+$/, "");
-        if (/^(api|staging\.api)\.crushsvg\.net$/.test(normalized)) {
-            return canonicalBase() || "https://www.crushsvg.net";
-        }
-        return originFromHost(request, host);
-    }
-    if (host && !isLocalHost(host) && !looksLikeIp(host)) {
-        return originFromHost(request, host);
-    }
-    const canonical = canonicalBase();
-    if (canonical)
-        return canonical;
-    return `https://${allowedHosts()[0] ?? "localhost"}`;
-}
 function trustProxy(): boolean {
     return process.env.TRUST_PROXY === "true";
+}
+
+export function getFrontendOrigin(request?: NextRequest): string {
+    const host = request?.headers.get("x-forwarded-host") ||
+        request?.headers.get("host") ||
+        "";
+    const normalized = host.toLowerCase().replace(/:\d+$/, "");
+
+    if (normalized.includes("staging")) {
+        return "https://staging.crushsvg.net";
+    }
+
+    if (normalized.endsWith("crushsvg.net")) {
+        return canonicalBase() || "https://crushsvg.net";
+    }
+
+    if (request && host && (isLocalHost(host) || looksLikeIp(host))) {
+        return originFromHost(request, host);
+    }
+
+    const canonical = canonicalBase();
+    if (canonical) return canonical;
+
+    if (request && host && (hostAllowed(host) || trustProxy())) {
+        return originFromHost(request, host);
+    }
+
+    return "https://crushsvg.net";
+}
+
+export function getApiOrigin(request?: NextRequest): string {
+    const host = request?.headers.get("x-forwarded-host") ||
+        request?.headers.get("host") ||
+        "";
+    const normalized = host.toLowerCase().replace(/:\d+$/, "");
+
+    if (normalized.includes("staging")) {
+        return "https://staging.api.crushsvg.net";
+    }
+
+    if (normalized.endsWith("crushsvg.net")) {
+        return process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "https://api.crushsvg.net";
+    }
+
+    if (request && host && (isLocalHost(host) || looksLikeIp(host))) {
+        return originFromHost(request, host);
+    }
+
+    return process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || getFrontendOrigin(request);
+}
+
+export function getOrigin(request: NextRequest): string {
+    return getFrontendOrigin(request);
 }

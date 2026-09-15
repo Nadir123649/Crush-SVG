@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
   
 import { useSearchParams, usePathname } from "next/navigation";
 
@@ -23,9 +23,25 @@ export function UserFilters({
   const [role, setRole] = useState('all');
   const [status, setStatus] = useState('all');
 
+  const onSearchRef = useRef(onSearchChange);
+  useEffect(() => {
+    onSearchRef.current = onSearchChange;
+  }, [onSearchChange]);
+
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      onSearchRef.current(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const onSearchInputChange = (value: string) => {
     setSearch(value);
-    onSearchChange(value);
   };
 
   const onRoleSelectChange = (value: string) => {

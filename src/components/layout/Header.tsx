@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
@@ -27,6 +28,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const navContainerRef = useRef<HTMLDivElement>(null);
   const previousPathnameRef = useRef(pathname);
   const pathnameReadyRef = useRef(false);
+
+  // Clear the failed-image cache whenever the photoURL changes (e.g. a fresh
+  // URL was fetched during token refresh) so the new URL gets a chance to load.
+  useEffect(() => {
+    setFailedImageUrl(null);
+  }, [user?.photoURL]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -57,8 +64,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     setActiveDropdown("none");
     setMobileMenuOpen(false);
     logout();
+    router.replace("/");
     showToast("success", tToasts("loggedOut"));
-    router.push("/");
   }, [logout, router, tToasts]);
 
   // Close all menus on pathname navigation
@@ -93,35 +100,71 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     }
   };
 
+  const currentTool = useMemo(() => {
+    if (pathname === "/png-to-svg") {
+      return {
+        label: tNav("pngToSvg"),
+        href: "/png-to-svg",
+        isActive: true,
+      };
+    }
+    if (pathname === "/background-remover") {
+      return {
+        label: tNav("backgroundRemover"),
+        href: "/background-remover",
+        isActive: true,
+      };
+    }
+    if (pathname === "/image-resizer") {
+      return {
+        label: tNav("imageResizer"),
+        href: "/image-resizer",
+        isActive: true,
+      };
+    }
+    if (pathname === "/" || pathname === "/convert-svg-to-png") {
+      return {
+        label: tNav("svgToPng"),
+        href: "/",
+        isActive: true,
+      };
+    }
+    return {
+      label: tNav("svgToPng"),
+      href: "/",
+      isActive: false,
+    };
+  }, [pathname, tNav]);
+
   const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
   const isPngToSvgActive = pathname === "/png-to-svg";
   const isOtherToolActive = pathname === "/background-remover" || pathname === "/image-resizer";
   const isAuthenticated = status === "authed" && !!user;
 
   return (
-    <header className="w-full h-[66px] md:h-[92px] sticky top-0 z-50">
+    <header className="w-full sticky top-0 z-50">
       <div
-        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[16px] md:pt-[30px] pb-[10px] transition-all duration-300 absolute top-0 ${
+        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px] transition-all duration-300 ${
           isScrolled
-            ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)]"
-            : "bg-[#FFFCFA]"
+            ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)] border-b border-[#F0E6DF]"
+            : "bg-[#FFFCFA] border-b border-[#F7F1EC]"
         }`}
         ref={navContainerRef}
       >
-        <nav className="w-full max-w-[1280px] grid grid-cols-[auto_1fr_auto] items-center gap-[20px] h-[36px] md:h-[44px]">
+        <div className="w-full max-w-[1280px] relative flex items-center justify-between h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
             onClick={handleLogoClick}
             aria-label={tNav("homeAria")}
-            className="flex items-center gap-[6px] md:gap-[8px] group shrink-0"
+            className="flex items-center gap-[8px] md:gap-[10px] group shrink-0 z-10 select-none"
           >
             <Image
               src={logoUrl || IMAGES.logo}
               alt="CrushSVG Logo"
-              width={28}
-              height={28}
-              className="w-[22px] h-[22px] md:w-[28px] md:h-[28px] object-contain transition-transform duration-200 group-hover:scale-105"
+              width={30}
+              height={30}
+              className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] object-contain transition-transform duration-200 group-hover:scale-105"
             />
 
             <div className="font-heading font-semibold text-[20px] md:text-[26px] leading-[18.67px] tracking-[0%] flex items-center">
@@ -130,47 +173,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
           </Link>
 
-          {/* Center: Desktop Navigation Options */}
-          <div className="hidden lg:flex items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] px-[5px] py-[4px]">
-            {/* SVG to PNG (Primary Tool Link) */}
-            <Link
-              href="/"
-              onClick={(e) => {
-                if (typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
-                  e.preventDefault();
-                  const el = document.getElementById("converter");
-                  if (el) {
-                    const offset = window.innerWidth >= 768 ? 96 : 70;
-                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                    window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
-                  } else {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
-                }
-              }}
-              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
-                isSvgToPngActive
-                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                  : "text-text-body hover:text-brand-primary"
-              }`}
-            >
-              {tNav("svgToPng")}
-            </Link>
-
-            {/* PNG to SVG (Vectorizer Link) */}
-            <Link
-              href="/png-to-svg"
-              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
-                isPngToSvgActive
-                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                  : "text-text-body hover:text-brand-primary"
-              }`}
-            >
-              {tNav("pngToSvg")}
-            </Link>
-
-            {/* More Tools Dropdown */}
-            <div className="relative">
+          {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
+          <nav
+            aria-label="Main Navigation"
+            className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] sm:gap-[6px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto max-w-[640px]"
+          >
+            {/* 1. Tools Dropdown */}
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() =>
@@ -178,10 +187,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 }
                 aria-expanded={activeDropdown === "tools"}
                 aria-haspopup="true"
-                className={`flex items-center gap-[4px] px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors cursor-pointer ${
-                  isOtherToolActive || activeDropdown === "tools"
+                className={`flex items-center gap-[5px] px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
+                  activeDropdown === "tools"
                     ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                    : "text-text-body hover:text-brand-primary"
+                    : "text-text-body hover:text-brand-primary hover:bg-white/50"
                 }`}
               >
                 <span>{tNav("tools")}</span>
@@ -205,12 +214,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 </svg>
               </button>
 
-              {/* Tools Dropdown Card */}
+              {/* Tools Dropdown Menu */}
               {activeDropdown === "tools" && (
                 <div
                   role="menu"
-                  className="absolute left-0 top-[36px] w-[280px] bg-white rounded-[16px] shadow-[0px_16px_48px_0px_rgba(217,74,30,0.12),0px_4px_16px_0px_rgba(0,0,0,0.06)] overflow-hidden z-50 animate-in fade-in-0 zoom-in-95 duration-150"
-                  style={{ border: "1px solid #F2EDE8" }}
+                  className="absolute left-0 top-[38px] w-[290px] bg-white rounded-[16px] shadow-[0px_16px_48px_0px_rgba(217,74,30,0.12),0px_4px_16px_0px_rgba(0,0,0,0.06)] overflow-hidden z-50 border border-[#F2EDE8] animate-in fade-in-0 zoom-in-95 duration-150"
                 >
                   <div className="h-[3px] w-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
                   <div className="px-[14px] py-[8px] border-b border-[#F2EDE8] flex items-center justify-between bg-[#FFFCFA]">
@@ -315,75 +323,105 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               )}
             </div>
 
-            {/* Blog */}
+            {/* 2. Current Tool (Dynamically updates based on route with stable spacing) */}
+            <Link
+              href={currentTool.href}
+              onClick={(e) => {
+                if (currentTool.href === "/" && typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
+                  e.preventDefault();
+                  const el = document.getElementById("converter");
+                  if (el) {
+                    const offset = window.innerWidth >= 768 ? 96 : 70;
+                    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }
+              }}
+              className={`shrink-0 px-[14px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+                currentTool.isActive
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary hover:bg-white/50"
+              }`}
+            >
+              {currentTool.label}
+            </Link>
+
+            {/* 3. Blog */}
             <Link
               href="/blog"
-              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                  : "text-text-body hover:text-brand-primary"
+                  : "text-text-body hover:text-brand-primary hover:bg-white/50"
               }`}
             >
               {tNav("blog")}
             </Link>
 
-            {/* Guides */}
+            {/* 4. Guides */}
             <Link
               href="/svg-guides"
-              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/svg-guides")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                  : "text-text-body hover:text-brand-primary"
+                  : "text-text-body hover:text-brand-primary hover:bg-white/50"
               }`}
             >
               {tNav("guides")}
             </Link>
 
-            {/* Need Help? */}
+            {/* 5. Need Help? */}
             <Link
               href="/contact-us?r=1"
-              className={`px-[10px] py-[7px] rounded-[7px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-colors ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
-                  : "text-text-body hover:text-brand-primary"
+                  : "text-text-body hover:text-brand-primary hover:bg-white/50"
               }`}
             >
               {tNav("needHelp")}
             </Link>
-          </div>
+          </nav>
 
-          {/* Right Side: Language Switcher + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[12px] md:gap-[16px] border-l border-[#E8DED7] pl-[12px] md:pl-[16px]">
-            {/* Language Switcher (Tablet & Desktop) */}
+          {/* Right Side: Language Switcher + PWA Install + Auth */}
+          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] md:min-w-[280px] justify-end">
+            {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
+            <PwaInstallButton variant="icon" className="hidden sm:inline-flex" />
+
+            {/* Language Switcher (Tablet & Desktop, Controlled so opening it closes Account) */}
             <div className="hidden sm:inline-block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
+                isOpen={activeDropdown === "language"}
+                onOpenChange={(open) => setActiveDropdown(open ? "language" : "none")}
               />
             </div>
 
             {/* Guest actions */}
-            {status === "guest" && (
-              <div className="hidden md:flex items-center gap-[8px] md:gap-[12px]">
-                <Button
-                  href="/login"
-                  variant="outline"
-                  className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
-                >
-                  {tAuth("login")}
-                </Button>
+            <div className={`logged-out-only hidden md:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+              <Button
+                href="/login"
+                variant="outline"
+                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
+              >
+                {tAuth("login")}
+              </Button>
 
-                <Button
-                  href="/signup"
-                  variant="solid"
-                  className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
-                >
-                  {tAuth("signup")}
-                </Button>
-              </div>
-            )}
+              <Button
+                href="/signup"
+                variant="solid"
+                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
+              >
+                {tAuth("signup")}
+              </Button>
+            </div>
 
             {/* Authenticated profile menu */}
-            {isAuthenticated && <div className="relative">
+            <div className={`logged-in-only relative ${status === "guest" ? "!hidden" : ""}`}>
+              {(isAuthenticated || user) && (
+                <>
               <button
                 type="button"
                 onClick={() =>
@@ -464,6 +502,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     </Link>
                   )}
 
+                  <div className="border-t border-[#F2EDE8] my-[4px] pt-[4px]">
+                    <PwaInstallButton variant="compact" />
+                  </div>
+
                   <button
                     type="button"
                     role="menuitem"
@@ -474,7 +516,9 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   </button>
                 </div>
               )}
-            </div>}
+                </>
+              )}
+            </div>
 
             {/* Mobile Hamburger Button */}
             <div className="lg:hidden flex items-center">
@@ -503,7 +547,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               </button>
             </div>
           </div>
-        </nav>
+        </div>
       </div>
 
       {/* Mobile Drawer Menu */}
@@ -605,6 +649,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </Link>
           </div>
 
+          {/* PWA Install in Mobile Drawer */}
+          <div className="pt-2 border-t border-[#F2EDE8]">
+            <PwaInstallButton
+              variant="drawer"
+            />
+          </div>
+
           {/* Language Switcher in Mobile Drawer */}
           <div className="flex items-center justify-between pt-3 border-t border-[#F2EDE8] px-2">
             <span className="font-heading font-semibold text-[13px] text-text-dark">
@@ -614,61 +665,63 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Mobile guest actions */}
-          {status === "guest" && (
-            <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
-              <Button
-                href="/login"
-                variant="outline"
-                className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {tAuth("login")}
-              </Button>
-              <Button
-                href="/signup"
-                variant="solid"
-                className="w-full h-[40px] rounded-[10px] text-[15px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {tAuth("signup")}
-              </Button>
-            </div>
-          )}
+          <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "authed" ? "!hidden" : ""}`}>
+            <Button
+              href="/login"
+              variant="outline"
+              className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {tAuth("login")}
+            </Button>
+            <Button
+              href="/signup"
+              variant="solid"
+              className="w-full h-[40px] rounded-[10px] text-[15px]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {tAuth("signup")}
+            </Button>
+          </div>
 
           {/* Mobile authenticated actions */}
-          {isAuthenticated && <div className="flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
-            <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
-              <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[13px]">
-                {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="font-body font-medium text-[14px] text-text-dark truncate">
-                  {user?.displayName || "User"}
-                </span>
-                <span className="font-body text-[12px] text-text-muted truncate">
-                  {user?.email}
-                </span>
-              </div>
-            </div>
+          <div className={`logged-in-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "guest" ? "!hidden" : ""}`}>
+            {(isAuthenticated || user) && (
+              <>
+                <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
+                  <span className="w-[30px] h-[30px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white flex items-center justify-center font-bricolage font-semibold text-[13px]">
+                    {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-body font-medium text-[14px] text-text-dark truncate">
+                      {user?.displayName || "User"}
+                    </span>
+                    <span className="font-body text-[12px] text-text-muted truncate">
+                      {user?.email}
+                    </span>
+                  </div>
+                </div>
 
-            {user?.role === "admin" && (
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
-              >
-                {tNav("adminDashboard")}
-              </Link>
+                {user?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="font-body font-medium text-[14px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary"
+                  >
+                    {tNav("adminDashboard")}
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full text-center py-2.5 rounded-[10px] font-body font-semibold text-[14px] text-[#D94A1E] bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  {tNav("logOut")}
+                </button>
+              </>
             )}
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full text-center py-2.5 rounded-[10px] font-body font-semibold text-[14px] text-[#D94A1E] bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
-            >
-              {tNav("logOut")}
-            </button>
-          </div>}
+          </div>
         </div>
       )}
     </header>

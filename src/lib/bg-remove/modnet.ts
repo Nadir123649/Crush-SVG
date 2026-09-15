@@ -1,59 +1,67 @@
 import "server-only";
-import { pipeline, env } from "@huggingface/transformers";
 import sharp from "sharp";
 import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
 import type { BgRemoveOptionsParsed } from "./validation";
 import { BG_REMOVE_LIMITS } from "./limits";
 
-// Configure Transformers.js for server-side use
-env.allowRemoteModels = true;
-env.allowLocalModels = true;
-// v4 auto-detects FS and cache; force filesystem cache on server, disable browser cache
-env.useFSCache = true;
-env.useBrowserCache = false;
+const isVercel = !!process.env.VERCEL;
 
 const MODEL_ID = "Xenova/modnet";
-const WORKING_SIZE = 512;
 
 type RawImageResult = { width: number; height: number; data: Uint8Array };
 
-let pipelinePromise: ((input: string) => Promise<RawImageResult | RawImageResult[]>) | null = null;
+// Accept file path strings, Buffer, Uint8Array, or Blob for WASM+Node compat
+type PipelineInput = string | Buffer | Uint8Array | Blob;
+let pipelinePromise: ((input: PipelineInput) => Promise<RawImageResult | RawImageResult[]>) | null = null;
 let initError: Error | null = null;
 
 async function getPipeline() {
   if (pipelinePromise) return pipelinePromise;
   if (initError) throw initError;
 
+  const { pipeline, env } = await import("@huggingface/transformers");
+
+  // Configure env after loading
+  env.allowRemoteModels = true;
+  env.allowLocalModels = true;
+  // WASM backend doesn't have browser cache in Node.js serverless.
+  // Use HTTP cache headers (CDN) instead — models are re-downloaded on cold starts.
+  env.useFSCache = false;
+  env.useBrowserCache = false;
+
   pipelinePromise = await pipeline("background-removal", MODEL_ID, {
     dtype: "fp32",
-  }) as (input: string) => Promise<RawImageResult | RawImageResult[]>;
+  }) as (input: PipelineInput) => Promise<RawImageResult | RawImageResult[]>;
 
   return pipelinePromise;
 }
 
 /**
- * Write a buffer to a temporary file and return the path.
- * The caller is responsible for cleaning up the file.
+ * Post-process the raw MODNet alpha mask for cleaner edges.
+ * 1. Threshold: hard-cut near-zero and near-full alpha to reduce noise
+ * 2. Blur: gaussian blur the mask for soft, natural edges
  */
-async function writeTempPng(buffer: Buffer): Promise<string> {
-  const { writeFile, mkdir } = await import("node:fs/promises");
-  const { join } = await import("node:path");
-  const { tmpdir } = await import("node:os");
-  const tmpDir = join(tmpdir(), "crushsvg-bg-remove");
-  await mkdir(tmpDir, { recursive: true });
-  const tmpPath = join(tmpDir, `input-${Date.now()}-${Math.random().toString(36).slice(2)}.png`);
-  await writeFile(tmpPath, buffer);
-  return tmpPath;
-}
+async function postProcessMask(alpha: Uint8Array, w: number, h: number): Promise<Uint8Array> {
+  // Step 1: Create a single-channel image from the alpha mask
+  const maskImage = sharp(alpha, { raw: { width: w, height: h, channels: 1 } });
 
-async function cleanupTempFile(path: string): Promise<void> {
-  try {
-    const { unlink } = await import("node:fs/promises");
-    await unlink(path);
-  } catch {
-    // best-effort cleanup
+  // Step 2: Slight blur to smooth jagged edges (sigma=1.0 gives ~2px soft edge)
+  const blurred = await maskImage
+    .blur(1.0)
+    .raw()
+    .toBuffer();
+
+  // Step 3: Re-threshold to clean up near-zero noise while keeping the soft edge
+  const result = new Uint8Array(blurred.length);
+  for (let i = 0; i < blurred.length; i++) {
+    const v = blurred[i];
+    // Hard-zero below 10, hard-full above 245, smooth in between
+    if (v < 10) result[i] = 0;
+    else if (v > 245) result[i] = 255;
+    else result[i] = v;
   }
+  return result;
 }
 
 export async function processWithModnet(
@@ -106,23 +114,22 @@ export async function processWithModnet(
     workingH = resizedDecoded.info.height;
   }
 
-  // Pad to square for model input (MODNet expects square input)
-  const padded = await sharp(workingPixels, { raw: { width: workingW, height: workingH, channels: 4 } })
-    .ensureAlpha()
-    .resize(WORKING_SIZE, WORKING_SIZE, {
-      fit: "contain",
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-      kernel: sharp.kernel.lanczos3,
-    })
+  // Encode working image to PNG for model inference
+  const workingPng = await sharp(workingPixels, {
+    raw: { width: workingW, height: workingH, channels: 4 },
+  })
     .png()
     .toBuffer();
 
-  // Run MODNet inference
+  // Run MODNet inference — pass Buffer directly (works with both Node native and WASM backends)
   let bgRemovalPipeline;
   try {
+    console.log("[modnet] Initializing pipeline, isVercel:", isVercel);
     bgRemovalPipeline = await getPipeline();
+    console.log("[modnet] Pipeline ready");
   } catch (error) {
     initError = error instanceof Error ? error : new Error(String(error));
+    console.error("[modnet] Pipeline init FAILED:", initError.message);
     throw new BgRemoveError(
       "processing_failed",
       `Failed to initialize MODNet model: ${initError.message}`,
@@ -130,15 +137,17 @@ export async function processWithModnet(
   }
 
   let rawResult: RawImageResult | RawImageResult[] | null = null;
-  let tmpPath: string | null = null;
   try {
-    tmpPath = await writeTempPng(padded);
-    rawResult = await bgRemovalPipeline(tmpPath);
+    console.log("[modnet] Running inference, input size:", workingPng.length, "bytes");
+    // Convert PNG buffer to Blob — WASM backend can't read Node fs paths,
+    // and the pipeline expects Blob/RawImage/string, not raw Buffer
+    const blob = new Blob([workingPng], { type: "image/png" });
+    rawResult = await bgRemovalPipeline(blob);
+    console.log("[modnet] Inference complete");
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
+    console.error("[modnet] Inference FAILED:", msg);
     throw new BgRemoveError("processing_failed", `MODNet inference failed: ${msg}`);
-  } finally {
-    if (tmpPath) await cleanupTempFile(tmpPath);
   }
 
   if (!rawResult) {
@@ -160,59 +169,32 @@ export async function processWithModnet(
     throw new BgRemoveError("processing_failed", "MODNet returned invalid image data.");
   }
 
-  // Extract alpha channel from MODNet result — single sharp pipeline
-  const alphaChannel = await sharp(Buffer.from(resultData), {
-    raw: { width: resultWidth, height: resultHeight, channels: 4 },
-  })
-    .extractChannel(3) // alpha channel
-    .raw()
-    .toBuffer();
-
-  // Compute content region (undo padding)
-  const contentAspect = origWidth / origHeight;
-  let contentW: number;
-  let contentH: number;
-  let padX: number;
-  let padY: number;
-
-if (contentAspect >= 1) {
-        contentH = resultHeight;
-        contentW = Math.round(resultHeight * contentAspect);
-        if (contentW > resultWidth) {
-            contentW = resultWidth;
-            contentH = Math.round(resultWidth / contentAspect);
-        }
-        padX = Math.floor((resultWidth - contentW) / 2);
-        padY = Math.floor((resultHeight - contentH) / 2);
-    } else {
-        contentW = resultWidth;
-        contentH = Math.round(resultWidth / contentAspect);
-        if (contentH > resultHeight) {
-            contentH = resultHeight;
-            contentW = Math.round(resultHeight * contentAspect);
-        }
-        padX = Math.floor((resultWidth - contentW) / 2);
-        padY = Math.floor((resultHeight - contentH) / 2);
+  // Extract alpha mask, scaling back to original dimensions if downscaled
+  let resizedAlpha: Uint8Array;
+  if (resultWidth === origWidth && resultHeight === origHeight) {
+    resizedAlpha = new Uint8Array(origWidth * origHeight);
+    for (let i = 0; i < origWidth * origHeight; i++) {
+      resizedAlpha[i] = resultData[i * 4 + 3];
     }
-
-  contentW = Math.min(contentW, resultWidth - padX);
-  contentH = Math.min(contentH, resultHeight - padY);
-
-  // Resize alpha mask to original dimensions — raw single-channel buffer.
-  // .toColourspace("b-w") is required: Sharp's .raw() silently upscales
-  // 1-channel images to 3-channel RGB after pipeline operations like resize(),
-  // which would cause a 3× buffer overrun and scanline corruption.
-  const resizedAlpha = await sharp(alphaChannel, {
-    raw: { width: resultWidth, height: resultHeight, channels: 1 },
-  })
-    .extract({ left: padX, top: padY, width: contentW, height: contentH })
-    .resize(origWidth, origHeight, {
-      fit: "fill",
-      kernel: sharp.kernel.lanczos3,
+  } else {
+    const singleChannel = await sharp(Buffer.from(resultData), {
+      raw: { width: resultWidth, height: resultHeight, channels: 4 },
     })
-    .toColourspace("b-w")
-    .raw()
-    .toBuffer();
+      .extractChannel(3)
+      .raw()
+      .toBuffer();
+
+    resizedAlpha = await sharp(singleChannel, {
+      raw: { width: resultWidth, height: resultHeight, channels: 1 },
+    })
+      .resize(origWidth, origHeight, {
+        fit: "fill",
+        kernel: sharp.kernel.lanczos3,
+      })
+      .toColourspace("b-w")
+      .raw()
+      .toBuffer();
+  }
 
   const totalPixels = origWidth * origHeight;
   let foregroundCount = 0;
@@ -226,11 +208,14 @@ if (contentAspect >= 1) {
     );
   }
 
+  // Post-process: blur + threshold for clean, soft edges
+  const cleanAlpha = await postProcessMask(resizedAlpha, origWidth, origHeight);
+
   // Write alpha mask directly into RGBA pixel data — avoids broken dest-in composite
   // (dest-in with a 1-channel grayscale overlay is treated as fully opaque by sharp)
   const maskedPixels = new Uint8Array(decoded.data);
   for (let i = 0; i < totalPixels; i++) {
-    maskedPixels[i * 4 + 3] = resizedAlpha[i];
+    maskedPixels[i * 4 + 3] = cleanAlpha[i];
   }
 
   let composited: Buffer;

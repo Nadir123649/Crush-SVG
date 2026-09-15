@@ -1,5 +1,5 @@
 import "server-only";
-import { Schema, model, type Model, type Types } from "mongoose";
+import { Schema, model, models, type Model, type Types } from "mongoose";
 
 export interface BlogDoc {
     _id: Types.ObjectId;
@@ -34,4 +34,8 @@ declare global {
     var __crushSvgBlogModel: Model<BlogDoc> | undefined;
 }
 
-export const Blog = (globalThis.__crushSvgBlogModel ??= model<BlogDoc>("Blog", blogSchema));
+export const Blog =
+    (globalThis.__crushSvgBlogModel ??= ((models.Blog as Model<BlogDoc>) || model<BlogDoc>(
+        "Blog",
+        blogSchema
+    )));

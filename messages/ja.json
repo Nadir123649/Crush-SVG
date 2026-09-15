@@ -332,6 +332,15 @@
     "ourTeam": "チーム紹介",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
+    "convertersEngines": "コンバーター＆エンジン",
+    "svgToPngFull": "SVGからPNG",
+    "svgToPngDesc": "ベクトルコードを鮮明なPNG画像に変換",
+    "pngToSvgFull": "PNGからSVG",
+    "pngToSvgDesc": "ラスタ画像をスケーラブルなSVGにベクトル化",
+    "imageResizerFull": "画像リサイザー",
+    "imageResizerDesc": "画像を正確なサイズにリサイズして最適化",
+    "bgRemoverFull": "背景除去ツール",
+    "bgRemoverDesc": "AIによる透明背景の除去",
     "useCases": "活用事例",
     "reactNext": "React・Next.js連携",
     "emailSignatures": "メール署名での活用",
@@ -636,7 +645,8 @@
       "resendCooldown": "Resend available in {seconds}s",
       "subtitle": "We've sent a verification link to {email}",
       "successMessage": "Verification email sent!",
-      "title": "Verify Your Email"
+      "title": "Verify Your Email",
+      "invalidMessage": "This link is invalid or has expired. Please request a new one from the sign-up flow."
     }
   },
   "cookie_consent": {
@@ -699,12 +709,14 @@
     "fileReadError": "Could not read that file. Please try again.",
     "fileTooLarge": "SVG file too large. Maximum size is 10MB.",
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
+    "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "invalidSvgFile": "Please choose an SVG file (.svg).",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "loggedOut": "You've been logged out",
     "noSvgToCopy": "No custom SVG code to copy",
     "pasteToStart": "Paste your SVG code or upload a file to get started.",
+    "invalidSvgCode": "無効なSVGコードです。閉じられていないタグや構文エラーがないか確認してください。",
     "svgAlreadyFormatted": "SVG is already formatted",
     "svgCopied": "SVG code copied to clipboard!",
     "svgFormatted": "SVG code formatted",
@@ -899,6 +911,7 @@
     "title": "Raster to SVG",
     "toastCopied": "SVG vector markup copied to clipboard",
     "toastCopyFailed": "Failed to copy SVG. You can download the file instead.",
+    "toastVectorizationComplete": "Vectorization complete! Ready to download.",
     "toastDownloadStarted": "SVG download has started",
     "toastPasted": "Image pasted from clipboard",
     "toastSampleError": "Could not load sample image",
@@ -948,5 +961,22 @@
   },
   "export_button": {
     "label": "Export"
+  },
+  "pwa": {
+    "installApp": "アプリをインストール",
+    "installTitle": "CrushSVGをインストール",
+    "installDescription": "デスクトップやホーム画面から直接、高速でオフライン対応のSVG変換を利用できます。",
+    "installBenefitSpeed": "レイテンシーゼロの即時起動",
+    "installBenefitOffline": "インターネットなしで100%オフライン動作",
+    "installBenefitPrivate": "安全なローカルブラウザ処理",
+    "installNow": "今すぐインストール",
+    "maybeLater": "後で",
+    "close": "閉じる",
+    "iosInstructionsTitle": "iPhone / iPadへのインストール手順",
+    "iosStep1": "Safariツールバーの「共有」ボタンをタップ",
+    "iosStep2": "下にスクロールして「ホーム画面に追加」をタップ",
+    "iosStep3": "右上の「追加」をタップ",
+    "offlineMode": "オフラインモード有効 — ローカル変換が可能です",
+    "backOnline": "オンラインに復帰しました"
   }
 }

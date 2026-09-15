@@ -8,8 +8,8 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { BlogEditor } from "@/components/admin/BlogEditor/BlogEditor";
 import { CoverImageUpload } from "@/components/admin/BlogEditor/CoverImageUpload";
 import { useAuth } from "@/lib/client/auth-context";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
-const SvgX = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>;
 const SvgEye = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>;
 
 export default function EditBlogPage() {
@@ -111,10 +111,7 @@ export default function EditBlogPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col justify-center items-center min-h-[calc(100vh-70px)] w-full gap-3">
-                <div className="w-[32px] h-[32px] rounded-full border-[3px] border-brand-primary/20 border-t-brand-primary animate-spin" />
-                <span className="font-body text-sm font-medium text-text-muted">Loading editor...</span>
-            </div>
+            <AdminLoader message="Loading editor..." className="min-h-[400px]" />
         );
     }
 
@@ -133,10 +130,6 @@ export default function EditBlogPage() {
                             View Live
                         </Button>
                     )}
-                    <Button variant="outline" onClick={() => router.back()}>
-                        <SvgX className="w-4 h-4" />
-                        Cancel
-                    </Button>
                     <Button variant="solid" onClick={() => handleSave(false)} disabled={saving} className="shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         Save Changes

@@ -44,6 +44,7 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
             width={isSuccess ? 206 : 96}
             height={isSuccess ? 98 : 96}
             className="object-contain"
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
 
@@ -51,7 +52,7 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px]">
           {isSuccess
             ? t("successMessage")
-            : "This verification link is invalid or has expired. You can request a new one from the sign-up flow."}
+            : t("invalidMessage")}
         </p>
 
         {isSuccess && (

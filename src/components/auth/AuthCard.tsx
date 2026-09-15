@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
@@ -22,6 +22,8 @@ type SubmittingState = "email" | null;
 export function AuthCard({ type, returnTo }: AuthCardProps) {
   const isLogin = type === "login";
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = returnTo || searchParams.get("returnTo") || "/";
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
   const t = useTranslations("auth_pages");
   const tToast = useTranslations("toasts");
@@ -62,10 +64,12 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
 
     setVerificationRequired(false);
     setSubmitting("email");
+    let loginSucceeded = false;
     try {
       if (isLogin) {
         await login(email, password, rememberMe);
-        // GuestOnly detects status → "authed" and redirects using returnTo query param.
+        loginSucceeded = true;
+        router.push(redirectTo as any);
       } else {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
@@ -80,7 +84,9 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
         setError(err instanceof Error ? err.message : tToast("somethingWentWrong"));
       }
     } finally {
-      setSubmitting(null);
+      if (!loginSucceeded) {
+        setSubmitting(null);
+      }
     }
   }
 async function handleOAuth(provider: OAuthProvider) {
@@ -89,7 +95,7 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
-      // GuestOnly detects status → "authed" and redirects using returnTo query param.
+      router.push(redirectTo as any);
     } catch (err) {
       // Closing the popup (or a cancelled popup request) is a cancellation,
       // not an error — keep the form clean and silent.

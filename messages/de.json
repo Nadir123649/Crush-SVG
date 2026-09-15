@@ -332,6 +332,15 @@
     "ourTeam": "Unser Team",
     "privacyPolicy": "Datenschutzerklärung",
     "termsOfService": "Nutzungsbedingungen",
+    "convertersEngines": "Converter & Engines",
+    "svgToPngFull": "SVG zu PNG",
+    "svgToPngDesc": "Vektorcode in scharfe PNG-Bilder konvertieren",
+    "pngToSvgFull": "PNG zu SVG",
+    "pngToSvgDesc": "Rasterbilder in skalierbare SVG vektorisieren",
+    "imageResizerFull": "Bildgrösse ändern",
+    "imageResizerDesc": "Bilder auf exakte Dimensionen skalieren und optimieren",
+    "bgRemoverFull": "Hintergrundentferner",
+    "bgRemoverDesc": "KI-gestützte transparente Hintergrundentfernung",
     "useCases": "Anwendungsfälle",
     "reactNext": "React & Next.js",
     "emailSignatures": "E-Mail-Signaturen",
@@ -636,7 +645,8 @@
       "resendCooldown": "Resend available in {seconds}s",
       "subtitle": "We've sent a verification link to {email}",
       "successMessage": "Verification email sent!",
-      "title": "Verify Your Email"
+      "title": "Verify Your Email",
+      "invalidMessage": "This link is invalid or has expired. Please request a new one from the sign-up flow."
     }
   },
   "cookie_consent": {
@@ -699,12 +709,14 @@
     "fileReadError": "Could not read that file. Please try again.",
     "fileTooLarge": "SVG file too large. Maximum size is 10MB.",
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
+    "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "invalidSvgFile": "Please choose an SVG file (.svg).",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "loggedOut": "You've been logged out",
     "noSvgToCopy": "No custom SVG code to copy",
     "pasteToStart": "Paste your SVG code or upload a file to get started.",
+    "invalidSvgCode": "Ungültiger SVG-Code. Überprüfe auf nicht geschlossene Tags oder Syntaxfehler.",
     "svgAlreadyFormatted": "SVG is already formatted",
     "svgCopied": "SVG code copied to clipboard!",
     "svgFormatted": "SVG code formatted",
@@ -899,6 +911,7 @@
     "title": "Raster to SVG",
     "toastCopied": "SVG vector markup copied to clipboard",
     "toastCopyFailed": "Failed to copy SVG. You can download the file instead.",
+    "toastVectorizationComplete": "Vectorization complete! Ready to download.",
     "toastDownloadStarted": "SVG download has started",
     "toastPasted": "Image pasted from clipboard",
     "toastSampleError": "Could not load sample image",
@@ -948,5 +961,22 @@
   },
   "export_button": {
     "label": "Export"
+  },
+  "pwa": {
+    "installApp": "App installieren",
+    "installTitle": "CrushSVG installieren",
+    "installDescription": "Schnelle, offline-fähige SVG-Konvertierungen direkt auf Ihrem Desktop oder Startbildschirm.",
+    "installBenefitSpeed": "Sofortiger Start ohne Latenz",
+    "installBenefitOffline": "Funktioniert 100% offline ohne Internet",
+    "installBenefitPrivate": "Privates clientseitiges Rendering",
+    "installNow": "Jetzt installieren",
+    "maybeLater": "Vielleicht später",
+    "close": "Schließen",
+    "iosInstructionsTitle": "So installieren Sie auf iPhone & iPad",
+    "iosStep1": "Tippen Sie in Safari auf die Teilen-Schaltfläche",
+    "iosStep2": "Scrollen Sie nach unten und wählen Sie 'Zum Home-Bildschirm'",
+    "iosStep3": "Tippen Sie oben rechts auf 'Hinzufügen'",
+    "offlineMode": "Offline-Modus aktiv — lokale Konvertierung bereit",
+    "backOnline": "Wieder online"
   }
 }

@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -37,7 +37,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["@visioncortex/vtracer", "sharp", "onnxruntime-node", "@huggingface/transformers"],
+  serverExternalPackages: ["@visioncortex/vtracer", "sharp"],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        source: "/(CrushSVG-logo\\.svg|icon\\.svg|manifest\\.webmanifest)",
+        source: "/(CrushSVG-logo\\.svg|icon\\.svg|icon-192\\.png|icon-512\\.png|favicon-48x48\\.png|favicon-32x32\\.png|manifest\\.webmanifest)",
         headers: [
           {
             key: "Cache-Control",

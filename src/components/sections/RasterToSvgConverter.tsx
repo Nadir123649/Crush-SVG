@@ -8,7 +8,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
 import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
-import { getAccessToken } from "@/lib/client/http";
+import { getAccessToken, ApiError } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -17,6 +17,7 @@ import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
+const STORAGE_KEY_IMAGE = "crush_vectorizer_image";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
@@ -134,7 +135,7 @@ function VectorDropdown({
 
   return (
     <div className="flex flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
-      <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
+      <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
         {label}
       </label>
       <div
@@ -152,7 +153,7 @@ function VectorDropdown({
             onToggle();
           }
         }}
-        className={`relative w-full h-[46px] md:h-[52px] rounded-[12px] border ${
+        className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
           isOpen ? "border-[#D94A1E]" : "border-[#8F8F8F]"
         } flex items-center justify-between bg-white px-[12px] md:px-[14px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary transition-colors select-none ${
           disabled ? "opacity-50 cursor-not-allowed" : "hover:border-[#D94A1E]"
@@ -160,7 +161,7 @@ function VectorDropdown({
       >
         {value === "Custom" && customColor ? (
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] truncate">
               Custom
             </span>
             <span
@@ -172,7 +173,7 @@ function VectorDropdown({
             </span>
           </div>
         ) : (
-          <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E] truncate">
+          <span className="font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] truncate">
             {selected.label}
           </span>
         )}
@@ -202,8 +203,8 @@ function VectorDropdown({
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[260px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
-          <div role="listbox" className="w-full max-h-[258px] overflow-y-auto py-[6px] brand-scrollbar">
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col">
+          <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
             {options.map((opt) => {
               const isSelected = opt.value === value;
               return (
@@ -212,12 +213,12 @@ function VectorDropdown({
                   role="option"
                   aria-selected={isSelected}
                   onClick={() => onChange(opt.value)}
-                  className={`px-[14px] py-[8px] flex flex-col gap-[2px] cursor-pointer transition-colors ${
+                  className={`px-[16px] py-[10px] flex flex-col gap-[2px] cursor-pointer transition-colors ${
                     isSelected ? "bg-[#FFF1EC] text-[#D94A1E]" : "hover:bg-[#FFF7F4] text-[#353A3E]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-body font-semibold text-[13px] md:text-[14px]">
+                    <span className="font-body font-semibold text-[14px] md:text-[16px]">
                       {opt.label}
                     </span>
                     {isSelected && (
@@ -246,42 +247,39 @@ function VectorDropdown({
                   {opt.value === "Custom" && onCustomColorChange && customColor && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 flex items-center justify-between gap-1 flex-wrap"
+                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 px-[10px] py-[6px] flex items-center gap-[5px] bg-[#FAF9F6] flex-wrap shrink-0"
                     >
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCustomColorChange(c.hex);
-                            }}
-                            className={`w-[18px] h-[18px] rounded-full border border-gray-300 transition-transform ${
-                              customColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "scale-115 ring-2 ring-brand-primary"
-                                : "hover:scale-105"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="color"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          className="w-[20px] h-[20px] p-0 border-none rounded cursor-pointer"
+                      {COLOR_PRESETS.map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          title={c.name}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCustomColorChange(c.hex);
+                          }}
+                          className={`w-[14px] h-[14px] rounded-full border border-gray-300 transition-transform shrink-0 ${
+                            customColor.toLowerCase() === c.hex.toLowerCase()
+                              ? "scale-115 ring-2 ring-brand-primary"
+                              : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: c.hex }}
                         />
-                        <input
-                          type="text"
-                          value={customColor}
-                          onChange={(e) => onCustomColorChange(e.target.value)}
-                          maxLength={7}
-                          className="w-[58px] h-[22px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center"
-                        />
-                      </div>
+                      ))}
+                      <input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        className="w-[16px] h-[16px] p-0 border-none rounded cursor-pointer shrink-0"
+                        aria-label="Pick custom color"
+                      />
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={(e) => onCustomColorChange(e.target.value)}
+                        maxLength={7}
+                        className="w-[50px] h-[20px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center ml-auto"
+                      />
                     </div>
                   )}
                 </div>
@@ -358,12 +356,14 @@ export function RasterToSvgConverter() {
   const colorsRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLDivElement>(null);
+  const convertAbortRef = useRef<AbortController | null>(null);
 
   // Wipe data when signing out
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "authed" && status !== "authed") {
+      convertAbortRef.current?.abort();
       setRasterFile(null);
       setRasterDataUrl(null);
       setImageName(null);
@@ -376,6 +376,7 @@ export function RasterToSvgConverter() {
       setShowSignupPrompt(false);
       try {
         sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
       } catch {}
     }
   }, [status]);
@@ -457,9 +458,6 @@ export function RasterToSvgConverter() {
         const raw = sessionStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = JSON.parse(raw);
-          if (typeof saved.rasterDataUrl === "string") {
-            setRasterDataUrl(saved.rasterDataUrl);
-          }
           if (typeof saved.imageName === "string") {
             setImageName(saved.imageName);
           }
@@ -478,13 +476,21 @@ export function RasterToSvgConverter() {
             setResult(saved.result);
           }
         }
+        // Restore image data URL from a separate key to avoid QuotaExceededError
+        // when the full state including the large base64 string is saved as one blob.
+        try {
+          const imgRaw = sessionStorage.getItem(STORAGE_KEY_IMAGE);
+          if (imgRaw && typeof imgRaw === "string") {
+            setRasterDataUrl(imgRaw);
+          }
+        } catch {}
       } catch {}
       finally {
         storageRestoredRef.current = true;
         setStorageRestored(true);
       }
     });
-  }, []);
+  }, [status, sessionVersion]);
 
   // Save state to sessionStorage
   useEffect(() => {
@@ -495,18 +501,29 @@ export function RasterToSvgConverter() {
       sessionStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          rasterDataUrl,
           imageName,
           imageSize,
           imageDims,
           quality: rasterQuality,
           colors: rasterColors,
           background: rasterBackground,
-           bgColor: rasterBgColor,
-           mode: rasterMode,
-           result: persistableResult,
+          bgColor: rasterBgColor,
+          mode: rasterMode,
+          result: persistableResult,
         })
       );
+      // Save image data URL separately — it can be very large and exceed the
+      // 5 MB sessionStorage limit when bundled with settings and result.
+      if (rasterDataUrl) {
+        try {
+          sessionStorage.setItem(STORAGE_KEY_IMAGE, rasterDataUrl);
+        } catch {
+          // QuotaExceededError — image is too large to persist; settings and
+          // result are still saved above so the conversion output survives.
+        }
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
+      }
     } catch {}
   }, [
     rasterDataUrl,
@@ -594,6 +611,7 @@ export function RasterToSvgConverter() {
   }
 
   function handleClear() {
+    convertAbortRef.current?.abort();
     setRasterFile(null);
     setRasterDataUrl(null);
     setImageName(null);
@@ -609,8 +627,8 @@ export function RasterToSvgConverter() {
     setRasterBgColor("#ffffff");
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY_IMAGE);
     } catch {}
-    showToast("success", t("resetButton"));
   }
 
   async function handleLoadSample() {
@@ -633,6 +651,10 @@ export function RasterToSvgConverter() {
     }
     setError(null);
     setConverting(true);
+    let conversionSucceeded = false;
+
+    const controller = new AbortController();
+    convertAbortRef.current = controller;
 
     try {
       let fileToConvert: File;
@@ -653,7 +675,10 @@ export function RasterToSvgConverter() {
             : undefined,
         tracingMode: MODE_MAP[rasterMode] ?? "auto",
         palette: PALETTE_MAP[rasterColors] ?? "auto",
+        signal: controller.signal,
       });
+
+      if (controller.signal.aborted) return;
 
       setResult({
         svg: res.svg,
@@ -667,7 +692,7 @@ export function RasterToSvgConverter() {
         advisory: res.advisory,
       });
       setPreviewMode("vector");
-      showToast("success", t("convertButton"));
+      conversionSucceeded = true;
       trackConversion("raster_vectorized", { output_format: "svg" });
       
       try {
@@ -677,16 +702,22 @@ export function RasterToSvgConverter() {
           originalSize: fileToConvert.size,
           success: true,
         });
-        if (status === "authed") {
+        if (!controller.signal.aborted && status === "authed") {
           setUsage({ ...u, isUnlimited: true, remaining: null, limitReached: false });
-        } else {
+        } else if (!controller.signal.aborted) {
           setUsage(u);
         }
       } catch (e) {
         console.error("Failed to track usage", e);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("errorConversion");
+      if (controller.signal.aborted) return;
+      let msg = err instanceof Error ? err.message : t("errorConversion");
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
+        msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
+      }
       setError(msg);
       showToast("error", msg);
       
@@ -699,7 +730,10 @@ export function RasterToSvgConverter() {
         });
       } catch (e) {}
     } finally {
-      setConverting(false);
+      if (!controller.signal.aborted) setConverting(false);
+      if (conversionSucceeded && !controller.signal.aborted) {
+        showToast("success", t("toastVectorizationComplete"));
+      }
     }
   }
 
@@ -756,7 +790,7 @@ export function RasterToSvgConverter() {
           {/* Inner Dashed Border Box */}
           <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
@@ -773,7 +807,7 @@ export function RasterToSvgConverter() {
                       onClick={handleClear}
                       disabled={converting || !rasterDataUrl}
                       aria-label="Clear uploaded image"
-                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 ${
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
                         rasterDataUrl
                           ? converting
                             ? "opacity-50 cursor-not-allowed pointer-events-none"
@@ -790,18 +824,20 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
-                      <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
                         Clear
                       </span>
                     </button>
 
                     {/* Usage Counter */}
-                    {(usage || status === "authed") && (
+                    {status !== "loading" && (usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {status === "authed" || usage?.isUnlimited
                           ? t("unlimitedConversions")
-                          : t("conversionsUsed", { used: usage?.conversionsUsed ?? 0, total: (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0) })}
+                          : usage && !usageFailed
+                          ? t("conversionsUsed", { used: usage.conversionsUsed, total: usage.conversionsUsed + (usage.remaining ?? 0) })
+                          : "\u00A0"}
                       </span>
                     )}
                   </div>
@@ -920,6 +956,7 @@ export function RasterToSvgConverter() {
                       width={72}
                       height={72}
                       className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      style={{ width: "auto", height: "auto" }}
                     />
 
                     <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
@@ -1025,7 +1062,7 @@ export function RasterToSvgConverter() {
 
                 {/* Privacy Assurance Text */}
                 <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
-                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
+                  <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                   <span>{t("privateNotice")}</span>
                 </p>
 
@@ -1051,7 +1088,7 @@ export function RasterToSvgConverter() {
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Vector Controls                 */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full lg:w-[537px] min-w-0 flex flex-col">
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
@@ -1100,7 +1137,7 @@ export function RasterToSvgConverter() {
 
                 {/* Main Preview Container */}
                 <div
-                  className="w-full h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]"
+                  className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[24px] md:p-[40px]"
                 >
                   {converting ? (
                     /* Converting Animation State */
@@ -1112,8 +1149,8 @@ export function RasterToSvgConverter() {
                     </div>
                   ) : previewMode === "code" && result ? (
                     /* SVG Code Viewer State */
-                    <div className="w-full h-full flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
-                      <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-2 shrink-0">
+                    <div className="w-full h-full min-w-0 min-h-0 flex flex-col bg-white border border-[#EAEAEA] rounded-[8px] p-[16px] shadow-inner overflow-hidden relative">
+                      <div className="flex items-center justify-between pb-[8px] border-b border-gray-200 mb-[8px] shrink-0">
                         <span className="text-[12px] font-mono text-[#353A3E]">
                           {t("svgMarkup", { size: formatFileSize(result.size) })}
                         </span>
@@ -1136,10 +1173,8 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap select-all">
-                        {result.svg.length > 3000
-                          ? result.svg.slice(0, 3000) + "\n\n... [Code truncated for performance. Use 'Copy Code' or Download to get the full SVG]"
-                          : result.svg}
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text [scrollbar-gutter:stable]">
+                        {result.svg}
                       </pre>
                     </div>
                   ) : previewMode === "source" && rasterDataUrl ? (
@@ -1157,10 +1192,21 @@ export function RasterToSvgConverter() {
                   ) : result && previewSvgUrl ? (
                     /* Converted Vector SVG State */
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
+                      {BG_MAP[rasterBackground] === "transparent" && (
+                        <div
+                          className="absolute inset-0 z-0 opacity-40 rounded-[8px]"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+                            backgroundSize: "16px 16px",
+                            backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                          }}
+                        />
+                      )}
                       <img
                         src={previewSvgUrl}
                         alt="Vectorized SVG output"
-                        className="max-w-full max-h-full object-contain drop-shadow-md"
+                        className="max-w-full max-h-full object-contain drop-shadow-md relative z-10"
                       />
                     </div>
                   ) : rasterDataUrl ? (
@@ -1196,11 +1242,11 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full h-auto mt-[16px] transition-all duration-300 flex flex-col justify-between ${
+                  className={`w-full h-auto mt-[16px] md:mt-[20px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[20px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
                       label={t("qualityLabel")}
@@ -1292,7 +1338,7 @@ export function RasterToSvgConverter() {
 
                 {/* Action CTA Buttons Row */}
                 {converting ? (
-                  <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                  <div className="w-full h-[48px] mt-[12px] md:mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                     <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                       <div
                         className="absolute top-0 left-0 h-full bg-[#D94A1E] rounded-full animate-[indeterminate_1.8s_ease-in-out_infinite]"
@@ -1301,7 +1347,7 @@ export function RasterToSvgConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] relative">
+                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"
@@ -1317,13 +1363,13 @@ export function RasterToSvgConverter() {
                           onClick={handleDownload}
                           disabled={converting}
                         >
-                          <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
+                          <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
                             {t("downloadButton")}
                             <Image
                               src={IMAGES.exportIcon}
                               alt=""
-                              width={18}
-                              height={18}
+                              width={16}
+                              height={16}
                               className="brightness-0 invert"
                             />
                           </span>
@@ -1366,13 +1412,13 @@ export function RasterToSvgConverter() {
                         onClick={handleConvert}
                         disabled={converting || !rasterDataUrl}
                       >
-                        <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
+                        <span className="flex items-center justify-center gap-[8px] text-[16px] w-full">
                           {t("convertButton")}
                           <Image
                             src={IMAGES.exportIcon}
                             alt=""
-                            width={18}
-                            height={18}
+                            width={20}
+                            height={20}
                             className="brightness-0 invert"
                           />
                         </span>

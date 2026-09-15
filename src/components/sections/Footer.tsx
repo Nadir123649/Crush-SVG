@@ -196,8 +196,51 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
 
       </div>
 
+      {/* Converters & Engines Section */}
+      <div className="w-full max-w-[1280px] mt-[24px] md:mt-[40px]">
+        <h4 className="font-heading font-bold text-[14px] md:text-[16px] leading-[120%] text-[#353A3E] text-center mb-[16px] md:mb-[20px]">{t("convertersEngines")}</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[12px] md:gap-[16px]">
+          <Link
+            href="/"
+            onClick={(e) => handlePageClick(e, '/')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">SVG</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToPngFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("svgToPngDesc")}</span>
+          </Link>
+          <Link
+            href="/png-to-svg"
+            onClick={(e) => handlePageClick(e, '/png-to-svg')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">PNG</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("pngToSvgFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("pngToSvgDesc")}</span>
+          </Link>
+          <Link
+            href="/image-resizer"
+            onClick={(e) => handlePageClick(e, '/image-resizer')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">PX</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("imageResizerFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("imageResizerDesc")}</span>
+          </Link>
+          <Link
+            href="/background-remover"
+            onClick={(e) => handlePageClick(e, '/background-remover')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">AI</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("bgRemoverDesc")}</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Divider */}
-      <div className="w-full max-w-[1280px] h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[60px] mb-[16px] md:mb-[20px]"></div>
+      <div className="w-full max-w-[1280px] h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[40px] mb-[16px] md:mb-[20px]"></div>
 
       {/* Bottom Footer */}
       <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">

@@ -2,15 +2,19 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
-import { VerificationModal } from "@/components/modals/VerificationModal";
-import { GuestOnly } from "@/components/auth/GuestOnly";
+import { IMAGES } from "@/lib/shared/images";
+import { useAuth } from "@/lib/client/auth-context";
+import { InvalidLinkCard } from "@/components/ui/InvalidLinkCard";
+import { AppLoader } from "@/components/ui/AppLoader";
 
 type TokenState = "checking" | "valid" | "invalid";
 
 export default function ResetPasswordPage() {
   const { token } = useParams<{ token: string }>();
+  const { status } = useAuth();
   const [tokenState, setTokenState] = useState<TokenState>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,6 +40,8 @@ export default function ResetPasswordPage() {
     }
   }, [done, redirectIn, router]);
 
+  // Validate the token — must run regardless of auth state so expired links
+  // are shown even when the user is already logged in.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -43,18 +49,40 @@ export default function ResetPasswordPage() {
         const body = await apiFetch<{ valid: boolean }>(`/api/v1/passwords/reset?token=${encodeURIComponent(token)}`)
         if (cancelled) return
         setTokenState(body.valid === true ? "valid" : "invalid")
-        if (body.valid !== true) {
-          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
-        }
       } catch {
         if (!cancelled) {
           setTokenState("invalid")
-          showToast("error", "This reset link is invalid or has expired. Please request a new one.")
         }
       }
     })()
     return () => { cancelled = true }
   }, [token])
+
+  // If token is valid AND user is already authed, redirect to home.
+  // But if token is invalid/expired, show the error even when authed.
+  useEffect(() => {
+    if (status === "authed" && tokenState === "valid" && !done) {
+      router.replace("/")
+    }
+  }, [status, tokenState, done, router])
+
+  // Show loader while auth state or token is still resolving
+  if (status === "loading" || tokenState === "checking") {
+    return (
+      <div className="w-full min-h-[75vh] flex items-center justify-center py-[40px] md:py-[60px] px-[16px] md:px-0">
+        <AppLoader />
+      </div>
+    );
+  }
+
+  // Authed user with valid token — show loader briefly while redirect fires
+  if (status === "authed" && tokenState === "valid") {
+    return (
+      <div className="w-full min-h-[75vh] flex items-center justify-center py-[40px] md:py-[60px] px-[16px] md:px-0">
+        <AppLoader />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -91,40 +119,50 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <GuestOnly>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
-        <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px]">
-          {tokenState === "checking" && (
-            <div className="flex flex-col items-center gap-[12px] py-[48px]">
-              <div className="w-[28px] h-[28px] rounded-full border-[3px] border-[#F2EDE8] border-t-[#D94A1E] animate-spin" />
-              <p className="font-afacad text-[14px] text-[#4B5563]">Checking your reset link…</p>
-            </div>
-          )}
-
+        <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px] min-h-[200px]">
           {tokenState === "invalid" && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              <VerificationModal 
-                variant="invalid"
-                onClose={() => router.push("/login")}
-                onContinue={() => router.push("/login")}
+              <InvalidLinkCard
+                ctaHref="/forgot-password"
+                ctaLabel="Request New Link"
               />
             </div>
           )}
 
           {done && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              <div className="flex flex-col w-full max-w-[440px]">
-                <VerificationModal 
-                  variant="success"
-                  onClose={() => router.push("/login")}
-                  onContinue={() => router.push("/login")}
-                />
-                {redirectIn > 0 && (
-                  <p className="text-center font-afacad text-[14px] text-[#4B5563] mt-[12px] text-white">
-                    Redirecting to login in {redirectIn}s…
+              <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+                <div className="flex flex-col items-center text-center gap-6">
+                  <div className="flex items-center gap-[4px]">
+                    <Image src={IMAGES.logo} alt="CrushSVG Icon" width={26} height={26} className="object-contain" />
+                    <div className="font-heading font-semibold text-[16px] leading-[100%] tracking-[0%] flex items-center">
+                      <span className="text-text-dark">Crush</span>
+                      <span className="text-[#D94A1E]">SVG</span>
+                    </div>
+                  </div>
+                  <h2 className="font-heading font-bold text-[28px] md:text-[34px] leading-[100%] text-[#D94A1E] text-center">
+                    Password Updated
+                  </h2>
+                  <div className="flex items-center justify-center">
+                    <Image src={IMAGES.verification} alt="" width={206} height={98} className="object-contain" style={{ width: "auto", height: "auto" }} />
+                  </div>
+                  <p className="font-body font-normal text-[14px] leading-[125%] text-[#4B5563] text-center w-full max-w-[294px]">
+                    Your password has been changed successfully. You can now log in with your new password.
                   </p>
-                )}
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="w-[238px] h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
+                  >
+                    Continue to Login
+                  </button>
+                  {redirectIn > 0 && (
+                    <p className="font-afacad text-[14px] text-[#4B5563]">
+                      Redirecting to login in {redirectIn}s…
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -216,7 +254,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Updating…" : "Set New Password"}
                 </button>
@@ -233,6 +271,5 @@ export default function ResetPasswordPage() {
         </div>
       </div>
       </div>
-    </GuestOnly>
   );
 }

@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { apiFetch, authFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
+import { AdminLoader } from "@/components/admin/AdminLoader";
+import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
 
 export default function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState("");
@@ -12,31 +14,39 @@ export default function SettingsPage() {
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [addingAdmin, setAddingAdmin] = useState(false);
   
-  const [loading, setLoading] = useState(true);
+  const [cachedSettings] = useState(() => getAdminCached<any>("admin_settings", 120_000));
+  const [loading, setLoading] = useState(!cachedSettings);
   const [savingSettings, setSavingSettings] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [settings, setSettings] = useState({
-    siteName: "CrushSVG Production",
-    supportEmail: "support@crushsvg.net",
+  const [settings, setSettings] = useState(cachedSettings || {
+    siteName: "",
+    supportEmail: "",
     logoUrl: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchSettings = async () => {
       try {
         const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings");
-        if (response?.settings) {
+        if (response?.settings && !cancelled) {
           setSettings(response.settings);
+          setAdminCached("admin_settings", response.settings);
         }
       } catch (err) {
-        showToast("error", "Failed to load settings.", { id: "load-settings" });
+        if (!cancelled && !cachedSettings) {
+          showToast("error", "Failed to load settings.", { id: "load-settings" });
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchSettings();
-  }, []);
+    return () => { cancelled = true; };
+  }, [cachedSettings]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +61,7 @@ export default function SettingsPage() {
       });
       if (response?.settings) {
         setSettings(response.settings);
+        setAdminCached("admin_settings", response.settings);
         showToast("success", "Settings saved successfully!", { id: "save-settings" });
       }
     } catch (err) {
@@ -97,6 +108,7 @@ export default function SettingsPage() {
         });
         if (response?.settings) {
           setSettings(response.settings);
+          setAdminCached("admin_settings", response.settings);
           showToast("success", "Logo updated successfully!", { id: "upload-logo" });
         }
       }
@@ -118,6 +130,7 @@ export default function SettingsPage() {
       });
       if (response?.settings) {
         setSettings(response.settings);
+        setAdminCached("admin_settings", response.settings);
         showToast("success", "Logo removed successfully!", { id: "remove-logo" });
       }
     } catch (err) {
@@ -152,6 +165,13 @@ export default function SettingsPage() {
       setAddingAdmin(false);
     }
   };
+
+  if (loading) {
+    return (
+      <AdminLoader message="Loading settings..." className="min-h-[calc(100vh-140px)]" />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Page Title */}

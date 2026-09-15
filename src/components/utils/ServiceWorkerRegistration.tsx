@@ -15,8 +15,25 @@ export function ServiceWorkerRegistration() {
     ) {
       navigator.serviceWorker
         .register("/sw.js")
+        .then((reg) => {
+          // Check for periodic updates
+          reg.addEventListener("updatefound", () => {
+            const installingWorker = reg.installing;
+            if (installingWorker) {
+              installingWorker.addEventListener("statechange", () => {
+                if (
+                  installingWorker.state === "installed" &&
+                  navigator.serviceWorker.controller
+                ) {
+                  // New content is available; will take over on next reload
+                  console.info("[CrushSVG] New service worker version installed.");
+                }
+              });
+            }
+          });
+        })
         .catch((err) => {
-          console.warn("SW registration failed:", err);
+          console.warn("[CrushSVG] SW registration failed:", err);
         });
     }
   }, []);

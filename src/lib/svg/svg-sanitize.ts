@@ -167,7 +167,7 @@ export function sanitizeSvg(svg: string): string {
         sanitized = removeElements(sanitized, tag);
     }
     sanitized = forEachTag(sanitized, rebuildTag);
-    return inlineUseImages(sanitized);
+    return inlineUseImages(sanitized).trim();
 }
 export function inlineUseImages(svg: string): string {
     const images = new Map<string, {

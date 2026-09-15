@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useState } from "react";
 
 const CONSENT_KEY = "crush_cookie_consent";
@@ -24,14 +23,16 @@ export function AdSenseConsentGate() {
     };
   }, []);
 
-  if (!granted) return null;
+  useEffect(() => {
+    if (!granted) return;
+    if (document.querySelector('script[src*="pagead2.googlesyndication.com"]')) return;
 
-  return (
-    <Script
-      id="google-adsense"
-      strategy="afterInteractive"
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-      crossOrigin="anonymous"
-    />
-  );
+    const script = document.createElement("script");
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+  }, [granted]);
+
+  return null;
 }

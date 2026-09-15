@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useLoading } from "@/components/providers/LoadingProvider";
-import { usePathname, useRouter, routing, type Locale, LOCALE_LABELS, getPathname } from "@/i18n/routing";
+import { usePathname, useRouter, routing, type Locale, LOCALE_LABELS, getLocalizedHref } from "@/i18n/routing";
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -73,24 +73,41 @@ export function LanguageSwitcher({
       if (newLocale === currentLocale) return;
 
       pendingReleaseRef.current?.();
-      pendingReleaseRef.current = beginLoading();
+      const release = beginLoading();
+      pendingReleaseRef.current = release;
 
       // Set cookie directly so next request instantly receives new locale
-      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+      if (typeof document !== "undefined") {
+        document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+      }
+
+      // Safety timeout: automatically dismiss loader after 3s
+      const fallbackTimer = setTimeout(() => {
+        if (pendingReleaseRef.current === release) {
+          release();
+          pendingReleaseRef.current = null;
+        }
+      }, 3000);
 
       try {
-        // Compute target localized pathname
-        const targetPath = getPathname({ href: pathname || "/", locale: newLocale });
-        const search = typeof window !== "undefined" ? window.location.search : "";
-        const hash = typeof window !== "undefined" ? window.location.hash : "";
-        const fullUrl = `${targetPath}${search}${hash}`;
-        router.push(fullUrl as Parameters<typeof router.push>[0]);
+        const rawCurrentUrl = typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+          : (pathname || "/");
+
+        const targetUrl = getLocalizedHref(rawCurrentUrl, newLocale);
+
+        if (typeof window !== "undefined") {
+          window.location.href = targetUrl;
+        } else {
+          router.replace(targetUrl as Parameters<typeof router.replace>[0]);
+        }
       } catch {
-        // Fallback for custom routes
-        const prefix = newLocale === routing.defaultLocale ? "" : `/${newLocale}`;
-        const cleanPath = (pathname || "/").replace(/^\/(es|de|fr|pt|ja)/, "");
-        const fallbackUrl = `${prefix}${cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`}` || "/";
-        router.push(fallbackUrl as Parameters<typeof router.push>[0]);
+        const fallback = newLocale === routing.defaultLocale ? "/" : `/${newLocale}`;
+        if (typeof window !== "undefined") {
+          window.location.href = fallback;
+        }
+      } finally {
+        setTimeout(() => clearTimeout(fallbackTimer), 3500);
       }
     },
     [beginLoading, currentLocale, pathname, router, setIsOpen]
@@ -231,9 +248,10 @@ export function LanguageSwitcher({
             <span className="font-heading font-semibold text-[12px] text-text-dark">
               {tLang("selectLanguage")}
             </span>
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-brand-primary">
-              CrushSVG
-            </span>
+            <div className="font-heading font-bold text-[11px] flex items-center">
+              <span className="text-text-dark">Crush</span>
+              <span className="text-brand-primary">SVG</span>
+            </div>
           </div>
 
           {/* Options */}

@@ -92,9 +92,11 @@ function SvgToPngConverter() {
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
   const [converting, setConverting] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -116,16 +118,19 @@ function SvgToPngConverter() {
   const storageRestoredRef = useRef(false);
   const [storageRestored, setStorageRestored] = useState(false);
   const prevStatusRef = useRef<AuthStatus | null>(null);
+  const convertAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "authed" && status !== "authed") {
+      convertAbortRef.current?.abort();
       setSvgCode(SAMPLE_SVG);
       setResult(null);
       setError(null);
       setPreviewError(false);
       setUsage(null);
+      setUsageFailed(false);
       setShowSignupPrompt(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("crush_converter_state");
@@ -181,6 +186,7 @@ function SvgToPngConverter() {
         if (cancelled) return;
         if (status !== "authed") {
           setUsage(null);
+          setUsageFailed(true);
         }
       });
     return () => {
@@ -288,37 +294,7 @@ function SvgToPngConverter() {
     return () => window.removeEventListener("paste", handleGlobalPaste);
   }, [tToast]);
 
-  function handleFormatSvg() {
-    if (!svgCode || isPlaceholderCode) return;
-    try {
-      let formatted = "";
-      const reg = /(>)(<)(\/*)/g;
-      const xml = svgCode.replace(reg, "$1\r\n$2$3");
-      let pad = 0;
-      xml.split("\r\n").forEach((line) => {
-        let indent = 0;
-        if (line.match(/.+<\/\w[^>]*>$/)) {
-          indent = 0;
-        } else if (line.match(/^<\/\w/)) {
-          if (pad !== 0) pad -= 1;
-        } else if (line.match(/^<\w[^>]*[^\/]>$/)) {
-          indent = 1;
-        } else {
-          indent = 0;
-        }
-        formatted += "  ".repeat(pad) + line.trim() + "\n";
-        pad += indent;
-      });
-      if (svgCode.trim() === formatted.trim()) {
-        showToast("success", tToast("svgAlreadyFormatted"));
-        return;
-      }
-      setSvgCode(formatted.trim());
-      showToast("success", tToast("svgFormatted"));
-    } catch {
-      showToast("error", tToast("formatError"));
-    }
-  }
+
 
   async function handleCopySvgCode() {
     const textToCopy = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE ? "" : svgCode;
@@ -371,6 +347,11 @@ function SvgToPngConverter() {
       showToast("error", tToast("pasteToStart"));
       return;
     }
+    if (!isValidSvgContent(svgCode)) {
+      setError(tToast("invalidSvgCode"));
+      showToast("error", tToast("invalidSvgCode"));
+      return;
+    }
     setError(null);
     const resolvedBg = transparent ? "Transparent" : bgOption;
     const options: ConvertRequest = {
@@ -416,8 +397,13 @@ function SvgToPngConverter() {
     }
 
     setConverting(true);
+    const controller = new AbortController();
+    convertAbortRef.current = controller;
+
     try {
-      const res = await convertText(svgCode, options);
+      const res = await convertText(svgCode, { ...options, signal: controller.signal });
+      if (controller.signal.aborted) return;
+
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
@@ -455,6 +441,7 @@ function SvgToPngConverter() {
         );
       }
     } catch (err) {
+      if (controller.signal.aborted) return;
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
         setShowSignupPrompt(true);
         return;
@@ -463,9 +450,15 @@ function SvgToPngConverter() {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
-      showToast("error", err instanceof Error ? err.message : tToast("conversionFailed"));
+      let msg = err instanceof Error ? err.message : tToast("conversionFailed");
+      if (err instanceof ApiError) {
+        msg = err.message;
+      } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
+        msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
+      }
+      showToast("error", msg);
     } finally {
-      setConverting(false);
+      if (!controller.signal.aborted) setConverting(false);
     }
   }
 
@@ -526,8 +519,6 @@ function SvgToPngConverter() {
     }
   }
 
-  const displayError = validationError || error;
-
   return (
     <>
       <section
@@ -546,22 +537,6 @@ function SvgToPngConverter() {
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex items-center gap-[10px]">
-                    {svgCode !== SAMPLE_SVG && !isPlaceholderCode && (
-                      <button
-                        type="button"
-                        onClick={handleFormatSvg}
-                        disabled={converting}
-                        aria-label="Format SVG code"
-                        className={`rounded-[6px] border px-[8px] py-[4px] font-body font-medium text-[12px] transition-colors ${
-                          converting
-                            ? "border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none"
-                            : "border-[#8F8F8F] text-[#475569] hover:text-brand-primary hover:border-brand-primary"
-                        }`}
-                        title="Format SVG Code"
-                      >
-                        {tUpload("formatCode")}
-                      </button>
-                    )}
                     <button
                       type="button"
                       onClick={handleClearSvg}
@@ -590,14 +565,16 @@ function SvgToPngConverter() {
                       </span>
                     </button>
                     <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {status === "authed" || usage?.isUnlimited
+                      {status === "loading"
+                        ? "\u00A0"
+                        : status === "authed" || usage?.isUnlimited
                         ? tUsage("unlimitedConversions")
-                        : usage
+                        : usage && !usageFailed
                         ? tUsage("conversionsUsed", {
                             used: usage.conversionsUsed,
                             total: usage.conversionsUsed + (usage.remaining ?? 0),
                           })
-                        : tUsage("conversionsUsed", { used: 0, total: 3 })}
+                        : "\u00A0"}
                     </span>
                   </div>
                 </div>
@@ -618,7 +595,7 @@ function SvgToPngConverter() {
                     }}
                     spellCheck={false}
                     aria-label="SVG code editor"
-                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap overflow-auto brand-scrollbar"
+                    className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <button
@@ -670,7 +647,7 @@ function SvgToPngConverter() {
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
-                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" style={{ width: "auto", height: "auto" }} />
                   <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">{tUpload("dragOrSelectSvg")}</span>
                     <span className="font-medium text-brand-primary">{tUpload("selectSvg")}</span>
@@ -705,7 +682,7 @@ function SvgToPngConverter() {
                   )}
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
-                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0" />
+                    <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>{tUpload("privateNotice")}</span>
                   </p>
                 </div>
@@ -1274,12 +1251,12 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
-                {displayError && (
+                {validationError && (
                   <div
                     role="alert"
                     className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[10px] mb-[4px] font-body text-[14px] leading-[18px] text-red-700 w-full text-center"
                   >
-                    {displayError}
+                    {validationError}
                   </div>
                 )}
 
@@ -1325,19 +1302,6 @@ function SvgToPngConverter() {
                             />
                           </span>
                         </Button>
-                        <div className="flex items-center gap-[16px] mt-[-4px]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              resetConversion();
-                              void handleConvert();
-                            }}
-                            disabled={converting || isPlaceholderCode || !!validationError}
-                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
-                          >
-                            {tDownload("reconvert")}
-                          </button>
-                        </div>
                       </>
                     ) : (
                       <Button
@@ -1367,13 +1331,6 @@ function SvgToPngConverter() {
                           <p key={w}>{w}</p>
                         ))}
                       </div>
-                    )}
-
-                    {result && result.size !== undefined && (!isPlaceholderCode) && (
-                      <p className="absolute top-full mt-[4px] text-center font-body font-normal text-[10px] md:text-[12px] text-[#64748B] whitespace-nowrap">
-                        {result.format.toUpperCase()} · {(result.size / 1024).toFixed(1)} KB
-                        {result.width && result.height ? ` · ${result.width} x ${result.height} px` : ""}
-                      </p>
                     )}
                   </div>
                 )}
