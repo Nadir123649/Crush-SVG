@@ -574,22 +574,22 @@
     "support": "Support"
   },
   "SEO": {
-    "svgToReactTitle": "Convert SVG to React JSX/TSX, Vue, Svelte & React Native Components Online",
-    "svgToReactDescription": "Free online SVG to Code generator. Instantly transform SVG vectors into clean, type-safe React (TSX/JSX), Vue 3, Svelte, Tailwind, and React Native components with currentColor support.",
-    "svgToPngTitle": "CrushSVG – Free SVG to PNG Converter Online",
-    "svgToPngDescription": "Convert SVG to crisp PNG in seconds. Free, browser-based, transparent background support. No install needed.",
-    "pngToSvgTitle": "PNG to SVG Converter – Free Image to Vector Online",
-    "pngToSvgDescription": "Convert PNG, JPG, and JPEG images to scalable SVG vectors in seconds. Free, browser-based. No install needed.",
-    "bgRemoverTitle": "Background Remover – Free AI Image Background Removal Online",
-    "bgRemoverDescription": "Remove image backgrounds instantly. Free, browser-based, transparent output. No install needed.",
-    "imageResizerTitle": "Image Resizer – Free Online Image Resizing Tool",
-    "imageResizerDescription": "Resize images instantly. Free, browser-based, supports PNG, JPG, and WebP. Adjust width, height, scale, and quality. No install needed.",
-    "svgOptimizerTitle": "SVG Optimizer – Free Online SVG Minifier & Compressor",
-    "svgOptimizerDescription": "Compress and optimize SVG files online. Strip metadata, clean empty tags, round coordinate decimals, and reduce SVG file size instantly. 100% free and private.",
-    "faviconGeneratorTitle": "SVG to Favicon (.ICO) & WebP Generator — Free Multi-Resolution App Icon Pack | CrushSVG",
-    "faviconGeneratorDescription": "Generate complete multi-resolution favicon.ico (16/32/48), Apple Touch icons, Android webmanifest, and WebP icons from any SVG in seconds.",
-    "profileTitle": "User Profile & Developer API Dashboard | CrushSVG",
-    "profileDescription": "Manage your account settings, monitor conversion quotas, and generate developer API keys for programmatic SVG conversion."
+    "svgToReactTitle": "Convert SVG to React JSX/TSX, Vue & Svelte Components",
+    "svgToReactDescription": "Transform SVG code into clean, type-safe React (TSX/JSX), Vue 3, Svelte, and React Native components with currentColor support and custom icon props.",
+    "svgToPngTitle": "Free SVG to PNG Converter Online — Fast & High Resolution",
+    "svgToPngDescription": "Convert SVG to crisp PNG images in seconds. Free online SVG converter supporting transparent backgrounds, custom scaling, and high-resolution output.",
+    "pngToSvgTitle": "PNG to SVG Converter — Free Bitmap Image Vectorizer Online",
+    "pngToSvgDescription": "Convert PNG, JPG, and JPEG bitmap images into scalable SVG vectors in seconds. Free browser-based vectorizer with full transparency support and color tuning.",
+    "bgRemoverTitle": "Free AI Background Remover — Instant Transparent PNG Output",
+    "bgRemoverDescription": "Remove image backgrounds instantly with browser-side AI. Free, private online tool generating clean transparent PNG cutouts for product photos and logos.",
+    "imageResizerTitle": "Free Online Image Resizer — Resize PNG, JPG & WebP Fast",
+    "imageResizerDescription": "Upload and resize PNG, JPG, and WebP images in seconds. Adjust width, height, aspect ratio, scale, and quality online. Free, private, zero installation.",
+    "svgOptimizerTitle": "Free Online SVG Optimizer — Minify & Compress SVG Code",
+    "svgOptimizerDescription": "Compress and optimize SVG files online. Strip editor metadata, clean empty tags, round coordinate decimals, and boost your website PageSpeed Insights scores.",
+    "faviconGeneratorTitle": "SVG to Favicon Pack Generator (.ICO & WebP) | CrushSVG",
+    "faviconGeneratorDescription": "Generate complete multi-resolution favicon.ico (16/32/48), Apple Touch icons, Android webmanifest, and WebP icons from any SVG vector file in seconds.",
+    "profileTitle": "User Profile & Developer API Access Keys | CrushSVG Tools",
+    "profileDescription": "Manage account settings, view monthly conversion quotas, and generate secret REST API keys for programmatic SVG conversion and vectorization services."
   },
   "accessibility": {
     "skipToContent": "Skip to main content",
@@ -600,8 +600,8 @@
     "uploadPlaceholder": "Upload placeholder"
   },
   "about_page": {
-    "metaTitle": "About Us | CrushSVG - Built by The Nevon",
-    "metaDesc": "Learn more about CrushSVG, our mission to provide pixel-perfect SVG to PNG conversions, and the team at The Nevon behind the platform.",
+    "metaTitle": "About Us & Mission | CrushSVG - Built by The Nevon Studio",
+    "metaDesc": "Discover the story behind CrushSVG, our mission to eliminate broken vector assets, and how The Nevon studio crafts pixel-perfect developer utilities.",
     "badge": "Part of The Nevon Suite",
     "titlePrefix": "About",
     "titleHighlight": "CrushSVG",
@@ -629,8 +629,8 @@
     "ctaButton": "Start Converting Now"
   },
   "team_page": {
-    "metaTitle": "Meet the Team | CrushSVG & The Nevon",
-    "metaDesc": "Get to know the engineers and product designers behind CrushSVG and The Nevon dedicated to building fast, high-utility developer tools.",
+    "metaTitle": "Meet the Engineers & Designers Behind CrushSVG | The Nevon",
+    "metaDesc": "Meet the software engineers, product designers, and web performance experts at The Nevon building fast, privacy-focused vector tools for CrushSVG.",
     "badge": "Engineering & Design",
     "title": "Meet the Team",
     "subtitle": "The builders, designers, and problem solvers behind CrushSVG and The Nevon.",
@@ -639,8 +639,8 @@
     "contactNevon": "Contact The Nevon"
   },
   "contact_page": {
-    "metaTitle": "Contact Us | CrushSVG",
-    "metaDesc": "Get in touch with the CrushSVG team for support, feedback, bug reports, or enterprise inquiries.",
+    "metaTitle": "Contact Us & Technical Support Team | CrushSVG Converter",
+    "metaDesc": "Get in touch with the CrushSVG engineering team for technical support, bug reports, feature suggestions, custom integrations, or business inquiries.",
     "badge": "Direct Team Access",
     "title": "Contact Us",
     "subtitle": "Have questions, bug reports, feature requests, or partnership inquiries? Reach out to our team at The Nevon.",
@@ -689,36 +689,36 @@
     "orEmailUs": "Or email us directly at:"
   },
   "privacy_page": {
-    "metaTitle": "Privacy Policy | CrushSVG",
-    "metaDesc": "Privacy policy for CrushSVG, detailing how we collect, use, and protect your information.",
+    "metaTitle": "Privacy Policy & Data Security Standards | CrushSVG Tool",
+    "metaDesc": "Read the CrushSVG Privacy Policy to learn how we protect your personal data, ensure 100% client-side security, and maintain strict data privacy standards.",
     "badge": "Data Protection & Privacy",
     "title": "Privacy Policy",
     "subtitle": "Last updated: August 2026 • Maintained by The Nevon"
   },
   "terms_page": {
-    "metaTitle": "Terms of Service | CrushSVG",
-    "metaDesc": "Terms and conditions for using CrushSVG, an SVG to PNG conversion tool.",
+    "metaTitle": "Terms of Service & Usage Agreements | CrushSVG Converter",
+    "metaDesc": "Review the Terms of Service and acceptable use policies for CrushSVG. Learn about user rights, service quotas, licensing, and liability guidelines.",
     "badge": "Legal Agreements",
     "title": "Terms of Service",
     "subtitle": "Last updated: August 2026 • Provided by The Nevon"
   },
   "cookies_page": {
-    "metaTitle": "Cookies Policy | CrushSVG",
-    "metaDesc": "Cookies policy for CrushSVG, explaining how we use cookies and similar technologies.",
+    "metaTitle": "Cookies Policy & Web Tracking Controls | CrushSVG Tools",
+    "metaDesc": "Understand how CrushSVG uses essential cookies and local storage to save user preferences, manage authentication, and optimize application performance.",
     "title": "Cookies Policy",
     "subtitle": "Last updated: August 2026 • Part of CrushSVG by The Nevon"
   },
   "changelog_page": {
-    "metaTitle": "Changelog & Product Updates | CrushSVG",
-    "metaDesc": "Track all recent features, performance upgrades, and releases for CrushSVG - the free online SVG to PNG converter.",
+    "metaTitle": "Changelog, Release Notes & Product Updates | CrushSVG",
+    "metaDesc": "Track all official product releases, feature updates, engine optimizations, and bug fixes for CrushSVG — the free online SVG to PNG conversion toolkit.",
     "badge": "Release History",
     "title": "Changelog & Updates",
     "subtitle": "Stay updated with recent features, performance upgrades, and fixes across CrushSVG.",
     "latestBadge": "Latest"
   },
   "help_page": {
-    "metaTitle": "Help & FAQ | CrushSVG",
-    "metaDesc": "Get answers to frequently asked questions about converting SVG to PNG, transparency, resolution, and troubleshooting.",
+    "metaTitle": "Help Center & Frequently Asked Questions | CrushSVG",
+    "metaDesc": "Find step-by-step guides and solutions to common SVG conversion errors, transparency issues, font rendering problems, and image scaling questions.",
     "badge": "Knowledge & Support",
     "title": "Help & FAQ",
     "subtitle": "Need assistance with CrushSVG? Check our frequently asked questions, read our technical guides, or contact our team directly.",
@@ -733,8 +733,8 @@
     "tryConverter": "Try Converter →"
   },
   "support_page": {
-    "metaTitle": "Support Center | CrushSVG",
-    "metaDesc": "Get technical support, troubleshooting steps, and answers for SVG to PNG conversions at the CrushSVG Support Center.",
+    "metaTitle": "Technical Support Center & Troubleshooting | CrushSVG",
+    "metaDesc": "Access the CrushSVG Support Center for expert troubleshooting steps, technical resolution guides, and direct assistance with complex vector files.",
     "badge": "Assistance & Resources",
     "title": "Support Center",
     "subtitle": "How can we help you today? Browse troubleshooting FAQs, explore our vector guides, or message our team directly.",
@@ -744,8 +744,8 @@
     "contactSupportButton": "Contact Support"
   },
   "guides_page": {
-    "metaTitle": "SVG Guides & Best Practices | CrushSVG",
-    "metaDesc": "Comprehensive guides, tips, and best practices for working with SVG files, optimizing vector graphics, and preparing them for pixel-perfect PNG conversion.",
+    "metaTitle": "SVG Guides & Vector Best Practices | CrushSVG Docs",
+    "metaDesc": "Comprehensive guides and tutorials for optimizing SVG code, embedding vector fonts, fixing Outlook email client bugs, and exporting clean PNG assets.",
     "badge": "Technical Documentation",
     "title": "SVG Guides & Best Practices",
     "subtitle": "Everything you need to know about vector graphics, browser rendering, email client compatibility, and lossless rasterization.",
@@ -764,7 +764,7 @@
     "convertNow": "Convert SVG to PNG Now"
   },
   "blog_page": {
-    "metaTitle": "CrushSVG Blog: Email Marketing & SVG to PNG Guides",
+    "metaTitle": "CrushSVG Blog: Email Marketing & SVG Conversion Guides",
     "metaDesc": "Explore actionable guides, checklists, and tutorials on converting SVG to PNG, fixing broken email images in Outlook and Gmail, and vector optimization.",
     "badge": "CrushSVG Blog & Guides",
     "heroTitlePrefix": "From Vector to Inbox,",
