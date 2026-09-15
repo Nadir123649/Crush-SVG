@@ -29,6 +29,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const previousPathnameRef = useRef(pathname);
   const pathnameReadyRef = useRef(false);
 
+  // Clear the failed-image cache whenever the photoURL changes (e.g. a fresh
+  // URL was fetched during token refresh) so the new URL gets a chance to load.
+  useEffect(() => {
+    setFailedImageUrl(null);
+  }, [user?.photoURL]);
+
   // Click outside to close dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -354,7 +360,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px]">
+          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] md:min-w-[280px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden sm:inline-flex" />
 

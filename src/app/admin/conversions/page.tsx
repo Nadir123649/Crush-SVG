@@ -25,7 +25,7 @@ export default function ConversionsPage() {
   const initialCached = getAdminCached<{
     data: any[];
     meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-  }>(DEFAULT_CONVERSIONS_CACHE_KEY, 60_000);
+  }>(DEFAULT_CONVERSIONS_CACHE_KEY, 120_000);
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
@@ -53,7 +53,7 @@ export default function ConversionsPage() {
     const cached = getAdminCached<{
       data: any[];
       meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-    }>(cacheKey, 60_000);
+    }>(cacheKey, 120_000);
 
     if (cached) {
       setConversions(cached.data);

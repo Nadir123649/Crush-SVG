@@ -26,7 +26,7 @@ export default function AuditsPage() {
   const initialCached = getAdminCached<{
     data: any[];
     meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-  }>(DEFAULT_AUDITS_CACHE_KEY, 30_000);
+  }>(DEFAULT_AUDITS_CACHE_KEY, 120_000);
 
   const [page, setPage] = useState(() => initialCached?.meta?.page || 1);
   const [searchInput, setSearchInput] = useState("");
@@ -57,7 +57,7 @@ export default function AuditsPage() {
     const cached = getAdminCached<{
       data: any[];
       meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-    }>(cacheKey, 30_000);
+    }>(cacheKey, 120_000);
 
     if (cached) {
       setAudits(cached.data);
