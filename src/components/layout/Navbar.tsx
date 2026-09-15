@@ -97,9 +97,9 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
     };
   }, []);
 
-  async function handleLogout() {
+  function handleLogout() {
     setMenuOpen(false);
-    await logout();
+    logout();
     router.replace("/");
     showToast("success", tToast("loggedOut"));
   }

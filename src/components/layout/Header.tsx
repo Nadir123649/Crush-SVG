@@ -60,10 +60,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, []);
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback(() => {
     setActiveDropdown("none");
     setMobileMenuOpen(false);
-    await logout();
+    logout();
     router.replace("/");
     showToast("success", tToasts("loggedOut"));
   }, [logout, router, tToasts]);
