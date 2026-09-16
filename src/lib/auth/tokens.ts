@@ -18,7 +18,7 @@ export interface DecodedRefreshToken {
     role?: string;
     ver?: number;
 }
-const ACCESS_EXPIRES: jwt.SignOptions["expiresIn"] = (process.env.ACCESS_TOKEN_EXPIRES || "15m") as jwt.SignOptions["expiresIn"];
+const ACCESS_EXPIRES: jwt.SignOptions["expiresIn"] = (process.env.ACCESS_TOKEN_EXPIRES || "7d") as jwt.SignOptions["expiresIn"];
 const REFRESH_EXPIRES: jwt.SignOptions["expiresIn"] = (process.env.REFRESH_TOKEN_EXPIRES || "7d") as jwt.SignOptions["expiresIn"];
 function requireSecret(name: string): string {
     const value = process.env[name];

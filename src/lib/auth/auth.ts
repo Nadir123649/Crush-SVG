@@ -16,17 +16,7 @@ export function getRefreshCookieOptions(remember = false) {
 }
 
 export function clearRefreshCookie(res: NextResponse): void {
-    if (process.env.NODE_ENV === "production") {
-        res.cookies.delete({
-            name: REFRESH_COOKIE_NAME,
-            domain: ".crushsvg.net",
-            path: "/",
-        });
-    }
-    res.cookies.delete({
-        name: REFRESH_COOKIE_NAME,
-        path: "/",
-    });
+    res.cookies.delete({ name: REFRESH_COOKIE_NAME, ...getRefreshCookieOptions(true) });
 }
 export function toUserDTO(user: UserDoc): UserDTO {
     return {

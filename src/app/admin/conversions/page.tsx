@@ -3,8 +3,6 @@
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { LocalTime } from "@/components/utils/LocalTime";
-import Link from "next/link";
-import Image from "next/image";
 import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
@@ -285,12 +283,12 @@ export default function ConversionsPage() {
                 {/* Table Header */}
                 <thead>
                   <tr className="border-b border-[#F2EDE8] bg-[#FFFCFA]">
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">File ID</th>
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">User</th>
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">Format</th>
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">File Size</th>
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">Status</th>
-                    <th className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap text-right">Timestamp</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">File ID</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">User</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">Format</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">File Size</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap">Status</th>
+                    <th scope="col" className="font-body font-semibold text-sm text-text-muted py-4 px-6 whitespace-nowrap text-right">Timestamp</th>
                   </tr>
                 </thead>
                 {/* Table Body */}

@@ -194,18 +194,9 @@ export default function BlogsPage() {
         }
     };
 
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
     const handlePublishedChange = (value: string) => {
         setPublished(value);
         setPage(1);
-    };
-
-    const goToPage = (targetPage: number) => {
-        setPage(targetPage);
     };
 
     const nextPage = () => {
@@ -293,12 +284,12 @@ export default function BlogsPage() {
                                 <table className="w-full text-left border-collapse min-w-[900px]">
                                 <thead>
                                     <tr className="border-b border-[#F2EDE8]">
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted">Blog Post</th>
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted">Slug</th>
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted">Status</th>
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted">Author</th>
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted">Created</th>
-                                        <th className="p-5 font-body font-semibold text-sm text-text-muted text-right">Actions</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Blog Post</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Slug</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Status</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Author</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Created</th>
+                                        <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#F2EDE8]">
