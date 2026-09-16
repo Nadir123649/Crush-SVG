@@ -9,6 +9,9 @@
     "postinstall": "node scripts/patch-onnx-binding.mjs",
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "npx tsx scripts/generate-sitemap.ts && npx tsx scripts/ping-indexnow.ts",
+    "sitemap": "npx tsx scripts/generate-sitemap.ts",
+    "indexnow": "npx tsx scripts/ping-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
@@ -79,6 +82,7 @@
     "sharp": "0.35.4",
     "swagger-ui-react": "^5.32.14",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "zod": "^4.4.3"
   },
@@ -107,8 +111,7 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
-    "tsx": "^4.23.12"
+    "eslint-config-next": "16.3.0"
   },
   "optionalDependencies": {
     "@img/sharp-libvips-linux-x64": "1.3.3",

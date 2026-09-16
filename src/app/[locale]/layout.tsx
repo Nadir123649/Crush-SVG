@@ -22,7 +22,9 @@ export default async function LocaleLayout({
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+  const messages = await getMessages({ locale }).catch(async () => {
+    return (await import(`../../../messages/${locale}.json`).catch(() => import("../../../messages/en.json"))).default;
+  });
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>

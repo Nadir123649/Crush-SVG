@@ -226,6 +226,42 @@ function SvgToPngConverter() {
     } catch {}
   }, [svgCode, result]);
 
+  // Global Paste Listener for instant SVG loading from clipboard (⌘V / Ctrl+V)
+  useEffect(() => {
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      const active = document.activeElement;
+      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+        return;
+      }
+      const pastedText = e.clipboardData?.getData("text/plain");
+      if (pastedText && isValidSvgContent(pastedText)) {
+        e.preventDefault();
+        handleSvgChange(pastedText);
+        showToast("success", "✨ Instant SVG loaded from clipboard!");
+      }
+    };
+
+    window.addEventListener("paste", handleGlobalPaste);
+    return () => window.removeEventListener("paste", handleGlobalPaste);
+  }, []);
+
+  const handlePasteClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && isValidSvgContent(text)) {
+        handleSvgChange(text);
+        showToast("success", "✨ SVG loaded from clipboard!");
+      } else if (text) {
+        handleSvgChange(text);
+        showToast("info", "Pasted code from clipboard");
+      } else {
+        showToast("error", "Clipboard is empty");
+      }
+    } catch {
+      showToast("error", "Please press Ctrl+V to paste");
+    }
+  };
+
   const previewSvgUrl = useMemo(() => {
     if (!svgCode || svgCode.trim() === "") return "";
     return svgToDataUrl(svgCode);
@@ -621,19 +657,33 @@ function SvgToPngConverter() {
                     className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-body font-normal text-[16px] leading-[18.67px] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
-                  <button
-                    type="button"
-                    onClick={handleCopySvgCode}
-                    disabled={svgCode === SAMPLE_SVG || !svgCode}
-                    aria-label={copiedCode ? "SVG code copied" : "Copy SVG code"}
-                    title={copiedCode ? "Copied!" : "Copy code"}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
+                  <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5 z-30">
+                    <button
+                      type="button"
+                      onClick={handlePasteClipboard}
+                      title="Paste from clipboard (Ctrl+V)"
+                      className="bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] px-2 py-1 text-xs font-medium flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                      </svg>
+                      <span>Paste</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopySvgCode}
+                      disabled={svgCode === SAMPLE_SVG || !svgCode}
+                      aria-label={copiedCode ? "SVG code copied" : "Copy SVG code"}
+                      title={copiedCode ? "Copied!" : "Copy code"}
+                      className="bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 <input

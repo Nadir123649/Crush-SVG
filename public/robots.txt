@@ -1,0 +1,31 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/v1/admin/
+
+Sitemap: https://www.crushsvg.net/sitemap.xml
