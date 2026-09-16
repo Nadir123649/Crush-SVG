@@ -57,13 +57,6 @@ export default function UsersPage() {
   const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Enforce 16 character limit on newUserName
-  useEffect(() => {
-    if (newUserName.length > 16) {
-      setNewUserName(newUserName.slice(0, 16));
-    }
-  }, [newUserName]);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -345,12 +338,6 @@ export default function UsersPage() {
     setPage(1);
   };
 
-
-
-  const goToPage = (targetPage: number) => {
-    setPage(targetPage);
-  };
-
   const nextPage = () => {
     setPage((prev) => prev + 1);
   };
@@ -412,17 +399,18 @@ export default function UsersPage() {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr className="bg-[#FFFCFA] border-b border-[#F2EDE8]">
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">User</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Role</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Provider</th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted">Usage</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">User</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Role</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Provider</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Usage</th>
                      <th
+                       scope="col"
                        className="p-5 font-body font-semibold text-sm text-text-muted cursor-pointer select-none hover:text-brand-primary transition-colors"
                        onClick={handleStatusSort}
                      >
                        Status{sortBy === 'status' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                      </th>
-                    <th className="p-5 font-body font-semibold text-sm text-text-muted text-right">Actions</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F2EDE8]">

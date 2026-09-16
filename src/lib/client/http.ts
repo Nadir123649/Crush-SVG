@@ -173,10 +173,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   // session genuinely cannot be restored, surface session_expired instead of
   // sending the request unauthenticated.
   if (!token && sessionRestored) {
-    let result = await refreshSession({ silent: true })
-    if (!result.payload || !accessToken) {
-      result = await refreshSession({ silent: true })
-    }
+    const result = await refreshSession({ silent: true })
     if (result.payload && accessToken) {
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)

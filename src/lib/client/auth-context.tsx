@@ -212,7 +212,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
             return
           }
-          clearAuth()
+          // Transient failure — keep stale auth state so the user isn't
+          // logged out mid-session. The next page load will attempt refresh
+          // again from storage.
+          setStatus('guest')
           return
         }
         clearAuth()

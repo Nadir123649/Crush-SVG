@@ -183,11 +183,11 @@ export default function AdminDashboard() {
           <table className="w-full text-left border-collapse font-body">
             <thead>
               <tr className="bg-[#FFFCFA] text-text-muted text-[14px] uppercase tracking-wider border-b border-[#F2EDE8]">
-                <th className="p-5 font-semibold">User</th>
-                <th className="p-5 font-semibold">Input</th>
-                <th className="p-5 font-semibold">Output</th>
-                <th className="p-5 font-semibold">Status</th>
-                <th className="p-5 font-semibold">Time</th>
+                <th scope="col" className="p-5 font-semibold">User</th>
+                <th scope="col" className="p-5 font-semibold">Input</th>
+                <th scope="col" className="p-5 font-semibold">Output</th>
+                <th scope="col" className="p-5 font-semibold">Status</th>
+                <th scope="col" className="p-5 font-semibold">Time</th>
               </tr>
             </thead>
             <tbody className="text-[14px]">
