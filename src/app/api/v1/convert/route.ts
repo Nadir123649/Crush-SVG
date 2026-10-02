@@ -62,7 +62,14 @@ export async function POST(request: NextRequest) {
   let slotClaimed = false
 
   const tUsageStart = mark()
-  if (guestId && !('user' in resolvedAuth)) {
+  let userUsage: Awaited<ReturnType<typeof getConversionUsage>> | null = null
+  if ('user' in resolvedAuth) {
+    userUsage = await getConversionUsage(request, undefined, resolvedAuth)
+    conversionsUsed = userUsage.kind === 'user' ? userUsage.count + 1 : 0
+  } else if (request.headers.get('authorization')?.toLowerCase().startsWith('bearer ')) {
+    // An invalid/expired token must not silently fall back to a guest conversion
+    return unauthorizedResponse('Session expired. Please sign in again.', request)
+  } else if (guestId) {
     const claimed = await claimGuestSlot(guestId)
     if (claimed === null) {
       return errorResponse(
@@ -75,20 +82,8 @@ export async function POST(request: NextRequest) {
     }
     conversionsUsed = claimed
     slotClaimed = true
-  } else {
-    // Authenticated path: check usage (no limit to enforce)
-    const usage = await getConversionUsage(request, undefined, resolvedAuth)
-    if (usage.kind === 'auth-error') {
-      return unauthorizedResponse('Session expired. Please sign in again.', request)
-    }
   }
   const tUsage = elapsed(tUsageStart)
-
-  // Re-fetch usage for response fields (remaining, conversionsUsed for auth users)
-  // For guests we already have conversionsUsed from the atomic claim above.
-  const usageForResponse = !slotClaimed
-    ? await getConversionUsage(request, guestId ?? undefined, resolvedAuth)
-    : null
 
   const { svg, width, height, scale, transparent, quality, bgOption, bgColor } = parsed.data
 
@@ -110,8 +105,8 @@ export async function POST(request: NextRequest) {
     after(async () => {
       try {
         await logConversion({
-          userId: usageForResponse?.userId,
-          guestId: guestId ?? undefined,
+          userId: userUsage?.userId,
+          guestId: slotClaimed ? (guestId ?? undefined) : undefined,
           inputFormat: 'svg',
           outputFormat: 'png',
           success: false,
@@ -155,7 +150,7 @@ export async function POST(request: NextRequest) {
   // logConversion and revalidatePath are always deferred.
   after(async () => {
     try {
-      if (!slotClaimed) {
+      if (userUsage) {
         await incrementConversionUsage(request, undefined, resolvedAuth)
       }
     } catch (e) {
@@ -163,7 +158,7 @@ export async function POST(request: NextRequest) {
     }
     try {
       await logConversion({
-        userId: usageForResponse?.userId,
+        userId: userUsage?.userId,
         guestId: slotClaimed ? (guestId ?? undefined) : undefined,
         inputFormat: 'svg',
         outputFormat: 'png',
