@@ -625,6 +625,7 @@ export function RasterToSvgConverter() {
     setRasterMode("auto");
     setRasterBackground("Preserve");
     setRasterBgColor("#ffffff");
+    setOpenDropdown(null);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(STORAGE_KEY_IMAGE);
@@ -900,7 +901,12 @@ export function RasterToSvgConverter() {
                     {/* Replace Overlay Button */}
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={(e) => {
+                        // Stop propagation so the click does not also reach the
+                        // surrounding card click handler and open the picker twice.
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
                       disabled={converting}
                       className={`absolute top-3 right-3 z-20 group/btn rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 shadow-sm cursor-pointer ${
                         converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"
@@ -1294,7 +1300,13 @@ export function RasterToSvgConverter() {
                       dropdownRef={backgroundRef}
                       disabled={converting}
                       customColor={rasterBgColor}
-                      onCustomColorChange={setRasterBgColor}
+                      onCustomColorChange={(color) => {
+                        setRasterBgColor(color);
+                        // Changing the custom colour invalidates the current
+                        // output, exactly like the dropdown onChange handlers,
+                        // so a stale SVG can never be left on screen or downloaded.
+                        setResult(null);
+                      }}
                     />
 
                     {/* Tracing Mode Dropdown */}

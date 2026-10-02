@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
+import { resolveRole } from '@/lib/auth/roles'
 import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { Session, User } from '@/lib/database/db'
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
 
   const tokenPair = buildTokenPayload({
     id: user._id.toString(),
-    role: user.role ?? 'user',
+    role: resolveRole(user),
     sessionId: decoded.jti,
     tokenVersion: result.currentVersion,
   })

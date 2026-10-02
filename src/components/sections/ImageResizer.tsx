@@ -565,6 +565,7 @@ export function ImageResizer() {
     setTargetWidth("");
     setTargetHeight("");
     setResizing(false);
+    setOpenDropdown(null);
   }
 
   function handleClear() {

@@ -302,6 +302,7 @@ function SvgToPngConverter() {
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
+    setOpenDropdown(null);
   }
 
   function handleClearSvg() {

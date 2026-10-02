@@ -2,7 +2,7 @@ import "server-only";
 import type { Model } from "mongoose";
 import type { DecodedIdToken } from "@/lib/firebase/firebase-token";
 import { User, type UserDoc, isDuplicateKeyError } from "@/lib/database/db";
-import { isAdminEmail } from "@/lib/auth/roles";
+import { isAdminEmail, resolveRole } from "@/lib/auth/roles";
 export type ProviderName = "google" | "password";
 export function providerIdToName(providerId: string): ProviderName {
     switch (providerId) {
@@ -51,7 +51,13 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
             updateData.isVerified = true;
         }
         if (expectedRole === "admin" && user.role !== "admin") {
-            updateData.role = "admin";
+            // The login also links this provider, so verification is evaluated
+            // against the post-update state (see resolveRole).
+            updateData.role = resolveRole({
+                role: "admin",
+                isVerified: user.isVerified === true || token.email_verified === true,
+                providers: [...(user.providers ?? []), provider],
+            });
         }
 
         return ((await model.findOneAndUpdate({ _id: user._id }, {
@@ -67,7 +73,11 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
             photoURL: token.picture ?? null,
             providers: [provider],
             linkedProviders: [provider],
-            role: roleFor(email),
+            role: resolveRole({
+                role: roleFor(email),
+                isVerified: token.email_verified ?? false,
+                providers: [provider],
+            }),
             isVerified: token.email_verified ?? false,
             conversionsUsed: 0,
             lastLoginAt: now,

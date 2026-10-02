@@ -40,6 +40,28 @@ const VECTOR_SIZE_RATIO_LIMIT = 2.5;
 
 /* ── Quality → vtrace knobs ───────────────────────────────────────── */
 
+/**
+ * Highest `colorPrecision` the installed @buzz-dee/vtrace@1.2.0 (visioncortex
+ * 0.8.8) handles correctly in `colorMode: "color"`. Measured across several
+ * image sizes, both `hierarchical` modes and both `mode` values:
+ *
+ *   1–6  trace cleanly and keep every colour layer separate
+ *   7    traces without error but collapses all layers into a single averaged
+ *        path, which silently destroys the per-layer fills
+ *   8+   panics `unreachable` in color_clusters/runner.rs
+ *
+ * The panic surfaced as a thrown Error that `convertPngToSvg` caught and turned
+ * into a pixel-embedded fallback, so the Standard (8) and High (10) tiers never
+ * produced real vector output at all. Clamping centrally keeps the engine on
+ * the layered path; the other knobs keep their existing relative ordering.
+ */
+const MAX_SAFE_COLOR_PRECISION = 6;
+
+function clampColorPrecision(value: number | undefined): number | undefined {
+  if (value === undefined) return undefined;
+  return Math.min(MAX_SAFE_COLOR_PRECISION, Math.max(1, Math.round(value)));
+}
+
 interface QualityKnobs {
   vtraceOptions: Partial<VTraceOptions>;
   maxDimension: number;
@@ -179,6 +201,25 @@ function removeBackgroundAndGrayscale(
 
 /* ── Build vtrace options for a given mode + quality ──────────────── */
 
+/**
+ * Central normalisation point for every option handed to VTrace. Each tracing
+ * mode derives its own values, so the colorPrecision clamp lives here instead
+ * of being repeated (and forgotten) in the four branches below.
+ */
+function normalizeVtraceOptions(options: VTraceOptions): VTraceOptions {
+  const clamped = clampColorPrecision(options.colorPrecision);
+  if (clamped === undefined) {
+    // Deleting the key entirely matters: the WASM config bridge treats an
+    // explicitly-present `undefined` as a real value, and passing one makes even
+    // `colorMode: "binary"` panic with `unreachable`. Binary modes never set
+    // colorPrecision, so they must leave the property absent.
+    const rest: VTraceOptions = { ...options };
+    delete rest.colorPrecision;
+    return rest;
+  }
+  return { ...options, colorPrecision: clamped };
+}
+
 function buildVtraceOptions(
   mode: TracingMode,
   quality: QualityLevel,
@@ -188,7 +229,7 @@ function buildVtraceOptions(
 
   switch (mode) {
     case "line-art":
-      return {
+      return normalizeVtraceOptions({
         colorMode: "binary",
         threshold: VTrace.THRESHOLD_AUTO,
         blackOnWhite: true,
@@ -197,9 +238,9 @@ function buildVtraceOptions(
         background: bgColor,
         hierarchical: "stacked",
         mode: "spline",
-      };
+      });
     case "logo":
-      return {
+      return normalizeVtraceOptions({
         colorMode: "color",
         colorPrecision: (base.colorPrecision ?? 8) + 1,
         filterSpeckle: Math.max(2, (base.filterSpeckle ?? 4) - 2),
@@ -214,9 +255,9 @@ function buildVtraceOptions(
         mode: "spline",
         optCurve: true,
         turdSize: 2,
-      };
+      });
     case "photo":
-      return {
+      return normalizeVtraceOptions({
         colorMode: "color",
         colorPrecision: base.colorPrecision ?? 8,
         filterSpeckle: (base.filterSpeckle ?? 4) + 2,
@@ -231,10 +272,10 @@ function buildVtraceOptions(
         mode: "spline",
         optCurve: true,
         turdSize: 20,
-      };
+      });
     case "auto":
     default:
-      return {
+      return normalizeVtraceOptions({
         colorMode: "color",
         hierarchical: "stacked",
         mode: "spline",
@@ -247,7 +288,7 @@ function buildVtraceOptions(
         spliceThreshold: base.spliceThreshold ?? 45,
         pathPrecision: base.pathPrecision ?? 3,
         background: bgColor,
-      };
+      });
   }
 }
 
@@ -460,11 +501,41 @@ function removeBackground(
   return out;
 }
 
-function stripBlackPlate(svg: string): string {
-  return svg.replace(
-    /<rect[^>]*fill\s*=\s*["']#?0{3,6}["'][^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
-    ""
-  );
+/**
+ * True when a <rect> covers the whole canvas, i.e. it is the background plate
+ * emitted by the tracer rather than a piece of artwork. Matching only the real
+ * canvas dimensions is what keeps ordinary content rects (e.g. width="50"
+ * height="40") from being deleted from the output.
+ */
+function isFullCanvasPlate(tag: string, width: number, height: number): boolean {
+  const wMatch = tag.match(/\bwidth\s*=\s*["']([^"']+)["']/i);
+  const hMatch = tag.match(/\bheight\s*=\s*["']([^"']+)["']/i);
+  if (!wMatch || !hMatch) return false;
+  const covers = (raw: string, target: number): boolean => {
+    const value = raw.trim();
+    if (value === "100%") return true;
+    const n = parseFloat(value);
+    return Number.isFinite(n) && Math.abs(n - target) <= 1;
+  };
+  return covers(wMatch[1], width) && covers(hMatch[1], height);
+}
+
+/**
+ * Removes the full-canvas background plate. Pass blackOnly to restrict removal
+ * to a black plate (used by the "preserve" background mode, where the traced
+ * background is part of the output and only a stray black plate is unwanted).
+ */
+function stripCanvasPlate(
+  svg: string,
+  width: number,
+  height: number,
+  blackOnly = false
+): string {
+  return svg.replace(/<rect\b[^>]*\/>/gi, (tag) => {
+    if (!isFullCanvasPlate(tag, width, height)) return tag;
+    if (blackOnly && !/fill\s*=\s*["']#?0{3,6}["']/i.test(tag)) return tag;
+    return "";
+  });
 }
 
 function dilateAlpha(imageData: ImageData, px = 1): ImageData {
@@ -605,24 +676,21 @@ function replaceBackgroundWithColor(
   return out;
 }
 
-function stripFullCanvasRect(svg: string): string {
-  return svg.replace(
-    /<rect[^>]*(?:width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["']|height\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'][^>]*width\s*=\s*["'](?:100%|[0-9]+\.?[0-9]*)["'])[^>]*\/>\s*/gi,
-    ""
-  );
-}
-
 function postProcessSvg(
   svg: string,
   width: number,
   height: number,
   background: BackgroundMode = "preserve",
-  bgColor?: string
+  keepRequestedPlate = false
 ): string {
   let result = svg;
 
-  if (background === "transparent") {
-    result = stripFullCanvasRect(result);
+  // "transparent" and "custom" both need the tracer's plate gone. The custom
+  // colour is already baked into the traced pixels, so no rect is re-injected —
+  // except when we deliberately asked the tracer for that plate (line-art +
+  // custom), in which case it is the only carrier of the chosen colour.
+  if (!keepRequestedPlate && (background === "transparent" || background === "custom")) {
+    result = stripCanvasPlate(result, width, height);
   }
 
   const svgTagMatch = result.match(/<svg[^>]*>/);
@@ -644,40 +712,22 @@ function postProcessSvg(
     }
 
     result = result.replace(svgTagMatch[0], tag);
-
-    if (background === "custom" && bgColor) {
-      result = stripFullCanvasRect(result);
-      const openTagMatch = result.match(/<svg[^>]*>/);
-      if (openTagMatch) {
-        const bgRect = `<rect width="${width}" height="${height}" fill="${bgColor}"/>`;
-        const insertIdx = result.indexOf(openTagMatch[0]) + openTagMatch[0].length;
-        result = result.slice(0, insertIdx) + bgRect + result.slice(insertIdx);
-      }
-    }
   }
 
   return result;
 }
 
-function buildPixelSvg(
-  dataUrl: string,
-  width: number,
-  height: number,
-  background: BackgroundMode = "preserve",
-  bgColor?: string
-): string {
-  const bgRect =
-    background === "custom" && bgColor
-      ? `  <rect width="${width}" height="${height}" fill="${bgColor}"/>\n`
-      : "";
+/**
+ * Pixel-embed fallback. The selected background is already baked into the pixels
+ * handed to this function, so no background rect is emitted here - emitting one
+ * would stack a second, redundant background layer.
+ */
+function buildPixelSvg(dataUrl: string, width: number, height: number): string {
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-    bgRect,
     `  <image href="${dataUrl}" width="${width}" height="${height}" preserveAspectRatio="none"/>`,
     `</svg>`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].join("\n");
 }
 
 function imageDataToDataUrl(imageData: ImageData, w: number, h: number): string {
@@ -690,11 +740,61 @@ function imageDataToDataUrl(imageData: ImageData, w: number, h: number): string 
   return canvas.toDataURL("image/png");
 }
 
+/**
+ * Pulls the tracer's layered markup out of a VTrace instance.
+ *
+ * `VTrace.getSVG()` is lossy for colour output: it extracts only the `d`
+ * attribute from every `<path>` the WASM tracer produced, concatenates them
+ * into one path, and fills that single path with the configured foreground
+ * colour. Every per-layer `fill` VTracer computed is discarded — which is why a
+ * custom background came out as `fill="black"`.
+ *
+ * `_pathData` is the untouched return value of the WASM `to_svg` call, holding
+ * one `<path fill="#rrggbb" transform="translate(x,y)">` per traced layer. It is
+ * a private field with no public accessor in @buzz-dee/vtrace 1.2.0, so this is
+ * a deliberately narrow, isolated read with a guarded fallback: if a future
+ * release renames the field, `getSVG()` still produces valid output.
+ *
+ * `includePlate` carries over the background plate that `getSVG()` synthesises
+ * when a non-transparent `background` was requested. That rect is produced by
+ * the tracer's JS wrapper rather than the WASM layer output, so it has to be
+ * taken from the wrapper's document and re-attached here.
+ */
+function getLayeredSvg(vtrace: VTrace, includePlate: boolean): string {
+  const lossy = vtrace.getSVG();
+
+  const raw = (vtrace as unknown as { _pathData?: unknown })._pathData;
+  if (typeof raw !== "string") {
+    return lossy;
+  }
+
+  // The raw string is a full XML document: an optional `<?xml?>` prolog, a
+  // generator comment, then the <svg> element. Keep only the element itself so
+  // the result is a bare, embeddable SVG document.
+  const svgMatch = raw.match(/<svg\b[\s\S]*<\/svg>/i);
+  if (!svgMatch) {
+    return lossy;
+  }
+
+  if (!includePlate) {
+    return svgMatch[0];
+  }
+
+  const plate = lossy.match(/<rect\b[^>]*\/>\s*/i)?.[0];
+  if (!plate) {
+    return svgMatch[0];
+  }
+
+  // Insert as the first child so the plate sits behind the traced artwork.
+  return svgMatch[0].replace(/(<svg\b[^>]*>)/i, `$1${plate}`);
+}
+
 function runVectorTrace(
   imageData: ImageData,
   width: number,
   height: number,
-  vtraceOptions: VTraceOptions
+  vtraceOptions: VTraceOptions,
+  includePlate = false
 ): string {
   if (width <= 0 || height <= 0) {
     throw new Error("Invalid image dimensions for vector tracing");
@@ -722,8 +822,9 @@ function runVectorTrace(
   const suppressedError = console.error;
   console.error = () => {};
   try {
-    const svg = vtrace.getSVG();
-    return svg;
+    // getLayeredSvg() renders through the public API first, so the WASM trace
+    // runs (and any panic is raised) inside this guarded block.
+    return getLayeredSvg(vtrace, includePlate);
   } catch {
     throw new Error("Vector engine crashed on this image — falling back to pixel embed");
   } finally {
@@ -908,11 +1009,16 @@ export async function convertPngToSvg(
   }
 
   /* ── Step 4: Build background color for vtrace ─────────────────── */
-  // MUST always use COLOR_TRANSPARENT for custom backgrounds!
-  // In the backend branch, trace.ts does NOT pass the custom bgColor to vtracer.
-  // Instead, the background is baked into the image, and traced as solid paths.
-  // Passing customHex here causes a Rust WASM panic in runner.rs.
-  const bgColor = VTrace.COLOR_TRANSPARENT;
+  // The custom colour is baked into the traced pixels, so in colour modes the
+  // tracer picks it up as one of its own layers and no plate is needed — and a
+  // plate would be a second, redundant background.
+  //
+  // Binary (line-art) mode is the exception: thresholding to two tones
+  // discards colour entirely, so the baked background can only survive as the
+  // tracer's own full-canvas plate. That is the tracer's documented mechanism,
+  // not an overlay, and it is kept by the callers below.
+  const wantsCustomPlate = isCustom && !!customHex && resolvedMode === "line-art";
+  const bgColor = wantsCustomPlate ? customHex! : VTrace.COLOR_TRANSPARENT;
 
   /* ── Step 5: Build vtrace options ──────────────────────────────── */
   const vtraceOptions = buildVtraceOptions(resolvedMode, quality, bgColor);
@@ -920,9 +1026,30 @@ export async function convertPngToSvg(
   /* ── Step 6: Trace or fallback ─────────────────────────────────── */
   signal?.throwIfAborted();
   try {
-    const svg = runVectorTrace(preprocessed, drawW, drawH, vtraceOptions);
-    const cleaned = stripBlackPlate(svg);
-    const processed = postProcessSvg(cleaned, drawW, drawH, background, customHex);
+    const svg = runVectorTrace(
+      preprocessed,
+      drawW,
+      drawH,
+      vtraceOptions,
+      wantsCustomPlate
+    );
+    // Plate removal follows the selected background mode: for "preserve" the
+    // traced background belongs in the output, so only a stray black plate is
+    // dropped; for "transparent"/"custom" any full-canvas plate is removed.
+    // When we asked for the custom plate above it is the carrier of the chosen
+    // colour, so it is kept instead of stripped.
+    const cleaned = wantsCustomPlate
+      ? svg
+      : background === "preserve"
+        ? stripCanvasPlate(svg, drawW, drawH, true)
+        : stripCanvasPlate(svg, drawW, drawH);
+    const processed = postProcessSvg(
+      cleaned,
+      drawW,
+      drawH,
+      background,
+      wantsCustomPlate
+    );
     const outputSize = new Blob([processed]).size;
 
     // Photo fallback: if output is oversized, embed as pixel
@@ -935,7 +1062,7 @@ export async function convertPngToSvg(
       } else if (isCustom && customHex) {
         fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
       }
-      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH, background, customHex);
+      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
       advisory = "Photo mode: vector output exceeded size limit, fell back to pixel-embed SVG.";
       return {
         svg: fallbackSvg,
@@ -969,7 +1096,11 @@ export async function convertPngToSvg(
       outputSize,
     };
   } catch {
-    // Any trace error → pixel fallback
+    // Any trace error → pixel fallback. Surface it the same way the photo
+    // oversize fallback does, so the user is not handed a pixel-embedded file
+    // that looks like a vector without being told.
+    const advisory =
+      "Vector tracing failed on this image - fell back to a pixel-embedded SVG.";
     let fallbackDataUrl = dataUrl;
     if (isTransparent) {
       // Reuse already-processed data, just dilate alpha
@@ -978,7 +1109,7 @@ export async function convertPngToSvg(
     } else if (isCustom && customHex) {
       fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
     }
-    const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH, background, customHex);
+    const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
     return {
       svg: fallbackSvg,
       modeUsed: "pixel",
@@ -988,6 +1119,7 @@ export async function convertPngToSvg(
       qualityUsed: quality,
       backgroundUsed: background,
       backgroundColorUsed: customHex,
+      advisory,
       width: drawW,
       height: drawH,
       originalSize: file.size,

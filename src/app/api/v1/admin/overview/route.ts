@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         }
       ]).then(r => r[0] ?? { total: 0, raster: 0, svg: 0 }).catch(() => ({ total: 0, raster: 0, svg: 0 })),
       AuditLog.find().sort({ createdAt: -1 }).limit(10).lean(),
-      ConversionLog.find().sort({ createdAt: -1 }).limit(5).lean(),
+      ConversionLog.find().sort({ createdAt: -1 }).limit(5).populate('userId', 'uid email displayName photoURL').lean(),
       ConversionLog.aggregate([
         { $match: { success: true, createdAt: { $gte: tenDaysAgo } } },
         { $group: {
@@ -63,18 +63,11 @@ export async function GET(request: NextRequest) {
     const rasterConversions = (conversionTotals as any)?.raster ?? 0;
     const svgConversions = (conversionTotals as any)?.svg ?? 0;
 
-    const userIds = [...new Set(rawRecentConversions.map((c: any) => c.userId).filter(Boolean))];
-    const conversionUsers = userIds.length > 0
-      ? await User.find({ _id: { $in: userIds } }).select('uid email displayName photoURL').lean()
-      : [];
-    const userMap = new Map(conversionUsers.map((u: any) => [u._id.toString(), u]));
-    
     const recentConversions = rawRecentConversions.map((c: any) => {
       const obj = c.toObject ? c.toObject() : { ...c, _id: c._id?.toString() };
       return {
         ...obj,
         _id: obj._id?.toString() || '',
-        userId: obj.userId ? userMap.get(obj.userId) || null : null,
       };
     });
 

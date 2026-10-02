@@ -603,6 +603,7 @@ export function BackgroundRemover() {
     setBgOption("Transparent");
     setCustomColor("#FFFFFF");
     setScale("100");
+    setOpenDropdown(null);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}

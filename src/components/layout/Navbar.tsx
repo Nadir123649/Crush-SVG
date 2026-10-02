@@ -183,7 +183,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
             </Link>
 
             <Link
-              href="/contact-us?r=1"
+              href="/contact-us"
               className="hidden lg:inline-block font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.04em] text-text-body hover:text-brand-primary transition-colors"
             >
               {t("needHelp")}

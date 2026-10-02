@@ -470,7 +470,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
             {/* 5. Need Help? */}
             <Link
-              href="/contact-us?r=1"
+              href="/contact-us"
               className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
@@ -795,7 +795,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               {tNav("guides")}
             </Link>
             <Link
-              href="/contact-us?r=1"
+              href="/contact-us"
               onClick={() => setMobileMenuOpen(false)}
               className="font-body font-medium text-[15px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
             >

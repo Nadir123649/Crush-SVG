@@ -37,3 +37,18 @@ export function invalidateAdminCache(prefix?: string): void {
     }
   }
 }
+
+const inFlight = new Map<string, Promise<any>>();
+
+export function getAdminInFlight<T>(key: string): Promise<T> | null {
+  return (inFlight.get(key) as Promise<T>) || null;
+}
+
+export function setAdminInFlight<T>(key: string, promise: Promise<T>): void {
+  inFlight.set(key, promise);
+  promise.finally(() => {
+    if (inFlight.get(key) === promise) {
+      inFlight.delete(key);
+    }
+  });
+}

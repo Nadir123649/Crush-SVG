@@ -7,7 +7,7 @@ import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
-import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const CONVERSIONS_PAGE_SIZE = 15;
@@ -34,6 +34,7 @@ export default function ConversionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
   const [totalItems, setTotalItems] = useState<number>(() => initialCached?.meta?.total || 0);
+  const [failedPhotoUrls, setFailedPhotoUrls] = useState<Record<string, true>>({});
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -67,10 +68,20 @@ export default function ConversionsPage() {
     setError(null);
 
     try {
-      const response = await apiFetch<{
+      let fetchPromise = getAdminInFlight<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-      }>(`/api/v1/admin/conversions?${queryParams}`);
+      }>(cacheKey);
+
+      if (!fetchPromise) {
+        fetchPromise = apiFetch<{
+          data: any[];
+          meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+        }>(`/api/v1/admin/conversions?${queryParams}`);
+        setAdminInFlight(cacheKey, fetchPromise);
+      }
+
+      const response = await fetchPromise;
 
       if (isCancelled?.()) return;
       if (response?.data) {
@@ -301,8 +312,17 @@ export default function ConversionsPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center font-bold text-sm text-brand-primary overflow-hidden border border-[#F2EDE8]">
-                            {conv.userId?.photoURL ? (
-                              <img src={conv.userId.photoURL} alt="User" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            {conv.userId?.photoURL && !failedPhotoUrls[conv.userId.photoURL] ? (
+                              <img
+                                src={conv.userId.photoURL}
+                                alt="User"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                                onError={() => {
+                                  const failed = conv.userId.photoURL as string;
+                                  setFailedPhotoUrls((prev) => (prev[failed] ? prev : { ...prev, [failed]: true }));
+                                }}
+                              />
                             ) : (
                               (conv.userId?.displayName?.[0] || conv.userId?.email?.[0] || "G").toUpperCase()
                             )}

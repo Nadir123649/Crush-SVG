@@ -5,12 +5,13 @@ import { getClientIp } from "@/lib/security/ip";
 import { createSession } from "@/lib/auth/sessions";
 import { buildTokenPayload } from "@/lib/auth/tokens";
 import { toUserDTO } from "@/lib/auth/auth";
+import { resolveRole } from "@/lib/auth/roles";
 export function authPayload(user: UserDoc, sessionId: string, tokenVersion?: number) {
     const payload: Record<string, unknown> = {
         user: toUserDTO(user),
         token: buildTokenPayload({
             id: user._id.toString(),
-            role: user.role ?? "user",
+            role: resolveRole(user),
             sessionId,
             tokenVersion,
         }),
