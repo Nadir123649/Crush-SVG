@@ -1199,6 +1199,8 @@
     "updateFailed": "Échec de la mise à jour du profil.",
     "profileUpdatedSuccess": "Profil mis à jour avec succès !",
     "keyGenerateFailed": "Échec de la génération de la clé API.",
+    "sessionExpired": "Session expirée, veuillez vous reconnecter.",
+    "serverError": "Erreur du serveur, réessayez plus tard.",
     "keyGeneratedSuccess": "Nouvelle clé API développeur générée !",
     "revokeConfirm": "Êtes-vous sûr de vouloir révoquer cette clé API ?",
     "revokeFailed": "Échec de la révocation de la clé API.",

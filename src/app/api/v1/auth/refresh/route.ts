@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import mongoose from 'mongoose'
 
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
-import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
 import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
-import { Session, User, connectToDatabase } from '@/lib/database/db'
-import { getFreshPhotoURL } from '@/lib/firebase/firebase-admin'
 import { logger } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
 
 const ROTATION_GRACE_MS = 60_000
+const RATE_LIMIT = 120
+const RATE_WINDOW_MS = 60_000
+
+// Env vars this route cannot work without. Checked per request (not at import)
+// so a misconfigured deployment answers with a JSON 500 instead of crashing
+// the function before the handler runs.
+const REQUIRED_ENV = ['MONGODB_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const
 
 function rateLimitedResponse(rl: RateLimitResult) {
   return NextResponse.json(
@@ -41,6 +44,21 @@ function errorResponse(code: string, status: number, rl: RateLimitResult) {
   return res
 }
 
+// Do NOT clear the refresh cookie on 500 — the error may be transient (or a
+// deployment misconfiguration) and clearing it would permanently log out a
+// valid user.
+function serverErrorResponse() {
+  return NextResponse.json(
+    {
+      success: false,
+      version: '1.0.0',
+      payload: { error: { code: 'server_error' } },
+      serverTimestamp: new Date().toISOString(),
+    },
+    { status: 500 }
+  )
+}
+
 function serializeError(err: unknown) {
   if (err instanceof Error) {
     return { errName: err.name, errMessage: err.message, errStack: err.stack }
@@ -48,12 +66,33 @@ function serializeError(err: unknown) {
   return { errRaw: String(err) }
 }
 
-async function handleRefresh(request: NextRequest): Promise<NextResponse> {
-  // connectToDatabase caches the connection on globalThis — safe to call per
-  // request; it only opens a new connection on a cold start.
-  await connectToDatabase()
+// The rate store already falls back to memory when Upstash fails; this only
+// guards against the store itself failing to initialise. Failing open here is
+// fine: refresh still requires a valid, unrotated refresh token.
+async function rateLimit(request: NextRequest): Promise<RateLimitResult> {
+  try {
+    return await checkRateLimit(request, 'auth:refresh', RATE_LIMIT, RATE_WINDOW_MS)
+  } catch (err) {
+    logger.warn('refresh_rate_limit_unavailable', serializeError(err))
+    return { allowed: true, limit: RATE_LIMIT, remaining: RATE_LIMIT, retryAfterSeconds: 0 }
+  }
+}
 
-  const rl = await checkRateLimit(request, 'auth:refresh', 120, 60_000)
+// Best-effort: a missing or broken Firebase Admin setup must never fail a
+// refresh. Imported lazily so firebase-admin (an external package resolved
+// from node_modules at runtime) is not loaded when the route module loads.
+async function getFreshGooglePhoto(uid: string): Promise<string | null> {
+  try {
+    const { getFreshPhotoURL } = await import('@/lib/firebase/firebase-admin')
+    return await getFreshPhotoURL(uid)
+  } catch (err) {
+    logger.warn('refresh_photo_unavailable', serializeError(err))
+    return null
+  }
+}
+
+async function handleRefresh(request: NextRequest): Promise<NextResponse> {
+  const rl = await rateLimit(request)
   if (!rl.allowed) {
     return rateLimitedResponse(rl)
   }
@@ -71,12 +110,30 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
     )
   }
 
+  // Without this check a missing JWT secret makes verifyRefreshToken reject,
+  // which would be reported as token_invalid and clear every user's cookie.
+  const missingEnv = REQUIRED_ENV.filter((name) => !process.env[name])
+  if (missingEnv.length > 0) {
+    logger.error('refresh_misconfigured', {
+      missingEnv,
+      requestId: request.headers.get('x-request-id'),
+    })
+    return serverErrorResponse()
+  }
+
   let decoded
   try {
     decoded = await verifyRefreshToken(refreshToken)
   } catch {
     return errorResponse('token_invalid', 200, rl)
   }
+
+  const [{ default: mongoose }, { Session, User, connectToDatabase }, { rotateSession, wasSessionRotatedWithin }] =
+    await Promise.all([
+      import('mongoose'),
+      import('@/lib/database/db'),
+      import('@/lib/auth/sessions'),
+    ])
 
   // Validate both IDs before any DB lookup. Both Session._id and User._id are
   // ObjectId; Mongoose throws CastError on a non-24-hex string.
@@ -86,6 +143,10 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
   ) {
     return errorResponse('token_invalid', 200, rl)
   }
+
+  // connectToDatabase caches the connection on globalThis — safe to call per
+  // request; it only opens a new connection on a cold start.
+  await connectToDatabase()
 
   let result = await rotateSession(decoded.jti, decoded.ver ?? 0, decoded.id)
 
@@ -125,7 +186,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
     (p) => p === 'google' || p === 'google.com'
   )
   if (hasGoogleProvider && user.uid) {
-    const freshPhoto = await getFreshPhotoURL(user.uid)
+    const freshPhoto = await getFreshGooglePhoto(user.uid)
     if (freshPhoto && freshPhoto !== user.photoURL) {
       await User.updateOne(
         { _id: user._id },
@@ -168,16 +229,6 @@ export async function POST(request: NextRequest) {
       requestId: request.headers.get('x-request-id'),
       ...serializeError(err),
     })
-    // Do NOT clear the refresh cookie on 500 — the error may be transient and
-    // clearing it would permanently log out a valid user.
-    return NextResponse.json(
-      {
-        success: false,
-        version: '1.0.0',
-        payload: { error: { code: 'server_error' } },
-        serverTimestamp: new Date().toISOString(),
-      },
-      { status: 500 }
-    )
+    return serverErrorResponse()
   }
 }

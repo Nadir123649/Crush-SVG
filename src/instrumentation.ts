@@ -1,7 +1,14 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // Log, don't throw: Next caches a rejected register() and then fails EVERY
+    // request on the instance with a non-JSON 500 (health checks included).
+    // Routes that need the missing vars check for them and return a JSON error.
     const { validateEnv } = await import('@/lib/shared/env')
-    validateEnv()
+    try {
+      validateEnv()
+    } catch (err) {
+      console.error(`[crushsvg] ${err instanceof Error ? err.message : String(err)}`)
+    }
 
     const dnsServers = process.env.DNS_SERVERS
     if (dnsServers) {

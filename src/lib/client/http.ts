@@ -183,6 +183,17 @@ async function executeFetch(url: string, init: RequestInit): Promise<Response> {
   }
 }
 
+export const SESSION_EXPIRED_MESSAGE = 'Session expired, please log in again.'
+export const SERVER_ERROR_MESSAGE = 'Server error, try again later.'
+
+// The single place a dead session is reported: clears auth state and shows one
+// toast. Callers must not add their own toast for code 'session_expired'.
+function throwSessionExpired(): never {
+  onAuthExpired?.()
+  emitToast('error', SESSION_EXPIRED_MESSAGE)
+  throw new ApiError(401, 'session_expired', SESSION_EXPIRED_MESSAGE)
+}
+
 export async function authFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
   let token = attachAuth(headers)
@@ -202,9 +213,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)
     } else if (result.sessionDead) {
-      onAuthExpired?.()
-      emitToast('error', 'Your session has expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
+      throwSessionExpired()
     }
     // else: transient failure — proceed without token, let the API decide
   }
@@ -221,11 +230,12 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await executeFetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
     } else if (result.sessionDead) {
-      onAuthExpired?.()
-      emitToast('error', 'Your session has expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
+      throwSessionExpired()
+    } else {
+      // Transient refresh failure (5xx / network): the session may be fine, so
+      // do not log out — but the 401 is the server's fault, not the user's.
+      throw new ApiError(503, 'server_error', SERVER_ERROR_MESSAGE)
     }
-    // else: transient failure — return the original 401 response as-is
   }
 
   return res
