@@ -6,7 +6,7 @@ import { convertSchema } from '@/lib/svg/convert-validation'
 import { convertSvgQueued } from '@/lib/svg/conversion-queue'
 import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT, type ResolvedAuth } from '@/lib/usage/conversion-usage'
 import { logConversion } from '@/lib/usage/conversion-logger'
-import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
+import { ensureGuestId, GUEST_COOKIE_NAME, claimGuestSlot, releaseGuestSlot } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { classifySvgError } from '@/lib/svg/svg-errors'
@@ -19,8 +19,8 @@ function mark(): number {
   return performance.now()
 }
 
-function elapsed(start: number): string {
-  return `${Math.round(performance.now() - start)}`
+function elapsed(start: number): number {
+  return Math.round(performance.now() - start)
 }
 
 export async function POST(request: NextRequest) {
@@ -49,138 +49,158 @@ export async function POST(request: NextRequest) {
 
   const { guestId, setCookie } = ensureGuestId(request)
 
-  // Resolve auth once — reused by both getConversionUsage and incrementConversionUsage
-  const tUsageStart = mark()
+  // Resolve auth once — reused by getConversionUsage and incrementConversionUsage
+  const tAuthStart = mark()
   const resolvedAuth: ResolvedAuth = await auth(request)
-  const usage = await getConversionUsage(request, guestId ?? undefined, resolvedAuth)
+  const tAuth = elapsed(tAuthStart)
+
+  // For guests: atomically claim a slot before rendering.
+  // claimGuestSlot uses $lt:GUEST_CONVERSION_LIMIT in the update filter,
+  // so it never grants a slot to a guest already at the limit even under
+  // concurrent requests. If it returns null the limit has been reached.
+  let conversionsUsed = 0
+  let slotClaimed = false
+
+  const tUsageStart = mark()
+  if (guestId && !('user' in resolvedAuth)) {
+    const claimed = await claimGuestSlot(guestId)
+    if (claimed === null) {
+      return errorResponse(
+        429,
+        'limit_reached',
+        "You've used your 3 free conversions. Create a free account to keep converting.",
+        undefined,
+        request
+      )
+    }
+    conversionsUsed = claimed
+    slotClaimed = true
+  } else {
+    // Authenticated path: check usage (no limit to enforce)
+    const usage = await getConversionUsage(request, undefined, resolvedAuth)
+    if (usage.kind === 'auth-error') {
+      return unauthorizedResponse('Session expired. Please sign in again.', request)
+    }
+  }
   const tUsage = elapsed(tUsageStart)
 
-  if (usage.kind === 'auth-error') {
-    return unauthorizedResponse('Session expired. Please sign in again.', request)
-  }
-  if (usage.kind === 'guest' && usage.limitReached) {
-    return errorResponse(
-      429,
-      'limit_reached',
-      "You've used your 3 free conversions. Create a free account to keep converting.",
-      undefined,
-      request
-    )
-  }
+  // Re-fetch usage for response fields (remaining, conversionsUsed for auth users)
+  // For guests we already have conversionsUsed from the atomic claim above.
+  const usageForResponse = !slotClaimed
+    ? await getConversionUsage(request, guestId ?? undefined, resolvedAuth)
+    : null
 
   const { svg, width, height, scale, transparent, quality, bgOption, bgColor } = parsed.data
 
+  const tRenderStart = mark()
+  let result
   try {
-    const tRenderStart = mark()
-    const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality, bgOption, bgColor })
-    const tRender = elapsed(tRenderStart)
-
-    const base64 = result.buffer.toString('base64')
-    const mimeType = 'image/png'
-
-    // Guest increment stays inline: moving it to after() would let concurrent
-    // requests both read the same count (< limit) before either increments,
-    // allowing a guest to exceed the 3-conversion cap under concurrent load.
-    let conversionsUsed = 0
-    const tIncrStart = mark()
-    if (usage.kind === 'guest') {
-      try {
-        conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined, resolvedAuth)
-      } catch (error) {
-        console.error('Failed to record guest conversion usage:', error)
-      }
+    result = await convertSvgQueued(svg, { width, height, scale, transparent, quality, bgOption, bgColor })
+  } catch (renderError) {
+    // Release the claimed guest slot so the guest isn't penalised for a failed render
+    if (slotClaimed && guestId) {
+      releaseGuestSlot(guestId).catch((e) =>
+        console.error('[convert] Failed to release guest slot after render error:', e)
+      )
     }
-    const tIncr = elapsed(tIncrStart)
 
-    const tTotal = elapsed(t0)
-    const serverTiming = [
-      `rl;dur=${tRl}`,
-      `usage;dur=${tUsage}`,
-      `render;dur=${tRender}`,
-      `incr;dur=${tIncr}`,
-    ].join(', ')
+    console.error('SVG conversion failed:', renderError)
+    const info = classifySvgError(renderError)
 
-    console.log(JSON.stringify({
-      msg: 'convert_timing',
-      totalMs: Number(tTotal),
-      rlMs: Number(tRl),
-      usageMs: Number(tUsage),
-      renderMs: Number(tRender),
-      incrMs: Number(tIncr),
-      requestId: request.headers.get('x-request-id'),
-    }))
-
-    // Non-critical work deferred until after the response is sent.
-    // For authenticated users, increment is safe to defer (no limit to enforce).
     after(async () => {
       try {
-        if (usage.kind !== 'guest') {
-          await incrementConversionUsage(request, undefined, resolvedAuth)
-        }
         await logConversion({
-          userId: usage.userId,
-          guestId: usage.kind === 'guest' ? guestId : undefined,
+          userId: usageForResponse?.userId,
+          guestId: guestId ?? undefined,
           inputFormat: 'svg',
           outputFormat: 'png',
-          originalSize: result.buffer.length,
-          success: true,
+          success: false,
+          errorReason: info.code,
         })
-        // Invalidate admin dashboard cache for real-time metrics
-        revalidatePath('/admin')
-      } catch (error) {
-        console.error('Failed to record conversion usage:', error)
+      } catch (e) {
+        console.error('[convert] after(): failed to log failed conversion:', e)
       }
     })
 
-    const nextUsed =
-      usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
-    const remaining =
-      nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
+    return errorResponse(info.status, info.code, info.message, undefined, request)
+  }
+  const tRender = elapsed(tRenderStart)
 
-    const acceptsBinary =
-      request.headers.get('accept')?.includes('application/octet-stream') ||
-      request.nextUrl.searchParams.get('download') === '1'
+  const base64 = result.buffer.toString('base64')
+  const mimeType = 'image/png'
 
-    if (acceptsBinary) {
-      const res = new NextResponse(new Uint8Array(result.buffer), {
-        status: 200,
-        headers: {
-          'Content-Type': mimeType,
-          'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.png"`,
-          'Content-Length': String(result.buffer.length),
-          'X-Conversions-Used': String(conversionsUsed),
-          'Server-Timing': serverTiming,
-          ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
-        },
-      })
-      if (setCookie) {
-        res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
-          httpOnly: true,
-          secure: setCookie.secure,
-          sameSite: 'lax',
-          path: '/',
-          maxAge: setCookie.maxAge,
-        })
+  const tTotal = elapsed(t0)
+  const tOverhead = tTotal - tRl - tAuth - tUsage - tRender
+  const serverTiming = [
+    `rl;dur=${tRl}`,
+    `auth;dur=${tAuth}`,
+    `usage;dur=${tUsage}`,
+    `render;dur=${tRender}`,
+    `overhead;dur=${tOverhead}`,
+  ].join(', ')
+
+  console.log(JSON.stringify({
+    msg: 'convert_timing',
+    totalMs: tTotal,
+    rlMs: tRl,
+    authMs: tAuth,
+    usageMs: tUsage,
+    renderMs: tRender,
+    overheadMs: tOverhead,
+    requestId: request.headers.get('x-request-id'),
+  }))
+
+  // Non-critical work deferred until after the response is sent.
+  // Authenticated-user increment is safe to defer (no limit to enforce).
+  // logConversion and revalidatePath are always deferred.
+  after(async () => {
+    try {
+      if (!slotClaimed) {
+        await incrementConversionUsage(request, undefined, resolvedAuth)
       }
-      return res
+    } catch (e) {
+      console.error('[convert] after(): failed to increment user usage:', e)
     }
+    try {
+      await logConversion({
+        userId: usageForResponse?.userId,
+        guestId: slotClaimed ? (guestId ?? undefined) : undefined,
+        inputFormat: 'svg',
+        outputFormat: 'png',
+        originalSize: result.buffer.length,
+        success: true,
+      })
+    } catch (e) {
+      console.error('[convert] after(): failed to log conversion:', e)
+    }
+    try {
+      // Invalidate admin dashboard cache for real-time metrics
+      revalidatePath('/admin')
+    } catch (e) {
+      console.error('[convert] after(): revalidatePath failed:', e)
+    }
+  })
 
-    const res = successResponse(
-      {
-        data: base64,
-        mimeType,
-        size: result.buffer.length,
-        format: result.format,
-        width: result.width,
-        height: result.height,
-        warnings: result.warnings,
-        conversionsUsed,
-        remaining,
+  const nextUsed = slotClaimed ? conversionsUsed : undefined
+  const remaining =
+    nextUsed !== undefined ? Math.max(0, GUEST_CONVERSION_LIMIT - nextUsed) : undefined
+
+  const acceptsBinary =
+    request.headers.get('accept')?.includes('application/octet-stream') ||
+    request.nextUrl.searchParams.get('download') === '1'
+
+  if (acceptsBinary) {
+    const res = new NextResponse(new Uint8Array(result.buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': mimeType,
+        'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.png"`,
+        'Content-Length': String(result.buffer.length),
+        'X-Conversions-Used': String(conversionsUsed),
+        'Server-Timing': serverTiming,
+        ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
       },
-      200,
-      { 'Server-Timing': serverTiming },
-      request
-    )
+    })
     if (setCookie) {
       res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
         httpOnly: true,
@@ -191,24 +211,34 @@ export async function POST(request: NextRequest) {
       })
     }
     return res
-  } catch (error) {
-    console.error('SVG conversion failed:', error)
-
-    const info = classifySvgError(error)
-
-    after(async () => {
-      await logConversion({
-        userId: usage.userId,
-        guestId: usage.kind === 'guest' ? guestId : undefined,
-        inputFormat: 'svg',
-        outputFormat: 'png',
-        success: false,
-        errorReason: info.code,
-      }).catch((e) => console.error('Failed to log failed conversion:', e))
-    })
-
-    return errorResponse(info.status, info.code, info.message, undefined, request)
   }
+
+  const res = successResponse(
+    {
+      data: base64,
+      mimeType,
+      size: result.buffer.length,
+      format: result.format,
+      width: result.width,
+      height: result.height,
+      warnings: result.warnings,
+      conversionsUsed,
+      remaining,
+    },
+    200,
+    { 'Server-Timing': serverTiming },
+    request
+  )
+  if (setCookie) {
+    res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
+      httpOnly: true,
+      secure: setCookie.secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: setCookie.maxAge,
+    })
+  }
+  return res
 }
 
 export async function GET() {

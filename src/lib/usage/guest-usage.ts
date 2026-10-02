@@ -76,3 +76,49 @@ export async function incrementGuestUsage(guestId: string): Promise<number> {
     const incremented = await GuestUsage.findOneAndUpdate({ _id: guestId, conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT } }, { $inc: { conversionsUsed: 1 } }, { new: true });
     return incremented?.conversionsUsed ?? GUEST_CONVERSION_LIMIT;
 }
+
+/**
+ * Atomically claim one conversion slot before rendering.
+ * Returns the new count (1–GUEST_CONVERSION_LIMIT) if the slot was claimed,
+ * or null if the guest is already at the limit. Never exceeds the limit even
+ * under concurrent requests because the $lt filter is atomic in MongoDB.
+ */
+export async function claimGuestSlot(guestId: string): Promise<number | null> {
+    const now = new Date();
+    let record = await GuestUsage.findById(guestId);
+    if (!record) {
+        try {
+            await GuestUsage.create({ _id: guestId, conversionsUsed: 1, windowStartAt: now });
+            return 1;
+        } catch (error) {
+            if (!isDuplicateKeyError(error)) throw error;
+            record = await GuestUsage.findById(guestId);
+        }
+    }
+    if (windowExpired(record)) {
+        const reset = await GuestUsage.findOneAndUpdate(
+            { _id: guestId },
+            { $set: { conversionsUsed: 1, windowStartAt: now } },
+            { new: true }
+        );
+        return reset?.conversionsUsed ?? 1;
+    }
+    const incremented = await GuestUsage.findOneAndUpdate(
+        { _id: guestId, conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT } },
+        { $inc: { conversionsUsed: 1 } },
+        { new: true }
+    );
+    // null return means the $lt filter matched nothing — already at limit
+    return incremented?.conversionsUsed ?? null;
+}
+
+/**
+ * Release a previously claimed slot, e.g. when the render fails after
+ * claimGuestSlot() already incremented the counter.
+ */
+export async function releaseGuestSlot(guestId: string): Promise<void> {
+    await GuestUsage.findOneAndUpdate(
+        { _id: guestId, conversionsUsed: { $gt: 0 } },
+        { $inc: { conversionsUsed: -1 } }
+    );
+}
