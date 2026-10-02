@@ -10,6 +10,10 @@ export async function register() {
       console.log(`[crushsvg] DNS servers overridden: ${dnsServers}`)
     }
 
+    // Warm fontconfig at server startup so the first conversion request
+    // does not pay the ~650ms scan cost.
+    await import('@/lib/svg/font-config')
+
     const { connectToDatabase } = await import('@/lib/database/db')
     const MAX_ATTEMPTS = 3
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
