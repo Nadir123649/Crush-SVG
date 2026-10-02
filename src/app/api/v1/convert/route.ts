@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
 import { convertSvgQueued } from '@/lib/svg/conversion-queue'
-import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } from '@/lib/usage/conversion-usage'
+import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT, type ResolvedAuth } from '@/lib/usage/conversion-usage'
 import { logConversion } from '@/lib/usage/conversion-logger'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { classifySvgError } from '@/lib/svg/svg-errors'
+import { auth } from '@/lib/middleware/auth-middleware'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -48,8 +49,10 @@ export async function POST(request: NextRequest) {
 
   const { guestId, setCookie } = ensureGuestId(request)
 
+  // Resolve auth once — reused by both getConversionUsage and incrementConversionUsage
   const tUsageStart = mark()
-  const usage = await getConversionUsage(request, guestId ?? undefined)
+  const resolvedAuth: ResolvedAuth = await auth(request)
+  const usage = await getConversionUsage(request, guestId ?? undefined, resolvedAuth)
   const tUsage = elapsed(tUsageStart)
 
   if (usage.kind === 'auth-error') {
@@ -75,34 +78,19 @@ export async function POST(request: NextRequest) {
     const base64 = result.buffer.toString('base64')
     const mimeType = 'image/png'
 
+    // Guest increment stays inline: moving it to after() would let concurrent
+    // requests both read the same count (< limit) before either increments,
+    // allowing a guest to exceed the 3-conversion cap under concurrent load.
     let conversionsUsed = 0
     const tIncrStart = mark()
-    try {
-      conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
-    } catch (error) {
-      console.error('Failed to record conversion usage:', error)
+    if (usage.kind === 'guest') {
+      try {
+        conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined, resolvedAuth)
+      } catch (error) {
+        console.error('Failed to record guest conversion usage:', error)
+      }
     }
     const tIncr = elapsed(tIncrStart)
-
-    const tLogStart = mark()
-    try {
-      await logConversion({
-        userId: usage.userId,
-        guestId: usage.kind === 'guest' ? guestId : undefined,
-        inputFormat: 'svg',
-        outputFormat: 'png',
-        originalSize: result.buffer.length,
-        success: true,
-      })
-    } catch (error) {
-      console.error('Failed to log conversion:', error)
-    }
-    const tLog = elapsed(tLogStart)
-
-    const tRevalStart = mark()
-    // Invalidate admin dashboard cache for real-time metrics
-    revalidatePath('/admin')
-    const tReval = elapsed(tRevalStart)
 
     const tTotal = elapsed(t0)
     const serverTiming = [
@@ -110,8 +98,6 @@ export async function POST(request: NextRequest) {
       `usage;dur=${tUsage}`,
       `render;dur=${tRender}`,
       `incr;dur=${tIncr}`,
-      `log;dur=${tLog}`,
-      `reval;dur=${tReval}`,
     ].join(', ')
 
     console.log(JSON.stringify({
@@ -121,10 +107,30 @@ export async function POST(request: NextRequest) {
       usageMs: Number(tUsage),
       renderMs: Number(tRender),
       incrMs: Number(tIncr),
-      logMs: Number(tLog),
-      revalMs: Number(tReval),
       requestId: request.headers.get('x-request-id'),
     }))
+
+    // Non-critical work deferred until after the response is sent.
+    // For authenticated users, increment is safe to defer (no limit to enforce).
+    after(async () => {
+      try {
+        if (usage.kind !== 'guest') {
+          await incrementConversionUsage(request, undefined, resolvedAuth)
+        }
+        await logConversion({
+          userId: usage.userId,
+          guestId: usage.kind === 'guest' ? guestId : undefined,
+          inputFormat: 'svg',
+          outputFormat: 'png',
+          originalSize: result.buffer.length,
+          success: true,
+        })
+        // Invalidate admin dashboard cache for real-time metrics
+        revalidatePath('/admin')
+      } catch (error) {
+        console.error('Failed to record conversion usage:', error)
+      }
+    })
 
     const nextUsed =
       usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
@@ -190,13 +196,15 @@ export async function POST(request: NextRequest) {
 
     const info = classifySvgError(error)
 
-    await logConversion({
-      userId: usage.userId,
-      guestId: usage.kind === 'guest' ? guestId : undefined,
-      inputFormat: 'svg',
-      outputFormat: 'png',
-      success: false,
-      errorReason: info.code
+    after(async () => {
+      await logConversion({
+        userId: usage.userId,
+        guestId: usage.kind === 'guest' ? guestId : undefined,
+        inputFormat: 'svg',
+        outputFormat: 'png',
+        success: false,
+        errorReason: info.code,
+      }).catch((e) => console.error('Failed to log failed conversion:', e))
     })
 
     return errorResponse(info.status, info.code, info.message, undefined, request)
