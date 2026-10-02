@@ -14,8 +14,21 @@ import { classifySvgError } from '@/lib/svg/svg-errors'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+function mark(): number {
+  return performance.now()
+}
+
+function elapsed(start: number): string {
+  return `${Math.round(performance.now() - start)}`
+}
+
 export async function POST(request: NextRequest) {
+  const t0 = mark()
+
+  const tRlStart = mark()
   const rl = await checkRateLimit(request, 'convert:svg', 30, 60_000)
+  const tRl = elapsed(tRlStart)
+
   if (!rl.allowed) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many conversion requests. Try again later.', rateLimitHeaders(rl), request)
   }
@@ -34,7 +47,11 @@ export async function POST(request: NextRequest) {
   }
 
   const { guestId, setCookie } = ensureGuestId(request)
+
+  const tUsageStart = mark()
   const usage = await getConversionUsage(request, guestId ?? undefined)
+  const tUsage = elapsed(tUsageStart)
+
   if (usage.kind === 'auth-error') {
     return unauthorizedResponse('Session expired. Please sign in again.', request)
   }
@@ -51,13 +68,24 @@ export async function POST(request: NextRequest) {
   const { svg, width, height, scale, transparent, quality, bgOption, bgColor } = parsed.data
 
   try {
+    const tRenderStart = mark()
     const result = await convertSvgQueued(svg, { width, height, scale, transparent, quality, bgOption, bgColor })
+    const tRender = elapsed(tRenderStart)
+
     const base64 = result.buffer.toString('base64')
     const mimeType = 'image/png'
 
     let conversionsUsed = 0
+    const tIncrStart = mark()
     try {
       conversionsUsed = await incrementConversionUsage(request, guestId ?? undefined)
+    } catch (error) {
+      console.error('Failed to record conversion usage:', error)
+    }
+    const tIncr = elapsed(tIncrStart)
+
+    const tLogStart = mark()
+    try {
       await logConversion({
         userId: usage.userId,
         guestId: usage.kind === 'guest' ? guestId : undefined,
@@ -67,11 +95,36 @@ export async function POST(request: NextRequest) {
         success: true,
       })
     } catch (error) {
-      console.error('Failed to record conversion usage:', error)
+      console.error('Failed to log conversion:', error)
     }
+    const tLog = elapsed(tLogStart)
 
+    const tRevalStart = mark()
     // Invalidate admin dashboard cache for real-time metrics
     revalidatePath('/admin')
+    const tReval = elapsed(tRevalStart)
+
+    const tTotal = elapsed(t0)
+    const serverTiming = [
+      `rl;dur=${tRl}`,
+      `usage;dur=${tUsage}`,
+      `render;dur=${tRender}`,
+      `incr;dur=${tIncr}`,
+      `log;dur=${tLog}`,
+      `reval;dur=${tReval}`,
+    ].join(', ')
+
+    console.log(JSON.stringify({
+      msg: 'convert_timing',
+      totalMs: Number(tTotal),
+      rlMs: Number(tRl),
+      usageMs: Number(tUsage),
+      renderMs: Number(tRender),
+      incrMs: Number(tIncr),
+      logMs: Number(tLog),
+      revalMs: Number(tReval),
+      requestId: request.headers.get('x-request-id'),
+    }))
 
     const nextUsed =
       usage.kind === 'guest' ? Math.min(GUEST_CONVERSION_LIMIT, usage.count + 1) : undefined
@@ -90,6 +143,7 @@ export async function POST(request: NextRequest) {
           'Content-Disposition': `attachment; filename="crushsvg-${Date.now()}.png"`,
           'Content-Length': String(result.buffer.length),
           'X-Conversions-Used': String(conversionsUsed),
+          'Server-Timing': serverTiming,
           ...(remaining !== undefined ? { 'X-Conversions-Remaining': String(remaining) } : {}),
         },
       })
@@ -118,7 +172,7 @@ export async function POST(request: NextRequest) {
         remaining,
       },
       200,
-      undefined,
+      { 'Server-Timing': serverTiming },
       request
     )
     if (setCookie) {
@@ -135,7 +189,7 @@ export async function POST(request: NextRequest) {
     console.error('SVG conversion failed:', error)
 
     const info = classifySvgError(error)
-    
+
     await logConversion({
       userId: usage.userId,
       guestId: usage.kind === 'guest' ? guestId : undefined,
