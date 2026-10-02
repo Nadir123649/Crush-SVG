@@ -1199,6 +1199,8 @@
     "updateFailed": "プロフィールの更新に失敗しました。",
     "profileUpdatedSuccess": "プロフィールを更新しました！",
     "keyGenerateFailed": "APIキーの生成に失敗しました。",
+    "sessionExpired": "セッションの有効期限が切れました。もう一度ログインしてください。",
+    "serverError": "サーバーエラーが発生しました。しばらくしてから再度お試しください。",
     "keyGeneratedSuccess": "新しい開発者APIキーが生成されました！",
     "revokeConfirm": "このAPIキーを無効化してもよろしいですか？",
     "revokeFailed": "APIキーの無効化に失敗しました。",

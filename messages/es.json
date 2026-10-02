@@ -1199,6 +1199,8 @@
     "updateFailed": "Error al actualizar los datos del perfil.",
     "profileUpdatedSuccess": "¡Perfil actualizado con éxito!",
     "keyGenerateFailed": "Error al generar la clave de API.",
+    "sessionExpired": "La sesión ha caducado. Vuelve a iniciar sesión.",
+    "serverError": "Error del servidor. Inténtalo de nuevo más tarde.",
     "keyGeneratedSuccess": "¡Nueva clave de API de desarrollador generada!",
     "revokeConfirm": "¿Estás seguro de que deseas revocar esta clave de API? Las integraciones activas dejarán de funcionar.",
     "revokeFailed": "Error al revocar la clave de API.",

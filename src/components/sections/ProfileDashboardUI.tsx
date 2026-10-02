@@ -2,18 +2,20 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/lib/client/auth-context";
 import { Button } from "@/components/ui/Button";
 import { showToast } from "@/lib/client/toast-bridge";
-import { authFetch } from "@/lib/client/http";
+import { ApiError, authFetch } from "@/lib/client/http";
 import { IMAGES } from "@/lib/shared/images";
 import { API_DOCS_PATH } from "@/lib/openapi/constants";
+import { getLocalizedHref, type Locale } from "@/i18n/routing";
 
 export function ProfileDashboardUI() {
   const t = useTranslations("profile_dashboard");
   const tAuth = useTranslations("auth");
   const tUpload = useTranslations("upload_interface");
+  const locale = useLocale() as Locale;
   const { user, status } = useAuth();
 
   const [apiKey, setApiKey] = useState<string | null>(user?.apiKey ?? null);
@@ -33,6 +35,29 @@ export function ProfileDashboardUI() {
   const remaining = Math.max(0, quota - conversionsUsed);
   const usagePercent = Math.min(100, Math.round((conversionsUsed / quota) * 100));
 
+  // Shows exactly one toast for a failed key request. A dead session is told
+  // apart from a server failure so the user knows whether to log in again or
+  // just retry later.
+  function reportKeyFailure(failure: Response | unknown, fallbackMessage: string) {
+    if (failure instanceof ApiError && failure.code === "session_expired") {
+      // authFetch has already shown the session-expired toast.
+      window.location.assign(getLocalizedHref("/login", locale));
+      return;
+    }
+    const status =
+      failure instanceof Response ? failure.status : failure instanceof ApiError ? failure.status : 0;
+    if (status === 401) {
+      showToast("error", t("sessionExpired"));
+      window.location.assign(getLocalizedHref("/login", locale));
+      return;
+    }
+    if (status >= 500) {
+      showToast("error", t("serverError"));
+      return;
+    }
+    showToast("error", fallbackMessage);
+  }
+
   async function handleGenerateApiKey() {
     setIsGeneratingKey(true);
     try {
@@ -41,18 +66,22 @@ export function ProfileDashboardUI() {
       });
 
       if (!res.ok) {
-        showToast("error", t("keyGenerateFailed"));
+        reportKeyFailure(res, t("keyGenerateFailed"));
         return;
       }
 
-      const json = (await res.json()) as { data?: { apiKey?: string } };
-      if (json.data?.apiKey) {
-        setApiKey(json.data.apiKey);
-        setShowApiKey(true);
-        showToast("success", t("keyGeneratedSuccess"));
+      // successResponse wraps data in `payload`
+      const json = (await res.json()) as { payload?: { apiKey?: string } };
+      const newKey = json.payload?.apiKey;
+      if (!newKey) {
+        showToast("error", t("keyGenerateFailed"));
+        return;
       }
-    } catch {
-      showToast("error", t("keyGenerateFailed"));
+      setApiKey(newKey);
+      setShowApiKey(true);
+      showToast("success", t("keyGeneratedSuccess"));
+    } catch (err) {
+      reportKeyFailure(err, t("keyGenerateFailed"));
     } finally {
       setIsGeneratingKey(false);
     }
@@ -67,15 +96,15 @@ export function ProfileDashboardUI() {
       });
 
       if (!res.ok) {
-        showToast("error", t("revokeFailed"));
+        reportKeyFailure(res, t("revokeFailed"));
         return;
       }
 
       setApiKey(null);
       setShowApiKey(false);
       showToast("success", t("keyRevokedSuccess"));
-    } catch {
-      showToast("error", t("revokeFailed"));
+    } catch (err) {
+      reportKeyFailure(err, t("revokeFailed"));
     } finally {
       setIsRevokingKey(false);
     }
