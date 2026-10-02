@@ -53,8 +53,13 @@ class MemoryStore implements RateStore {
   }
 }
 
-const FAST_TIMEOUT_MS = 250;
+const DEFAULT_RATE_STORE_TIMEOUT_MS = 600;
 const INVALIDATE_TIMEOUT_MS = 2000;
+
+function rateStoreTimeoutMs(): number {
+  const parsed = Number(process.env.RATE_STORE_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_RATE_STORE_TIMEOUT_MS;
+}
 
 class UpstashFailOpenStore implements RateStore {
   private redis: Redis;
@@ -63,13 +68,14 @@ class UpstashFailOpenStore implements RateStore {
   private memoryFallback = new MemoryStore();
 
   constructor(url: string, token: string) {
+    const timeoutMs = rateStoreTimeoutMs();
     // signal must be a function: with a plain AbortSignal, @upstash/redis returns a fake
     // 200 "Aborted" result instead of throwing, which would bypass the memory fallback
     this.redis = new Redis({
       url,
       token,
       retry: { retries: 1, backoff: () => 25 },
-      signal: () => AbortSignal.timeout(FAST_TIMEOUT_MS),
+      signal: () => AbortSignal.timeout(timeoutMs),
     });
     this.invalidateRedis = new Redis({
       url,
