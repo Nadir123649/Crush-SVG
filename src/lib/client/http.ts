@@ -106,6 +106,10 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
   // (429) and server errors are transient; clearing the session there would
   // log out a perfectly valid user and poison the stored snapshot, flashing
   // guest UI on the next refresh.
+  if (res.status >= 500) {
+    refreshServerErrorStreak++
+    return { payload: null, sessionDead: false }
+  }
   const sessionIsDead = res.status === 401 || (res.status === 200 && body?.success !== true)
   if (res.status !== 200 || body?.success !== true || !body?.payload) {
     if (!silent && sessionIsDead) onAuthExpired?.()
@@ -113,6 +117,7 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
   }
   const { token, sessionId, remember, user } = body.payload
   if (!token?.accessToken) return { payload: null, sessionDead: true }
+  refreshServerErrorStreak = 0
   setAccessToken(token.accessToken)
   activeSessionId = sessionId ?? null
   activeRemember = remember ?? null
@@ -121,11 +126,30 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
 
 let refreshInFlight: Promise<RefreshResult> | null = null
 
+// Circuit-breaker: after this many consecutive 5xx responses from the refresh
+// endpoint, stop retrying until the page is reloaded. Prevents an infinite
+// loop of authFetch → 401 → refresh → 500 → authFetch → …
+let refreshServerErrorStreak = 0
+const REFRESH_SERVER_ERROR_CAP = 3
+
+export function resetRefreshCircuitBreaker(): void {
+  refreshServerErrorStreak = 0
+}
+
 export async function refreshSession(opts?: { silent?: boolean }): Promise<RefreshResult> {
+  if (refreshServerErrorStreak >= REFRESH_SERVER_ERROR_CAP) {
+    return { payload: null, sessionDead: false }
+  }
   if (!refreshInFlight) {
-    refreshInFlight = doRefresh(opts?.silent).finally(() => {
-      refreshInFlight = null
-    })
+    refreshInFlight = doRefresh(opts?.silent)
+      .then((result) => {
+        // A successful refresh resets the streak.
+        if (result.payload) refreshServerErrorStreak = 0
+        return result
+      })
+      .finally(() => {
+        refreshInFlight = null
+      })
   }
   return refreshInFlight
 }
