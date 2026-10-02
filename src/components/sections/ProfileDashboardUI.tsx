@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 import { useAuth } from "@/lib/client/auth-context";
 import { Button } from "@/components/ui/Button";
 import { showToast } from "@/lib/client/toast-bridge";
 import { authFetch } from "@/lib/client/http";
 import { IMAGES } from "@/lib/shared/images";
+import { API_DOCS_PATH } from "@/lib/openapi/constants";
 
 export function ProfileDashboardUI() {
   const t = useTranslations("profile_dashboard");
@@ -555,12 +555,14 @@ curl_close($ch);
 
                 {/* Quick Actions Row */}
                 <div className="flex flex-wrap items-center gap-[8px] mt-[12px]">
-                  <Link
-                    href="/api-docs"
+                  <a
+                    href={API_DOCS_PATH}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="grow py-[8px] px-[12px] rounded-[10px] bg-white border border-[#CBD5E1] hover:border-brand-primary text-text-dark hover:text-brand-primary text-[12px] md:text-[13px] font-body font-medium text-center transition-colors cursor-pointer shadow-xs"
                   >
                     Open Swagger UI Playground ↗
-                  </Link>
+                  </a>
                   <button
                     type="button"
                     onClick={handleCopyBaseUrl}
@@ -576,13 +578,17 @@ curl_close($ch);
 
           {/* Bottom Primary Action Button */}
           <div className="w-full flex justify-center mt-[30px] md:mt-[40px]">
-            <Button
-              href="/api-docs"
-              variant="solid"
-              className="w-[300px] h-[44px] md:h-[48px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer"
+            {/* Plain <a>: Button's i18n Link would add a locale prefix, and
+                the docs page only exists at the unprefixed path. Classes mirror
+                Button variant="solid". */}
+            <a
+              href={API_DOCS_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white rounded-full px-4 py-2 hover:opacity-90 transition-opacity active:scale-[0.98] cursor-pointer font-body font-medium text-[16px] leading-[18.67px] tracking-[0%] flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 w-[300px] h-[44px] md:h-[48px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer"
             >
               Interactive API Reference ↗
-            </Button>
+            </a>
           </div>
 
         </div>

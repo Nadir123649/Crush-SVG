@@ -4,8 +4,14 @@ import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
 import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
+import { API_DOCS_PATH } from '@/lib/openapi/constants'
 
 const intlMiddleware = createMiddleware(routing)
+
+// /es/api-docs, /fr/api-docs, ... — the docs page has no locale variants.
+const LOCALIZED_API_DOCS_PATTERN = new RegExp(
+  `^\\/(${routing.locales.join('|')})${API_DOCS_PATH}$`
+)
 
 const API_SUBDOMAINS = ['api.crushsvg.net', 'staging.api.crushsvg.net']
 
@@ -537,6 +543,33 @@ export async function proxy(
 
     return addRequestId(
       response,
+      request
+    )
+  }
+
+  // ───────────────────────────────────────────────────────────────────
+  // API DOCS (public — lives outside [locale])
+  // ───────────────────────────────────────────────────────────────────
+  //
+  // intlMiddleware would rewrite /api-docs to /en/api-docs, which has
+  // no route and 404s.
+
+  if (pathname === API_DOCS_PATH) {
+    const response =
+      NextResponse.next()
+
+    return addRequestId(
+      response,
+      request
+    )
+  }
+
+  if (LOCALIZED_API_DOCS_PATTERN.test(pathname)) {
+    const docsUrl = url.clone()
+    docsUrl.pathname = API_DOCS_PATH
+
+    return addRequestId(
+      NextResponse.redirect(docsUrl),
       request
     )
   }
