@@ -84,32 +84,37 @@ export async function incrementGuestUsage(guestId: string): Promise<number> {
  * under concurrent requests because the $lt filter is atomic in MongoDB.
  */
 export async function claimGuestSlot(guestId: string): Promise<number | null> {
-    const now = new Date();
-    let record = await GuestUsage.findById(guestId);
-    if (!record) {
+    // Every step is a single conditional write, so concurrent claims cannot
+    // double-reset an expired window or exceed the limit. _id is the guestId,
+    // so create() can never produce a second document for the same guest.
+    for (let attempt = 0; attempt < 3; attempt++) {
+        const now = new Date();
+        const cutoff = new Date(now.getTime() - GUEST_WINDOW_MS);
+
+        const reset = await GuestUsage.findOneAndUpdate(
+            { _id: guestId, windowStartAt: { $lte: cutoff } },
+            { $set: { conversionsUsed: 1, windowStartAt: now } },
+            { new: true }
+        );
+        if (reset) return reset.conversionsUsed;
+
+        const incremented = await GuestUsage.findOneAndUpdate(
+            { _id: guestId, conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT } },
+            { $inc: { conversionsUsed: 1 } },
+            { new: true }
+        );
+        if (incremented) return incremented.conversionsUsed;
+
+        if (await GuestUsage.exists({ _id: guestId })) return null;
+
         try {
             await GuestUsage.create({ _id: guestId, conversionsUsed: 1, windowStartAt: now });
             return 1;
         } catch (error) {
             if (!isDuplicateKeyError(error)) throw error;
-            record = await GuestUsage.findById(guestId);
         }
     }
-    if (windowExpired(record)) {
-        const reset = await GuestUsage.findOneAndUpdate(
-            { _id: guestId },
-            { $set: { conversionsUsed: 1, windowStartAt: now } },
-            { new: true }
-        );
-        return reset?.conversionsUsed ?? 1;
-    }
-    const incremented = await GuestUsage.findOneAndUpdate(
-        { _id: guestId, conversionsUsed: { $lt: GUEST_CONVERSION_LIMIT } },
-        { $inc: { conversionsUsed: 1 } },
-        { new: true }
-    );
-    // null return means the $lt filter matched nothing — already at limit
-    return incremented?.conversionsUsed ?? null;
+    return null;
 }
 
 /**
