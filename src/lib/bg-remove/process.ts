@@ -115,6 +115,61 @@ export async function processBackgroundRemove(
 }
 
 /**
+ * Entry point for callers that already have raw RGBA pixels (e.g. svg-convert
+ * which decodes directly from sharp to avoid an intermediate PNG encode+decode).
+ * Skips the sharp metadata + decode step and goes straight to classification.
+ */
+export async function processBackgroundRemoveFromRaw(
+  rawData: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: BgRemoveOptionsParsed,
+): Promise<BgRemoveResult> {
+  if (!width || !height) {
+    throw new BgRemoveError("invalid_image", "Could not read image dimensions.");
+  }
+  if (width < BG_REMOVE_LIMITS.MIN_DIMENSION || height < BG_REMOVE_LIMITS.MIN_DIMENSION) {
+    throw new BgRemoveError("unsupported_dimensions", "Image is too small to process.");
+  }
+  if (width > BG_REMOVE_LIMITS.MAX_DIMENSION || height > BG_REMOVE_LIMITS.MAX_DIMENSION) {
+    throw new BgRemoveError(
+      "unsupported_dimensions",
+      `Image dimension exceeds the ${BG_REMOVE_LIMITS.MAX_DIMENSION}px limit.`,
+    );
+  }
+
+  if (!shouldUseModnetEngine()) {
+    console.log("[bg-remove] MODNet disabled via feature flag, using legacy");
+    return processLegacyFromRaw(rawData, width, height, options);
+  }
+
+  const bg = detectBackgroundColor(rawData, width, height);
+  if (bg.isTransparent) {
+    console.log("[bg-remove] Image already transparent, using legacy");
+    return processLegacyFromRaw(rawData, width, height, options);
+  }
+
+  const classification = classifyImage(rawData, width, height);
+  console.log("[bg-remove] Classification:", classification);
+
+  if (classification === "photo") {
+    // MODNet needs a PNG buffer — encode once only for this path
+    const workingBuffer = await sharp(Buffer.from(rawData.buffer, rawData.byteOffset, rawData.byteLength), {
+      raw: { width, height, channels: 4 },
+    }).png().toBuffer();
+    try {
+      const processModnet = await getModnetProcessor();
+      return await processModnet(workingBuffer, options);
+    } catch (err) {
+      console.error("[bg-remove] MODNet failed, falling back to legacy:", err);
+      return processLegacyFromRaw(rawData, width, height, options);
+    }
+  }
+
+  return processLegacyFromRaw(rawData, width, height, options);
+}
+
+/**
  * Legacy path that accepts pre-decoded raw RGBA pixels (avoids redundant sharp decode).
  */
 async function processLegacyFromRaw(
