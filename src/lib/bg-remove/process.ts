@@ -139,10 +139,30 @@ export async function processBackgroundRemoveFromRaw(
 ): Promise<BgRemoveResult> {
   checkDimensions(width, height);
 
-  return routeFromRaw(rawData, width, height, options, async () =>
-    // MODNet needs a PNG buffer — encode once, only when the photo path is taken
-    sharp(Buffer.from(rawData.buffer, rawData.byteOffset, rawData.byteLength), {
+  // Same MAX_PIXELS downscale as processBackgroundRemove, applied to raw pixels
+  const pixels = width * height;
+  if (pixels > BG_REMOVE_LIMITS.MAX_PIXELS) {
+    const scale = Math.sqrt(BG_REMOVE_LIMITS.MAX_PIXELS / pixels);
+    const targetW = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(width * scale));
+    const targetH = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(height * scale));
+    const resized = await sharp(Buffer.from(rawData.buffer, rawData.byteOffset, rawData.byteLength), {
       raw: { width, height, channels: 4 },
+    })
+      .resize(targetW, targetH, { fit: "inside", withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    rawData = new Uint8ClampedArray(resized.data.buffer, resized.data.byteOffset, resized.data.byteLength);
+    width = resized.info.width;
+    height = resized.info.height;
+  }
+
+  const w = width;
+  const h = height;
+  const pixelData = rawData;
+  return routeFromRaw(pixelData, w, h, options, async () =>
+    // MODNet needs a PNG buffer — encode once, only when the photo path is taken
+    sharp(Buffer.from(pixelData.buffer, pixelData.byteOffset, pixelData.byteLength), {
+      raw: { width: w, height: h, channels: 4 },
     }).png().toBuffer()
   );
 }
