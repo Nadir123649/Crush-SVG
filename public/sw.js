@@ -113,14 +113,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Static images & icons
+  // 2. Static images & icons — same-origin only.
+  // External image URLs (e.g. Google avatars from lh3.googleusercontent.com)
+  // are subject to CSP connect-src when fetched from a SW context. Letting
+  // them fall through to the browser avoids both the CSP violation and the
+  // uncaught-promise rejection that happens when respondWith receives undefined.
   if (
-    url.pathname.endsWith(".png") ||
-    url.pathname.endsWith(".webp") ||
-    url.pathname.endsWith(".svg") ||
-    url.pathname.endsWith(".jpg") ||
-    url.pathname.endsWith(".jpeg") ||
-    url.pathname.endsWith(".ico")
+    url.origin === self.location.origin &&
+    (
+      url.pathname.endsWith(".png") ||
+      url.pathname.endsWith(".webp") ||
+      url.pathname.endsWith(".svg") ||
+      url.pathname.endsWith(".jpg") ||
+      url.pathname.endsWith(".jpeg") ||
+      url.pathname.endsWith(".ico")
+    )
   ) {
     event.respondWith(
       caches.open(STATIC_CACHE).then((cache) =>
@@ -132,7 +139,7 @@ self.addEventListener("fetch", (event) => {
               }
               return networkResponse;
             })
-            .catch(() => cachedResponse);
+            .catch(() => cachedResponse ?? new Response(null, { status: 503 }));
 
           return cachedResponse || fetchPromise;
         })

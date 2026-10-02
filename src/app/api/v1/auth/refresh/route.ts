@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { rotateSession, wasSessionRotatedWithin } from '@/lib/auth/sessions'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
 import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
-import { Session, User } from '@/lib/database/db'
+import { Session, User, connectToDatabase } from '@/lib/database/db'
 import { getFreshPhotoURL } from '@/lib/firebase/firebase-admin'
 import { logger } from '@/lib/shared/logger'
 
@@ -40,7 +41,18 @@ function errorResponse(code: string, status: number, rl: RateLimitResult) {
   return res
 }
 
-export async function POST(request: NextRequest) {
+function serializeError(err: unknown) {
+  if (err instanceof Error) {
+    return { errName: err.name, errMessage: err.message, errStack: err.stack }
+  }
+  return { errRaw: String(err) }
+}
+
+async function handleRefresh(request: NextRequest): Promise<NextResponse> {
+  // connectToDatabase caches the connection on globalThis — safe to call per
+  // request; it only opens a new connection on a cold start.
+  await connectToDatabase()
+
   const rl = await checkRateLimit(request, 'auth:refresh', 120, 60_000)
   if (!rl.allowed) {
     return rateLimitedResponse(rl)
@@ -63,6 +75,15 @@ export async function POST(request: NextRequest) {
   try {
     decoded = await verifyRefreshToken(refreshToken)
   } catch {
+    return errorResponse('token_invalid', 200, rl)
+  }
+
+  // Validate both IDs before any DB lookup. Both Session._id and User._id are
+  // ObjectId; Mongoose throws CastError on a non-24-hex string.
+  if (
+    !mongoose.isValidObjectId(decoded.jti) ||
+    !mongoose.isValidObjectId(decoded.id)
+  ) {
     return errorResponse('token_invalid', 200, rl)
   }
 
@@ -137,4 +158,26 @@ export async function POST(request: NextRequest) {
   )
   res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(result.remember))
   return res
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    return await handleRefresh(request)
+  } catch (err) {
+    logger.error('refresh_unhandled_error', {
+      requestId: request.headers.get('x-request-id'),
+      ...serializeError(err),
+    })
+    // Do NOT clear the refresh cookie on 500 — the error may be transient and
+    // clearing it would permanently log out a valid user.
+    return NextResponse.json(
+      {
+        success: false,
+        version: '1.0.0',
+        payload: { error: { code: 'server_error' } },
+        serverTimestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    )
+  }
 }

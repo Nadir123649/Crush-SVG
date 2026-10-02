@@ -35,6 +35,6 @@ export function toUserDTO(user: UserDoc): UserDTO {
         apiKeyCreatedAt: user.apiKeyCreatedAt ? user.apiKeyCreatedAt.toISOString() : null,
         apiMonthlyQuota: user.apiMonthlyQuota ?? 1000,
         createdAt: user.createdAt.toISOString(),
-        lastLoginAt: user.lastLoginAt.toISOString(),
+        lastLoginAt: (user.lastLoginAt ?? user.createdAt).toISOString(),
     };
 }
