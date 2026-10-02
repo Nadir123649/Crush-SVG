@@ -358,6 +358,38 @@ export async function proxy(
   }
 
   // ───────────────────────────────────────────────────────────────────
+  // /v1/* ON NON-API HOSTS → /api/v1/*
+  // ───────────────────────────────────────────────────────────────────
+  //
+  // A rewrite does not re-run the proxy, so apply the same
+  // public/authenticated check as the API routes below.
+
+  if (pathname.startsWith('/v1/')) {
+    const apiPath = `/api${pathname}`
+
+    if (
+      !isPublicApi(apiPath) &&
+      !hasBearerToken(request)
+    ) {
+      return unauthorizedResponse(
+        undefined,
+        request
+      )
+    }
+
+    const rewrittenUrl = url.clone()
+    rewrittenUrl.pathname = apiPath
+
+    const response =
+      NextResponse.rewrite(rewrittenUrl)
+
+    return addRequestId(
+      response,
+      request
+    )
+  }
+
+  // ───────────────────────────────────────────────────────────────────
   // API ROUTES
   // ───────────────────────────────────────────────────────────────────
 
