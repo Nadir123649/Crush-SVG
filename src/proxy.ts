@@ -3,6 +3,7 @@ import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
 import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
+import { unauthorizedResponse } from '@/lib/http/unauthorized'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -77,6 +78,8 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/auth/logout',
   '/api/v1/auth/logout-all',
 
+  // Health checks (uptime monitoring)
+  '/api/health',
   '/api/v1/health',
 
   // Public tools
@@ -171,27 +174,6 @@ function hasBearerToken(request: NextRequest): boolean {
   return (
     scheme?.toLowerCase() === 'bearer' &&
     !!token
-  )
-}
-
-function jsonError(
-  status: number,
-  code: string,
-  message: string
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      version: '1.0.0',
-      payload: {
-        error: {
-          code,
-          message,
-        },
-      },
-      serverTimestamp: new Date().toISOString(),
-    },
-    { status }
   )
 }
 
@@ -399,10 +381,9 @@ export async function proxy(
       hasBearerToken(request)
 
     if (!hasToken) {
-      return jsonError(
-        401,
-        'unauthorized',
-        'Authentication required'
+      return unauthorizedResponse(
+        undefined,
+        request
       )
     }
 

@@ -234,6 +234,9 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
 export interface ErrorBody {
   error?: { code?: string; message?: string } | string
   payload?: { error?: { code?: string; message?: string } }
+  // Flat shape used by 401 responses: { success:false, code, message }
+  code?: string
+  message?: string
 }
 
 export function toApiError(status: number, body: ErrorBody | null): ApiError {
@@ -243,6 +246,9 @@ export function toApiError(status: number, body: ErrorBody | null): ApiError {
   }
   if (typeof err === 'string') {
     return new ApiError(status, 'error', err)
+  }
+  if (typeof body?.code === 'string') {
+    return new ApiError(status, body.code, body.message ?? humanizeErrorCode(body.code, status))
   }
   if (typeof body?.payload === 'object' && body.payload !== null && typeof (body.payload as Record<string, unknown>).message === 'string') {
     return new ApiError(status, `http_${status}`, (body.payload as { message: string }).message)
