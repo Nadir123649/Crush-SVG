@@ -1,6 +1,6 @@
 import "server-only";
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/middleware/auth-middleware";
+import { auth, type AuthUser } from "@/lib/middleware/auth-middleware";
 import { User } from "@/lib/database/db";
 import { GUEST_CONVERSION_LIMIT, ensureGuestId, getGuestId, getGuestUsage, incrementGuestUsage, type GuestCookieSpec, } from "@/lib/usage/guest-usage";
 export { GUEST_CONVERSION_LIMIT };
@@ -19,8 +19,15 @@ export type ConversionUsage = {
     userId?: string;
     setGuestCookie?: GuestCookieSpec | null;
 };
-export async function getConversionUsage(request: NextRequest, explicitGuestId?: string): Promise<ConversionUsage> {
-    const who = await auth(request);
+
+export type ResolvedAuth = { user: AuthUser } | { error: Response };
+
+export async function getConversionUsage(
+    request: NextRequest,
+    explicitGuestId?: string,
+    preResolvedAuth?: ResolvedAuth,
+): Promise<ConversionUsage> {
+    const who = preResolvedAuth ?? await auth(request);
     if ("user" in who) {
         const user = await User.findById(who.user.id);
         if (!user) {
@@ -53,8 +60,12 @@ export async function getConversionUsage(request: NextRequest, explicitGuestId?:
         setGuestCookie: guest.setCookie,
     };
 }
-export async function incrementConversionUsage(request: NextRequest, explicitGuestId?: string): Promise<number> {
-    const who = await auth(request);
+export async function incrementConversionUsage(
+    request: NextRequest,
+    explicitGuestId?: string,
+    preResolvedAuth?: ResolvedAuth,
+): Promise<number> {
+    const who = preResolvedAuth ?? await auth(request);
     if ("user" in who) {
         const user = await User.findByIdAndUpdate(who.user.id, { $inc: { conversionsUsed: 1 } }, { new: true });
         return user?.conversionsUsed ?? 0;

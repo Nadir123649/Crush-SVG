@@ -4,7 +4,7 @@ import { ensureFontConfig } from "@/lib/svg/font-config";
 import { sanitizeSvg } from "@/lib/svg/svg-sanitize";
 import { computeTargetSize, parseSvgDimensions, type SvgDimensions, type TargetSize } from "@/lib/svg/svg-dims";
 import { ConversionTimeoutError } from "@/lib/svg/svg-errors";
-import { processBackgroundRemove } from "@/lib/bg-remove/process";
+import { processBackgroundRemoveFromRaw } from "@/lib/bg-remove/process";
 
 const BASE_DPI = 72;
 const INPUT_PIXEL_BUDGET = 50000000;
@@ -101,7 +101,8 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
         return { buffer, width: info.width, height: info.height, format: "png", warnings };
     }
 
-    // Transparent, Custom, or Black background: render with alpha and run canonical bg-remove engine
+    // Transparent, Custom, or Black background: render to raw RGBA and pass directly
+    // to the bg-remove engine, skipping an intermediate PNG encode+decode cycle.
     const pipeline = sharp(Buffer.from(sanitizedSvg, "utf-8"), {
         density: computeSvgDensity(dims, target),
         limitInputPixels: INPUT_PIXEL_BUDGET,
@@ -120,15 +121,16 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
             },
         });
     }
-    pipeline.ensureAlpha();
-    const { data: initialPng, info } = await withTimeout(
-        pipeline.png({ compressionLevel: 3, adaptiveFiltering: true }).toBuffer({ resolveWithObject: true }),
+    const { data: rawPixels, info } = await withTimeout(
+        pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
         CONVERSION_TIMEOUT_MS,
     );
 
+    const rawData = new Uint8ClampedArray(rawPixels.buffer, rawPixels.byteOffset, rawPixels.byteLength);
+
     try {
         const removed = await withTimeout(
-            processBackgroundRemove(initialPng, {
+            processBackgroundRemoveFromRaw(rawData, info.width, info.height, {
                 bgOption: resolvedBgOption,
                 bgColor: options.bgColor,
                 scale: 100,
@@ -143,9 +145,12 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
             warnings,
         };
     } catch {
-        // Fallback: return initial PNG directly if background removal encounters an error
+        // Fallback: encode raw pixels directly if background removal encounters an error
+        const fallback = await sharp(rawPixels, { raw: { width: info.width, height: info.height, channels: 4 } })
+            .png({ compressionLevel: 3, adaptiveFiltering: true })
+            .toBuffer();
         return {
-            buffer: initialPng,
+            buffer: fallback,
             width: info.width,
             height: info.height,
             format: "png",

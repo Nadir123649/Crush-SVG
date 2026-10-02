@@ -19,6 +19,55 @@ async function getModnetProcessor() {
   return modnetProcessor;
 }
 
+function checkDimensions(width: number, height: number): void {
+  if (!width || !height) throw new BgRemoveError("invalid_image", "Could not read image dimensions.");
+  if (width < BG_REMOVE_LIMITS.MIN_DIMENSION || height < BG_REMOVE_LIMITS.MIN_DIMENSION)
+    throw new BgRemoveError("unsupported_dimensions", "Image is too small to process.");
+  if (width > BG_REMOVE_LIMITS.MAX_DIMENSION || height > BG_REMOVE_LIMITS.MAX_DIMENSION)
+    throw new BgRemoveError("unsupported_dimensions", `Image dimension exceeds the ${BG_REMOVE_LIMITS.MAX_DIMENSION}px limit.`);
+}
+
+/**
+ * Shared routing logic for both public entry points.
+ * Accepts pre-decoded raw RGBA pixels plus an optional pre-encoded PNG buffer
+ * used only when MODNet is selected (it requires a Buffer input).
+ */
+async function routeFromRaw(
+  rawData: Uint8ClampedArray,
+  w: number,
+  h: number,
+  options: BgRemoveOptionsParsed,
+  // Lazy-encoded PNG for MODNet — only computed if classification === "photo"
+  getWorkingBuffer: () => Promise<Buffer>,
+): Promise<BgRemoveResult> {
+  if (!shouldUseModnetEngine()) {
+    console.log("[bg-remove] MODNet disabled via feature flag, using legacy");
+    return processLegacyFromRaw(rawData, w, h, options);
+  }
+
+  const bg = detectBackgroundColor(rawData, w, h);
+  if (bg.isTransparent) {
+    console.log("[bg-remove] Image already transparent, using legacy");
+    return processLegacyFromRaw(rawData, w, h, options);
+  }
+
+  const classification = classifyImage(rawData, w, h);
+  console.log("[bg-remove] Classification:", classification);
+
+  if (classification === "photo") {
+    const workingBuffer = await getWorkingBuffer();
+    try {
+      const processModnet = await getModnetProcessor();
+      return await processModnet(workingBuffer, options);
+    } catch (err) {
+      console.error("[bg-remove] MODNet failed, falling back to legacy:", err);
+      return processLegacyFromRaw(rawData, w, h, options);
+    }
+  }
+
+  return processLegacyFromRaw(rawData, w, h, options);
+}
+
 /**
  * Full background-removal pipeline: decode → classify → route → process → encode.
  *
@@ -39,18 +88,7 @@ export async function processBackgroundRemove(
   const width = meta.width ?? 0;
   const height = meta.height ?? 0;
 
-  if (!width || !height) {
-    throw new BgRemoveError("invalid_image", "Could not read image dimensions.");
-  }
-  if (width < BG_REMOVE_LIMITS.MIN_DIMENSION || height < BG_REMOVE_LIMITS.MIN_DIMENSION) {
-    throw new BgRemoveError("unsupported_dimensions", "Image is too small to process.");
-  }
-  if (width > BG_REMOVE_LIMITS.MAX_DIMENSION || height > BG_REMOVE_LIMITS.MAX_DIMENSION) {
-    throw new BgRemoveError(
-      "unsupported_dimensions",
-      `Image dimension exceeds the ${BG_REMOVE_LIMITS.MAX_DIMENSION}px limit.`,
-    );
-  }
+  checkDimensions(width, height);
 
   // Downscale if exceeding pixel budget to prevent OOM and request timeouts
   let pipeline = sharp(buffer, { animated: false });
@@ -85,33 +123,48 @@ export async function processBackgroundRemove(
   const w = decoded.info.width;
   const h = decoded.info.height;
 
-  if (!shouldUseModnetEngine()) {
-    console.log("[bg-remove] MODNet disabled via feature flag, using legacy");
-    return processLegacyFromRaw(rawData, w, h, options);
+  return routeFromRaw(rawData, w, h, options, async () => workingBuffer);
+}
+
+/**
+ * Entry point for callers that already have raw RGBA pixels (e.g. svg-convert
+ * which decodes directly from sharp to avoid an intermediate PNG encode+decode).
+ * Skips the sharp metadata + decode step and goes straight to classification.
+ */
+export async function processBackgroundRemoveFromRaw(
+  rawData: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: BgRemoveOptionsParsed,
+): Promise<BgRemoveResult> {
+  checkDimensions(width, height);
+
+  // Same MAX_PIXELS downscale as processBackgroundRemove, applied to raw pixels
+  const pixels = width * height;
+  if (pixels > BG_REMOVE_LIMITS.MAX_PIXELS) {
+    const scale = Math.sqrt(BG_REMOVE_LIMITS.MAX_PIXELS / pixels);
+    const targetW = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(width * scale));
+    const targetH = Math.max(BG_REMOVE_LIMITS.MIN_DIMENSION, Math.round(height * scale));
+    const resized = await sharp(Buffer.from(rawData.buffer, rawData.byteOffset, rawData.byteLength), {
+      raw: { width, height, channels: 4 },
+    })
+      .resize(targetW, targetH, { fit: "inside", withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    rawData = new Uint8ClampedArray(resized.data.buffer, resized.data.byteOffset, resized.data.byteLength);
+    width = resized.info.width;
+    height = resized.info.height;
   }
 
-  const bg = detectBackgroundColor(rawData, w, h);
-  if (bg.isTransparent) {
-    console.log("[bg-remove] Image already transparent, using legacy");
-    return processLegacyFromRaw(rawData, w, h, options);
-  }
-
-  const classification = classifyImage(rawData, w, h);
-  console.log("[bg-remove] Classification:", classification);
-
-  if (classification === "photo") {
-    try {
-      const processModnet = await getModnetProcessor();
-      return await processModnet(workingBuffer, options);
-    } catch (err) {
-      // Log the actual error so we can debug Vercel failures
-      console.error("[bg-remove] MODNet failed, falling back to legacy:", err);
-      return processLegacyFromRaw(rawData, w, h, options);
-    }
-  }
-
-  // graphic → legacy engine (reuse already-decoded pixels)
-  return processLegacyFromRaw(rawData, w, h, options);
+  const w = width;
+  const h = height;
+  const pixelData = rawData;
+  return routeFromRaw(pixelData, w, h, options, async () =>
+    // MODNet needs a PNG buffer — encode once, only when the photo path is taken
+    sharp(Buffer.from(pixelData.buffer, pixelData.byteOffset, pixelData.byteLength), {
+      raw: { width: w, height: h, channels: 4 },
+    }).png().toBuffer()
+  );
 }
 
 /**
