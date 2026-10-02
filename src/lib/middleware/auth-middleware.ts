@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Session, User } from "@/lib/database/db";
 import { verifyAccessToken, type DecodedAccessToken } from "@/lib/auth/tokens";
 import { getRateStore } from "@/lib/security/rate-store";
+import { unauthorizedResponse } from "@/lib/http/unauthorized";
 export interface AuthUser {
     id: string;
     role: string;
@@ -80,7 +81,7 @@ export async function auth(request: NextRequest): Promise<{
         const user = await User.findOne({ apiKey });
         if (!user) {
             return {
-                error: NextResponse.json({ error: "Invalid or revoked API key" }, { status: 401 }),
+                error: unauthorizedResponse("Invalid or revoked API key", request),
             };
         }
         return {
@@ -95,7 +96,7 @@ export async function auth(request: NextRequest): Promise<{
     }
     if (!authHeader?.toLowerCase().startsWith("bearer ")) {
         return {
-            error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+            error: unauthorizedResponse(undefined, request),
         };
     }
     let decoded: DecodedAccessToken;
@@ -104,7 +105,7 @@ export async function auth(request: NextRequest): Promise<{
     }
     catch {
         return {
-            error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+            error: unauthorizedResponse(undefined, request),
         };
     }
     if (decoded.jti) {
@@ -118,7 +119,7 @@ export async function auth(request: NextRequest): Promise<{
         }
         if (cached === "0") {
             return {
-                error: NextResponse.json({ error: "Session revoked" }, { status: 401 }),
+                error: unauthorizedResponse("Session revoked", request),
             };
         }
         const session = await Session.findOne({ _id: decoded.jti });
@@ -128,7 +129,7 @@ export async function auth(request: NextRequest): Promise<{
         await store.set(cacheKey, valid ? "1" : "0", SESSION_CACHE_TTL_MS);
         if (!valid) {
             return {
-                error: NextResponse.json({ error: "Session revoked" }, { status: 401 }),
+                error: unauthorizedResponse("Session revoked", request),
             };
         }
     }

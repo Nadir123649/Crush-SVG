@@ -12,6 +12,7 @@ import {
 } from '@/lib/usage/conversion-usage'
 import { getGuestId } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { classifySvgError } from '@/lib/svg/svg-errors'
 import { logger } from '@/lib/shared/logger'
 import type { UploadApiResponse } from 'cloudinary'
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 async function convertSvgUpload(request: NextRequest, formData: FormData, buffer: Buffer) {
   const usage = await getConversionUsage(request)
   if (usage.kind === 'auth-error') {
-    return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
+    return unauthorizedResponse('Session expired. Please sign in again.', request)
   }
   if (usage.kind === 'guest' && usage.limitReached) {
     return errorResponse(
