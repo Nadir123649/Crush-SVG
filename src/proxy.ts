@@ -343,6 +343,23 @@ export async function proxy(
       )
     }
 
+    // Frontend pages must never be served from the API host. Links that
+    // already landed here are sent to the matching frontend origin,
+    // preserving path and query.
+    if (
+      pathname === '/verify' ||
+      pathname === '/email-verification' ||
+      pathname.startsWith('/reset-password/')
+    ) {
+      const frontendHost = hostname!.startsWith('staging.')
+        ? 'https://staging.crushsvg.net'
+        : 'https://crushsvg.net'
+      return addRequestId(
+        NextResponse.redirect(new URL(`${pathname}${url.search}`, frontendHost)),
+        request
+      )
+    }
+
     // Any other API-subdomain path → /api/*
     const rewrittenUrl = new URL(
       `/api${pathname}`,
