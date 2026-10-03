@@ -132,6 +132,7 @@ function SvgToPngConverter() {
   const [storageRestored, setStorageRestored] = useState(false);
   const prevStatusRef = useRef<AuthStatus | null>(null);
   const convertAbortRef = useRef<AbortController | null>(null);
+  const convertInFlightRef = useRef(false);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -410,6 +411,9 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    // `converting` state lags a render behind; the ref blocks a second click
+    // (Convert / Re-convert) that lands before the button disables.
+    if (convertInFlightRef.current) return;
     if (isPlaceholderCode || svgCode.trim() === "") {
       showToast("error", tToast("pasteToStart"));
       return;
@@ -476,6 +480,8 @@ function SvgToPngConverter() {
       return;
     }
 
+    convertAbortRef.current?.abort();
+    convertInFlightRef.current = true;
     setConverting(true);
     const controller = new AbortController();
     convertAbortRef.current = controller;
@@ -552,7 +558,14 @@ function SvgToPngConverter() {
       }
       showToast("error", msg);
     } finally {
-      if (!controller.signal.aborted) setConverting(false);
+      // Only the request that still owns the controller resets the state. An
+      // aborted request (e.g. logout mid-conversion) still owns it and must
+      // re-enable the buttons; a request that was superseded does not.
+      if (convertAbortRef.current === controller) {
+        convertAbortRef.current = null;
+        convertInFlightRef.current = false;
+        setConverting(false);
+      }
     }
   }
 
