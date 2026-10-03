@@ -128,9 +128,14 @@ const convertBody = registry.register(
   "ConvertBody",
   z.object({
     svg: z.string().min(1).max(10 * 1024 * 1024),
-    width: z.number().int().min(1).max(4000).optional(),
-    height: z.number().int().min(1).max(4000).optional(),
-    scale: z.number().min(0.1).max(16).default(2),
+    width: z.number().int().min(1).max(4000).optional().describe("Output width in px (max 4000)"),
+    height: z.number().int().min(1).max(4000).optional().describe("Output height in px (max 4000)"),
+    scale: z
+      .number()
+      .min(0.1)
+      .max(16)
+      .default(2)
+      .describe("Multiplier on the SVG's own size; the result must stay within 4000 px per side"),
     transparent: z.boolean().default(true),
     quality: z.number().int().min(1).max(100).default(90),
   })
@@ -367,7 +372,11 @@ registry.registerPath({
   path: "/api/v1/convert",
   tags: ["Convert"],
   summary: "Convert SVG to PNG",
-  description: "Accepts SVG content and returns a PNG. Supports custom dimensions, scale, transparency, and quality.",
+  description:
+    "Accepts SVG content and returns a PNG. Supports custom dimensions, scale, transparency, and quality. " +
+    "The output is capped at 4000 px per side: width and height may not exceed 4000, and scale × the SVG's " +
+    "own size (or a height derived from width) must also stay within 4000 px, otherwise the request is " +
+    "rejected with 422 svg_too_large.",
   request: { body: { content: { "application/json": { schema: convertBody } } } },
   responses: {
     200: {
@@ -390,6 +399,8 @@ registry.registerPath({
         },
       },
     },
+    400: { description: "Invalid input (e.g. width or height above 4000 px)" },
+    422: { description: "SVG cannot be rendered, including output above 4000 px per side (svg_too_large)" },
     429: { description: "Rate limited or guest limit reached" },
   },
 });

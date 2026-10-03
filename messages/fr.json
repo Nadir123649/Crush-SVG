@@ -392,7 +392,7 @@
       },
       {
         "question": "Jusqu'à quelle échelle puis-je agrandir l'image ?",
-        "answer": "Vous pouvez multiplier la taille jusqu'à 16x ou définir des dimensions personnalisées jusqu'à 4 000 pixels pour l'impression."
+        "answer": "Vous pouvez multiplier la taille jusqu'à 16x ou définir des dimensions personnalisées jusqu'à 4 000 pixels pour l'impression. L'image finale est limitée à 4 000 pixels par côté."
       },
       {
         "question": "Mes fichiers restent-ils confidentiels ?",

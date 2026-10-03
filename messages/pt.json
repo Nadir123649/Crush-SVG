@@ -392,7 +392,7 @@
       },
       {
         "question": "Até que tamanho posso redimensionar o SVG?",
-        "answer": "Você pode escalar até 16x ou especificar dimensões personalizadas de até 4000 pixels para alta resolução pronta para impressão."
+        "answer": "Você pode escalar até 16x ou especificar dimensões personalizadas de até 4000 pixels para alta resolução pronta para impressão. A imagem final é limitada a 4000 pixels por lado."
       },
       {
         "question": "Meus arquivos permanecem privados e protegidos?",

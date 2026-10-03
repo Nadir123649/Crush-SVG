@@ -392,7 +392,7 @@
       },
       {
         "question": "Wie hoch kann ich die SVG-Ausgabe skalieren?",
-        "answer": "Sie können die Skalierung bis zu 16-fach wählen oder benutzerdefinierte Maße bis zu 4000 Pixel für den hochauflösenden Druck festlegen."
+        "answer": "Sie können die Skalierung bis zu 16-fach wählen oder benutzerdefinierte Maße bis zu 4000 Pixel für den hochauflösenden Druck festlegen. Das fertige Bild ist auf 4000 Pixel pro Seite begrenzt."
       },
       {
         "question": "Bleiben meine Dateien privat und geschützt?",

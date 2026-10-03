@@ -400,7 +400,7 @@
       },
       {
         "question": "How high can I scale my SVG output?",
-        "answer": "You can scale up to 16x or specify custom dimensions up to 4000 pixels for ultra-high-resolution, print-ready graphics."
+        "answer": "You can scale up to 16x or specify custom dimensions up to 4000 pixels for ultra-high-resolution, print-ready graphics. The final image is capped at 4000 pixels per side."
       },
       {
         "question": "Are my files kept private?",

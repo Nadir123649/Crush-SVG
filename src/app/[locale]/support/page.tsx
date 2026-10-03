@@ -127,7 +127,7 @@ export default async function SupportPage({
             Live Converter
           </h2>
           <p className="font-afacad text-[14px] text-text-muted leading-[1.5]">
-            Convert vector code or uploaded files with up to 16x scaling.
+            Convert vector code or uploaded files with up to 16x scaling (output capped at 4000px per side).
           </p>
         </Link>
       </div>

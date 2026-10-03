@@ -3,7 +3,7 @@
 > CrushSVG (https://www.crushsvg.net) is a high-performance, browser-based vector processing utility designed for web developers, UI/UX designers, and digital marketers. It converts SVG files to crisp transparent PNGs, vectorizes PNG/JPG images into SVG, removes image backgrounds using AI, optimizes SVG code, generates multi-resolution favicon packs, and compiles SVG code into React (TSX/JSX), Vue, and Svelte components.
 
 ## Core Features & Tools
-- [SVG to PNG Converter](https://www.crushsvg.net/convert-svg-to-png): Convert SVG code or files to transparent, high-res PNGs up to 16x scaling (ideal for Outlook, Gmail, Canva, Cricut, and Word).
+- [SVG to PNG Converter](https://www.crushsvg.net/convert-svg-to-png): Convert SVG code or files to transparent, high-res PNGs up to 16x scaling, output capped at 4000px per side (ideal for Outlook, Gmail, Canva, Cricut, and Word).
 - [PNG to SVG Vectorizer](https://www.crushsvg.net/png-to-svg): Trace bitmap PNG/JPG images into clean, scalable SVG vector paths.
 - [Background Remover](https://www.crushsvg.net/background-remover): Client-side AI background removal for product photos and logos with instant transparent PNG export.
 - [Image Resizer](https://www.crushsvg.net/image-resizer): Fast image resizing for PNG, JPG, and WebP with custom dimensions and quality settings.
