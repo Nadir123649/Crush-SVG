@@ -17,7 +17,14 @@ export const maxDuration = 30
 export async function POST(request: NextRequest) {
   const rl = await checkRateLimit(request, 'convert:svg', 30, 60_000)
   if (!rl.allowed) {
-    return errorResponse(429, 'rate_limit_exceeded', 'Too many conversion requests. Try again later.', rateLimitHeaders(rl), request)
+    return errorResponse(
+      429,
+      'rate_limit_exceeded',
+      'Too many conversion requests. Try again later.',
+      rateLimitHeaders(rl),
+      request,
+      { retryAfter: rl.retryAfterSeconds }
+    )
   }
 
   let body: unknown

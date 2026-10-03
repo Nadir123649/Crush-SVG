@@ -532,6 +532,11 @@ function SvgToPngConverter() {
         setShowSignupPrompt(true);
         return;
       }
+      // Request-rate 429 (not the quota 429 above): tell the user how long to wait.
+      if (err instanceof ApiError && err.status === 429 && err.code !== "limit_reached" && err.retryAfter) {
+        showToast("error", tToast("rateLimited", { seconds: err.retryAfter }));
+        return;
+      }
       if (err instanceof DOMException && err.name === "TimeoutError") {
         showToast("error", tToast("conversionTimedOut"));
         return;

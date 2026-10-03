@@ -5,12 +5,15 @@ import { apiBase, API_BASE } from '@/lib/client/api'
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
+  /** Seconds the server asked us to wait (429), when it said so. */
+  readonly retryAfter?: number
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, retryAfter?: number) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.retryAfter = retryAfter
   }
 }
 
@@ -242,17 +245,26 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
 }
 
 export interface ErrorBody {
-  error?: { code?: string; message?: string } | string
-  payload?: { error?: { code?: string; message?: string } }
+  error?: { code?: string; message?: string; retryAfter?: number } | string
+  payload?: { error?: { code?: string; message?: string; retryAfter?: number } }
   // Flat shape used by 401 responses: { success:false, code, message }
   code?: string
   message?: string
 }
 
-export function toApiError(status: number, body: ErrorBody | null): ApiError {
+function parseRetryAfter(body: ErrorBody | null, headers?: Headers): number | undefined {
+  const err = body?.payload?.error ?? body?.error
+  const fromBody = typeof err === 'object' && err !== null ? err.retryAfter : undefined
+  // Retry-After may also be an HTTP date; only the delta-seconds form is used here.
+  const value = fromBody ?? Number(headers?.get('retry-after'))
+  return Number.isFinite(value) && value > 0 ? Math.ceil(value) : undefined
+}
+
+export function toApiError(status: number, body: ErrorBody | null, headers?: Headers): ApiError {
   const err = body?.payload?.error ?? body?.error
   if (typeof err === 'object' && err !== null && typeof err.code === 'string') {
-    return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status))
+    const retryAfter = status === 429 ? parseRetryAfter(body, headers) : undefined
+    return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status), retryAfter)
   }
   if (typeof err === 'string') {
     return new ApiError(status, 'error', err)
@@ -287,7 +299,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const body = (await res.json().catch(() => null)) as ErrorBody | null
 
   if (!res.ok) {
-    throw toApiError(res.status, body)
+    throw toApiError(res.status, body, res.headers)
   }
 
   if (body && typeof body === 'object' && (body as { success?: boolean }).success === true) {
@@ -304,7 +316,7 @@ export async function apiBlob(path: string, init: RequestInit = {}): Promise<Blo
 
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ErrorBody | null
-    throw toApiError(res.status, body)
+    throw toApiError(res.status, body, res.headers)
   }
 
   return res.blob()
