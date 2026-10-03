@@ -26,8 +26,12 @@ export function setSessionCookies(res: NextResponse, refreshToken: string, remem
     res.cookies.set(SESSION_FLAG_COOKIE_NAME, "1", { ...options, httpOnly: false });
 }
 
+// Pass only name/path/domain: delete() keeps any maxAge it is given and turns it
+// into a future expiry, which would store an empty cookie instead of removing it.
 export function clearRefreshCookie(res: NextResponse): void {
-    res.cookies.delete({ name: REFRESH_COOKIE_NAME, ...getRefreshCookieOptions(true) });
+    const { path, domain } = getRefreshCookieOptions();
+    res.cookies.delete({ name: REFRESH_COOKIE_NAME, path, domain });
+    res.cookies.delete({ name: SESSION_FLAG_COOKIE_NAME, path, domain });
 }
 export function toUserDTO(user: UserDoc): UserDTO {
     return {

@@ -100,7 +100,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
 
   const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value
   if (!refreshToken) {
-    return NextResponse.json(
+    const res = NextResponse.json(
       {
         success: false,
         version: '1.0.0',
@@ -109,6 +109,10 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
       },
       { status: 200, headers: rateLimitHeaders(rl) }
     )
+    // Drop a stale crushsvg_session flag so the client stops attempting a
+    // refresh on every page load.
+    clearRefreshCookie(res)
+    return res
   }
 
   // Without this check a missing JWT secret makes verifyRefreshToken reject,
