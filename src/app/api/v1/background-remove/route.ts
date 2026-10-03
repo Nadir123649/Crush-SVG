@@ -19,7 +19,7 @@ import { processBackgroundRemove } from "@/lib/bg-remove/process";
 import { z } from "zod";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60_000;
