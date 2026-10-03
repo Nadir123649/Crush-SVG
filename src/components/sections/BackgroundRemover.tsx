@@ -9,6 +9,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { ApiError, authFetch, getAccessToken, toApiError, type ErrorBody } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import { prepareImageForUpload } from "@/lib/client/prepare-upload";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
