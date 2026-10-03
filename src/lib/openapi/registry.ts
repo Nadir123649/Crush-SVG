@@ -128,6 +128,7 @@ const convertBody = registry.register(
   "ConvertBody",
   z.object({
     svg: z.string().min(1).max(10 * 1024 * 1024),
+    format: z.enum(["png"]).default("png").describe("Output format (only png is currently supported)"),
     width: z.number().int().min(1).max(4000).optional().describe("Output width in px (max 4000)"),
     height: z.number().int().min(1).max(4000).optional().describe("Output height in px (max 4000)"),
     scale: z
