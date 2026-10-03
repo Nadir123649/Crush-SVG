@@ -230,13 +230,18 @@ export function classifyImage(
 
   // Flat fills with no texture and few unique colors are definitively graphics
   // (e.g. orange cloud logos, flat vector artwork with warm colors).
-  // Real photos of humans or natural scenes have natural micro-textures and gradients.
-  // Never early-exit as graphic if skin tones are detected (> 1.5%).
-  if (
-    (stats.avgLocalVariance < 8 && stats.uniqueColorRatio < 0.02) ||
-    (stats.skinToneRatio <= 0.015 &&
-      (stats.avgLocalVariance < 15 || (stats.avgLocalVariance < 35 && stats.uniqueColorRatio < 0.025)))
-  ) {
+  // This is POSITIVE evidence of graphic content, so exiting early is safe.
+  //
+  // A second clause used to exit on the *absence* of skin tone combined with
+  // low measured variance. That inverted the invariant stated at the top of
+  // this file ("a photographic portrait must NEVER be classified as graphic"):
+  // a portrait whose skin tone fell under the 1.5% cut-off — a small face in a
+  // wide frame, cool or underexposed lighting, or micro-texture flattened by
+  // downscaling — was force-routed to the legacy engine before the scorer ever
+  // ran, even though the scorer credits the same images (+2 above 1%). Those
+  // images now reach the scoring path, where the flat-fill and few-colour
+  // penalties below still send genuine graphics to the legacy engine.
+  if (stats.avgLocalVariance < 8 && stats.uniqueColorRatio < 0.02) {
     return "graphic";
   }
 

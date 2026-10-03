@@ -3,7 +3,9 @@ import { revalidatePath } from "next/cache";
 import { successResponse, errorResponse } from "@/lib/http/api-response";
 import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
-import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
+import { ensureGuestId, GUEST_CONVERSION_LIMIT } from "@/lib/usage/guest-usage";
+import { getConversionUsage, incrementConversionUsage, type ConversionUsage } from "@/lib/usage/conversion-usage";
+import { auth } from "@/lib/middleware/auth-middleware";
 import { classifyRasterError, RasterConversionError } from "@/lib/raster/errors";
 import { rasterOptionsSchema } from "@/lib/raster/validation";
 import { rasterToSvg } from "@/lib/raster/raster-to-svg";
@@ -17,37 +19,29 @@ const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60_000;
 
-async function getUsage(request: NextRequest) {
-  const guestId = ensureGuestId(request).guestId ?? crypto.randomUUID();
-  try {
-    const used = Math.min(await getGuestUsage(guestId), GUEST_CONVERSION_LIMIT);
-    return { guestId, maxConversions: GUEST_CONVERSION_LIMIT, used, remaining: Math.max(GUEST_CONVERSION_LIMIT - used, 0) };
-  } catch {
-    return { guestId, maxConversions: GUEST_CONVERSION_LIMIT, used: 0, remaining: GUEST_CONVERSION_LIMIT };
+/**
+ * Enforces the role-based conversion quota (guest/unverified 3, verified 5,
+ * admin unlimited) through the same helper the other conversion endpoints use.
+ *
+ * This previously skipped the check whenever an `x-user-id` header was present.
+ * Nothing in the app ever set that header, so it was purely a client-controlled
+ * way to bypass the limit; it has been removed and real session auth is used.
+ */
+async function enforceConversionLimit(request: NextRequest): Promise<NextResponse | ConversionUsage> {
+  const usage = await getConversionUsage(request);
+  if (usage.kind === "auth-error") {
+    return errorResponse(401, "unauthorized", "Session expired. Please sign in again.", undefined, request);
   }
-}
-
-async function enforceGuestLimit(request: NextRequest): Promise<NextResponse | { guestId: string; maxConversions: number; used: number; remaining: number }> {
-  if (request.headers.get("x-user-id")) return getUsage(request);
-  const usage = await getUsage(request);
-  if (usage.remaining <= 0) {
+  if (usage.limitReached) {
     return errorResponse(
       429,
-      "guest_limit_reached",
-      "Daily guest conversion limit reached. Sign in or try again tomorrow.",
+      "limit_reached",
+      `You've used your ${usage.limit ?? GUEST_CONVERSION_LIMIT} free conversions.`,
       undefined,
       request,
     );
   }
   return usage;
-}
-
-async function incrementUsage(guestId: string) {
-  try {
-    await incrementGuestUsage(guestId);
-  } catch {
-    /* non-fatal */
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -57,9 +51,9 @@ export async function POST(request: NextRequest) {
       return errorResponse(429, "rate_limited", "Too many requests. Slow down and retry.", undefined, request);
     }
 
-    const limitOrResponse = await enforceGuestLimit(request);
+    const limitOrResponse = await enforceConversionLimit(request);
     if (limitOrResponse instanceof NextResponse) return limitOrResponse;
-    const limit = limitOrResponse;
+    const usage = limitOrResponse;
 
     const form = await request.formData();
     const file = form.get("file");
@@ -84,22 +78,32 @@ export async function POST(request: NextRequest) {
 
     const result = await rasterToSvg(buffer, options);
 
+    const guestId = usage.kind === "guest" ? ensureGuestId(request).guestId ?? undefined : undefined;
+
     await logConversion({
-      userId: request.headers.get("x-user-id"),
-      guestId: limit.guestId,
+      userId: usage.userId,
+      guestId,
       inputFormat: file.type || "image",
       outputFormat: "svg",
       originalSize,
       success: true,
     });
 
-    const userId = request.headers.get("x-user-id");
-    if (!userId) await incrementUsage(limit.guestId);
+    // Increment for guests and authenticated users alike so the enforced quota
+    // and the displayed count can never diverge.
+    let conversionsUsed = usage.count;
+    try {
+      conversionsUsed = await incrementConversionUsage(request);
+    } catch {
+      /* non-fatal */
+    }
 
     // Invalidate admin dashboard cache for real-time metrics
     revalidatePath('/admin')
 
-    const usage = await getUsage(request);
+    const remaining =
+      usage.isUnlimited || usage.limit === null ? undefined : Math.max(0, usage.limit - conversionsUsed);
+
     const response = successResponse(
       {
         svg: result.svg,
@@ -109,8 +113,8 @@ export async function POST(request: NextRequest) {
         colorCount: result.colorCount,
         size: result.size,
         advisory: result.advisory,
-        conversionsUsed: userId ? undefined : usage.used,
-        remaining: userId ? undefined : usage.remaining,
+        conversionsUsed,
+        remaining,
       },
       200,
       undefined,
@@ -135,7 +139,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function logConversionError(request: NextRequest, error: unknown) {
-  const userId = request.headers.get("x-user-id");
+  const who = await auth(request);
+  const userId = "user" in who ? who.user.id : undefined;
   const guestId = !userId ? ensureGuestId(request).guestId : null;
   await logConversion({
     userId,

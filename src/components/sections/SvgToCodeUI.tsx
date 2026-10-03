@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
@@ -11,9 +11,15 @@ import {
   type SvgToCodeOptions,
 } from "@/lib/svg/svg-to-code";
 import { isValidSvgContent, svgToDataUrl } from "@/lib/client/converter";
+import { canvasToPngBuffer, loadSvgImage } from "@/lib/svg/favicon-generator";
 import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
+import { useAuth } from "@/lib/client/auth-context";
+import { getUsage } from "@/lib/client/sessions";
+import { resolveQuotaDisplay } from "@/lib/client/quota";
+import { getAccessToken } from "@/lib/client/http";
+import type { UsageInfo } from "@/lib/shared/shared-types";
 import { IMAGES } from "@/lib/shared/images";
 
 const SAMPLE_SVGS: Record<string, { label: string; name: string; svg: string }> = {
@@ -70,6 +76,8 @@ const FRAMEWORK_TABS: { id: TargetFramework; label: string; ext: string }[] = [
 export function SvgToCodeUI() {
   const t = useTranslations("svg_to_code_ui");
   const tUpload = useTranslations("upload_interface");
+  const tDownload = useTranslations("download_interface");
+  const tUsage = useTranslations("usage");
   const tA11y = useTranslations("accessibility");
 
   const [svgInput, setSvgInput] = useState<string>(SAMPLE_SVGS.rocket.svg);
@@ -80,8 +88,36 @@ export function SvgToCodeUI() {
   const [dragOver, setDragOver] = useState<boolean>(false);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { status, sessionVersion } = useAuth();
+
+  // Conversion usage shown on the code card header. `/api/v1/usage` is the
+  // single source of truth: it reports `limit` (3 guest/unverified, 5 verified)
+  // and only sets `isUnlimited` for a real admin, so the label is never
+  // inferred from the auth status here.
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
+
+    let cancelled = false;
+    getUsage()
+      .then((u) => {
+        if (!cancelled) {
+          setUsage(u);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [status, sessionVersion]);
+
+  const quotaDisplay = resolveQuotaDisplay(usage);
 
   const dims = useMemo(() => parseSvgDimensions(svgInput), [svgInput]);
   const aspectLabel = dims.width && dims.height ? ` (aspect ratio ${(dims.width / dims.height).toFixed(3)})` : "";
@@ -139,13 +175,45 @@ export function SvgToCodeUI() {
     void handleFile(e.dataTransfer.files?.[0]);
   }
 
-  async function handleCopyCode() {
-    if (!generatedCode) return;
+  /**
+   * Copies the previewed SVG to the system clipboard as a real image.
+   *
+   * Clipboard writes only accept raster image types in practice — `image/svg+xml`
+   * is unsupported by Chrome, Safari and Firefox — so the SVG is rasterised to
+   * PNG on an offscreen canvas first. This writes the displayed artwork, not the
+   * generated component code and not the SVG data URI as text.
+   */
+  async function handleCopyImage() {
+    if (!cleanSvgMarkup) return;
     try {
-      await navigator.clipboard.writeText(generatedCode);
+      if (typeof ClipboardItem === "undefined" || !ClipboardItem.supports?.("image/png")) {
+        throw new Error("image/png clipboard writes are not supported");
+      }
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          // Safari only honours the write when the Blob is produced inside this
+          // promise, which keeps the user-activation token alive across the
+          // async rasterisation. Chromium/Firefox accept the same form.
+          "image/png": (async () => {
+            const img = await loadSvgImage(cleanSvgMarkup);
+            const canvas = document.createElement("canvas");
+            // Source dimensions keep the original aspect ratio; the 24 fallback
+            // mirrors the one already used by the preview badge.
+            canvas.width = dims.width || 24;
+            canvas.height = dims.height || 24;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas 2D context is unavailable");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const { blob } = await canvasToPngBuffer(canvas);
+            return blob;
+          })(),
+        }),
+      ]);
+
       setCopiedCode(true);
-      showToast("success", t("codeCopied"));
       setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", tDownload("copied"));
     } catch {
       showToast("error", t("copyFailed"));
     }
@@ -231,8 +299,14 @@ export function SvgToCodeUI() {
                       {tUpload("clear")}
                     </span>
                   </button>
-                  <span className="font-mono text-[12px] text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded">
-                    {svgInput.length} chars
+                  <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                    {status === "loading"
+                      ? "\u00A0"
+                      : quotaDisplay.kind === "unlimited"
+                      ? tUsage("unlimitedConversions")
+                      : quotaDisplay.kind === "counted"
+                      ? tUsage("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
+                      : "\u00A0"}
                   </span>
                 </div>
               </div>
@@ -446,19 +520,19 @@ export function SvgToCodeUI() {
                     </span>
                   </Button>
 
-                  {/* Secondary Copy Code Button */}
+                  {/* Secondary Copy Image Button */}
                   <div className="flex items-center gap-[16px] mt-[2px]">
                     <button
                       type="button"
-                      onClick={handleCopyCode}
-                      disabled={!generatedCode}
+                      onClick={handleCopyImage}
+                      disabled={!cleanSvgMarkup || !dims.width || !dims.height}
                       className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                       </svg>
-                      {copiedCode ? t("copied") : t("copyCode")}
+                      {copiedCode ? t("copied") : tDownload("copyImage")}
                     </button>
                   </div>
                 </div>

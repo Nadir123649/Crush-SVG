@@ -25,6 +25,8 @@ export interface TokenPairDTO {
 }
 export interface UsageInfo {
     conversionsUsed: number;
+    /** Maximum conversions for the caller's role; `null` means unlimited. */
+    limit: number | null;
     remaining: number | null;
     isUnlimited: boolean;
     limitReached?: boolean;

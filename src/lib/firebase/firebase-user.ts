@@ -17,7 +17,17 @@ export function providerIdToName(providerId: string): ProviderName {
 function roleFor(email: string | null | undefined): "user" | "admin" {
     return isAdminEmail(email) ? "admin" : "user";
 }
-export async function resolveUserCascade(token: DecodedIdToken, provider: ProviderName, users?: Model<UserDoc>): Promise<UserDoc> {
+/**
+ * An authoritative photoURL resolved from the identity provider (Google People
+ * API). Its presence — not its contents — is the signal: `{ photoURL: null }`
+ * means "provider confirmed there is no user-provided photo", and MUST
+ * overwrite any previously stored provider avatar. `undefined` means "no
+ * authoritative answer", and the caller falls back to the OAuth token picture.
+ */
+export interface VerifiedPhoto {
+    photoURL: string | null;
+}
+export async function resolveUserCascade(token: DecodedIdToken, provider: ProviderName, users?: Model<UserDoc>, verifiedPhoto?: VerifiedPhoto): Promise<UserDoc> {
     const model = users ?? User;
     const now = new Date();
     const email = token.email ? token.email.toLowerCase().trim() : null;
@@ -44,7 +54,10 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
         const updateData: any = {
             email: email ?? user.email,
             displayName,
-            photoURL: token.picture || user.photoURL,
+            // Deliberately NOT `verifiedPhoto || token.picture || user.photoURL`:
+            // that `||` chain would discard an authoritative null and let a stale
+            // Google default-avatar URL survive. Branch on presence, not truthiness.
+            photoURL: verifiedPhoto ? verifiedPhoto.photoURL : (token.picture || user.photoURL),
             lastLoginAt: now,
         };
         if (token.email_verified) {
@@ -70,7 +83,7 @@ export async function resolveUserCascade(token: DecodedIdToken, provider: Provid
             uid: token.uid,
             email: email ?? token.email ?? null,
             displayName: token.name ?? "CrushSVG user",
-            photoURL: token.picture ?? null,
+            photoURL: verifiedPhoto ? verifiedPhoto.photoURL : (token.picture ?? null),
             providers: [provider],
             linkedProviders: [provider],
             role: resolveRole({

@@ -237,6 +237,33 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</span>
             <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("bgRemoverDesc")}</span>
           </Link>
+          <Link
+            href="/svg-optimizer"
+            onClick={(e) => handlePageClick(e, '/svg-optimizer')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">OPT</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("svgOptimizerDesc")}</span>
+          </Link>
+          <Link
+            href="/favicon-generator"
+            onClick={(e) => handlePageClick(e, '/favicon-generator')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">ICO</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("faviconGeneratorFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("faviconGeneratorDesc")}</span>
+          </Link>
+          <Link
+            href="/svg-to-react"
+            onClick={(e) => handlePageClick(e, '/svg-to-react')}
+            className="flex flex-col items-center md:items-start p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+          >
+            <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center mb-[8px] border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">RCT</span>
+            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToReactFull")}</span>
+            <span className="font-body text-[11px] md:text-[12px] text-text-muted mt-[2px] text-center md:text-left">{t("svgToReactDesc")}</span>
+          </Link>
         </div>
       </div>
 

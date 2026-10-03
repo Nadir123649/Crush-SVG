@@ -10,6 +10,7 @@ import { svgToDataUrl } from "@/lib/client/converter";
 import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
 import { getAccessToken, ApiError } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
+import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
@@ -336,7 +337,6 @@ export function RasterToSvgConverter() {
 
   // Auth & Quota
   const [usage, setUsage] = useState<UsageInfo | null>(null);
-  const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -372,7 +372,6 @@ export function RasterToSvgConverter() {
       setResult(null);
       setError(null);
       setUsage(null);
-      setUsageFailed(false);
       setShowSignupPrompt(false);
       try {
         sessionStorage.removeItem(STORAGE_KEY);
@@ -383,11 +382,6 @@ export function RasterToSvgConverter() {
 
   // Usage polling
   useEffect(() => {
-    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
-    if (status === "authed") {
-      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
-    }
-
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
 
@@ -398,15 +392,13 @@ export function RasterToSvgConverter() {
       })
       .catch(() => {
         if (cancelled) return;
-        if (status !== "authed") {
-          setUsage(null);
-          setUsageFailed(true);
-        }
       });
     return () => {
       cancelled = true;
     };
   }, [status, sessionVersion]);
+
+  const quotaDisplay = resolveQuotaDisplay(usage);
 
   // Outside click listener for dropdowns
   useEffect(() => {
@@ -696,21 +688,10 @@ export function RasterToSvgConverter() {
       conversionSucceeded = true;
       trackConversion("raster_vectorized", { output_format: "svg" });
       
-      try {
-        const u = await trackConversionUsage({
-          inputFormat: fileToConvert.name.split('.').pop()?.toLowerCase() || 'png',
-          outputFormat: 'svg',
-          originalSize: fileToConvert.size,
-          success: true,
-        });
-        if (!controller.signal.aborted && status === "authed") {
-          setUsage({ ...u, isUnlimited: true, remaining: null, limitReached: false });
-        } else if (!controller.signal.aborted) {
-          setUsage(u);
-        }
-      } catch (e) {
-        console.error("Failed to track usage", e);
-      }
+      // `/api/v1/vectorize` already increments the authoritative counter, so
+      // this only re-reads it. Calling the tracking endpoint here as well would
+      // double-count the conversion.
+      void refreshUsage(setUsage);
     } catch (err) {
       if (controller.signal.aborted) return;
       let msg = err instanceof Error ? err.message : t("errorConversion");
@@ -771,7 +752,7 @@ export function RasterToSvgConverter() {
     }
   }
 
-  const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
+  const limitReached = hasQuotaLimitReached(usage);
   const isSvgResult = !!result?.svg;
   const previewSvgUrl = useMemo(() => {
     if (!result?.svg) return "";
@@ -834,10 +815,10 @@ export function RasterToSvgConverter() {
                     {/* Usage Counter */}
                     {status !== "loading" && (usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {status === "authed" || usage?.isUnlimited
+                        {quotaDisplay.kind === "unlimited"
                           ? t("unlimitedConversions")
-                          : usage && !usageFailed
-                          ? t("conversionsUsed", { used: usage.conversionsUsed, total: usage.conversionsUsed + (usage.remaining ?? 0) })
+                          : quotaDisplay.kind === "counted"
+                          ? t("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
                           : "\u00A0"}
                       </span>
                     )}
