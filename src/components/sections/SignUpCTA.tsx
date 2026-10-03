@@ -19,15 +19,9 @@ export function SignUpCTA() {
       getUsage().then(setUsage).catch(() => {});
 
       const handleUsageUpdated = (e: Event) => {
-        const customEvent = e as CustomEvent;
-        if (customEvent.detail) {
-          setUsage((prev) => {
-            const newUsage = prev ? { ...prev } : { conversionsUsed: 0, remaining: 3, isUnlimited: false };
-            newUsage.conversionsUsed = customEvent.detail.conversionsUsed;
-            newUsage.remaining = customEvent.detail.remaining;
-            return newUsage;
-          });
-        }
+        const detail = (e as CustomEvent<UsageInfo>).detail;
+        // `refreshUsage` dispatches the full authoritative payload.
+        if (detail) setUsage(detail);
       };
 
       window.addEventListener("crushUsageUpdated", handleUsageUpdated);
@@ -39,9 +33,9 @@ export function SignUpCTA() {
     return null;
   }
 
-  const remaining = usage ? (usage.remaining ?? 0) : 3;
-  const used = usage ? usage.conversionsUsed : 0;
-  const totalFree = remaining + used || 3;
+  const used = usage?.conversionsUsed ?? 0;
+  const remaining = usage?.remaining ?? 0;
+  const totalFree = usage?.limit ?? ((remaining + used) || 3);
 
   const points = [];
   for (let i = totalFree; i > 0; i--) {

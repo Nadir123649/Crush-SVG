@@ -6,7 +6,7 @@ import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
-import { getAdminCached, setAdminCached, invalidateAdminCache } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, invalidateAdminCache, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const BLOGS_PAGE_SIZE = 15;
@@ -95,10 +95,20 @@ export default function BlogsPage() {
             setError(null);
 
             try {
-                const response = await apiFetch<{
+                let fetchPromise = getAdminInFlight<{
                     data: any[];
                     meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-                }>(`/api/v1/admin/blogs?${queryParams.toString()}`);
+                }>(cacheKey);
+
+                if (!fetchPromise) {
+                    fetchPromise = apiFetch<{
+                        data: any[];
+                        meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+                    }>(`/api/v1/admin/blogs?${queryParams.toString()}`);
+                    setAdminInFlight(cacheKey, fetchPromise);
+                }
+
+                const response = await fetchPromise;
 
                 if (cancelled) return;
                 if (response?.data) {

@@ -17,6 +17,7 @@ import {
 import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
@@ -96,7 +97,6 @@ function SvgToPngConverter() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ConvertResponse | null>(null);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
-  const [usageFailed, setUsageFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -131,7 +131,6 @@ function SvgToPngConverter() {
       setError(null);
       setPreviewError(false);
       setUsage(null);
-      setUsageFailed(false);
       setShowSignupPrompt(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("crush_converter_state");
@@ -168,13 +167,6 @@ function SvgToPngConverter() {
   }, [openDropdown]);
 
   useEffect(() => {
-    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
-    if (status === "authed") {
-      queueMicrotask(() => {
-        setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
-      });
-    }
-
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
 
@@ -183,13 +175,7 @@ function SvgToPngConverter() {
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
-      .catch(() => {
-        if (cancelled) return;
-        if (status !== "authed") {
-          setUsage(null);
-          setUsageFailed(true);
-        }
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -302,6 +288,7 @@ function SvgToPngConverter() {
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
+    setOpenDropdown(null);
   }
 
   function handleClearSvg() {
@@ -450,33 +437,9 @@ function SvgToPngConverter() {
         height: options.height,
         scale: options.scale,
       });
-      if (status === "authed") {
-        setUsage((prev) => ({
-          conversionsUsed: res.conversionsUsed ?? (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
-          remaining: null,
-          isUnlimited: true,
-          limitReached: false,
-        }));
-      } else if (res.remaining !== undefined) {
-        const reached = res.remaining === 0;
-        const updatedUsage = {
-          conversionsUsed: res.conversionsUsed,
-          remaining: res.remaining,
-          isUnlimited: false,
-          limitReached: reached,
-        };
-        setUsage(updatedUsage);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
-          } catch {}
-        }
-        window.dispatchEvent(
-          new CustomEvent("crushUsageUpdated", {
-            detail: { conversionsUsed: res.conversionsUsed, remaining: res.remaining },
-          })
-        );
-      }
+      // Re-read the authoritative quota after a conversion instead of guessing it
+      // from the auth status, so the counter refreshes without a page reload.
+      void refreshUsage(setUsage);
     } catch (err) {
       if (controller.signal.aborted) return;
       if (err instanceof ApiError && err.code === "limit_reached" && status !== "authed") {
@@ -543,7 +506,8 @@ function SvgToPngConverter() {
   const widthOptions = ["Original", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
   const heightOptions = ["Auto", "Custom", ...(unit === "cm" ? cmPresets : PRESET_SIZES)];
   const isScaleDisabled = selectedWidth !== "Original" || selectedHeight !== "Auto";
-  const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
+  const quotaDisplay = resolveQuotaDisplay(usage);
+  const limitReached = hasQuotaLimitReached(usage);
 
   let validationError: string | null = null;
   if (isCustomWidth) {
@@ -626,12 +590,12 @@ function SvgToPngConverter() {
                     <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "loading"
                         ? "\u00A0"
-                        : status === "authed" || usage?.isUnlimited
+                        : quotaDisplay.kind === "unlimited"
                         ? tUsage("unlimitedConversions")
-                        : usage && !usageFailed
+                        : quotaDisplay.kind === "counted"
                         ? tUsage("conversionsUsed", {
-                            used: usage.conversionsUsed,
-                            total: usage.conversionsUsed + (usage.remaining ?? 0),
+                            used: quotaDisplay.used,
+                            total: quotaDisplay.total,
                           })
                         : "\u00A0"}
                     </span>

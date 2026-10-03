@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { User, AuditLog, isDuplicateKeyError } from '@/lib/database/db'
 import { successResponse, errorResponse, getFrontendOrigin, getApiOrigin } from '@/lib/http/api-response'
 import { toUserDTO } from '@/lib/auth/auth'
+import { resolveRole } from '@/lib/auth/roles'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
 import { sendVerificationEmail } from '@/lib/integrations/email'
 import { getClientIp } from '@/lib/security/ip'
@@ -67,10 +68,10 @@ export async function GET(request: NextRequest) {
     filter.$and = andClauses
   }
 
-  let docs
+  let docsPromise
   
   if (sortBy === 'status') {
-    docs = await User.aggregate([
+    docsPromise = User.aggregate([
       { $match: filter },
       { 
         $addFields: {
@@ -97,10 +98,11 @@ export async function GET(request: NextRequest) {
     // Default sorting
     const sortObj: Record<string, 1 | -1> = {}
     sortObj[sortBy] = sortOrder
-    docs = await User.find(filter).sort(sortObj).skip(skip).limit(limit)
+    docsPromise = User.find(filter).sort(sortObj).skip(skip).limit(limit)
   }
 
-  const [total] = await Promise.all([
+  const [docs, total] = await Promise.all([
+    docsPromise,
     User.countDocuments(filter)
   ])
 
@@ -179,7 +181,8 @@ export async function POST(request: NextRequest) {
       email: targetEmail,
       displayName: (displayName && displayName.trim()) ? displayName.trim() : targetEmail.split('@')[0],
       photoURL: null,
-      role,
+      // New accounts start unverified, so admin cannot be granted here.
+      role: resolveRole({ role, isVerified: false, providers: ['email'] }),
       isVerified: false,
       emailVerificationToken: hashToken(token),
       emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,

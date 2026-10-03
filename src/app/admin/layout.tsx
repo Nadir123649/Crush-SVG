@@ -153,7 +153,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setIsDesktopSidebarOpen((open) => !open);
           }
         }}
-        className={`hidden md:flex fixed top-0 bottom-0 z-40 w-4 cursor-pointer items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
+        className={`hidden md:block fixed top-0 bottom-0 z-40 w-4 cursor-pointer items-center justify-center transition-all duration-300 group focus:outline-none select-none ${
           isDesktopSidebarOpen ? "left-[256px]" : "left-[68px]"
         }`}
         title={isDesktopSidebarOpen ? "Click to close sidebar" : "Click to open sidebar"}
@@ -196,10 +196,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}
         className={`
         fixed md:relative inset-y-0 left-0 z-50 md:z-30
-        flex flex-col ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between
+        flex flex-col shrink-0 ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between overflow-hidden
         transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
-        md:translate-x-0 md:shadow-none
+        ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
+        md:shadow-none
       `}>
         <div>
           {/* Header - Fixed height container to prevent any layout shift */}
@@ -276,7 +276,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Profile / Logout */}
-        <div className={`pb-6 ${isDesktopSidebarOpen ? 'px-6' : 'px-3 md:flex md:flex-col md:items-center'}`}>
+        <div className={`mt-auto shrink-0 max-w-full overflow-hidden pb-6 ${isDesktopSidebarOpen ? 'px-6' : 'px-3 md:flex md:flex-col md:items-center'}`}>
           <div className={`flex items-center mb-4 ${isDesktopSidebarOpen ? 'space-x-3' : 'md:justify-center md:space-x-0 space-x-3'}`}>
             {user?.photoURL && failedImageUrl !== user.photoURL ? (
               <Image
@@ -294,7 +294,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
               </div>
             )}
-            <div className={`truncate text-sm text-text-muted font-medium ${isDesktopSidebarOpen ? 'opacity-100 w-auto' : 'md:opacity-0 md:w-0 md:h-0'}`}>
+            <div className={`truncate min-w-0 text-sm text-text-muted font-medium ${isDesktopSidebarOpen ? 'opacity-100 w-auto' : 'md:opacity-0 md:w-0 md:h-0'}`}>
               {user?.displayName || user?.email || "admin@example.com"}
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 w-full h-screen overflow-hidden">
         {/* TopAppBar (Header) */}
         <header className="flex justify-between items-center w-full px-6 lg:px-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
           <div className="flex items-center space-x-4">

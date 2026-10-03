@@ -106,6 +106,10 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
   // (429) and server errors are transient; clearing the session there would
   // log out a perfectly valid user and poison the stored snapshot, flashing
   // guest UI on the next refresh.
+  if (res.status >= 500) {
+    refreshServerErrorStreak++
+    return { payload: null, sessionDead: false }
+  }
   const sessionIsDead = res.status === 401 || (res.status === 200 && body?.success !== true)
   if (res.status !== 200 || body?.success !== true || !body?.payload) {
     if (!silent && sessionIsDead) onAuthExpired?.()
@@ -113,6 +117,7 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
   }
   const { token, sessionId, remember, user } = body.payload
   if (!token?.accessToken) return { payload: null, sessionDead: true }
+  refreshServerErrorStreak = 0
   setAccessToken(token.accessToken)
   activeSessionId = sessionId ?? null
   activeRemember = remember ?? null
@@ -121,11 +126,30 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
 
 let refreshInFlight: Promise<RefreshResult> | null = null
 
+// Circuit-breaker: after this many consecutive 5xx responses from the refresh
+// endpoint, stop retrying until the page is reloaded. Prevents an infinite
+// loop of authFetch → 401 → refresh → 500 → authFetch → …
+let refreshServerErrorStreak = 0
+const REFRESH_SERVER_ERROR_CAP = 3
+
+export function resetRefreshCircuitBreaker(): void {
+  refreshServerErrorStreak = 0
+}
+
 export async function refreshSession(opts?: { silent?: boolean }): Promise<RefreshResult> {
+  if (refreshServerErrorStreak >= REFRESH_SERVER_ERROR_CAP) {
+    return { payload: null, sessionDead: false }
+  }
   if (!refreshInFlight) {
-    refreshInFlight = doRefresh(opts?.silent).finally(() => {
-      refreshInFlight = null
-    })
+    refreshInFlight = doRefresh(opts?.silent)
+      .then((result) => {
+        // A successful refresh resets the streak.
+        if (result.payload) refreshServerErrorStreak = 0
+        return result
+      })
+      .finally(() => {
+        refreshInFlight = null
+      })
   }
   return refreshInFlight
 }
@@ -159,6 +183,17 @@ async function executeFetch(url: string, init: RequestInit): Promise<Response> {
   }
 }
 
+export const SESSION_EXPIRED_MESSAGE = 'Session expired, please log in again.'
+export const SERVER_ERROR_MESSAGE = 'Server error, try again later.'
+
+// The single place a dead session is reported: clears auth state and shows one
+// toast. Callers must not add their own toast for code 'session_expired'.
+function throwSessionExpired(): never {
+  onAuthExpired?.()
+  emitToast('error', SESSION_EXPIRED_MESSAGE)
+  throw new ApiError(401, 'session_expired', SESSION_EXPIRED_MESSAGE)
+}
+
 export async function authFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
   let token = attachAuth(headers)
@@ -178,9 +213,7 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       token = accessToken
       headers.set('authorization', `Bearer ${token}`)
     } else if (result.sessionDead) {
-      onAuthExpired?.()
-      emitToast('error', 'Your session has expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
+      throwSessionExpired()
     }
     // else: transient failure — proceed without token, let the API decide
   }
@@ -197,11 +230,12 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
       headers.set('authorization', `Bearer ${accessToken}`)
       res = await executeFetch(apiBase(path), { ...init, headers, credentials: API_BASE ? 'include' : 'same-origin' })
     } else if (result.sessionDead) {
-      onAuthExpired?.()
-      emitToast('error', 'Your session has expired. Please sign in again.')
-      throw new ApiError(401, 'session_expired', 'Your session has expired. Please sign in again.')
+      throwSessionExpired()
+    } else {
+      // Transient refresh failure (5xx / network): the session may be fine, so
+      // do not log out — but the 401 is the server's fault, not the user's.
+      throw new ApiError(503, 'server_error', SERVER_ERROR_MESSAGE)
     }
-    // else: transient failure — return the original 401 response as-is
   }
 
   return res
@@ -210,6 +244,9 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
 export interface ErrorBody {
   error?: { code?: string; message?: string } | string
   payload?: { error?: { code?: string; message?: string } }
+  // Flat shape used by 401 responses: { success:false, code, message }
+  code?: string
+  message?: string
 }
 
 export function toApiError(status: number, body: ErrorBody | null): ApiError {
@@ -219,6 +256,9 @@ export function toApiError(status: number, body: ErrorBody | null): ApiError {
   }
   if (typeof err === 'string') {
     return new ApiError(status, 'error', err)
+  }
+  if (typeof body?.code === 'string') {
+    return new ApiError(status, body.code, body.message ?? humanizeErrorCode(body.code, status))
   }
   if (typeof body?.payload === 'object' && body.payload !== null && typeof (body.payload as Record<string, unknown>).message === 'string') {
     return new ApiError(status, `http_${status}`, (body.payload as { message: string }).message)

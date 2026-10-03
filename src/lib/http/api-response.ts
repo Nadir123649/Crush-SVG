@@ -22,8 +22,15 @@ export function errorResponse(status: number, code: string, message: string, hea
         serverTimestamp: new Date().toISOString(),
     }, { status, headers: responseHeaders });
 }
+function isApiHostname(host: string): boolean {
+    const h = host.toLowerCase().replace(/^https?:\/\//, "").split("/")[0].replace(/:\d+$/, "");
+    return h.startsWith("api.") || h.includes(".api.");
+}
 function canonicalBase(): string {
-    return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ?? "";
+    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ?? "";
+    // A frontend origin must never point at the API subdomain.
+    if (base && isApiHostname(base)) return "";
+    return base;
 }
 function allowedHosts(): string[] {
     return (process.env.APP_ORIGINS ?? process.env.NEXT_PUBLIC_APP_URL ?? "")

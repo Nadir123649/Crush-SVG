@@ -53,12 +53,36 @@ class MemoryStore implements RateStore {
   }
 }
 
+const DEFAULT_RATE_STORE_TIMEOUT_MS = 600;
+const INVALIDATE_TIMEOUT_MS = 2000;
+
+function rateStoreTimeoutMs(): number {
+  const parsed = Number(process.env.RATE_STORE_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_RATE_STORE_TIMEOUT_MS;
+}
+
 class UpstashFailOpenStore implements RateStore {
   private redis: Redis;
+  // Session invalidation gets a longer budget: a timed-out DEL may leave a revoked session cached
+  private invalidateRedis: Redis;
   private memoryFallback = new MemoryStore();
 
   constructor(url: string, token: string) {
-    this.redis = new Redis({ url, token });
+    const timeoutMs = rateStoreTimeoutMs();
+    // signal must be a function: with a plain AbortSignal, @upstash/redis returns a fake
+    // 200 "Aborted" result instead of throwing, which would bypass the memory fallback
+    this.redis = new Redis({
+      url,
+      token,
+      retry: { retries: 1, backoff: () => 25 },
+      signal: () => AbortSignal.timeout(timeoutMs),
+    });
+    this.invalidateRedis = new Redis({
+      url,
+      token,
+      retry: { retries: 2, backoff: () => 50 },
+      signal: () => AbortSignal.timeout(INVALIDATE_TIMEOUT_MS),
+    });
   }
 
   async get(key: string): Promise<string | number | null> {
@@ -95,7 +119,7 @@ class UpstashFailOpenStore implements RateStore {
 
   async reset(key: string): Promise<void> {
     try {
-      await this.redis.del(key);
+      await this.invalidateRedis.del(key);
     } catch (err) {
       console.warn("[rate-store] Upstash Redis reset failed:", err);
       await this.memoryFallback.reset(key);
@@ -104,9 +128,9 @@ class UpstashFailOpenStore implements RateStore {
 
   async clearPrefix(prefix: string): Promise<void> {
     try {
-      const keys = await this.redis.keys(`${prefix}*`);
+      const keys = await this.invalidateRedis.keys(`${prefix}*`);
       if (keys.length > 0) {
-        await this.redis.del(...keys);
+        await this.invalidateRedis.del(...keys);
       }
     } catch (err) {
       console.warn("[rate-store] Upstash Redis clearPrefix failed:", err);

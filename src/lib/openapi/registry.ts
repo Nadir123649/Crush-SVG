@@ -65,6 +65,7 @@ const UsageInfo = registry.register(
   "UsageInfo",
   z.object({
     conversionsUsed: z.number(),
+    limit: z.number().nullable(),
     remaining: z.number().nullable(),
     isUnlimited: z.boolean(),
     limitReached: z.boolean().optional(),
@@ -681,6 +682,26 @@ registry.registerPath({
 });
 
 // ── Health ───────────────────────────────────────────────────────────
+
+registry.registerPath({
+  method: "get",
+  path: "/api/health",
+  tags: ["System"],
+  summary: "Liveness check (always 200, no dependencies)",
+  responses: {
+    200: {
+      description: "Service is up",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.literal("ok"),
+            timestamp: z.string().datetime(),
+          }),
+        },
+      },
+    },
+  },
+});
 
 registry.registerPath({
   method: "get",

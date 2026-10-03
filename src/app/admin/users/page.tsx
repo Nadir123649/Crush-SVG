@@ -7,7 +7,7 @@ import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
-import { getAdminCached, setAdminCached, invalidateAdminCache } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, invalidateAdminCache, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const USERS_PAGE_SIZE = 15;
@@ -55,6 +55,10 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState(false);
 
   const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
+  // Photo URLs that failed to load, keyed by the URL itself. Keying by URL
+  // (rather than a single boolean) means a later, different photoURL for the
+  // same user is unaffected and still renders normally.
+  const [failedPhotoUrls, setFailedPhotoUrls] = useState<Record<string, true>>({});
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,10 +102,20 @@ export default function UsersPage() {
       setError(null);
 
       try {
-        const response = await apiFetch<{
+        let fetchPromise = getAdminInFlight<{
           data: any[];
           meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-        }>(`/api/v1/admin/users?${queryParams.toString()}`);
+        }>(cacheKey);
+
+        if (!fetchPromise) {
+          fetchPromise = apiFetch<{
+            data: any[];
+            meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+          }>(`/api/v1/admin/users?${queryParams.toString()}`);
+          setAdminInFlight(cacheKey, fetchPromise);
+        }
+
+        const response = await fetchPromise;
 
         if (cancelled) return;
         if (response?.data) {
@@ -419,18 +433,26 @@ export default function UsersPage() {
                     const isVerified = u.isVerified === true || isGoogle;
                     const initials = u.displayName ? u.displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
                     const usagePercentage = Math.min((u.conversionsUsed / 1000) * 100, 100);
+                     // Show the photo only when there is one AND it has not
+                     // already failed to load; otherwise fall back to initials.
+                     const photoUrl: string | null = u.photoURL ?? null;
+                     const showPhoto = photoUrl !== null && !failedPhotoUrls[photoUrl];
 
                     return (
                        <tr key={u.uid} className="hover:bg-[#FFFCFA] transition-colors group">
                         <td className="p-5">
                           <div className="flex items-center gap-3">
 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-primary font-heading font-bold overflow-hidden border border-[#F2EDE8] flex-shrink-0">
-                               {u.photoURL ? (
+                               {showPhoto ? (
                                   <img
-                                    src={u.photoURL}
+                                    src={photoUrl as string}
                                     alt=""
+                                    width={40}
+                                    height={40}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover"
-                                    referrerPolicy="no-referrer"
+                                    referrerPolicy="no-referrer" onError={() => { const failed = photoUrl as string; setFailedPhotoUrls((prev) => (prev[failed] ? prev : { ...prev, [failed]: true })); }}
                                   />
                                 ) : (
                                   <span className="flex items-center justify-center w-full h-full">{initials}</span>

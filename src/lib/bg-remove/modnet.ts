@@ -1,4 +1,5 @@
 import "server-only";
+import dns from "node:dns";
 import sharp from "sharp";
 import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
@@ -13,13 +14,79 @@ type RawImageResult = { width: number; height: number; data: Uint8Array };
 
 // Accept file path strings, Buffer, Uint8Array, or Blob for WASM+Node compat
 type PipelineInput = string | Buffer | Uint8Array | Blob;
-let pipelinePromise: ((input: PipelineInput) => Promise<RawImageResult | RawImageResult[]>) | null = null;
-let initError: Error | null = null;
+type ModnetPipeline = (input: PipelineInput) => Promise<RawImageResult | RawImageResult[]>;
 
-async function getPipeline() {
-  if (pipelinePromise) return pipelinePromise;
-  if (initError) throw initError;
+let pipelinePromise: ModnetPipeline | null = null;
+let initInFlight: Promise<ModnetPipeline> | null = null;
 
+/**
+ * Bounded retry for transient model-load failures.
+ *
+ * The model is pulled from the Hugging Face Hub on every cold start (useFSCache
+ * is disabled below), so a single DNS hiccup such as
+ * `getaddrinfo EAI_AGAIN huggingface.co` would otherwise fail the request.
+ * Three attempts with a short backoff absorbs those blips without introducing
+ * an unbounded loop.
+ */
+const MODEL_INIT_MAX_ATTEMPTS = 3;
+const MODEL_INIT_RETRY_DELAY_MS = 500;
+
+/**
+ * Node's `fetch` reports transport failures as a bare `TypeError: fetch failed`
+ * and puts the actionable detail on `error.cause` (e.g. `EAI_AGAIN`). Surface
+ * that, otherwise the logs say nothing useful about why the load failed.
+ */
+function describeCause(error: unknown): string {
+  const cause = (error as { cause?: unknown } | null)?.cause;
+  if (!cause) return "";
+  const code = (cause as { code?: string }).code;
+  const message = (cause as Error).message;
+  const detail = [code, message].filter(Boolean).join(": ");
+  return detail ? ` (cause: ${detail})` : "";
+}
+
+/**
+ * Reusable undici Agent with a custom lookup that uses dns.resolve4() instead
+ * of libuv getaddrinfo. This avoids EAI_AGAIN failures observed when the OS
+ * resolver is temporarily unreachable. The Agent is created once and shared
+ * across all Hugging Face fetch calls within this module.
+ *
+ * The URL is never rewritten — TLS/SNI/certificate validation are unaffected.
+ */
+let hfAgent: import("undici").Agent | null = null;
+function getHfAgent(): import("undici").Agent {
+  if (hfAgent) return hfAgent;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Agent } = require("undici") as typeof import("undici");
+  hfAgent = new Agent({
+    connect: {
+      lookup: (
+        hostname: string,
+        options: dns.LookupOptions,
+        callback: (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family: number) => void,
+      ) => {
+        dns.resolve4(hostname, (err, addresses) => {
+          if (err) {
+            // dns.resolve4 failed — propagate error; this agent only handles HF hosts,
+            // so a dns.lookup fallback for the same host would not help.
+            callback(err, "", 0);
+            return;
+          }
+          if (options?.all) {
+            return callback(null, addresses.map((a) => ({ address: a, family: 4 })), 4);
+          }
+          return callback(null, addresses[0], 4);
+        });
+      },
+    },
+  });
+  return hfAgent;
+}
+
+/** Hostname set that should use the IPv4-forced agent. */
+const HF_HOSTS = new Set(["huggingface.co", "hf.co"]);
+
+async function loadPipelineWithRetry(): Promise<ModnetPipeline> {
   const { pipeline, env } = await import("@huggingface/transformers");
 
   // Configure env after loading
@@ -30,39 +97,65 @@ async function getPipeline() {
   env.useFSCache = false;
   env.useBrowserCache = false;
 
-  pipelinePromise = await pipeline("background-removal", MODEL_ID, {
-    dtype: "fp32",
-  }) as (input: PipelineInput) => Promise<RawImageResult | RawImageResult[]>;
+  // Override env.fetch to route Hugging Face requests through the IPv4 agent,
+  // bypassing the libuv getaddrinfo path that intermittently fails with EAI_AGAIN.
+  // All other URLs are forwarded to the original fetch unchanged.
+  const originalFetch = env.fetch;
+  env.fetch = (input: Parameters<typeof originalFetch>[0], init?: Parameters<typeof originalFetch>[1]) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : String(input);
+    let hostname: string;
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      return originalFetch(input, init);
+    }
+    if (HF_HOSTS.has(hostname)) {
+      return originalFetch(input, { ...init, dispatcher: getHfAgent() } as Parameters<typeof originalFetch>[1]);
+    }
+    return originalFetch(input, init);
+  };
 
-  return pipelinePromise;
-}
-
-/**
- * Post-process the raw MODNet alpha mask for cleaner edges.
- * 1. Threshold: hard-cut near-zero and near-full alpha to reduce noise
- * 2. Blur: gaussian blur the mask for soft, natural edges
- */
-async function postProcessMask(alpha: Uint8Array, w: number, h: number): Promise<Uint8Array> {
-  // Step 1: Create a single-channel image from the alpha mask
-  const maskImage = sharp(alpha, { raw: { width: w, height: h, channels: 1 } });
-
-  // Step 2: Slight blur to smooth jagged edges (sigma=1.0 gives ~2px soft edge)
-  const blurred = await maskImage
-    .blur(1.0)
-    .raw()
-    .toBuffer();
-
-  // Step 3: Re-threshold to clean up near-zero noise while keeping the soft edge
-  const result = new Uint8Array(blurred.length);
-  for (let i = 0; i < blurred.length; i++) {
-    const v = blurred[i];
-    // Hard-zero below 10, hard-full above 245, smooth in between
-    if (v < 10) result[i] = 0;
-    else if (v > 245) result[i] = 255;
-    else result[i] = v;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MODEL_INIT_MAX_ATTEMPTS; attempt++) {
+    try {
+      return (await pipeline("background-removal", MODEL_ID, {
+        dtype: "fp32",
+      })) as ModnetPipeline;
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(
+        `[modnet] Model load attempt ${attempt}/${MODEL_INIT_MAX_ATTEMPTS} failed: ${message}${describeCause(error)}`,
+      );
+      if (attempt < MODEL_INIT_MAX_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, MODEL_INIT_RETRY_DELAY_MS * attempt));
+      }
+    }
   }
-  return result;
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
+
+async function getPipeline(): Promise<ModnetPipeline> {
+  if (pipelinePromise) return pipelinePromise;
+
+  // Single-flight: concurrent requests share one load rather than each pulling
+  // the ~25.9 MB model. The in-flight promise is only ever held transiently —
+  // a failure is NOT cached, so a later request is free to retry.
+  const inFlight = initInFlight ?? (initInFlight = loadPipelineWithRetry());
+
+  try {
+    const loaded = await inFlight;
+    pipelinePromise = loaded;
+    return loaded;
+  } catch (error) {
+    pipelinePromise = null;
+    throw error;
+  } finally {
+    if (initInFlight === inFlight) initInFlight = null;
+  }
+}
+
 
 export async function processWithModnet(
   buffer: Buffer,
@@ -128,11 +221,13 @@ export async function processWithModnet(
     bgRemovalPipeline = await getPipeline();
     console.log("[modnet] Pipeline ready");
   } catch (error) {
-    initError = error instanceof Error ? error : new Error(String(error));
-    console.error("[modnet] Pipeline init FAILED:", initError.message);
+    // getPipeline already retried transient load failures and did not cache
+    // them, so reaching here means the retries were exhausted.
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[modnet] Pipeline init FAILED after retries: ${message}${describeCause(error)}`);
     throw new BgRemoveError(
       "processing_failed",
-      `Failed to initialize MODNet model: ${initError.message}`,
+      `Failed to initialize MODNet model: ${message}`,
     );
   }
 
@@ -208,8 +303,8 @@ export async function processWithModnet(
     );
   }
 
-  // Post-process: blur + threshold for clean, soft edges
-  const cleanAlpha = await postProcessMask(resizedAlpha, origWidth, origHeight);
+  // Use the native soft AI mask directly
+  const cleanAlpha = resizedAlpha;
 
   // Write alpha mask directly into RGBA pixel data — avoids broken dest-in composite
   // (dest-in with a 1-channel grayscale overlay is treated as fully opaque by sharp)

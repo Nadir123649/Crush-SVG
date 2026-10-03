@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { apiFetch, authFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { AdminLoader } from "@/components/admin/AdminLoader";
-import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 
 export default function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState("");
@@ -29,7 +29,15 @@ export default function SettingsPage() {
     let cancelled = false;
     const fetchSettings = async () => {
       try {
-        const response = await apiFetch<{ settings: any }>("/api/v1/admin/settings");
+        const cacheKey = "admin_settings";
+        let fetchPromise = getAdminInFlight<{ settings: any }>(cacheKey);
+
+        if (!fetchPromise) {
+          fetchPromise = apiFetch<{ settings: any }>("/api/v1/admin/settings");
+          setAdminInFlight(cacheKey, fetchPromise);
+        }
+
+        const response = await fetchPromise;
         if (response?.settings && !cancelled) {
           setSettings(response.settings);
           setAdminCached("admin_settings", response.settings);

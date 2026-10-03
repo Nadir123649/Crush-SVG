@@ -30,13 +30,14 @@ export async function GET(
     return errorResponse(400, 'token_invalid', 'Invalid or expired verification link')
   }
 
-  await User.updateOne(
-    { _id: user._id },
-    {
-      $set: { isVerified: true },
-      $unset: { emailVerificationToken: '', emailVerificationTokenExpire: '' },
+  if (user.isVerified) {
+    if (wantsHtml) {
+      return NextResponse.redirect(new URL('/verify?status=success', base))
     }
-  )
+    return successResponse({ message: 'Email already verified. You can log in.' })
+  }
+  // Token is kept until its normal expiry so a repeat click is recognised.
+  await User.updateOne({ _id: user._id }, { $set: { isVerified: true } })
 
   if (wantsHtml) {
     // Verifying the email proves ownership of the inbox — sign the user in

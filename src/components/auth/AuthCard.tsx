@@ -166,9 +166,9 @@ async function handleOAuth(provider: OAuthProvider) {
         
         {/* Header Text */}
         <div className="flex flex-col gap-[4px] items-center text-center">
-          <h2 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
+          <h1 className="font-bricolage text-[20px] font-bold text-[#000000] leading-[1]">
             {isLogin ? t("loginTitle") : t("signupTitle")}
-          </h2>
+          </h1>
           <p className="font-afacad text-[14px] text-[#000000]">
             {isLogin ? (
               <>{t("newUserPrompt")} <Link href="/signup" className="text-[#D94A1E] font-semibold hover:underline">{t("signUpLink")}</Link></>
@@ -185,7 +185,9 @@ async function handleOAuth(provider: OAuthProvider) {
               <label htmlFor="auth-name" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("nameLabel")}</label>
               <input
                 id="auth-name"
+                name="name"
                 type="text"
+                required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("namePlaceholder")}
@@ -206,7 +208,9 @@ async function handleOAuth(provider: OAuthProvider) {
             <label htmlFor="auth-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("emailLabel")}</label>
             <input
               id="auth-email"
+              name="email"
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("emailPlaceholder")}
@@ -226,7 +230,9 @@ async function handleOAuth(provider: OAuthProvider) {
             <div className="relative w-full">
               <input
                 id="auth-password"
+                name="password"
                 type={showPassword ? "text" : "password"}
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t("passwordPlaceholder")}

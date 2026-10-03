@@ -104,9 +104,12 @@ export async function processBackgroundRemove(
       const processModnet = await getModnetProcessor();
       return await processModnet(workingBuffer, options);
     } catch (err) {
-      // Log the actual error so we can debug Vercel failures
-      console.error("[bg-remove] MODNet failed, falling back to legacy:", err);
-      return processLegacyFromRaw(rawData, w, h, options);
+      // Do NOT hide a MODNet failure behind the legacy engine. For a photo the
+      // AI result is authoritative; silently returning the colour-distance
+      // output instead would look like a successful but much worse result.
+      // Surface the error so the route can classify and report it.
+      console.error("[bg-remove] MODNet failed for a photo/portrait image:", err);
+      throw err;
     }
   }
 

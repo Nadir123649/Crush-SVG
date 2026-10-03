@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from "next/server";
 import { errorResponse } from "@/lib/http/api-response";
+import { unauthorizedResponse } from "@/lib/http/unauthorized";
 import { logConversion } from "@/lib/usage/conversion-logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import {
@@ -18,7 +19,7 @@ import { processBackgroundRemove } from "@/lib/bg-remove/process";
 import { z } from "zod";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60_000;
@@ -48,22 +49,19 @@ export async function POST(request: NextRequest) {
     currentUsage = usage;
 
     if (usage.kind === "auth-error") {
-      return errorResponse(
-        401,
-        "unauthorized",
+      return unauthorizedResponse(
         "Session expired. Please sign in again.",
-        undefined,
         request,
       );
     }
 
     const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
 
-    if (!isInternalPipeline && usage.kind === "guest" && usage.limitReached) {
+    if (!isInternalPipeline && usage.limitReached) {
       return errorResponse(
         429,
         "limit_reached",
-        "You've used your 3 free conversions. Create a free account to keep converting.",
+        `You've used your ${usage.limit ?? GUEST_CONVERSION_LIMIT} free conversions.`,
         undefined,
         request,
       );

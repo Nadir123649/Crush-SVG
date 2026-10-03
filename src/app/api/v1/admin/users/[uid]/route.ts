@@ -5,6 +5,7 @@ import { User, AuditLog } from '@/lib/database/db'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { getClientIp } from '@/lib/security/ip'
 import { toUserDTO } from '@/lib/auth/auth'
+import { isVerifiedProfile } from '@/lib/auth/roles'
 
 export const runtime = 'nodejs'
 
@@ -91,7 +92,7 @@ export async function PATCH(
   }
 
   // Prevent granting Admin role to unverified users
-  const isVerified = user.isVerified === true || (Array.isArray(user.providers) && user.providers.some((p: string) => p === 'google' || p === 'google.com'))
+  const isVerified = isVerifiedProfile(user)
   if (role === 'admin' && !isVerified) {
     return errorResponse(400, 'unverified_user', 'User is unverified', undefined, request)
   }
