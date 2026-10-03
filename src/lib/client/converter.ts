@@ -1,4 +1,4 @@
-import { apiBlob, apiFetch } from '@/lib/client/http'
+import { apiBlob, apiFetch, withTimeoutSignal } from '@/lib/client/http'
 
 export interface ConvertRequest {
   width?: number
@@ -23,7 +23,13 @@ export interface ConvertResponse {
   remaining?: number
 }
 
-const CONVERT_TIMEOUT_MS = 60_000
+/**
+ * Client-side ceiling for one convert request (including any session refresh
+ * it waits on). Kept below the route's 30 s Vercel maxDuration so the browser
+ * gives up cleanly, with a timeout message, before the platform kills the
+ * function and returns a CORS-less 504 that surfaces as "Failed to fetch".
+ */
+export const CONVERT_TIMEOUT_MS = 25_000
 
 /**
  * Largest /api/v1/convert request body we will send to the server.
@@ -64,7 +70,7 @@ export async function convertText(svg: string, options: ConvertRequest = {}): Pr
   return apiFetch<ConvertResponse>('/api/v1/convert', {
     method: 'POST',
     body: convertBody(svg, rest),
-    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    signal: withTimeoutSignal(signal, CONVERT_TIMEOUT_MS),
   })
 }
 
@@ -76,7 +82,7 @@ export async function downloadConverted(
   return apiBlob('/api/v1/convert?download=1', {
     method: 'POST',
     body: convertBody(svg, rest),
-    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    signal: withTimeoutSignal(signal, CONVERT_TIMEOUT_MS),
   })
 }
 

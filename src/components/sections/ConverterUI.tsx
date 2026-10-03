@@ -537,7 +537,10 @@ function SvgToPngConverter() {
         showToast("error", tToast("rateLimited", { seconds: err.retryAfter }));
         return;
       }
-      if (err instanceof DOMException && err.name === "TimeoutError") {
+      if (
+        (err instanceof ApiError && err.code === "timeout") ||
+        (err instanceof DOMException && err.name === "TimeoutError")
+      ) {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
