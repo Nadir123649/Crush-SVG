@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { getAccessToken } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import { resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { IMAGES } from "@/lib/shared/images";
@@ -365,24 +366,19 @@ export function ImageResizer() {
 
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
-    // Authenticated users are unlimited — set immediately to avoid flash of stale guest data
-    if (status === "authed") {
-      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
-    }
-
     if (status === "loading") return;
     let cancelled = false;
     getUsage()
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
-      .catch(() => {
-        if (!cancelled) setUsage(null);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [status, sessionVersion]);
+
+  const quotaDisplay = resolveQuotaDisplay(usage);
 
   // ── Smooth progress bar during resizing ────────────────────────────────────
   useEffect(() => {
@@ -565,6 +561,7 @@ export function ImageResizer() {
     setTargetWidth("");
     setTargetHeight("");
     setResizing(false);
+    setOpenDropdown(null);
   }
 
   function handleClear() {
@@ -728,9 +725,11 @@ export function ImageResizer() {
 
                   {(usage || status === "authed") && (
                     <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                      {status === "authed" || usage?.isUnlimited
+                      {quotaDisplay.kind === "unlimited"
                         ? t("unlimitedConversions")
-                        : t("conversionsUsed", { used: usage?.conversionsUsed ?? 0, total: (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0) })}
+                        : quotaDisplay.kind === "counted"
+                        ? t("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
+                        : "\u00A0"}
                     </span>
                   )}
                 </div>

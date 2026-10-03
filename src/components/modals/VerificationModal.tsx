@@ -9,14 +9,24 @@ interface VerificationModalProps {
   variant?: "success" | "invalid";
   onClose?: () => void;
   onContinue?: () => void;
+  /** Invalid variant: the CTA link destination. Defaults to the sign-up flow. */
+  ctaHref?: string;
+  /** Invalid variant: the CTA button label. Falls back to i18n if not provided. */
+  ctaLabel?: string;
 }
 
-export function VerificationModal({ variant = "success", onClose, onContinue }: VerificationModalProps) {
+export function VerificationModal({
+  variant = "success",
+  onClose,
+  onContinue,
+  ctaHref = "/signup",
+  ctaLabel,
+}: VerificationModalProps) {
   const isSuccess = variant === "success";
   const t = useTranslations("auth_pages.verification");
 
   return (
-    <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+    <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
       <div className="flex flex-col items-center text-center gap-6">
         <div className="flex items-center gap-[4px]">
           <Image
@@ -62,10 +72,10 @@ export function VerificationModal({ variant = "success", onClose, onContinue }: 
         )}
         {!isSuccess && (
           <Link
-            href="/signup"
+            href={ctaHref}
             className="w-[238px] h-[42px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
           >
-            {t("backToLogin")}
+            {ctaLabel || t("backToLogin")}
           </Link>
         )}
       </div>

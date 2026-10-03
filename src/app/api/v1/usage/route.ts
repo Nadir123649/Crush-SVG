@@ -4,7 +4,8 @@ import { auth } from '@/lib/middleware/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { trackUsageSchema } from '@/lib/shared/validation'
 import { User } from '@/lib/database/db'
-import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME, GUEST_CONVERSION_LIMIT } from '@/lib/usage/guest-usage'
+import { ensureGuestId, getGuestUsage, incrementGuestUsage, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
+import { buildUsagePayload, FREE_CONVERSION_LIMIT, resolveConversionQuota } from '@/lib/usage/quota'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { logConversion } from '@/lib/usage/conversion-logger'
 
@@ -38,11 +39,18 @@ export async function POST(request: NextRequest) {
     const who = await auth(request)
     if ('error' in who) return who.error
 
-    const user = await User.findByIdAndUpdate(
-      who.user.id,
-      { $inc: { conversionsUsed: 1 } },
-      { returnDocument: 'after', new: true }
-    )
+    // A conversion that failed must not consume quota, so a reported failure is
+    // logged only. Successful conversions are counted inside each conversion
+    // endpoint itself, which is the authoritative place for the increment.
+    const countsAsUsage = parsed.data.metadata?.success !== false
+
+    const user = countsAsUsage
+      ? await User.findByIdAndUpdate(
+        who.user.id,
+        { $inc: { conversionsUsed: 1 } },
+        { returnDocument: 'after', new: true }
+      )
+      : await User.findById(who.user.id)
 
     if (!user) {
       return errorResponse(404, '', '', undefined, request)
@@ -55,20 +63,19 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    return successResponse({
-      conversionsUsed: user.conversionsUsed,
-      remaining: null,
-      isUnlimited: true,
-      limitReached: false,
-    })
+    return successResponse(
+      buildUsagePayload(resolveConversionQuota(user), user.conversionsUsed)
+    )
   }
 
   const { guestId, setCookie } = ensureGuestId(request)
   if (!guestId) {
     return errorResponse(400, '', '', undefined, request)
   }
-  const usage = await incrementGuestUsage(guestId)
-  const remaining = Math.max(0, GUEST_CONVERSION_LIMIT - usage)
+  const usage = parsed.data.metadata?.success === false
+    ? await getGuestUsage(guestId)
+    : await incrementGuestUsage(guestId)
+  const remaining = Math.max(0, FREE_CONVERSION_LIMIT - usage)
 
   if (parsed.data.metadata) {
     await logConversion({
@@ -79,9 +86,10 @@ export async function POST(request: NextRequest) {
 
   const res = successResponse({
     conversionsUsed: usage,
+    limit: FREE_CONVERSION_LIMIT,
     remaining,
     isUnlimited: false,
-    limitReached: usage >= GUEST_CONVERSION_LIMIT,
+    limitReached: usage >= FREE_CONVERSION_LIMIT,
   })
   if (setCookie) {
     res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {
@@ -114,11 +122,9 @@ export async function GET(request: NextRequest) {
       return errorResponse(404, '', '', undefined, request)
     }
 
-    return successResponse({
-      conversionsUsed: user.conversionsUsed,
-      remaining: null,
-      isUnlimited: true,
-    })
+    return successResponse(
+      buildUsagePayload(resolveConversionQuota(user), user.conversionsUsed)
+    )
   }
 
   const { guestId, setCookie } = ensureGuestId(request)
@@ -127,13 +133,14 @@ export async function GET(request: NextRequest) {
   }
 
   const usage = await getGuestUsage(guestId)
-  const remaining = Math.max(0, GUEST_CONVERSION_LIMIT - usage)
+  const remaining = Math.max(0, FREE_CONVERSION_LIMIT - usage)
 
   const res = successResponse({
     conversionsUsed: usage,
+    limit: FREE_CONVERSION_LIMIT,
     remaining,
     isUnlimited: false,
-    limitReached: usage >= GUEST_CONVERSION_LIMIT,
+    limitReached: usage >= FREE_CONVERSION_LIMIT,
   })
   if (setCookie) {
     res.cookies.set(GUEST_COOKIE_NAME, setCookie.value, {

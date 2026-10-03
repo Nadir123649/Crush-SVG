@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server'
 
 import { verifyIdToken } from '@/lib/firebase/firebase-token'
-import { providerIdToName, resolveUserCascade } from '@/lib/firebase/firebase-user'
+import { providerIdToName, resolveUserCascade, type VerifiedPhoto } from '@/lib/firebase/firebase-user'
 import { User } from '@/lib/database/db'
+import { getVerifiedProfilePhotoUrl } from '@/lib/firebase/firebase-admin'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { getClientIp } from '@/lib/security/ip'
 import { createSession } from '@/lib/auth/sessions'
@@ -80,7 +81,20 @@ export async function POST(
     }
 
     const providerName = providerIdToName(token.firebase?.sign_in_provider ?? provider)
-    const user = await resolveUserCascade(token, providerName)
+
+    // Google only: resolve the profile photo from Google's own photo metadata.
+    // `resolved` (including an authoritative null) is threaded into the user
+    // write; `unavailable` is deliberately NOT passed, so the existing
+    // token.picture fallback stays in effect when People API could not answer.
+    let verifiedPhoto: VerifiedPhoto | undefined
+    if (provider === 'google' && parsed.data.googleAccessToken) {
+      const resolution = await getVerifiedProfilePhotoUrl(parsed.data.googleAccessToken)
+      if (resolution.status === 'resolved') {
+        verifiedPhoto = { photoURL: resolution.photoUrl }
+      }
+    }
+
+    const user = await resolveUserCascade(token, providerName, undefined, verifiedPhoto)
 
     const now = new Date()
     await User.updateOne(

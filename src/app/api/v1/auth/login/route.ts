@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
       lastLoginAt: now,
   }
   if (expectedRole === 'admin' && user.role !== 'admin') {
+      // Login is only reachable once isVerified passed above, so admin is safe.
       updateData.role = 'admin'
       user.role = 'admin'
   }

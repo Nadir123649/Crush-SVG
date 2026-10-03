@@ -2,6 +2,9 @@ import { z } from "zod";
 export const oauthSchema = z.object({
     firebaseToken: z.string().min(1, "firebaseToken is required"),
     rememberMe: z.boolean().optional(),
+    // Short-lived Google OAuth access token, forwarded once so the server can do
+    // a single People API `people.get` lookup. Absent for every other provider.
+    googleAccessToken: z.string().min(1, "googleAccessToken must be a non-empty string").optional(),
 });
 export const trackUsageSchema = z.object({
     guestId: z.string().optional(),

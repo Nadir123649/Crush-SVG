@@ -293,8 +293,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!signIn) {
         throw new Error(`Unsupported provider: ${provider}`)
       }
-      await signIn()
-      const session = await exchangeIdToken(rememberMe)
+      const signInResult = await signIn()
+      // Google returns { user, googleAccessToken }; GitHub/X return a bare
+      // UserCredential. Only Google contributes a token to forward.
+      const googleAccessToken =
+        provider === 'google' && signInResult && typeof signInResult === 'object' && 'googleAccessToken' in signInResult
+          ? ((signInResult as { googleAccessToken?: string | null }).googleAccessToken ?? null)
+          : null
+      const session = await exchangeIdToken(rememberMe, googleAccessToken)
       applySession({ user: session.user, token: session.token, sessionId: session.sessionId, remember: rememberMe })
       if (rememberMe === false && typeof window !== 'undefined') {
         try {

@@ -87,7 +87,7 @@ export default async function SupportPage({
       {/* Quick Links Section */}
       <div className="w-full max-w-[800px] grid grid-cols-1 sm:grid-cols-3 gap-[16px] mb-[48px]">
         {/* Contact Us Card */}
-        <Link href="/contact-us?r=1" className="group flex flex-col bg-white rounded-[16px] p-[24px] border border-[#F2EDE8] hover:border-brand-primary transition-all" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
+        <Link href="/contact-us" className="group flex flex-col bg-white rounded-[16px] p-[24px] border border-[#F2EDE8] hover:border-brand-primary transition-all" style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}>
           <div className="w-[42px] h-[42px] rounded-full bg-[#FCF1ED] flex items-center justify-center mb-[14px] group-hover:scale-110 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#D94A1E" className="w-[20px] h-[20px]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -171,7 +171,7 @@ export default async function SupportPage({
           {t("needMoreHelpDesc")}
         </p>
         <Link 
-          href="/contact-us?r=1"
+          href="/contact-us"
           className="flex items-center justify-center px-[32px] h-[48px] rounded-[12px] bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity shadow-sm"
         >
           {t("contactSupportButton")}

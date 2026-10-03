@@ -6,7 +6,7 @@ import { apiFetch } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
-import { getAdminCached, setAdminCached } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 
 const AUDITS_PAGE_SIZE = 20;
@@ -71,10 +71,20 @@ export default function AuditsPage() {
     setError(null);
 
     try {
-      const response = await apiFetch<{
+      let fetchPromise = getAdminInFlight<{
         data: any[];
         meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-      }>(`/api/v1/admin/audits?${queryParams}`);
+      }>(cacheKey);
+
+      if (!fetchPromise) {
+        fetchPromise = apiFetch<{
+          data: any[];
+          meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
+        }>(`/api/v1/admin/audits?${queryParams}`);
+        setAdminInFlight(cacheKey, fetchPromise);
+      }
+
+      const response = await fetchPromise;
 
       if (isCancelled?.()) return;
 
@@ -174,7 +184,7 @@ export default function AuditsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-10">
+    <div className="w-full max-w-full min-w-0 flex flex-col gap-8 pb-10">
       {/* Header Section */}
       <div>
         <h2 className="font-heading font-bold text-3xl md:text-4xl text-text-dark mb-2">System Audit Logs</h2>
@@ -197,7 +207,7 @@ export default function AuditsPage() {
       </div>
 
       {/* Main Card containing the Table */}
-      <div className="bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+      <div className="w-full max-w-full min-w-0 bg-white border border-[#F2EDE8] rounded-[12px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
         
         {loading && (
           <AdminLoader message="Loading audits..." className="min-h-[350px]" />
@@ -214,7 +224,7 @@ export default function AuditsPage() {
         {!loading && !error && (
           <>
             <div className="overflow-x-auto brand-scrollbar">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[900px]">
                 <thead className="bg-[#FFFCFA] border-b border-[#F2EDE8]">
                   <tr>
                     <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted whitespace-nowrap">Level</th>

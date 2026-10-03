@@ -9,6 +9,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { ApiError, authFetch, getAccessToken, toApiError, type ErrorBody } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import { prepareImageForUpload } from "@/lib/client/prepare-upload";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -35,6 +36,148 @@ function dataUrlToBlob(dataUrl: string): Blob {
 const STORAGE_KEY = "crush_bg_remover_state";
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
+
+/**
+ * Vercel rejects serverless function request bodies above ~4.5 MB with
+ * `413 FUNCTION_PAYLOAD_TOO_LARGE` before the route handler ever runs. Because
+ * the image travels inside the multipart body, anything above that is unusable
+ * in production even though the server-side 10 MB guard would accept it.
+ *
+ * Files at or below MAX_SAFE_UPLOAD_BYTES are uploaded untouched — no Canvas
+ * decode is performed for them at all.
+ */
+const MAX_SAFE_UPLOAD_BYTES = 3.5 * 1024 * 1024;
+/** Aim below the ceiling so the final body keeps a safe margin under ~4.5 MB. */
+const TARGET_UPLOAD_BYTES = 3 * 1024 * 1024;
+const MAX_PRESCALE_ATTEMPTS = 8;
+/** Never shrink below this fraction per pass, so we cannot loop down to 1px. */
+const MIN_PRESCALE_FACTOR = 0.3;
+
+const EXTENSION_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+
+/**
+ * Pick the encoder for a source image, preserving its format so transparency
+ * and colour characteristics survive the round-trip. PNG stays lossless (the
+ * Canvas `quality` argument is ignored for PNG), so for PNG the only lever is
+ * pixel count — which is why the loop below always shrinks dimensions too.
+ */
+function pickOutputMime(sourceType: string): string {
+  if (sourceType === "image/jpeg") return "image/jpeg";
+  if (sourceType === "image/webp") return "image/webp";
+  return "image/png";
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Canvas encoding failed"))),
+      mime,
+      quality,
+    );
+  });
+}
+
+/**
+ * Decode with the existing browser APIs. `imageOrientation: "from-image"` bakes
+ * EXIF rotation into the bitmap so the re-encoded file matches what the server
+ * would have produced from the original bytes (sharp auto-rotates on decode) —
+ * without it, pre-scaled photos would come back sideways.
+ */
+async function decodeForCanvas(file: File): Promise<ImageBitmap | HTMLImageElement> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch {
+      // fall through to the <img> decoder below
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Could not decode image"));
+      img.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function releaseDecoded(decoded: ImageBitmap | HTMLImageElement) {
+  if (typeof ImageBitmap !== "undefined" && decoded instanceof ImageBitmap) {
+    decoded.close();
+  }
+}
+
+/**
+ * Shrink a single oversized file until it fits the upload budget.
+ *
+ * Deliberately iterative: one blind resize is not enough, because a large PNG
+ * barely shrinks at a single pass. Each pass keeps the smallest result so far
+ * and re-derives the next dimensions from the measured byte count.
+ *
+ * Returns the original file untouched when it is already within budget.
+ */
+async function prescaleForUpload(file: File): Promise<File> {
+  if (file.size <= MAX_SAFE_UPLOAD_BYTES) return file;
+
+  const decoded = await decodeForCanvas(file);
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas 2D context is unavailable");
+
+    const mime = pickOutputMime(file.type);
+    const sourceW = (decoded as { width: number }).width;
+    const sourceH = (decoded as { height: number }).height;
+    if (!sourceW || !sourceH) throw new Error("Could not read image dimensions");
+
+    let width = sourceW;
+    let height = sourceH;
+    let quality = 0.92;
+    let best: Blob | null = null;
+
+    for (let attempt = 0; attempt < MAX_PRESCALE_ATTEMPTS; attempt++) {
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(decoded as CanvasImageSource, 0, 0, width, height);
+
+      const blob = await canvasToBlob(canvas, mime, mime === "image/png" ? undefined : quality);
+      if (!best || blob.size < best.size) best = blob;
+
+      // Good enough — stop and keep the margin under the Vercel ceiling.
+      if (blob.size <= TARGET_UPLOAD_BYTES) break;
+
+      const ratio = TARGET_UPLOAD_BYTES / blob.size;
+      const factor = Math.max(MIN_PRESCALE_FACTOR, Math.sqrt(ratio) * 0.9);
+      const nextW = Math.max(1, Math.round(width * factor));
+      const nextH = Math.max(1, Math.round(height * factor));
+      if (nextW === width && nextH === height) break; // no further progress
+      width = nextW;
+      height = nextH;
+      if (quality > 0.6) quality = Math.max(0.6, quality - 0.1);
+    }
+
+    // Hard verification: never upload a body that can trip the edge limit.
+    if (!best || best.size > MAX_SAFE_UPLOAD_BYTES) {
+      throw new Error(
+        "This image could not be reduced enough to upload. Please try a smaller image.",
+      );
+    }
+
+    const ext = EXTENSION_BY_MIME[mime] ?? "png";
+    const baseName = (file.name || "image").replace(/\.[^.]+$/, "");
+    return new File([best], `${baseName}.${ext}`, { type: mime });
+  } finally {
+    releaseDecoded(decoded);
+  }
+}
 
 interface DropdownOption {
   value: string;
@@ -426,12 +569,6 @@ export function BackgroundRemover() {
 
   // ── Usage polling ──────────────────────────────────────────────────────────
   useEffect(() => {
-    // Authenticated users are unlimited — set immediately to avoid any flash
-    // of stale guest data while the API call is in flight.
-    if (status === "authed") {
-      setUsage({ conversionsUsed: 0, remaining: null, isUnlimited: true, limitReached: false });
-    }
-
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
 
@@ -440,11 +577,7 @@ export function BackgroundRemover() {
       .then((u) => {
         if (!cancelled) setUsage(u);
       })
-      .catch(() => {
-        if (cancelled) return;
-        // Authenticated users stay unlimited even if the call fails.
-        if (status !== "authed") setUsage(null);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -604,6 +737,7 @@ export function BackgroundRemover() {
     setBgOption("Transparent");
     setCustomColor("#FFFFFF");
     setScale("100");
+    setOpenDropdown(null);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
@@ -686,34 +820,9 @@ export function BackgroundRemover() {
       showToast("success", "Background removed! Your image is ready to download.");
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
-      if (status === "authed") {
-        setUsage((prev) => ({
-          conversionsUsed: conversionsUsed ? Number(conversionsUsed) : (prev?.conversionsUsed ? prev.conversionsUsed + 1 : 1),
-          remaining: null,
-          isUnlimited: true,
-          limitReached: false,
-        }));
-      } else if (remaining !== null) {
-        const remainingNum = Number(remaining);
-        const reached = remainingNum === 0;
-        const updatedUsage = {
-          conversionsUsed: conversionsUsed ? Number(conversionsUsed) : 0,
-          remaining: remainingNum,
-          isUnlimited: false,
-          limitReached: reached,
-        };
-        setUsage(updatedUsage);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem("crush_usage_info", JSON.stringify(updatedUsage));
-          } catch {}
-        }
-        window.dispatchEvent(
-          new CustomEvent("crushUsageUpdated", {
-            detail: { conversionsUsed: updatedUsage.conversionsUsed, remaining: updatedUsage.remaining },
-          })
-        );
-      }
+      // Re-read the authoritative quota so guests, verified users and admins all
+      // get the correct counter without a page reload.
+      void refreshUsage(setUsage);
     } catch (err) {
       if (controller.signal.aborted) return;
 
@@ -758,15 +867,15 @@ export function BackgroundRemover() {
     showToast("success", "Your download has started");
     trackConversion("png_downloaded", { output_format: "png", tool: "background_remover" });
 
-    const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
-    if (limitReached && status !== "authed") {
+    if (hasQuotaLimitReached(usage) && status !== "authed") {
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
     }
   }
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const limitReached = usage !== null && !usage.isUnlimited && usage.limitReached;
+  const quotaDisplay = resolveQuotaDisplay(usage);
+  const limitReached = hasQuotaLimitReached(usage);
   const hasResult = !!result?.dataUrl;
   const [staleResult, setStaleResult] = useState(false);
   const fileExt = imageName ? imageName.split(".").pop()?.toUpperCase() : "IMAGE";
@@ -829,11 +938,11 @@ export function BackgroundRemover() {
                     {/* Usage Counter */}
                     {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
-                        {status === "authed" || usage?.isUnlimited
+                        {quotaDisplay.kind === "unlimited"
                           ? "Unlimited conversions"
-                          : `${usage?.conversionsUsed ?? 0} of ${
-                              (usage?.conversionsUsed ?? 0) + (usage?.remaining ?? 0)
-                            } free conversions used`}
+                          : quotaDisplay.kind === "counted"
+                          ? `${quotaDisplay.used} of ${quotaDisplay.total} free conversions used`
+                          : "\u00A0"}
                       </span>
                     )}
                   </div>

@@ -9,6 +9,7 @@ import {
   signOut as firebaseSignOut,
   type Auth,
   type AuthError,
+  type User,
 } from "firebase/auth";
 import type { UserDTO } from "@/lib/shared/shared-types";
 import { apiBase } from "@/lib/client/api";
@@ -74,10 +75,32 @@ export function getErrorMessage(error: unknown): string {
   }
 }
 
-export async function signInWithGoogle() {
+/**
+ * Minimum scope required to call Google People API `people.get` for the signed-in
+ * user. Requested on the SAME popup/authorization request as the Firebase sign-in,
+ * so this adds no second OAuth flow and no second consent interaction.
+ */
+export const GOOGLE_PROFILE_SCOPE = "https://www.googleapis.com/auth/userinfo.profile";
+
+/**
+ * Result of the Google popup. The Firebase user, plus the short-lived Google
+ * OAuth access token when Google granted it. The token is forwarded once to our
+ * own API for a single People API lookup and is never persisted or logged.
+ */
+export interface GoogleSignInResult {
+  user: User;
+  googleAccessToken: string | null;
+}
+
+export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
-  return signInWithPopup(getFirebaseAuth(), provider);
+  provider.addScope(GOOGLE_PROFILE_SCOPE);
+  const result = await signInWithPopup(getFirebaseAuth(), provider);
+  // v12 removed `UserCredential.credential`; the supported accessor is the
+  // provider's static helper, which reads the internal token response.
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  return { user: result.user, googleAccessToken: credential?.accessToken ?? null };
 }
 
 export async function signInWithGitHub() {
@@ -100,7 +123,7 @@ export interface SessionResponse {
   sessionId: string;
 }
 
-export async function exchangeIdToken(rememberMe = true): Promise<SessionResponse> {
+export async function exchangeIdToken(rememberMe = true, googleAccessToken: string | null = null): Promise<SessionResponse> {
   const currentUser = getFirebaseAuth().currentUser;
   if (!currentUser) {
     throw new Error("Not signed in");
@@ -111,7 +134,13 @@ export async function exchangeIdToken(rememberMe = true): Promise<SessionRespons
   const response = await fetch(apiBase(`/api/v1/oauth/${provider}`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ firebaseToken: idToken, rememberMe }),
+    // googleAccessToken is sent only when Google actually issued one; omitting
+    // it (rather than sending null) keeps the request schema-valid.
+    body: JSON.stringify({
+      firebaseToken: idToken,
+      rememberMe,
+      ...(googleAccessToken ? { googleAccessToken } : {}),
+    }),
   });
   if (response.status === 403) {
     throw new Error("email_not_verified");

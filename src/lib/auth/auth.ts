@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 import type { UserDoc } from "@/lib/database/db";
 import type { UserDTO } from "@/lib/shared/shared-types";
+import { resolveRole } from "@/lib/auth/roles";
 export const REFRESH_COOKIE_NAME = "crushsvg_refresh";
 export type { UserDTO, TokenPairDTO, UsageInfo } from "@/lib/shared/shared-types";
 
@@ -27,7 +28,7 @@ export function toUserDTO(user: UserDoc): UserDTO {
         photoURL: user.photoURL,
         providers: user.providers,
         linkedProviders: user.linkedProviders ?? user.providers,
-        role: user.role ?? "user",
+        role: resolveRole(user),
         hasPassword: !!user.password,
         isVerified: user.isVerified ?? false,
         conversionsUsed: user.conversionsUsed,

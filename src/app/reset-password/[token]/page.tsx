@@ -7,7 +7,7 @@ import { apiFetch, ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
-import { InvalidLinkCard } from "@/components/ui/InvalidLinkCard";
+import { VerificationModal } from "@/components/modals/VerificationModal";
 import { AppLoader } from "@/components/ui/AppLoader";
 
 type TokenState = "checking" | "valid" | "invalid";
@@ -118,19 +118,26 @@ export default function ResetPasswordPage() {
     }
   }
 
+  // An invalid/expired token renders the invalid card in a modal overlay so the
+  // form behind it is dimmed and blurred. The card itself is unchanged.
+  if (tokenState === "invalid") {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="w-full max-w-[440px]">
+          <VerificationModal
+            variant="invalid"
+            ctaHref="/forgot-password"
+            ctaLabel="Request New Link"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="relative w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
         <div className="flex flex-col w-full max-w-[376px] gap-[16px] mx-auto relative mt-[4px] min-h-[200px]">
-          {tokenState === "invalid" && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              <InvalidLinkCard
-                ctaHref="/forgot-password"
-                ctaLabel="Request New Link"
-              />
-            </div>
-          )}
-
           {done && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
               <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
@@ -254,14 +261,14 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[4px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Updating…" : "Set New Password"}
                 </button>
               </form>
 
               {/* Footer Text */}
-              <div className="text-center mt-[12px]">
+              <div className="text-center mt-[16px]">
                 <p className="font-afacad font-normal text-[14px] text-[#57534E]">
                   Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
                 </p>

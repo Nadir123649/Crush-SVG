@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
 
     const isInternalPipeline = request.headers.get("x-internal-pipeline") === "raster-to-svg";
 
-    if (!isInternalPipeline && usage.kind === "guest" && usage.limitReached) {
+    if (!isInternalPipeline && usage.limitReached) {
       return errorResponse(
         429,
         "limit_reached",
-        "You've used your 3 free conversions. Create a free account to keep converting.",
+        `You've used your ${usage.limit ?? GUEST_CONVERSION_LIMIT} free conversions.`,
         undefined,
         request,
       );

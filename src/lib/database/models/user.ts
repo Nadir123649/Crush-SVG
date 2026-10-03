@@ -55,6 +55,10 @@ const userSchema = new Schema({
 userSchema.index({ uid: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { sparse: true });
 userSchema.index({ apiKey: 1 }, { sparse: true });
+// The admin Users list sorts by createdAt on every load (and the audit/export
+// paths order by it too). Without this the planner falls back to a COLLSCAN and
+// sorts the whole collection in memory per page request.
+userSchema.index({ createdAt: -1 });
 declare global {
     var __crushSvgUserModel: Model<UserDoc> | undefined;
 }
