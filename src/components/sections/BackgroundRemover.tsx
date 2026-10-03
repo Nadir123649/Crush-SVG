@@ -9,6 +9,7 @@ import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { ApiError, authFetch, getAccessToken, toApiError, type ErrorBody } from "@/lib/client/http";
 import { getUsage } from "@/lib/client/sessions";
+import { prepareImageForUpload } from "@/lib/client/prepare-upload";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
@@ -630,12 +631,15 @@ export function BackgroundRemover() {
 
     try {
       const formData = new FormData();
-      if (file) {
-        formData.append("file", file);
-      } else if (dataUrl) {
+      let sourceFile: File | null = file;
+      if (!sourceFile && dataUrl) {
         const blob = dataUrlToBlob(dataUrl);
-        const fallbackFile = new File([blob], imageName || "image.png", { type: blob.type || "image/png" });
-        formData.append("file", fallbackFile);
+        sourceFile = new File([blob], imageName || "image.png", { type: blob.type || "image/png" });
+      }
+      if (sourceFile) {
+        // Hosting rejects request bodies over ~4.5MB before our API runs, which
+        // the browser reports as a generic network failure. Shrink big files first.
+        formData.append("file", await prepareImageForUpload(sourceFile));
       }
 
       formData.append("scale", scale);
