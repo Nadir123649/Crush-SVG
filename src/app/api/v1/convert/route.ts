@@ -8,6 +8,7 @@ import { getConversionUsage, incrementConversionUsage, GUEST_CONVERSION_LIMIT } 
 import { logConversion } from '@/lib/usage/conversion-logger'
 import { ensureGuestId, GUEST_COOKIE_NAME } from '@/lib/usage/guest-usage'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
+import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { classifySvgError } from '@/lib/svg/svg-errors'
 
 export const runtime = 'nodejs'
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
   const { guestId, setCookie } = ensureGuestId(request)
   const usage = await getConversionUsage(request, guestId ?? undefined)
   if (usage.kind === 'auth-error') {
-    return errorResponse(401, 'unauthorized', 'Session expired. Please sign in again.', undefined, request)
+    return unauthorizedResponse('Session expired. Please sign in again.', request)
   }
   if (usage.limitReached) {
     return errorResponse(

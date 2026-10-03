@@ -3,8 +3,15 @@ import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
 import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
+import { unauthorizedResponse } from '@/lib/http/unauthorized'
+import { API_DOCS_PATH } from '@/lib/openapi/constants'
 
 const intlMiddleware = createMiddleware(routing)
+
+// /es/api-docs, /fr/api-docs, ... — the docs page has no locale variants.
+const LOCALIZED_API_DOCS_PATTERN = new RegExp(
+  `^\\/(${routing.locales.join('|')})${API_DOCS_PATH}$`
+)
 
 const API_SUBDOMAINS = ['api.crushsvg.net', 'staging.api.crushsvg.net']
 
@@ -77,6 +84,8 @@ const PUBLIC_API_PREFIXES = [
   '/api/v1/auth/logout',
   '/api/v1/auth/logout-all',
 
+  // Health checks (uptime monitoring)
+  '/api/health',
   '/api/v1/health',
 
   // Public tools
@@ -171,27 +180,6 @@ function hasBearerToken(request: NextRequest): boolean {
   return (
     scheme?.toLowerCase() === 'bearer' &&
     !!token
-  )
-}
-
-function jsonError(
-  status: number,
-  code: string,
-  message: string
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      version: '1.0.0',
-      payload: {
-        error: {
-          code,
-          message,
-        },
-      },
-      serverTimestamp: new Date().toISOString(),
-    },
-    { status }
   )
 }
 
@@ -355,6 +343,23 @@ export async function proxy(
       )
     }
 
+    // Frontend pages must never be served from the API host. Links that
+    // already landed here are sent to the matching frontend origin,
+    // preserving path and query.
+    if (
+      pathname === '/verify' ||
+      pathname === '/email-verification' ||
+      pathname.startsWith('/reset-password/')
+    ) {
+      const frontendHost = hostname!.startsWith('staging.')
+        ? 'https://staging.crushsvg.net'
+        : 'https://crushsvg.net'
+      return addRequestId(
+        NextResponse.redirect(new URL(`${pathname}${url.search}`, frontendHost)),
+        request
+      )
+    }
+
     // Any other API-subdomain path → /api/*
     const rewrittenUrl = new URL(
       `/api${pathname}`,
@@ -368,6 +373,38 @@ export async function proxy(
       response,
       request
     )
+
+    return addRequestId(
+      response,
+      request
+    )
+  }
+
+  // ───────────────────────────────────────────────────────────────────
+  // /v1/* ON NON-API HOSTS → /api/v1/*
+  // ───────────────────────────────────────────────────────────────────
+  //
+  // A rewrite does not re-run the proxy, so apply the same
+  // public/authenticated check as the API routes below.
+
+  if (pathname.startsWith('/v1/')) {
+    const apiPath = `/api${pathname}`
+
+    if (
+      !isPublicApi(apiPath) &&
+      !hasBearerToken(request)
+    ) {
+      return unauthorizedResponse(
+        undefined,
+        request
+      )
+    }
+
+    const rewrittenUrl = url.clone()
+    rewrittenUrl.pathname = apiPath
+
+    const response =
+      NextResponse.rewrite(rewrittenUrl)
 
     return addRequestId(
       response,
@@ -399,10 +436,9 @@ export async function proxy(
       hasBearerToken(request)
 
     if (!hasToken) {
-      return jsonError(
-        401,
-        'unauthorized',
-        'Authentication required'
+      return unauthorizedResponse(
+        undefined,
+        request
       )
     }
 
@@ -524,6 +560,33 @@ export async function proxy(
 
     return addRequestId(
       response,
+      request
+    )
+  }
+
+  // ───────────────────────────────────────────────────────────────────
+  // API DOCS (public — lives outside [locale])
+  // ───────────────────────────────────────────────────────────────────
+  //
+  // intlMiddleware would rewrite /api-docs to /en/api-docs, which has
+  // no route and 404s.
+
+  if (pathname === API_DOCS_PATH) {
+    const response =
+      NextResponse.next()
+
+    return addRequestId(
+      response,
+      request
+    )
+  }
+
+  if (LOCALIZED_API_DOCS_PATTERN.test(pathname)) {
+    const docsUrl = url.clone()
+    docsUrl.pathname = API_DOCS_PATH
+
+    return addRequestId(
+      NextResponse.redirect(docsUrl),
       request
     )
   }

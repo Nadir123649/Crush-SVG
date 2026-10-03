@@ -1280,6 +1280,8 @@
     "updateFailed": "Failed to update profile settings.",
     "profileUpdatedSuccess": "Profile updated successfully!",
     "keyGenerateFailed": "Failed to generate API key.",
+    "sessionExpired": "Session expired, please log in again.",
+    "serverError": "Server error, try again later.",
     "keyGeneratedSuccess": "New developer API key generated!",
     "revokeConfirm": "Are you sure you want to revoke this API key? Any active scripts using this key will stop working.",
     "revokeFailed": "Failed to revoke API key.",

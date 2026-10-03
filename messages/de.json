@@ -1205,6 +1205,8 @@
     "updateFailed": "Aktualisierung des Profils fehlgeschlagen.",
     "profileUpdatedSuccess": "Profil erfolgreich aktualisiert!",
     "keyGenerateFailed": "Generierung des API-Schlüssels fehlgeschlagen.",
+    "sessionExpired": "Sitzung abgelaufen. Bitte melde dich erneut an.",
+    "serverError": "Serverfehler. Bitte versuche es später erneut.",
     "keyGeneratedSuccess": "Neuer Entwickler-API-Schlüssel generiert!",
     "revokeConfirm": "Sind Sie sicher, dass Sie diesen API-Schlüssel widerrufen möchten?",
     "revokeFailed": "Widerrufen des API-Schlüssels fehlgeschlagen.",

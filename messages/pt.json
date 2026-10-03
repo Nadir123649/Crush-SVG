@@ -1205,6 +1205,8 @@
     "updateFailed": "Falha ao atualizar configurações de perfil.",
     "profileUpdatedSuccess": "Perfil atualizado com sucesso!",
     "keyGenerateFailed": "Falha ao gerar chave de API.",
+    "sessionExpired": "Sessão expirada. Faça login novamente.",
+    "serverError": "Erro no servidor. Tente novamente mais tarde.",
     "keyGeneratedSuccess": "Nova chave de API de desenvolvedor gerada!",
     "revokeConfirm": "Tem certeza de que deseja revogar esta chave de API?",
     "revokeFailed": "Falha ao revogar chave de API.",
