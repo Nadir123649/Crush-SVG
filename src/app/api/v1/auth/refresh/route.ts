@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
+import { resolveRole } from '@/lib/auth/roles'
 import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { logger } from '@/lib/shared/logger'
@@ -198,7 +199,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
 
   const tokenPair = buildTokenPayload({
     id: user._id.toString(),
-    role: user.role ?? 'user',
+    role: resolveRole(user),
     sessionId: decoded.jti,
     tokenVersion: result.currentVersion,
   })

@@ -15,6 +15,11 @@ import { isValidSvgContent } from "@/lib/client/converter";
 import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
+import { useAuth } from "@/lib/client/auth-context";
+import { getUsage } from "@/lib/client/sessions";
+import { resolveQuotaDisplay } from "@/lib/client/quota";
+import { getAccessToken } from "@/lib/client/http";
+import type { UsageInfo } from "@/lib/shared/shared-types";
 import { IMAGES } from "@/lib/shared/images";
 
 const SAMPLE_FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
@@ -32,6 +37,7 @@ const SAMPLE_FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0
 export function FaviconGeneratorUI() {
   const t = useTranslations("favicon_generator_ui");
   const tUpload = useTranslations("upload_interface");
+  const tUsage = useTranslations("usage");
   const tA11y = useTranslations("accessibility");
 
   const [svgCode, setSvgCode] = useState<string>(SAMPLE_FAVICON_SVG);
@@ -44,10 +50,35 @@ export function FaviconGeneratorUI() {
   const [activePreviewTab, setActivePreviewTab] = useState<"tab" | "ios" | "android">("tab");
 
   const [packResult, setPackResult] = useState<FaviconPackResult | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+
+  const { status, sessionVersion } = useAuth();
+
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isZipping, setIsZipping] = useState<boolean>(false);
   const [copiedSnippet, setCopiedSnippet] = useState<boolean>(false);
   const [dragOver, setDragOver] = useState<boolean>(false);
+
+  // Conversion usage shown on the code card header. `/api/v1/usage` is the
+  // single source of truth: it reports `limit` (3 guest/unverified, 5 verified)
+  // and only sets `isUnlimited` for a real admin, so the label is never
+  // inferred from the auth status here.
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "authed" && !getAccessToken()) return;
+
+    let cancelled = false;
+    getUsage()
+      .then((u) => {
+        if (!cancelled) setUsage(u);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [status, sessionVersion]);
+
+  const quotaDisplay = resolveQuotaDisplay(usage);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -232,6 +263,15 @@ export function FaviconGeneratorUI() {
                       {tUpload("clear")}
                     </span>
                   </button>
+                  <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                    {status === "loading"
+                      ? "\u00A0"
+                      : quotaDisplay.kind === "unlimited"
+                      ? tUsage("unlimitedConversions")
+                      : quotaDisplay.kind === "counted"
+                      ? tUsage("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
+                      : "\u00A0"}
+                  </span>
                 </div>
               </div>
 

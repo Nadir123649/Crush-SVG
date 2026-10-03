@@ -42,18 +42,10 @@ export async function GET(request: NextRequest) {
 
   const [total, docs] = await Promise.all([
     ConversionLog.countDocuments(filter),
-    ConversionLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    ConversionLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('userId', 'uid email displayName photoURL').lean(),
   ])
 
-  const userIds = [...new Set(docs.map((d: any) => d.userId).filter(Boolean))];
-  const users = userIds.length > 0
-    ? await User.find({ _id: { $in: userIds } }).select('uid email displayName photoURL').lean()
-    : [];
-  const userMap = new Map(users.map((u: any) => [u._id.toString(), u]));
-  const enrichedDocs = docs.map((d: any) => ({
-    ...d.toObject(),
-    userId: d.userId ? userMap.get(d.userId) || null : null,
-  }))
+  const enrichedDocs = docs;
 
   return successResponse({
     data: enrichedDocs,

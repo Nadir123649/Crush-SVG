@@ -4,6 +4,7 @@ import { auth } from '@/lib/middleware/auth-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { conversionHistoryQuerySchema } from '@/lib/shared/validation'
 import { User } from '@/lib/database/db'
+import { buildUsagePayload, resolveConversionQuota } from '@/lib/usage/quota'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
@@ -57,10 +58,7 @@ export async function GET(request: NextRequest) {
       prev: page > 1 ? `${pathname}?page=${page - 1}&limit=${limit}` : null,
       next: page < totalPages ? `${pathname}?page=${page + 1}&limit=${limit}` : null,
     },
-    usage: {
-      conversionsUsed: user.conversionsUsed,
-      isUnlimited: true,
-    },
+    usage: buildUsagePayload(resolveConversionQuota(user), user.conversionsUsed),
     message: 'Export history is not stored yet; only the conversion count is tracked.'
   })
 }

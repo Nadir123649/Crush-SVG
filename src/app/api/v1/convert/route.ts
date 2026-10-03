@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
   if (usage.kind === 'auth-error') {
     return unauthorizedResponse('Session expired. Please sign in again.', request)
   }
-  if (usage.kind === 'guest' && usage.limitReached) {
+  if (usage.limitReached) {
     return errorResponse(
       429,
       'limit_reached',
-      "You've used your 3 free conversions. Create a free account to keep converting.",
+      `You've used your ${usage.limit ?? GUEST_CONVERSION_LIMIT} free conversions.`,
       undefined,
       request
     )

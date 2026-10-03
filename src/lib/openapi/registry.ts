@@ -65,6 +65,7 @@ const UsageInfo = registry.register(
   "UsageInfo",
   z.object({
     conversionsUsed: z.number(),
+    limit: z.number().nullable(),
     remaining: z.number().nullable(),
     isUnlimited: z.boolean(),
     limitReached: z.boolean().optional(),

@@ -6,7 +6,7 @@ import { registerSchema } from '@/lib/auth/auth-validation'
 import { User, isDuplicateKeyError } from '@/lib/database/db'
 import { hashPassword, generateToken, hashToken, VERIFY_TOKEN_MINUTES } from '@/lib/auth/passwords'
 import { sendVerificationEmail } from '@/lib/integrations/email'
-import { isAdminEmail } from '@/lib/auth/roles'
+import { isAdminEmail, resolveRole } from '@/lib/auth/roles'
 import { successResponse, errorResponse, getOrigin, getFrontendOrigin, getApiOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
@@ -59,6 +59,13 @@ export async function POST(request: NextRequest) {
         $set: {
           password,
           isVerified: false,
+          // Re-registration clears verification, so an existing admin must be
+          // demoted to keep "admin implies verified" true.
+          role: resolveRole({
+            role: existingAccount.role,
+            isVerified: false,
+            providers: existingAccount.providers,
+          }),
           emailVerificationToken: hashToken(token),
           emailVerificationTokenExpire: now + VERIFY_TOKEN_MINUTES * 60 * 1000,
         },
@@ -89,7 +96,7 @@ export async function POST(request: NextRequest) {
       photoURL: null,
       providers: ['email'],
       linkedProviders: ['email'],
-      role: isAdminEmail(email) ? 'admin' : 'user',
+      role: resolveRole({ role: isAdminEmail(email) ? 'admin' : 'user', isVerified: false, providers: ['email'] }),
       password,
       isVerified: false,
       emailVerificationToken: hashToken(token),
