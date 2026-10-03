@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
 import { resolveRole } from '@/lib/auth/roles'
-import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
+import { REFRESH_COOKIE_NAME, setSessionCookies, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { logger } from '@/lib/shared/logger'
 
@@ -218,7 +218,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
     },
     { status: 200, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(result.remember))
+  setSessionCookies(res, tokenPair.refreshToken, result.remember)
   return res
 }
 

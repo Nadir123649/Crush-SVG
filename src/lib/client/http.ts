@@ -26,8 +26,66 @@ let activeRemember: boolean | null = null
 // for a session instead of a page-load refresh hiccup.
 let sessionRestored = false
 
+// Refresh this long before the access token expires (capped at 20% of its
+// lifetime so short-lived tokens still get a useful window). Must exceed the
+// sum of PROACTIVE_RETRY_DELAYS_MS (100s) so every retry can run before expiry.
+const PROACTIVE_REFRESH_MARGIN_MS = 120_000
+// setTimeout overflows above 2^31-1 ms (~24.8 days).
+const MAX_TIMER_MS = 2_147_483_647
+// Backoff for retrying a proactive refresh that failed transiently.
+const PROACTIVE_RETRY_DELAYS_MS = [10_000, 30_000, 60_000]
+
+let proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null
+
+// Lifetime from the token's own iat/exp. The token was just issued, so this
+// avoids depending on the client clock agreeing with the server's.
+function tokenLifetimeMs(token: string): number | null {
+  try {
+    const part = token.split('.')[1]
+    const claims = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')))
+    if (typeof claims.exp === 'number' && typeof claims.iat === 'number') {
+      return (claims.exp - claims.iat) * 1000
+    }
+  } catch { }
+  return null
+}
+
+function scheduleProactiveRefresh(token: string | null): void {
+  if (proactiveRefreshTimer) {
+    clearTimeout(proactiveRefreshTimer)
+    proactiveRefreshTimer = null
+  }
+  if (!token || typeof window === 'undefined') return
+  const lifetime = tokenLifetimeMs(token)
+  if (lifetime === null) return
+  const delay = lifetime - Math.min(PROACTIVE_REFRESH_MARGIN_MS, lifetime * 0.2)
+  if (delay <= 0 || delay > MAX_TIMER_MS) return
+  const expiresAt = Date.now() + lifetime
+  const attempt = (retry: number) => {
+    proactiveRefreshTimer = null
+    // Shares the in-flight promise with any 401-triggered refresh. Only a
+    // rejected session logs out; a transient failure (5xx, timeout, network)
+    // is retried with backoff until the current token expires, after which
+    // the 401 path takes over.
+    void refreshSession({ silent: true }).then((result) => {
+      // A newer token (or logout) has taken over and rescheduled/cleared us.
+      if (accessToken !== token || result.payload) return
+      if (result.sessionDead) {
+        onAuthExpired?.()
+        emitToast('error', SESSION_EXPIRED_MESSAGE)
+        return
+      }
+      const next = PROACTIVE_RETRY_DELAYS_MS[retry]
+      if (next === undefined || Date.now() + next >= expiresAt) return
+      proactiveRefreshTimer = setTimeout(() => attempt(retry + 1), next)
+    })
+  }
+  proactiveRefreshTimer = setTimeout(() => attempt(0), delay)
+}
+
 export function setAccessToken(token: string | null): void {
   accessToken = token
+  scheduleProactiveRefresh(token)
 }
 
 export function setSessionRestored(restored: boolean): void {
@@ -117,7 +175,7 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
   if (bodyFailed && signal.aborted) {
     return { payload: null, sessionDead: false }
   }
-  // The refresh route only reports a dead session authoritatively: 401
+  // The refresh route only reports a dead session authoritatively: 401/403
   // (revoked session / deleted user) or 200 with success:false (missing or
   // invalid token) — in all of those it also deletes the cookie. Rate limits
   // (429) and server errors are transient; clearing the session there would
@@ -127,7 +185,7 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
     refreshServerErrorStreak++
     return { payload: null, sessionDead: false }
   }
-  const sessionIsDead = res.status === 401 || (res.status === 200 && body?.success !== true)
+  const sessionIsDead = res.status === 401 || res.status === 403 || (res.status === 200 && body?.success !== true)
   if (res.status !== 200 || body?.success !== true || !body?.payload) {
     if (!silent && sessionIsDead) onAuthExpired?.()
     return { payload: null, sessionDead: sessionIsDead }

@@ -9,7 +9,7 @@ import { getClientIp } from '@/lib/security/ip'
 import { createSession } from '@/lib/auth/sessions'
 import { buildTokenPayload } from '@/lib/auth/tokens'
 import { oauthSchema } from '@/lib/shared/validation'
-import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, toUserDTO } from '@/lib/auth/auth'
+import { setSessionCookies, toUserDTO } from '@/lib/auth/auth'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { logger } from '@/lib/shared/logger'
 
@@ -135,7 +135,7 @@ export async function POST(
       rateLimitHeaders(rl),
       request
     )
-    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(remember))
+    setSessionCookies(res, tokenPair.refreshToken, remember)
     return res
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid or expired token'
