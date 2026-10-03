@@ -217,6 +217,13 @@ function setCorsHeaders(
     'Access-Control-Allow-Credentials',
     'true'
   )
+
+  // Retry-After is not CORS-safelisted; without this the frontend origin
+  // cannot read it from a 429.
+  response.headers.set(
+    'Access-Control-Expose-Headers',
+    'Retry-After'
+  )
 }
 
 function addRequestId(
