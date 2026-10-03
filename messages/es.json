@@ -392,7 +392,7 @@
       },
       {
         "question": "¿Hasta qué resolución puedo escalar el SVG?",
-        "answer": "Puedes multiplicar la escala hasta 16x o definir dimensiones personalizadas de hasta 4000 píxeles para resultados aptos para impresión."
+        "answer": "Puedes multiplicar la escala hasta 16x o definir dimensiones personalizadas de hasta 4000 píxeles para resultados aptos para impresión. La imagen final está limitada a 4000 píxeles por lado."
       },
       {
         "question": "¿Mis archivos se mantienen privados y seguros?",
@@ -869,6 +869,8 @@
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
     "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
+    "outputTooLarge": "Output would be {requested} px on one side, above the {max} px limit. Lower the scale or the size.",
+    "scaleExceedsCap": "Too large for this SVG: output is capped at {max} px per side.",
     "invalidSvgFile": "Please choose an SVG file (.svg).",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "loggedOut": "You've been logged out",

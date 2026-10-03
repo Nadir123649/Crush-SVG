@@ -15,7 +15,14 @@ import {
   type ConvertResponse,
 } from "@/lib/client/converter";
 import { browserRasterApproximatesBackground, rasterizeSvgInBrowser } from "@/lib/client/svg-raster";
-import { parseSvgDimensions } from "@/lib/svg/svg-dims";
+import {
+  computeTargetSize,
+  MAX_OUTPUT_SIZE,
+  OutputTooLargeError,
+  parseSvgDimensions,
+  type SvgDimensions,
+  type TargetSizeInput,
+} from "@/lib/svg/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
@@ -28,7 +35,8 @@ import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
 const PX_PER_CM = 96 / 2.54;
-const MAX_CUSTOM_PX = 4000;
+// Same cap the server enforces on the rendered output (svg-dims.ts).
+const MAX_CUSTOM_PX = MAX_OUTPUT_SIZE;
 const CONVERTER_STORAGE_KEY = "crush_converter_state";
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 // Same ceiling the server schema and the file picker enforce.
@@ -70,6 +78,27 @@ function normalizeHex(input: string): string {
   }
   if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex.toUpperCase();
   return "#FFFFFF";
+}
+
+/**
+ * The oversized side (px) this request would render, or null when it fits.
+ * Runs the server's own computeTargetSize so the UI blocks exactly what the
+ * route would reject (scale × the SVG's size, or a width-derived height).
+ */
+function oversizedOutputPx(dims: SvgDimensions, options: TargetSizeInput): number | null {
+  try {
+    computeTargetSize(dims, options);
+    return null;
+  } catch (err) {
+    if (err instanceof OutputTooLargeError) return err.requested;
+    throw err;
+  }
+}
+
+function parseDimensionPx(value: string, unit: "px" | "cm"): number | undefined {
+  const n = parseFloat(value);
+  if (Number.isNaN(n)) return undefined;
+  return Math.round(unit === "cm" ? n * PX_PER_CM : n);
 }
 
 const formatDimensionLabel = (val: string, currentUnit: string) => {
@@ -472,6 +501,13 @@ function SvgToPngConverter() {
       }
     }
 
+    // Block before any request what the server would reject with a 422.
+    const oversizedPx = oversizedOutputPx(dims, options);
+    if (oversizedPx !== null) {
+      setError(tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE }));
+      return;
+    }
+
     // Too big for the server's 4.5 MB request/response ceiling: render locally.
     const convertInBrowser = shouldConvertInBrowser(svgCode, options);
     if (convertInBrowser && limitReached && status !== "authed") {
@@ -646,6 +682,25 @@ function SvgToPngConverter() {
           validationError = tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
         }
       }
+    }
+  }
+
+  // Same size options handleConvert sends; blocks scale × SVG size over the cap.
+  const sizeOptions: TargetSizeInput = {};
+  if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
+    sizeOptions.width = parseDimensionPx(selectedWidth, unit);
+  }
+  if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
+    sizeOptions.height = parseDimensionPx(selectedHeight, unit);
+  }
+  if (!isScaleDisabled) {
+    const sNum = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
+    if (!Number.isNaN(sNum) && sNum > 0) sizeOptions.scale = sNum;
+  }
+  if (!validationError) {
+    const oversizedPx = oversizedOutputPx(dims, sizeOptions);
+    if (oversizedPx !== null) {
+      validationError = tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE });
     }
   }
 
@@ -1192,12 +1247,19 @@ function SvgToPngConverter() {
                           {openDropdown === "scale" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                               <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                                {SCALE_OPTIONS.map((opt: string) => (
+                                {SCALE_OPTIONS.map((opt: string) => {
+                                  // e.g. 16x on a 300px SVG would render 4800px: not selectable.
+                                  const exceedsCap =
+                                    opt !== "Custom" && oversizedOutputPx(dims, { scale: parseFloat(opt) }) !== null;
+                                  return (
                                   <button
                                     type="button"
                                     key={opt}
                                     role="option"
                                     aria-selected={selectedScale === opt}
+                                    aria-disabled={exceedsCap}
+                                    disabled={exceedsCap}
+                                    title={exceedsCap ? tToast("scaleExceedsCap", { max: MAX_OUTPUT_SIZE }) : undefined}
                                     onClick={() => {
                                       if (opt === "Custom") {
                                         setIsCustomScale(true);
@@ -1209,11 +1271,12 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     {opt}
                                   </button>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -1491,8 +1554,8 @@ function SvgToPngConverter() {
                           <button
                             type="button"
                             onClick={handleConvert}
-                            disabled={converting}
-                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
+                            disabled={converting || !!validationError}
+                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {tDownload("reconvert")}
                           </button>

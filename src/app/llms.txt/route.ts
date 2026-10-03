@@ -12,7 +12,7 @@ CrushSVG was built to solve the frustration of broken vector conversions and ras
 
 ## Key Tools & Features
 
-1. **SVG to PNG Converter**: Converts SVG code, uploaded files, or URLs to high-resolution PNGs (up to 16x scale and 4000px) with full transparency, embedded fonts, and CSS filter preservation.
+1. **SVG to PNG Converter**: Converts SVG code, uploaded files, or URLs to high-resolution PNGs (up to 16x scale; output capped at 4000px per side) with full transparency, embedded fonts, and CSS filter preservation.
 2. **PNG to SVG Vectorizer**: Traces bitmap/raster images (PNG, JPG, WebP) into clean, scalable SVG vector paths with custom color quantization and path smoothing.
 3. **AI Background Remover**: Instant browser-side and neural AI background removal for photos, graphics, and e-commerce product images.
 4. **Image Resizer**: Exact pixel dimension scaling, aspect ratio preservation, and compression optimization.
