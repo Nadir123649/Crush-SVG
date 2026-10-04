@@ -14,6 +14,7 @@
     "indexnow": "npx tsx scripts/ping-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "test:e2e": "playwright test",
     "i18n:sync": "tsx scripts/i18n-sync.ts",
     "i18n:validate": "tsx scripts/i18n-validate.ts",
