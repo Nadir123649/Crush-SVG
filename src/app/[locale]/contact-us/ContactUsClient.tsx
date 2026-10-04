@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { showToast } from "@/lib/client/toast-bridge";
+import { apiFetch, ApiError } from "@/lib/client/http";
 import { Hero } from "@/components/sections/Hero";
 
 export function ContactUsClient() {
@@ -16,24 +17,36 @@ export function ContactUsClient() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (loading) return;
     setHasSubmitted(true);
-    
+
     if (!name.trim() || name.trim().length < 3) return;
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
     if (!message.trim() || message.trim().length < 10) return;
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await apiFetch<{ message: string }>("/api/v1/contact", {
+        method: "POST",
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim() }),
+      });
       showToast("success", t("successMsg"));
       setName("");
       setEmail("");
       setMessage("");
       setHasSubmitted(false);
       setMessageSent(true);
-    }, 1000);
+    } catch (err: unknown) {
+      // Keep the form contents so the visitor can retry without retyping.
+      const msg = err instanceof ApiError && err.status === 429
+        ? err.message
+        : tContact("errorMessage");
+      showToast("error", msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isNameInvalid = hasSubmitted && (!name.trim() || name.trim().length < 3);

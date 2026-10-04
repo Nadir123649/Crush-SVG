@@ -41,7 +41,12 @@ function smtpTransportOptions(env: NodeJS.ProcessEnv) {
   };
 }
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+export interface SendEmailOptions {
+  /** Where replies should go (e.g. the person who filled in the contact form). */
+  replyTo?: string;
+}
+
+export async function sendEmail(to: string, subject: string, html: string, options: SendEmailOptions = {}): Promise<void> {
   const env = process.env;
   const from = resolveFrom(env);
   const transport = resolveTransport(env);
@@ -72,20 +77,21 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
       );
     }
     const resend = new Resend(env.RESEND_API_KEY);
-    const { error } = await resend.emails.send({ from, to, subject, html });
+    const { error } = await resend.emails.send({ from, to, subject, html, ...(options.replyTo ? { replyTo: options.replyTo } : {}) });
     logSend("resend_send", error ? `error=${error.message}` : "");
     if (error) throw new Error(`Resend send failed: ${error.message}`);
     return;
   }
   if (transport === "smtp") {
     const transporter = nodemailer.createTransport(smtpTransportOptions(env));
+    const mail = { from, to, subject, html, ...(options.replyTo ? { replyTo: options.replyTo } : {}) };
     try {
-      await transporter.sendMail({ from, to, subject, html });
+      await transporter.sendMail(mail);
       logSend("smtp_send");
     } catch (firstErr) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
-        await transporter.sendMail({ from, to, subject, html });
+        await transporter.sendMail(mail);
         logSend("smtp_send_after_retry");
       } catch {
         logSend("smtp_send_failed");
