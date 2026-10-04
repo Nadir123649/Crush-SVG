@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
 import { resolveRole } from '@/lib/auth/roles'
-import { REFRESH_COOKIE_NAME, getRefreshCookieOptions, clearRefreshCookie } from '@/lib/auth/auth'
+import { REFRESH_COOKIE_NAME, setSessionCookies, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { logger } from '@/lib/shared/logger'
 
@@ -100,7 +100,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
 
   const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value
   if (!refreshToken) {
-    return NextResponse.json(
+    const res = NextResponse.json(
       {
         success: false,
         version: '1.0.0',
@@ -109,6 +109,10 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
       },
       { status: 200, headers: rateLimitHeaders(rl) }
     )
+    // Drop a stale crushsvg_session flag so the client stops attempting a
+    // refresh on every page load.
+    clearRefreshCookie(res)
+    return res
   }
 
   // Without this check a missing JWT secret makes verifyRefreshToken reject,
@@ -218,7 +222,7 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
     },
     { status: 200, headers: rateLimitHeaders(rl) }
   )
-  res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(result.remember))
+  setSessionCookies(res, tokenPair.refreshToken, result.remember)
   return res
 }
 

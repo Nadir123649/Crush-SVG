@@ -5,7 +5,7 @@ import { hashToken } from '@/lib/auth/passwords'
 import { createSession } from '@/lib/auth/sessions'
 import { buildTokenPayload } from '@/lib/auth/tokens'
 import { getClientIp } from '@/lib/security/ip'
-import { REFRESH_COOKIE_NAME, getRefreshCookieOptions } from '@/lib/auth/auth'
+import { setSessionCookies } from '@/lib/auth/auth'
 import { successResponse, errorResponse, getFrontendOrigin } from '@/lib/http/api-response'
 
 export const runtime = 'nodejs'
@@ -56,7 +56,7 @@ export async function GET(
     })
 
     const res = NextResponse.redirect(new URL('/verify?status=success', base))
-    res.cookies.set(REFRESH_COOKIE_NAME, tokenPair.refreshToken, getRefreshCookieOptions(true))
+    setSessionCookies(res, tokenPair.refreshToken, true)
     return res
   }
   return successResponse({ message: 'Email verified. You can now log in.' })

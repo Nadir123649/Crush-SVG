@@ -108,6 +108,9 @@ const PUBLIC_API_PREFIXES = [
   // Newsletter
   '/api/v1/newsletter',
 
+  // Contact form
+  '/api/v1/contact',
+
   // API documentation
   '/api/openapi',
 ]
@@ -216,6 +219,13 @@ function setCorsHeaders(
   response.headers.set(
     'Access-Control-Allow-Credentials',
     'true'
+  )
+
+  // Retry-After is not CORS-safelisted; without this the frontend origin
+  // cannot read it from a 429.
+  response.headers.set(
+    'Access-Control-Expose-Headers',
+    'Retry-After'
   )
 }
 

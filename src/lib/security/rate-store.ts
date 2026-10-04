@@ -5,6 +5,8 @@ export interface RateStore {
   get(key: string): Promise<string | number | null>;
   set(key: string, value: string | number, ttlMs: number): Promise<void>;
   increment(key: string, ttlMs: number): Promise<number>;
+  /** Milliseconds until `key` expires, or null when it is missing or has no expiry. */
+  ttlMs(key: string): Promise<number | null>;
   reset(key: string): Promise<void>;
   clearPrefix(prefix: string): Promise<void>;
 }
@@ -38,6 +40,11 @@ class MemoryStore implements RateStore {
     }
     entry.value = Number(entry.value) + 1;
     return Number(entry.value);
+  }
+
+  async ttlMs(key: string): Promise<number | null> {
+    const entry = this.alive(key);
+    return entry ? entry.expiresAt - Date.now() : null;
   }
 
   async reset(key: string): Promise<void> {
@@ -114,6 +121,17 @@ class UpstashFailOpenStore implements RateStore {
     } catch (err) {
       console.warn("[rate-store] Upstash Redis increment failed, falling back to memory store:", err);
       return this.memoryFallback.increment(key, ttlMs);
+    }
+  }
+
+  async ttlMs(key: string): Promise<number | null> {
+    try {
+      // PTTL: -2 = key missing, -1 = no expiry
+      const ttl = await this.redis.pttl(key);
+      return ttl >= 0 ? ttl : null;
+    } catch (err) {
+      console.warn("[rate-store] Upstash Redis pttl failed, falling back to memory store:", err);
+      return this.memoryFallback.ttlMs(key);
     }
   }
 

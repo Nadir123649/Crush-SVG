@@ -11,14 +11,14 @@ export function successResponse(data: unknown, status = 200, headers?: Record<st
         serverTimestamp: new Date().toISOString(),
     }, { status, headers: responseHeaders });
 }
-export function errorResponse(status: number, code: string, message: string, headers?: Record<string, string>, request?: NextRequest) {
+export function errorResponse(status: number, code: string, message: string, headers?: Record<string, string>, request?: NextRequest, extra?: Record<string, unknown>) {
     const responseHeaders: Record<string, string> = { ...headers };
     if (request)
         responseHeaders["x-request-id"] = getRequestId(request);
     return NextResponse.json({
         success: false,
         version: "1.0.0",
-        payload: { error: { code, message } },
+        payload: { error: { ...extra, code, message } },
         serverTimestamp: new Date().toISOString(),
     }, { status, headers: responseHeaders });
 }

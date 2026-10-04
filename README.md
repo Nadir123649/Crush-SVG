@@ -19,7 +19,7 @@
 ## 🚀 Core Capabilities
 
 - **High-Fidelity Rendering**: Backed by `sharp` and `librsvg` for accurate, crisp rendering at high resolutions (300 DPI target density).
-- **Flexible Dimensions**: Configure outputs using standard width and height options in pixels (`px`) or centimeters (`cm`), or apply direct multipliers (from `0.1x` up to `16x`).
+- **Flexible Dimensions**: Configure outputs using standard width and height options in pixels (`px`) or centimeters (`cm`), or apply direct multipliers (from `0.1x` up to `16x`). Output is capped at 4000 px per side.
 - **Transparency Controls**: Toggle transparent backgrounds instantly; falls back to flat white when disabled.
 - **Auto-Dimension Parsing**: Automatically extracts dimensions from SVG `width`, `height`, or `viewBox` attributes.
 - **Security-First Sanitization**: Strips scripts, event handlers, and malicious `javascript:` or `script:` schemes to prevent XSS, while safely preserving embedded base64 assets (`data:image/*`).
@@ -101,12 +101,12 @@ The system enforces the following constraints to prevent abuse and resource exha
 
 | Constraint | Limit Value | Description |
 | :--- | :--- | :--- |
-| **SVG Input Size** | `5 MB` | Maximum file size allowed for uploaded SVG markup. |
+| **SVG Input Size** | `10 MB` | Maximum file size allowed for uploaded SVG markup. |
 | **Output Dimension** | `4000 × 4000 px` | Hard cap on output resolution. Larger requests are rejected. |
-| **Scale Range** | `0.1x – 16x` | Available rendering scale multipliers. |
+| **Scale Range** | `0.1x – 16x` | Available rendering scale multipliers; scale × the SVG size must still fit the 4000 px cap. |
 | **Guest Conversions** | `3` | Maximum free conversions per anonymous session. |
 | **Rate Limiter** | `30 / min` | Conversion rate limit per IP address (backed by Upstash). |
-| **Timeout Limits** | `30s` (Server) / `60s` (Client) | Maximum execution duration before connection is aborted. |
+| **Timeout Limits** | `30s` (Server) / `25s` (Client) | Maximum execution duration before connection is aborted. |
 
 ---
 

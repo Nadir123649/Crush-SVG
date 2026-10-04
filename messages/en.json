@@ -400,7 +400,7 @@
       },
       {
         "question": "How high can I scale my SVG output?",
-        "answer": "You can scale up to 16x or specify custom dimensions up to 4000 pixels for ultra-high-resolution, print-ready graphics."
+        "answer": "You can scale up to 16x or specify custom dimensions up to 4000 pixels for ultra-high-resolution, print-ready graphics. The final image is capped at 4000 pixels per side."
       },
       {
         "question": "Are my files kept private?",
@@ -955,6 +955,7 @@
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
     "conversionTimedOut": "The conversion took too long. Please try again.",
     "conversionFailed": "Conversion failed. Please try again.",
+    "rateLimited": "You are performing actions too quickly. Please wait {seconds, plural, one {# second} other {# seconds}}.",
     "downloadStarted": "Your download has started",
     "pasteToStart": "Paste your SVG code or upload a file to get started.",
     "invalidSvgCode": "Invalid SVG code. Please check for unclosed tags or syntax errors.",
@@ -965,6 +966,8 @@
     "customHeightRequired": "Please enter a custom height value.",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
+    "outputTooLarge": "Output would be {requested} px on one side, above the {max} px limit. Lower the scale or the size.",
+    "scaleExceedsCap": "Too large for this SVG: output is capped at {max} px per side.",
     "accountCreatedSuccess": "Account created! Please check your email to verify your account.",
     "somethingWentWrong": "Something went wrong. Please try again.",
     "resendLinkSuccess": "Verification email sent successfully.",

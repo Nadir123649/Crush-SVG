@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
@@ -10,13 +10,21 @@ import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import {
   convertText,
   isValidSvgContent,
-  svgToDataUrl,
+  shouldConvertInBrowser,
   type ConvertRequest,
   type ConvertResponse,
 } from "@/lib/client/converter";
-import { parseSvgDimensions } from "@/lib/svg/svg-dims";
+import { browserRasterApproximatesBackground, rasterizeSvgInBrowser } from "@/lib/client/svg-raster";
+import {
+  computeTargetSize,
+  MAX_OUTPUT_SIZE,
+  OutputTooLargeError,
+  parseSvgDimensions,
+  type SvgDimensions,
+  type TargetSizeInput,
+} from "@/lib/svg/svg-dims";
 import { ApiError, getAccessToken } from "@/lib/client/http";
-import { getUsage } from "@/lib/client/sessions";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -27,9 +35,21 @@ import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
 const PX_PER_CM = 96 / 2.54;
-const MAX_CUSTOM_PX = 4000;
+// Same cap the server enforces on the rendered output (svg-dims.ts).
+const MAX_CUSTOM_PX = MAX_OUTPUT_SIZE;
 const CONVERTER_STORAGE_KEY = "crush_converter_state";
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
+// Same ceiling the server schema and the file picker enforce.
+const MAX_SVG_CHARS = 10 * 1024 * 1024;
+// Above this the textarea shows a read-only excerpt: laying out a single
+// multi-MB base64 line in a <textarea> is what froze the tab ("Page Unresponsive").
+const LARGE_SVG_CHARS = 1_000_000;
+const LARGE_EXCERPT_HEAD_CHARS = 1_500;
+const LARGE_EXCERPT_TAIL_CHARS = 300;
+
+function formatMegabytes(chars: number): string {
+  return `${(chars / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
@@ -58,6 +78,27 @@ function normalizeHex(input: string): string {
   }
   if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex.toUpperCase();
   return "#FFFFFF";
+}
+
+/**
+ * The oversized side (px) this request would render, or null when it fits.
+ * Runs the server's own computeTargetSize so the UI blocks exactly what the
+ * route would reject (scale × the SVG's size, or a width-derived height).
+ */
+function oversizedOutputPx(dims: SvgDimensions, options: TargetSizeInput): number | null {
+  try {
+    computeTargetSize(dims, options);
+    return null;
+  } catch (err) {
+    if (err instanceof OutputTooLargeError) return err.requested;
+    throw err;
+  }
+}
+
+function parseDimensionPx(value: string, unit: "px" | "cm"): number | undefined {
+  const n = parseFloat(value);
+  if (Number.isNaN(n)) return undefined;
+  return Math.round(unit === "cm" ? n * PX_PER_CM : n);
 }
 
 const formatDimensionLabel = (val: string, currentUnit: string) => {
@@ -120,6 +161,7 @@ function SvgToPngConverter() {
   const [storageRestored, setStorageRestored] = useState(false);
   const prevStatusRef = useRef<AuthStatus | null>(null);
   const convertAbortRef = useRef<AbortController | null>(null);
+  const convertInFlightRef = useRef(false);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -206,6 +248,13 @@ function SvgToPngConverter() {
   useEffect(() => {
     if (!storageRestoredRef.current) return;
     try {
+      // sessionStorage is ~5 MB per origin: stringifying and writing a huge SVG
+      // on every change both blocks the main thread and throws on quota. Drop
+      // the stale entry instead so a refresh can't restore older code.
+      if (svgCode.length > MAX_PERSISTED_RESULT_CHARS) {
+        sessionStorage.removeItem(CONVERTER_STORAGE_KEY);
+        return;
+      }
       const persistableResult =
         result && result.data && result.data.length <= MAX_PERSISTED_RESULT_CHARS ? result : null;
       sessionStorage.setItem(CONVERTER_STORAGE_KEY, JSON.stringify({ svgCode, result: persistableResult }));
@@ -248,12 +297,36 @@ function SvgToPngConverter() {
     }
   };
 
-  const previewSvgUrl = useMemo(() => {
-    if (!svgCode || svgCode.trim() === "") return "";
-    return svgToDataUrl(svgCode);
-  }, [svgCode]);
+  // Preview a Blob URL instead of a `data:` URL: encodeURIComponent() over a
+  // multi-MB SVG on every change froze the tab. Deferred so typing/pasting stays
+  // responsive while the preview catches up.
+  const deferredSvgCode = useDeferredValue(svgCode);
+  const [previewSvgUrl, setPreviewSvgUrl] = useState("");
+  useEffect(() => {
+    if (!deferredSvgCode || deferredSvgCode.trim() === "" || deferredSvgCode === SAMPLE_SVG) {
+      queueMicrotask(() => setPreviewSvgUrl(""));
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([deferredSvgCode], { type: "image/svg+xml;charset=utf-8" }));
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setPreviewSvgUrl(url);
+    });
+    return () => {
+      cancelled = true;
+      URL.revokeObjectURL(url);
+    };
+  }, [deferredSvgCode]);
 
-  const isValidSvg = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
+  const isValidSvg = useMemo(() => isValidSvgContent(deferredSvgCode), [deferredSvgCode]);
+  const isLargeSvg = svgCode !== SAMPLE_SVG && svgCode.length > LARGE_SVG_CHARS;
+  const largeSvgExcerpt = useMemo(
+    () =>
+      isLargeSvg
+        ? `${svgCode.slice(0, LARGE_EXCERPT_HEAD_CHARS)}\n\n… ${formatMegabytes(svgCode.length)} total, middle hidden for performance …\n\n${svgCode.slice(-LARGE_EXCERPT_TAIL_CHARS)}`
+        : "",
+    [isLargeSvg, svgCode]
+  );
   const showCustomPreview = svgCode !== SAMPLE_SVG && svgCode.trim() !== "" && svgCode !== DUMMY_CODE && isValidSvg;
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
@@ -367,8 +440,16 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    // `converting` state lags a render behind; the ref blocks a second click
+    // (Convert / Re-convert) that lands before the button disables.
+    if (convertInFlightRef.current) return;
     if (isPlaceholderCode || svgCode.trim() === "") {
       showToast("error", tToast("pasteToStart"));
+      return;
+    }
+    if (svgCode.length > MAX_SVG_CHARS) {
+      setError(tToast("fileTooLarge"));
+      showToast("error", tToast("fileTooLarge"));
       return;
     }
     if (!isValidSvgContent(svgCode)) {
@@ -420,19 +501,66 @@ function SvgToPngConverter() {
       }
     }
 
+    // Block before any request what the server would reject with a 422.
+    const oversizedPx = oversizedOutputPx(dims, options);
+    if (oversizedPx !== null) {
+      setError(tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE }));
+      return;
+    }
+
+    // Too big for the server's 4.5 MB request/response ceiling: render locally.
+    const convertInBrowser = shouldConvertInBrowser(svgCode, options);
+    if (convertInBrowser && limitReached && status !== "authed") {
+      // The server path enforces the guest cap with a 429; do the same here.
+      setShowSignupPrompt(true);
+      return;
+    }
+
+    convertAbortRef.current?.abort();
+    convertInFlightRef.current = true;
     setConverting(true);
     const controller = new AbortController();
     convertAbortRef.current = controller;
 
     try {
-      const res = await convertText(svgCode, { ...options, signal: controller.signal });
-      if (controller.signal.aborted) return;
+      let res: ConvertResponse;
+      if (convertInBrowser) {
+        const raster = await rasterizeSvgInBrowser(svgCode, { ...options, signal: controller.signal });
+        if (controller.signal.aborted) return;
+
+        // Count it like a server conversion so the guest cap / account totals stay accurate.
+        let tracked: UsageInfo | null = null;
+        try {
+          tracked = await trackConversionUsage({
+            inputFormat: "svg",
+            outputFormat: "png",
+            originalSize: raster.size,
+            success: true,
+          });
+        } catch (trackError) {
+          console.error("Failed to track usage", trackError);
+        }
+        if (controller.signal.aborted) return;
+
+        res = {
+          ...raster,
+          conversionsUsed: tracked?.conversionsUsed ?? (usage?.conversionsUsed ?? 0) + 1,
+          remaining: tracked?.remaining ?? undefined,
+        };
+        if (browserRasterApproximatesBackground(options)) {
+          showToast("info", "Large SVG converted in your browser. Background removal isn't applied at this size.");
+        }
+      } else {
+        res = await convertText(svgCode, { ...options, signal: controller.signal });
+        if (controller.signal.aborted) return;
+      }
 
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
+        engine: convertInBrowser ? "browser" : "server",
         width: options.width,
         height: options.height,
         scale: options.scale,
@@ -446,7 +574,15 @@ function SvgToPngConverter() {
         setShowSignupPrompt(true);
         return;
       }
-      if (err instanceof DOMException && err.name === "TimeoutError") {
+      // Request-rate 429 (not the quota 429 above): tell the user how long to wait.
+      if (err instanceof ApiError && err.status === 429 && err.code !== "limit_reached" && err.retryAfter) {
+        showToast("error", tToast("rateLimited", { seconds: err.retryAfter }));
+        return;
+      }
+      if (
+        (err instanceof ApiError && err.code === "timeout") ||
+        (err instanceof DOMException && err.name === "TimeoutError")
+      ) {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
@@ -458,7 +594,14 @@ function SvgToPngConverter() {
       }
       showToast("error", msg);
     } finally {
-      if (!controller.signal.aborted) setConverting(false);
+      // Only the request that still owns the controller resets the state. An
+      // aborted request (e.g. logout mid-conversion) still owns it and must
+      // re-enable the buttons; a request that was superseded does not.
+      if (convertAbortRef.current === controller) {
+        convertAbortRef.current = null;
+        convertInFlightRef.current = false;
+        setConverting(false);
+      }
     }
   }
 
@@ -542,6 +685,25 @@ function SvgToPngConverter() {
     }
   }
 
+  // Same size options handleConvert sends; blocks scale × SVG size over the cap.
+  const sizeOptions: TargetSizeInput = {};
+  if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
+    sizeOptions.width = parseDimensionPx(selectedWidth, unit);
+  }
+  if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
+    sizeOptions.height = parseDimensionPx(selectedHeight, unit);
+  }
+  if (!isScaleDisabled) {
+    const sNum = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
+    if (!Number.isNaN(sNum) && sNum > 0) sizeOptions.scale = sNum;
+  }
+  if (!validationError) {
+    const oversizedPx = oversizedOutputPx(dims, sizeOptions);
+    if (oversizedPx !== null) {
+      validationError = tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE });
+    }
+  }
+
   return (
     <>
       <section
@@ -606,8 +768,21 @@ function SvgToPngConverter() {
                 <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                   <textarea
                     id="svg-code-textarea"
-                    value={svgCode === SAMPLE_SVG ? "" : svgCode}
+                    value={isLargeSvg ? largeSvgExcerpt : svgCode === SAMPLE_SVG ? "" : svgCode}
                     placeholder={DUMMY_CODE}
+                    readOnly={isLargeSvg}
+                    onPaste={(e) => {
+                      // Let normal-sized pastes behave natively. For huge ones (or when a
+                      // large SVG is loaded and the editor is read-only), take the text
+                      // straight from the clipboard so the browser never has to lay out a
+                      // multi-MB string inside the textarea.
+                      const pasted = e.clipboardData.getData("text/plain");
+                      if (pasted && (isLargeSvg || pasted.length > LARGE_SVG_CHARS)) {
+                        e.preventDefault();
+                        handleSvgChange(pasted.trimEnd());
+                        resetDropdowns();
+                      }
+                    }}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === "") {
@@ -697,6 +872,11 @@ function SvgToPngConverter() {
                     ? tUpload("sourceSize", { width: dims.width, height: dims.height, aspect: aspectLabel })
                     : tUpload("sourceSizeUnknown")}
                 </p>
+                {isLargeSvg && (
+                  <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[4px]">
+                    Large SVG ({formatMegabytes(svgCode.length)}): the editor shows an excerpt to keep the page responsive. Paste or upload again to replace it.
+                  </p>
+                )}
 
                 <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
                   {/* Feature Guide Box (when Custom is selected) */}
@@ -1067,12 +1247,19 @@ function SvgToPngConverter() {
                           {openDropdown === "scale" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
                               <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
-                                {SCALE_OPTIONS.map((opt: string) => (
+                                {SCALE_OPTIONS.map((opt: string) => {
+                                  // e.g. 16x on a 300px SVG would render 4800px: not selectable.
+                                  const exceedsCap =
+                                    opt !== "Custom" && oversizedOutputPx(dims, { scale: parseFloat(opt) }) !== null;
+                                  return (
                                   <button
                                     type="button"
                                     key={opt}
                                     role="option"
                                     aria-selected={selectedScale === opt}
+                                    aria-disabled={exceedsCap}
+                                    disabled={exceedsCap}
+                                    title={exceedsCap ? tToast("scaleExceedsCap", { max: MAX_OUTPUT_SIZE }) : undefined}
                                     onClick={() => {
                                       if (opt === "Custom") {
                                         setIsCustomScale(true);
@@ -1084,11 +1271,12 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     {opt}
                                   </button>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -1366,8 +1554,8 @@ function SvgToPngConverter() {
                           <button
                             type="button"
                             onClick={handleConvert}
-                            disabled={converting}
-                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer"
+                            disabled={converting || !!validationError}
+                            className="font-body text-[13px] font-medium text-[#475569] hover:text-[#202427] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {tDownload("reconvert")}
                           </button>

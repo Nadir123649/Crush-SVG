@@ -93,6 +93,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
     )
   }
 
+  const rawFormat = formData.get('format')
   const rawWidth = formData.get('width')
   const rawScale = formData.get('scale')
   const rawTransparent = formData.get('transparent')
@@ -102,6 +103,7 @@ async function convertSvgUpload(request: NextRequest, formData: FormData, buffer
   const parsed = convertSchema
     .omit({ svg: true })
     .safeParse({
+      format: rawFormat ?? undefined,
       width: rawWidth ? Number(rawWidth) : undefined,
       scale: rawScale ? Number(rawScale) : undefined,
       transparent: rawTransparent === null ? undefined : (rawTransparent === 'true' || rawTransparent === '1'),

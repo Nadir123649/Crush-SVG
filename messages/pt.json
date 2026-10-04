@@ -392,7 +392,7 @@
       },
       {
         "question": "Até que tamanho posso redimensionar o SVG?",
-        "answer": "Você pode escalar até 16x ou especificar dimensões personalizadas de até 4000 pixels para alta resolução pronta para impressão."
+        "answer": "Você pode escalar até 16x ou especificar dimensões personalizadas de até 4000 pixels para alta resolução pronta para impressão. A imagem final é limitada a 4000 pixels por lado."
       },
       {
         "question": "Meus arquivos permanecem privados e protegidos?",
@@ -858,6 +858,7 @@
   "toasts": {
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
     "conversionFailed": "Conversion failed. Please try again.",
+    "rateLimited": "You are performing actions too quickly. Please wait {seconds, plural, one {# second} other {# seconds}}.",
     "conversionTimedOut": "The conversion took too long. Please try again.",
     "copyFailed": "Failed to copy SVG code",
     "customHeightRequired": "Please enter a custom height value.",
@@ -868,6 +869,8 @@
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
     "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
+    "outputTooLarge": "Output would be {requested} px on one side, above the {max} px limit. Lower the scale or the size.",
+    "scaleExceedsCap": "Too large for this SVG: output is capped at {max} px per side.",
     "invalidSvgFile": "Please choose an SVG file (.svg).",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "loggedOut": "You've been logged out",

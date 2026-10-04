@@ -392,7 +392,7 @@
       },
       {
         "question": "どのくらいの大きさまで拡大変換できますか？",
-        "answer": "最大16倍の拡大倍率、または最大4000ピクセルまでのカスタム寸法指定に対応しており、印刷レベルの高精細な画像を出力できます。"
+        "answer": "最大16倍の拡大倍率、または最大4000ピクセルまでのカスタム寸法指定に対応しており、印刷レベルの高精細な画像を出力できます。最終的な画像は1辺あたり最大4000ピクセルです。"
       },
       {
         "question": "アップロードしたファイルの安全性やプライバシーは保護されますか？",
@@ -858,6 +858,7 @@
   "toasts": {
     "conversionComplete": "Conversion complete. Your {format} is ready to download.",
     "conversionFailed": "Conversion failed. Please try again.",
+    "rateLimited": "You are performing actions too quickly. Please wait {seconds, plural, one {# second} other {# seconds}}.",
     "conversionTimedOut": "The conversion took too long. Please try again.",
     "copyFailed": "Failed to copy SVG code",
     "customHeightRequired": "Please enter a custom height value.",
@@ -868,6 +869,8 @@
     "formatError": "We couldn't format this SVG. Please check that the code is valid.",
     "formatTooLarge": "SVG is too large to format safely (>1MB). Please use a smaller SVG.",
     "invalidHeight": "Invalid height value. Must be a number between 1 and {max} px (max {maxCm} cm).",
+    "outputTooLarge": "Output would be {requested} px on one side, above the {max} px limit. Lower the scale or the size.",
+    "scaleExceedsCap": "Too large for this SVG: output is capped at {max} px per side.",
     "invalidSvgFile": "Please choose an SVG file (.svg).",
     "invalidWidth": "Invalid width value. Must be a number between 1 and {max} px (max {maxCm} cm).",
     "loggedOut": "You've been logged out",

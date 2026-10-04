@@ -11,7 +11,7 @@ CrushSVG is a developer and designer utility platform for vector image conversio
 
 1. SVG to PNG Conversion:
    - High-fidelity rasterization using Canvas API and SVG rendering engine.
-   - Scale factor options: 1x, 2x (Retina), 4x (4K), 8x, 16x.
+   - Scale factor options: 1x, 2x (Retina), 4x (4K), 8x, 16x. Output is capped at 4000 x 4000 px, so the highest scales only apply to small SVGs.
    - Preserves CSS styles, embedded base64 fonts, linear/radial gradients, clipping masks, and drop shadows.
    - Transparent background retention with full 32-bit alpha channel.
 

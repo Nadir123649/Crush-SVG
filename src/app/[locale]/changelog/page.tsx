@@ -70,7 +70,7 @@ export default async function ChangelogPage({
       title: "16x Scale Multipliers & Transparent Background Engine",
       description: "Added ultra-high-resolution rendering options for billboard and print assets, plus full transparent canvas preservation.",
       changes: [
-        { type: "Feature", text: "Added up to 16x scaling factor for ultra-crisp vector exports." },
+        { type: "Feature", text: "Added up to 16x scaling factor for ultra-crisp vector exports (output capped at 4000px per side)." },
         { type: "UI/UX", text: "Redesigned dimension controls with direct px / cm and preset aspect ratios." },
         { type: "Core", text: "Enhanced font embedding support to prevent missing typography in custom SVGs." },
       ],

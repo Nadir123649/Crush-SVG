@@ -1,4 +1,4 @@
-import { apiBlob, apiFetch } from '@/lib/client/http'
+import { apiBlob, apiFetch, withTimeoutSignal } from '@/lib/client/http'
 
 export interface ConvertRequest {
   width?: number
@@ -23,7 +23,30 @@ export interface ConvertResponse {
   remaining?: number
 }
 
-const CONVERT_TIMEOUT_MS = 60_000
+/**
+ * Client-side ceiling for one convert request (including any session refresh
+ * it waits on). Kept below the route's 30 s Vercel maxDuration so the browser
+ * gives up cleanly, with a timeout message, before the platform kills the
+ * function and returns a CORS-less 504 that surfaces as "Failed to fetch".
+ */
+export const CONVERT_TIMEOUT_MS = 25_000
+
+/**
+ * Largest /api/v1/convert request body we will send to the server.
+ *
+ * Vercel Functions reject request AND response bodies over 4.5 MB with a 413
+ * (FUNCTION_PAYLOAD_TOO_LARGE) before our handler runs. That 413 carries no
+ * CORS headers, so cross-origin it surfaces as "Failed to fetch". The route
+ * replies with the PNG base64-encoded inside JSON (+33%), and SVGs this large
+ * are usually wrappers around embedded rasters whose PNG output is about the
+ * same size, so the budget is set well under the platform cap. Anything above
+ * it is rendered in the browser instead (see svg-raster.ts).
+ */
+export const SERVER_CONVERT_MAX_BODY_BYTES = 3 * 1024 * 1024
+
+// Below this many characters the JSON body cannot reach the budget even at
+// 3 UTF-8 bytes per character, so the exact (allocating) measurement is skipped.
+const SKIP_MEASURE_BELOW_CHARS = 256_000
 
 function convertBody(svg: string, options: ConvertRequest = {}) {
   return JSON.stringify({
@@ -34,12 +57,20 @@ function convertBody(svg: string, options: ConvertRequest = {}) {
   })
 }
 
+/** True when this conversion is too large to send to the server and must be rendered in the browser. */
+export function shouldConvertInBrowser(svg: string, options: ConvertRequest = {}): boolean {
+  if (svg.length <= SKIP_MEASURE_BELOW_CHARS) return false
+  const { signal, ...rest } = options
+  void signal
+  return new Blob([convertBody(svg, rest)]).size > SERVER_CONVERT_MAX_BODY_BYTES
+}
+
 export async function convertText(svg: string, options: ConvertRequest = {}): Promise<ConvertResponse> {
   const { signal, ...rest } = options
   return apiFetch<ConvertResponse>('/api/v1/convert', {
     method: 'POST',
     body: convertBody(svg, rest),
-    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    signal: withTimeoutSignal(signal, CONVERT_TIMEOUT_MS),
   })
 }
 
@@ -51,7 +82,7 @@ export async function downloadConverted(
   return apiBlob('/api/v1/convert?download=1', {
     method: 'POST',
     body: convertBody(svg, rest),
-    signal: signal ?? AbortSignal.timeout(CONVERT_TIMEOUT_MS),
+    signal: withTimeoutSignal(signal, CONVERT_TIMEOUT_MS),
   })
 }
 

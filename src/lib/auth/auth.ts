@@ -3,6 +3,10 @@ import type { UserDoc } from "@/lib/database/db";
 import type { UserDTO } from "@/lib/shared/shared-types";
 import { resolveRole } from "@/lib/auth/roles";
 export const REFRESH_COOKIE_NAME = "crushsvg_refresh";
+// Non-httpOnly flag so the client can tell a session exists without reading the
+// refresh token. Always written next to the refresh cookie with the same
+// lifetime/domain so the two can never drift apart.
+export const SESSION_FLAG_COOKIE_NAME = "crushsvg_session";
 export type { UserDTO, TokenPairDTO, UsageInfo } from "@/lib/shared/shared-types";
 
 export function getRefreshCookieOptions(remember = false) {
@@ -16,8 +20,18 @@ export function getRefreshCookieOptions(remember = false) {
     };
 }
 
+export function setSessionCookies(res: NextResponse, refreshToken: string, remember = false): void {
+    const options = getRefreshCookieOptions(remember);
+    res.cookies.set(REFRESH_COOKIE_NAME, refreshToken, options);
+    res.cookies.set(SESSION_FLAG_COOKIE_NAME, "1", { ...options, httpOnly: false });
+}
+
+// Pass only name/path/domain: delete() keeps any maxAge it is given and turns it
+// into a future expiry, which would store an empty cookie instead of removing it.
 export function clearRefreshCookie(res: NextResponse): void {
-    res.cookies.delete({ name: REFRESH_COOKIE_NAME, ...getRefreshCookieOptions(true) });
+    const { path, domain } = getRefreshCookieOptions();
+    res.cookies.delete({ name: REFRESH_COOKIE_NAME, path, domain });
+    res.cookies.delete({ name: SESSION_FLAG_COOKIE_NAME, path, domain });
 }
 export function toUserDTO(user: UserDoc): UserDTO {
     return {

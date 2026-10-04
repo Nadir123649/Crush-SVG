@@ -88,9 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('crush_user', JSON.stringify(payload.user))
       localStorage.removeItem('crush_usage_info')
       sessionStorage.setItem('crush_auth_status', 'authed')
-      // Non-httpOnly flag cookie so the client can detect an active session.
-      // The actual refresh cookie is httpOnly and cannot be read or deleted by JS.
-      document.cookie = 'crushsvg_session=1; path=/; max-age=604800; SameSite=Lax'
+      // The crushsvg_session flag cookie is set by the server next to the
+      // refresh cookie (same lifetime), so it is not written here.
       document.documentElement.classList.add('user-logged-in')
       document.documentElement.classList.remove('user-logged-out')
     }
@@ -114,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.removeItem('crush_session_only')
       sessionStorage.setItem('crush_auth_status', 'guest')
       // Clear the non-httpOnly session flag so attemptRefresh won't fire on reload.
+      // Only removes a host-only copy; the server clears its own on logout.
       document.cookie = 'crushsvg_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       document.documentElement.classList.add('user-logged-out')
       document.documentElement.classList.remove('user-logged-in')
