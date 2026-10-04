@@ -108,6 +108,9 @@ const PUBLIC_API_PREFIXES = [
   // Newsletter
   '/api/v1/newsletter',
 
+  // Contact form
+  '/api/v1/contact',
+
   // API documentation
   '/api/openapi',
 ]
