@@ -12,7 +12,7 @@ import {
   type User,
 } from "firebase/auth";
 import type { UserDTO } from "@/lib/shared/shared-types";
-import { apiBase } from "@/lib/client/api";
+import { apiBase, API_BASE } from "@/lib/client/api";
 
 const PROVIDER_URL_MAP: Record<string, string> = {
   "google.com": "google",
@@ -141,6 +141,9 @@ export async function exchangeIdToken(rememberMe = true, googleAccessToken: stri
       rememberMe,
       ...(googleAccessToken ? { googleAccessToken } : {}),
     }),
+    // Without this the browser drops the session cookies the API (a separate
+    // origin in production) sets on the response.
+    credentials: API_BASE ? "include" : "same-origin",
   });
   if (response.status === 403) {
     throw new Error("email_not_verified");

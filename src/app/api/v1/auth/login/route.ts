@@ -7,7 +7,7 @@ import { verifyPassword } from '@/lib/auth/passwords'
 import { checkBruteForce, recordFailure, resetBruteForce } from '@/lib/security/brute-force'
 import { issueSession } from '@/lib/auth/auth-helpers'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
-import { REFRESH_COOKIE_NAME, getRefreshCookieOptions } from '@/lib/auth/auth'
+import { setSessionCookies } from '@/lib/auth/auth'
 import { isAdminEmail } from '@/lib/auth/roles'
 
 export const runtime = 'nodejs'
@@ -100,6 +100,6 @@ export async function POST(request: NextRequest) {
 
   const { payload } = await issueSession(request, user, 'email', rememberMe)
   const res = successResponse({ ...payload, remember: rememberMe }, 200)
-  res.cookies.set(REFRESH_COOKIE_NAME, (payload.token as { refreshToken: string }).refreshToken, getRefreshCookieOptions(rememberMe))
+  setSessionCookies(res, (payload.token as { refreshToken: string }).refreshToken, rememberMe)
   return res
 }
