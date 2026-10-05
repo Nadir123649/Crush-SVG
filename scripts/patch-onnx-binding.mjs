@@ -90,8 +90,17 @@ const wasmBackend = {
     const ort = await getWasmOrt();
     let input;
     if (typeof pathOrBuffer === "string") {
-      const resp = await globalThis.fetch(pathOrBuffer);
-      input = new Uint8Array(await resp.arrayBuffer());
+      if (/^https?:\\/\\//i.test(pathOrBuffer)) {
+        const resp = await globalThis.fetch(pathOrBuffer);
+        if (!resp.ok) {
+          throw new Error("Failed to fetch model: HTTP " + resp.status);
+        }
+        input = new Uint8Array(await resp.arrayBuffer());
+      } else {
+        // transformers.js (Node) hands us a filesystem path to the cached model;
+        // fetch() cannot read those, so read the bytes from disk.
+        input = new Uint8Array(await require("fs").promises.readFile(pathOrBuffer));
+      }
     } else if (pathOrBuffer instanceof Blob) {
       input = new Uint8Array(await pathOrBuffer.arrayBuffer());
     } else if (pathOrBuffer instanceof ArrayBuffer) {
