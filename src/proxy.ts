@@ -195,6 +195,14 @@ function isApiSubdomain(
   )
 }
 
+const API_DOCS_ALIASES = new Set(['/docs', API_DOCS_PATH, '/swagger'])
+
+function frontendOriginFor(apiHostname: string): string {
+  return apiHostname.startsWith('staging.')
+    ? 'https://staging.crushsvg.net'
+    : 'https://crushsvg.net'
+}
+
 function setCorsHeaders(
   response: NextResponse,
   request: NextRequest
@@ -361,11 +369,26 @@ export async function proxy(
       pathname === '/email-verification' ||
       pathname.startsWith('/reset-password/')
     ) {
-      const frontendHost = hostname!.startsWith('staging.')
-        ? 'https://staging.crushsvg.net'
-        : 'https://crushsvg.net'
       return addRequestId(
-        NextResponse.redirect(new URL(`${pathname}${url.search}`, frontendHost)),
+        NextResponse.redirect(
+          new URL(`${pathname}${url.search}`, frontendOriginFor(hostname!))
+        ),
+        request
+      )
+    }
+
+    // Conventional docs paths on the API host point at the canonical docs
+    // page on the frontend. 302 (not 301) so browsers/CDNs don't cache it
+    // while the canonical host is still being settled.
+    if (
+      API_DOCS_ALIASES.has(pathname) &&
+      (request.method === 'GET' || request.method === 'HEAD')
+    ) {
+      return addRequestId(
+        NextResponse.redirect(
+          new URL(API_DOCS_PATH, frontendOriginFor(hostname!)),
+          302
+        ),
         request
       )
     }

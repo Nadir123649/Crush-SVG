@@ -8,6 +8,7 @@ import type { BlogDoc } from "@/lib/database/models/blog";
 import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
 import { AdBanner } from "@/components/ui/AdBanner";
+import { BLOG_SAMPLE_DATA_ENABLED, SAMPLE_BLOG_POSTS } from "@/lib/blog-sample-data";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,17 @@ interface BlogPost {
   content: string;
 }
 
+// TEST DATA: appends sample posts when BLOG_SAMPLE_DATA=true. Remove with blog-sample-data.ts.
+function withSampleData(posts: BlogPost[], categorySet: Set<string>) {
+  if (BLOG_SAMPLE_DATA_ENABLED) {
+    for (const p of SAMPLE_BLOG_POSTS) {
+      posts = [...posts, p];
+      categorySet.add(p.category);
+    }
+  }
+  return { posts, categories: ["All", ...categorySet] };
+}
+
 async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] }> {
   try {
     await connectToDatabase();
@@ -105,10 +117,10 @@ async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] 
       };
     });
 
-    return { posts, categories: ["All", ...categorySet] };
+    return withSampleData(posts, categorySet);
   } catch (error) {
     console.error("Failed to fetch blog posts:", error);
-    return { posts: [], categories: ["All"] };
+    return withSampleData([], new Set<string>());
   }
 }
 

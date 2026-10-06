@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { getUseCaseBySlug, useCases } from "@/lib/data/use-cases";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
-import { ConverterUI } from "@/components/sections/ConverterUI";
 import { FAQ } from "@/components/sections/FAQ";
 import { Hero } from "@/components/sections/Hero";
 import { AdBanner } from "@/components/ui/AdBanner";
@@ -39,6 +38,19 @@ export async function generateMetadata({ params }: UseCasePageProps) {
   });
 }
 
+function renderHeroTitle(h1: string, highlight?: string) {
+  const target = highlight ?? (h1.includes(" for ") ? h1.slice(h1.indexOf(" for ") + 5) : "");
+  const index = target ? h1.lastIndexOf(target) : -1;
+  if (index === -1) return h1;
+  return (
+    <>
+      {h1.slice(0, index)}
+      <span className="text-brand-primary">{target}</span>
+      {h1.slice(index + target.length)}
+    </>
+  );
+}
+
 export default async function UseCasePage({ params }: UseCasePageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -69,11 +81,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
       <Hero
         badge={`${useCase.icon} Use Case`}
         title={
-          <>
-            <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">
-              {useCase.h1}
-            </span>
-          </>
+          renderHeroTitle(useCase.h1, useCase.highlight)
         }
         subtitle={useCase.description}
         className="mb-[24px] md:mb-[40px]"
@@ -137,9 +145,6 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           </div>
         </section>
       </div>
-
-      {/* The Core Converter UI */}
-      <ConverterUI />
 
       {/* AdSense Unit */}
       <AdBanner />

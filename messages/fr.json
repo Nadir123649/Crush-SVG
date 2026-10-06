@@ -23,6 +23,7 @@
     "imageResizer": "Redimensionner Image",
     "guides": "Guides",
     "needHelp": "Besoin d'aide ?",
+    "useCases": "Cas d'usage",
     "blog": "Blog",
     "logIn": "Connexion",
     "signUp": "S'inscrire",
@@ -64,8 +65,8 @@
     },
     "svgToPng": {
       "title": "Convertisseur SVG en PNG",
-      "h1": "De SVG en PNG, Exactement comme Prévu",
-      "subtitle": "Collez votre code SVG, importez un fichier ou déposez-le. Obtenez des fichiers PNG haute résolution instantanément."
+      "h1": "Convertisseur SVG en PNG en ligne gratuit",
+      "subtitle": "Convertisseur SVG en PNG gratuit : transformez vos fichiers ou votre code SVG en images PNG aux dimensions personnalisées, avec fond transparent. Rapide, en ligne, sans installation."
     },
     "pngToSvg": {
       "title": "Convertisseur PNG en SVG (Vectorisation)",
@@ -381,6 +382,32 @@
       }
     ],
     "title": "Foire Aux Questions (FAQ)",
+    "svgPage": [
+      {
+        "question": "Comment convertir un SVG en PNG ?",
+        "answer": "Collez votre code SVG dans l’éditeur ou importez ou glissez un fichier .svg. Choisissez une largeur, une hauteur ou une échelle, activez Fond transparent si besoin, cliquez sur Convertir, puis téléchargez votre PNG."
+      },
+      {
+        "question": "Ce convertisseur SVG en PNG est-il gratuit et y a-t-il des limites ?",
+        "answer": "Oui. Les invités disposent de 3 conversions gratuites par 24 heures, sans carte bancaire. Un compte vérifié gratuit supprime cette limite. Chaque SVG peut peser jusqu’à 10 Mo."
+      },
+      {
+        "question": "Puis-je définir des dimensions personnalisées et un fond transparent ?",
+        "answer": "Oui. Définissez une largeur et une hauteur exactes en pixels (de 1 à 4000) ou utilisez une échelle de 0,1x à 16x. Activez l’option de fond transparent pour conserver la transparence, ou choisissez du blanc, du noir ou une couleur personnalisée. La transparence n’est pas activée par défaut."
+      },
+      {
+        "question": "Quelle est la taille maximale du PNG ?",
+        "answer": "La sortie est limitée à 4000 pixels par côté. Si la largeur, la hauteur ou l’échelle dépassent cette limite, l’outil affiche une erreur pour que vous puissiez la réduire."
+      },
+      {
+        "question": "Mes fichiers restent-ils privés ?",
+        "answer": "Votre SVG est envoyé de manière sécurisée (HTTPS) à notre serveur, converti en PNG puis renvoyé. Nous ne conservons ni vos fichiers SVG ni vos fichiers PNG. Nous gardons seulement des données d’utilisation de base, comme la taille du fichier, le succès ou l’échec et un identifiant d’invité ou de compte, pour appliquer la limite gratuite. Votre dernier SVG reste dans l’onglet de votre navigateur jusqu’à sa fermeture."
+      },
+      {
+        "question": "Puis-je convertir des SVG complexes avec des dégradés, des tracés de détourage ou des styles intégrés ?",
+        "answer": "Oui, CrushSVG prend en charge les dégradés linéaires et radiaux, les tracés de détourage, les styles intégrés et les groupes SVG imbriqués."
+      }
+    ],
     "svg": [
       {
         "question": "CrushSVG est-il gratuit ?",
@@ -501,6 +528,8 @@
     "svgToReactDescription": "Générateur SVG vers Code gratuit. Transformez instantanément vos fichiers SVG en composants React (TSX/JSX), Vue 3, Svelte et React Native.",
     "svgToPngTitle": "Convertir SVG en PNG Gratuit en Ligne – CrushSVG",
     "svgToPngDescription": "Convertissez vos fichiers SVG en PNG net en quelques secondes. Gratuit, dans le navigateur, fond transparent. Sans installation.",
+    "svgToPngPageTitle": "Convertisseur SVG en PNG Gratuit en Ligne | CrushSVG",
+    "svgToPngPageDescription": "Convertisseur SVG en PNG gratuit : transformez vos fichiers ou votre code SVG en images PNG aux dimensions personnalisées, avec fond transparent. Rapide, en ligne, sans installation.",
     "pngToSvgTitle": "Convertir PNG en SVG – Vectoriser une Image en Ligne Gratuit",
     "pngToSvgDescription": "Transformez vos images PNG, JPG et JPEG en vecteurs SVG nets et évolutifs en quelques secondes. Gratuit et en ligne.",
     "bgRemoverTitle": "Supprimer Arrière-plan Gratuit en Ligne – CrushSVG",

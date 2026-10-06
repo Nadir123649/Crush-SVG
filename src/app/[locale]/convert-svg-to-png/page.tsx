@@ -26,8 +26,8 @@ export async function generateMetadata({
   return constructLocalizedMetadata({
     locale,
     routeKey: "/convert-svg-to-png",
-    title: t("svgToPngTitle"),
-    description: t("svgToPngDescription"),
+    title: t("svgToPngPageTitle"),
+    description: t("svgToPngPageDescription"),
     keywords: DEFAULT_KEYWORDS,
   });
 }
@@ -40,10 +40,11 @@ export default async function ConvertSvgToPngPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const tHome = await getTranslations({ locale, namespace: "homepage" });
+  const tTools = await getTranslations({ locale, namespace: "tool_pages.svgToPng" });
 
   return (
     <div className="w-full flex flex-col items-center">
-      <Hero />
+      <Hero title={tTools("h1")} subtitle={tTools("subtitle")} />
       <ConverterUI mode="svg-to-png" />
       <Features mode="svg-to-png" />
       <SignUpCTA />
@@ -90,7 +91,7 @@ export default async function ConvertSvgToPngPage({
       <StepsSection mode="svg-to-png" />
       <TargetAudience mode="svg-to-png" />
       <AdBanner />
-      <FAQ mode="svg-to-png" />
+      <FAQ mode="svg-to-png-page" />
     </div>
   );
 }
