@@ -444,7 +444,19 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               {currentTool.label}
             </Link>
 
-            {/* 3. Blog */}
+            {/* 3. Use Cases */}
+            <Link
+              href="/use-case"
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+                pathname.startsWith("/use-case")
+                  ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
+                  : "text-text-body hover:text-brand-primary hover:bg-white/50"
+              }`}
+            >
+              {tNav("useCases")}
+            </Link>
+
+            {/* 4. Blog */}
             <Link
               href="/blog"
               className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
@@ -456,7 +468,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               {tNav("blog")}
             </Link>
 
-            {/* 4. Guides */}
+            {/* 5. Guides */}
             <Link
               href="/svg-guides"
               className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
@@ -468,7 +480,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               {tNav("guides")}
             </Link>
 
-            {/* 5. Need Help? */}
+            {/* 6. Need Help? */}
             <Link
               href="/contact-us"
               className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
@@ -780,6 +792,13 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted px-2 py-1">
               {tNav("guides")} & {tNav("blog")}
             </span>
+            <Link
+              href="/use-case"
+              onClick={() => setMobileMenuOpen(false)}
+              className="font-body font-medium text-[15px] text-text-dark px-3 py-2 rounded-[8px] hover:bg-[#FAF6F3] hover:text-brand-primary transition-colors"
+            >
+              {tNav("useCases")}
+            </Link>
             <Link
               href="/blog"
               onClick={() => setMobileMenuOpen(false)}
