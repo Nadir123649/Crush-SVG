@@ -510,7 +510,9 @@ curl_close($ch);
 
               {/* Code Box */}
               <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
-                <pre className="w-full h-full p-3 md:p-4 outline-none border-none bg-transparent font-mono text-[12.5px] leading-[1.6] text-black whitespace-pre overflow-auto brand-scrollbar">
+                {/* absolute: long snippet lines must not feed the page's intrinsic
+                    width (the layout wrapper is shrink-to-fit), only scroll here. */}
+                <pre className="absolute inset-0 p-3 md:p-4 outline-none border-none bg-transparent font-mono text-[12.5px] leading-[1.6] text-black whitespace-pre overflow-auto brand-scrollbar">
                   {codeSnippets[selectedEndpoint][selectedLang]}
                 </pre>
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />

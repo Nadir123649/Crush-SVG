@@ -1,5 +1,7 @@
 import "server-only";
 import dns from "node:dns";
+import os from "node:os";
+import path from "node:path";
 import sharp from "sharp";
 import { BgRemoveError } from "./errors";
 import type { BgRemoveResult } from "./types";
@@ -22,8 +24,9 @@ let initInFlight: Promise<ModnetPipeline> | null = null;
 /**
  * Bounded retry for transient model-load failures.
  *
- * The model is pulled from the Hugging Face Hub on every cold start (useFSCache
- * is disabled below), so a single DNS hiccup such as
+ * The model is pulled from the Hugging Face Hub on every cold start (the FS
+ * cache lives in the OS temp dir, which does not survive one), so a single DNS
+ * hiccup such as
  * `getaddrinfo EAI_AGAIN huggingface.co` would otherwise fail the request.
  * Three attempts with a short backoff absorbs those blips without introducing
  * an unbounded loop.
@@ -92,9 +95,17 @@ async function loadPipelineWithRetry(): Promise<ModnetPipeline> {
   // Configure env after loading
   env.allowRemoteModels = true;
   env.allowLocalModels = true;
-  // WASM backend doesn't have browser cache in Node.js serverless.
-  // Use HTTP cache headers (CDN) instead — models are re-downloaded on cold starts.
-  env.useFSCache = false;
+  // The file-system cache MUST stay enabled. In Node, transformers.js (v4)
+  // always requests the model *path* rather than its bytes
+  // (`return_path = IS_NODE_ENV` in utils/model-loader.js) and skips reading
+  // the download into memory, expecting it to be served back from the FS cache.
+  // With both caches off, a successful download is discarded and the load dies
+  // with "Unable to get model file path or buffer".
+  // Serverless filesystems are read-only except for the OS temp dir, so cache
+  // there; on warm invocations this also avoids re-downloading the ~26 MB model.
+  env.useFSCache = true;
+  env.cacheDir =
+    process.env.TRANSFORMERS_CACHE_DIR || path.join(os.tmpdir(), "crushsvg-hf-cache");
   env.useBrowserCache = false;
 
   // Override env.fetch to route Hugging Face requests through the IPv4 agent,
@@ -225,9 +236,12 @@ export async function processWithModnet(
     // them, so reaching here means the retries were exhausted.
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[modnet] Pipeline init FAILED after retries: ${message}${describeCause(error)}`);
+    // Server-side fault, not a bad request: report 503 and keep the internal
+    // detail (file paths, library messages) in the logs rather than the response.
     throw new BgRemoveError(
-      "processing_failed",
-      `Failed to initialize MODNet model: ${message}`,
+      "model_unavailable",
+      "The AI background remover is temporarily unavailable. Please try again in a moment.",
+      503,
     );
   }
 
@@ -264,20 +278,36 @@ export async function processWithModnet(
     throw new BgRemoveError("processing_failed", "MODNet returned invalid image data.");
   }
 
+  // The pipeline normally returns RGBA (alpha = matte), but derive the channel
+  // count from the data instead of assuming it, so a 1-channel mask or an RGB
+  // result cannot be misread as alpha.
+  const resultChannels = Math.round(resultData.length / (resultWidth * resultHeight));
+  if (resultChannels !== 1 && resultChannels !== 4) {
+    throw new BgRemoveError(
+      "processing_failed",
+      "MODNet returned an unexpected image format.",
+      500,
+    );
+  }
+  const alphaOffset = resultChannels === 4 ? 3 : 0;
+
   // Extract alpha mask, scaling back to original dimensions if downscaled
   let resizedAlpha: Uint8Array;
   if (resultWidth === origWidth && resultHeight === origHeight) {
     resizedAlpha = new Uint8Array(origWidth * origHeight);
     for (let i = 0; i < origWidth * origHeight; i++) {
-      resizedAlpha[i] = resultData[i * 4 + 3];
+      resizedAlpha[i] = resultData[i * resultChannels + alphaOffset];
     }
   } else {
-    const singleChannel = await sharp(Buffer.from(resultData), {
-      raw: { width: resultWidth, height: resultHeight, channels: 4 },
-    })
-      .extractChannel(3)
-      .raw()
-      .toBuffer();
+    const singleChannel =
+      resultChannels === 1
+        ? Buffer.from(resultData)
+        : await sharp(Buffer.from(resultData), {
+            raw: { width: resultWidth, height: resultHeight, channels: 4 },
+          })
+            .extractChannel(3)
+            .raw()
+            .toBuffer();
 
     resizedAlpha = await sharp(singleChannel, {
       raw: { width: resultWidth, height: resultHeight, channels: 1 },
@@ -293,9 +323,20 @@ export async function processWithModnet(
 
   const totalPixels = origWidth * origHeight;
   let foregroundCount = 0;
+  let maxAlpha = 0;
   for (let i = 0; i < resizedAlpha.length; i++) {
-    if (resizedAlpha[i] > 20) foregroundCount++;
+    const a = resizedAlpha[i];
+    if (a > 20) foregroundCount++;
+    if (a > maxAlpha) maxAlpha = a;
   }
+  // Mask statistics make an "empty mask" report diagnosable from the logs: a
+  // maxAlpha near 0 means the model itself found nothing (weak input for a
+  // portrait-matting model), whereas a healthy maxAlpha with low coverage points
+  // at the thresholding below.
+  console.log(
+    `[modnet] mask stats: input=${origWidth}x${origHeight} result=${resultWidth}x${resultHeight}x${resultChannels} ` +
+      `maxAlpha=${maxAlpha} foreground=${((foregroundCount / totalPixels) * 100).toFixed(2)}%`,
+  );
   if (foregroundCount / totalPixels < 0.01) {
     throw new BgRemoveError(
       "processing_failed",
@@ -308,7 +349,9 @@ export async function processWithModnet(
 
   // Write alpha mask directly into RGBA pixel data — avoids broken dest-in composite
   // (dest-in with a 1-channel grayscale overlay is treated as fully opaque by sharp)
-  const maskedPixels = new Uint8Array(decoded.data);
+  // Written in place: the decoded buffer is not needed again, and a second
+  // full-size RGBA copy is significant at the 20 MP pixel budget.
+  const maskedPixels = decoded.data;
   for (let i = 0; i < totalPixels; i++) {
     maskedPixels[i * 4 + 3] = cleanAlpha[i];
   }
