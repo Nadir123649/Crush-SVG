@@ -108,7 +108,8 @@
     },
     "react-inspector": {
       "react": "$react"
-    }
+    },
+    "jwks-rsa": "3.2.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
