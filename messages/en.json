@@ -24,6 +24,7 @@
     "svgOptimizer": "SVG Optimizer",
     "guides": "Guides",
     "needHelp": "Need Help?",
+    "useCases": "Use Cases",
     "blog": "Blog",
     "logIn": "Log In",
     "signUp": "Sign Up",
@@ -64,8 +65,8 @@
     },
     "svgToPng": {
       "title": "SVG to PNG Converter",
-      "h1": "From SVG to PNG, Exactly as Intended",
-      "subtitle": "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds."
+      "h1": "Free Online SVG to PNG Converter",
+      "subtitle": "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background. Fast, online, no software to install."
     },
     "pngToSvg": {
       "title": "PNG to SVG Converter (Vectorize)",
@@ -389,6 +390,32 @@
       }
     ],
     "title": "Frequently Asked Questions",
+    "svgPage": [
+      {
+        "question": "How do I convert SVG to PNG?",
+        "answer": "Paste your SVG code into the editor or upload or drag in an .svg file. Choose a width, height or scale, switch on Transparent background if you need one, then click Convert and download your PNG."
+      },
+      {
+        "question": "Is this SVG to PNG converter free, and are there limits?",
+        "answer": "Yes. Guests get 3 free conversions per 24 hours, with no credit card needed. A free verified account removes that limit. Each SVG can be up to 10 MB."
+      },
+      {
+        "question": "Can I set custom dimensions and a transparent background?",
+        "answer": "Yes. Set an exact width and height in pixels (1 to 4000) or use a scale from 0.1x to 16x. Turn on the Transparent background toggle to keep transparency, or pick a white, black or custom colour instead. Transparent is not on by default."
+      },
+      {
+        "question": "What is the maximum PNG size?",
+        "answer": "The output is capped at 4000 pixels per side. If your width, height or scale would go over that, the tool shows an error so you can lower it."
+      },
+      {
+        "question": "Are my files kept private?",
+        "answer": "Your SVG is sent securely (HTTPS) to our server, converted to PNG and returned to you. We do not save your SVG or PNG files. We only keep basic usage records, such as file size, success or failure and a guest or account ID, to apply the free limit. Your last SVG stays in your browser tab until you close it."
+      },
+      {
+        "question": "Can I convert complex SVGs with gradients, clipping paths or embedded styles?",
+        "answer": "Yes, CrushSVG supports linear and radial gradients, clipping paths, embedded styles and nested SVG groups."
+      }
+    ],
     "svg": [
       {
         "question": "Is CrushSVG free to use?",
@@ -584,6 +611,8 @@
     "svgToReactDescription": "Transform SVG code into clean, type-safe React (TSX/JSX), Vue 3, Svelte, and React Native components with currentColor support and custom icon props.",
     "svgToPngTitle": "Free SVG to PNG Converter Online — Fast & High Resolution",
     "svgToPngDescription": "Convert SVG to crisp PNG images in seconds. Free online SVG converter supporting transparent backgrounds, custom scaling, and high-resolution output.",
+    "svgToPngPageTitle": "Free SVG to PNG Converter Online | CrushSVG",
+    "svgToPngPageDescription": "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background. Fast, online, no software to install.",
     "pngToSvgTitle": "PNG to SVG Converter — Free Bitmap Image Vectorizer Online",
     "pngToSvgDescription": "Convert PNG, JPG, and JPEG bitmap images into scalable SVG vectors in seconds. Free browser-based vectorizer with full transparency support and color tuning.",
     "bgRemoverTitle": "Free AI Background Remover — Instant Transparent PNG Output",

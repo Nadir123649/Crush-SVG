@@ -23,6 +23,7 @@
     "imageResizer": "Bildgröße ändern",
     "guides": "Anleitungen",
     "needHelp": "Hilfe benötigt?",
+    "useCases": "Anwendungsfälle",
     "blog": "Blog",
     "logIn": "Anmelden",
     "signUp": "Registrieren",
@@ -64,8 +65,8 @@
     },
     "svgToPng": {
       "title": "SVG in PNG Konverter",
-      "h1": "Von SVG zu PNG, Genau wie gewünscht",
-      "subtitle": "SVG-Code einfügen, Datei hochladen oder ablegen. Gestochen scharfe PNGs in Sekundenschnelle erstellen."
+      "h1": "Kostenloser SVG-zu-PNG-Konverter Online",
+      "subtitle": "Kostenloser SVG-zu-PNG-Konverter: SVG-Dateien oder -Code in PNG-Bilder umwandeln, mit individuellen Maßen und transparentem Hintergrund. Schnell, online, ohne Installation."
     },
     "pngToSvg": {
       "title": "PNG in SVG Konverter (Vektorisieren)",
@@ -381,6 +382,32 @@
       }
     ],
     "title": "Häufig gestellte Fragen (FAQ)",
+    "svgPage": [
+      {
+        "question": "Wie wandle ich SVG in PNG um?",
+        "answer": "Füge deinen SVG-Code in den Editor ein oder lade eine .svg-Datei hoch bzw. ziehe sie hinein. Wähle Breite, Höhe oder Skalierung, aktiviere bei Bedarf „Transparenter Hintergrund“, klicke dann auf Konvertieren und lade dein PNG herunter."
+      },
+      {
+        "question": "Ist dieser SVG-zu-PNG-Konverter kostenlos und gibt es Limits?",
+        "answer": "Ja. Gäste erhalten 3 kostenlose Konvertierungen pro 24 Stunden, ohne Kreditkarte. Mit einem kostenlosen verifizierten Konto entfällt dieses Limit. Jede SVG darf bis zu 10 MB groß sein."
+      },
+      {
+        "question": "Kann ich eigene Abmessungen und einen transparenten Hintergrund festlegen?",
+        "answer": "Ja. Lege eine genaue Breite und Höhe in Pixeln (1 bis 4000) fest oder nutze eine Skalierung von 0,1x bis 16x. Aktiviere den Schalter für den transparenten Hintergrund, um die Transparenz zu behalten, oder wähle stattdessen Weiß, Schwarz oder eine eigene Farbe. Transparent ist nicht standardmäßig aktiviert."
+      },
+      {
+        "question": "Wie groß darf das PNG maximal sein?",
+        "answer": "Die Ausgabe ist auf 4000 Pixel pro Seite begrenzt. Würden Breite, Höhe oder Skalierung darüber liegen, zeigt das Tool eine Fehlermeldung an, damit du den Wert verringern kannst."
+      },
+      {
+        "question": "Bleiben meine Dateien privat?",
+        "answer": "Deine SVG wird sicher (HTTPS) an unseren Server gesendet, in PNG umgewandelt und an dich zurückgegeben. Wir speichern weder deine SVG- noch deine PNG-Dateien. Wir behalten nur grundlegende Nutzungsdaten wie Dateigröße, Erfolg oder Fehler und eine Gast- oder Konto-ID, um das kostenlose Limit anzuwenden. Deine letzte SVG bleibt in deinem Browser-Tab, bis du ihn schließt."
+      },
+      {
+        "question": "Kann ich komplexe SVGs mit Verläufen, Beschneidungspfaden oder eingebetteten Stilen konvertieren?",
+        "answer": "Ja, CrushSVG unterstützt lineare und radiale Verläufe, Beschneidungspfade, eingebettete Stile und verschachtelte SVG-Gruppen."
+      }
+    ],
     "svg": [
       {
         "question": "Ist CrushSVG kostenlos nutzbar?",
@@ -501,6 +528,8 @@
     "svgToReactDescription": "Kostenloser SVG-zu-Code-Generator. Verwandeln Sie SVG-Vektoren sofort in typsichere React-, Vue 3-, Svelte- und React Native-Komponenten.",
     "svgToPngTitle": "SVG in PNG umwandeln – Kostenlos & Online | CrushSVG",
     "svgToPngDescription": "SVG-Dateien sekundenschnell in gestochen scharfe PNG-Bilder umwandeln. Kostenlos, browserbasiert mit transparentem Hintergrund. Keine Installation.",
+    "svgToPngPageTitle": "Kostenloser SVG-zu-PNG-Konverter Online | CrushSVG",
+    "svgToPngPageDescription": "Kostenloser SVG-zu-PNG-Konverter: SVG-Dateien oder -Code in PNG-Bilder umwandeln, mit individuellen Maßen und transparentem Hintergrund. Schnell, online, ohne Installation.",
     "pngToSvgTitle": "PNG in SVG umwandeln – Kostenlos Bilder vektorisieren online",
     "pngToSvgDescription": "PNG-, JPG- und JPEG-Bilder in skalierbare SVG-Vektorgrafiken umwandeln. Kostenlos und direkt im Browser.",
     "bgRemoverTitle": "Bild-Hintergrund kostenlos online entfernen – CrushSVG",

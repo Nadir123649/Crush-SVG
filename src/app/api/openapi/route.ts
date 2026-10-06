@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { registry } from "@/lib/openapi/registry";
+import { getApiOrigin } from "@/lib/http/api-response";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const generator = new OpenApiGeneratorV3(registry.definitions);
 
   const spec = generator.generateDocument({
@@ -17,7 +18,7 @@ export async function GET() {
       contact: { name: "CrushSVG", url: "https://www.crushsvg.net" },
     },
     servers: [
-      { url: "https://www.crushsvg.net", description: "Production" },
+      { url: getApiOrigin(request), description: "API" },
       { url: "http://localhost:3000", description: "Development" },
     ],
     security: [],

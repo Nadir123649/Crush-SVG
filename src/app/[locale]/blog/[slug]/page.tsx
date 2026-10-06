@@ -12,6 +12,7 @@ import { BlogShareBar } from "@/components/blog/BlogShareBar";
 import { BlogFAQSection } from "@/components/blog/BlogFAQSection";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
+import { BLOG_SAMPLE_DATA_ENABLED, SAMPLE_BLOG_POSTS } from "@/lib/blog-sample-data";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,10 @@ async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     .populate("authorId", "displayName")
     .lean();
 
-  if (!doc) return null;
+  if (!doc) {
+    // TEST DATA: remove with blog-sample-data.ts.
+    return (BLOG_SAMPLE_DATA_ENABLED && SAMPLE_BLOG_POSTS.find((p) => p.slug === slug)) || null;
+  }
 
   const authorDoc = doc.authorId as { displayName?: string } | undefined;
   const authorName = authorDoc?.displayName || "CrushSVG Team";

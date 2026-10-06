@@ -23,7 +23,7 @@ function renderFaqTitle(title: string) {
   return title;
 }
 
-export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
+export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png-page" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const tFaq = useTranslations("FAQ");
   const tFooter = useTranslations("faq_footer");
   const { status } = useAuth();
@@ -34,6 +34,17 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-
   if (mode === "svg-to-png") {
     try {
       const rawFaqs = tFaq.raw("svg") as { question: string; answer: string }[];
+      if (Array.isArray(rawFaqs)) {
+        faqs = rawFaqs;
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  if (mode === "svg-to-png-page") {
+    try {
+      const rawFaqs = tFaq.raw("svgPage") as { question: string; answer: string }[];
       if (Array.isArray(rawFaqs)) {
         faqs = rawFaqs;
       }

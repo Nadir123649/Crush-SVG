@@ -32,6 +32,7 @@ CrushSVG was built to solve the frustration of broken vector conversions and ras
 - [Favicon Generator](${BASE_URL}/favicon-generator): Multi-resolution Favicon ICO & WebP pack generator
 - [Developer API & Profile](${BASE_URL}/profile): API key generator, quotas, and account dashboard
 - [Blog](${BASE_URL}/blog): Designer and developer articles on vector graphics and web design
+- [Use Cases](${BASE_URL}/use-case): Browse SVG conversion use cases for React, email, Canva, Cricut, Shopify and more
 - [SVG Guides](${BASE_URL}/svg-guides): Tutorials and guides on working with SVG files
 - [About](${BASE_URL}/about): About CrushSVG and its mission
 - [Team](${BASE_URL}/team): Meet the creators and engineers at The Nevon
