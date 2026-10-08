@@ -33,7 +33,7 @@ async function generateSitemapFile() {
     }
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
     for (const entry of entries) {
       xml += `  <url>\n`;
@@ -53,15 +53,6 @@ async function generateSitemapFile() {
 
       if (entry.priority !== undefined) {
         xml += `    <priority>${entry.priority.toFixed(1)}</priority>\n`;
-      }
-
-      if (entry.alternates?.languages) {
-        const langs = entry.alternates.languages;
-        for (const [lang, href] of Object.entries(langs)) {
-          if (href) {
-            xml += `    <xhtml:link rel="alternate" hreflang="${escapeXml(lang)}" href="${escapeXml(String(href))}" />\n`;
-          }
-        }
       }
 
       xml += `  </url>\n`;

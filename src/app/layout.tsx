@@ -49,9 +49,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = constructMetadata({
-  title: "CrushSVG – Free SVG to PNG Converter Online",
+  title: "Free SVG to PNG Converter Online | CrushSVG",
   description:
-    "Paste SVG code or upload a file. Get crisp, high-res PNGs in seconds. Free, browser-based, transparent background support.",
+    "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background, entirely in your browser",
   canonicalPath: "/",
 });
 

@@ -339,6 +339,7 @@
     "readVectorGuide": "Leer Buenas Prácticas Vectoriales",
     "exploreGuides": "Explorar Guías",
     "vectorizeFast": "Vectorizar Archivos Rápido",
+    "convertSvgToPng": "Convertir SVG a PNG",
     "figmaGuide": "Guía de Vectores para Figma",
     "webDevTitle": "Desarrolladores Web",
     "webDevDesc": "Exporta gráficos SVG nítidos en formato PNG para firmas de correo, newsletters y compatibilidad universal.",
@@ -389,11 +390,11 @@
       },
       {
         "question": "¿Este convertidor de SVG a PNG es gratuito y tiene límites?",
-        "answer": "Sí. Los invitados tienen 3 conversiones gratuitas cada 24 horas, sin tarjeta de crédito. Una cuenta verificada gratuita elimina ese límite. Cada SVG puede pesar hasta 10 MB."
+        "answer": "Sí. Puedes convertir hasta 3 SVG a PNG sin iniciar sesión. Inicia sesión para conversiones gratuitas e ilimitadas de SVG a PNG."
       },
       {
         "question": "¿Puedo definir dimensiones personalizadas y un fondo transparente?",
-        "answer": "Sí. Define un ancho y alto exactos en píxeles (de 1 a 4000) o usa una escala de 0,1x a 16x. Activa el interruptor de fondo transparente para conservar la transparencia, o elige blanco, negro o un color personalizado. La transparencia no está activada por defecto."
+        "answer": "Sí. Activa la opción Fondo transparente antes de convertir tu SVG para descargar un PNG con fondo transparente. También puedes definir un ancho y alto exactos en píxeles (de 1 a 4000) o usar una escala de 0,1x a 16x."
       },
       {
         "question": "¿Cuál es el tamaño máximo del PNG?",
@@ -401,7 +402,7 @@
       },
       {
         "question": "¿Mis archivos se mantienen privados?",
-        "answer": "Tu SVG se envía de forma segura (HTTPS) a nuestro servidor, se convierte a PNG y se te devuelve. No guardamos tus archivos SVG ni PNG. Solo conservamos registros básicos de uso, como el tamaño del archivo, si fue correcto o fallido y un ID de invitado o de cuenta, para aplicar el límite gratuito. Tu último SVG permanece en la pestaña de tu navegador hasta que la cierres."
+        "answer": "Las conversiones estándar de SVG a PNG utilizan nuestro servidor. Los SVG grandes pueden convertirse en tu navegador. No guardamos tus archivos SVG ni PNG. Solo conservamos registros básicos de uso, como el tamaño del archivo, si fue correcto o fallido y un ID de invitado o de cuenta, para aplicar el límite gratuito. Tu último SVG permanece en la pestaña de tu navegador hasta que la cierres."
       },
       {
         "question": "¿Puedo convertir SVG complejos con degradados, rutas de recorte o estilos incrustados?",
@@ -411,11 +412,11 @@
     "svg": [
       {
         "question": "¿CrushSVG es gratuito?",
-        "answer": "Sí, CrushSVG es completamente gratuito. Puedes convertir archivos SVG a PNG sin instalar software ni registrar tarjetas de crédito."
+        "answer": "Sí. Puedes convertir hasta 3 SVG a PNG sin iniciar sesión. Inicia sesión para conversiones gratuitas e ilimitadas de SVG a PNG."
       },
       {
         "question": "¿CrushSVG admite fondo PNG transparente?",
-        "answer": "¡Sí! El fondo transparente está activado de forma predeterminada. También puedes elegir blanco, negro o un color personalizado."
+        "answer": "Sí. Activa la opción Fondo transparente antes de convertir tu SVG para descargar un PNG con fondo transparente."
       },
       {
         "question": "¿Hasta qué resolución puedo escalar el SVG?",
@@ -423,7 +424,7 @@
       },
       {
         "question": "¿Mis archivos se mantienen privados y seguros?",
-        "answer": "Sí. Las conversiones se realizan de forma segura en tu navegador y servidores protegidos. Jamás almacenamos ni compartimos tus archivos."
+        "answer": "Las conversiones estándar de SVG a PNG utilizan nuestro servidor. Los SVG grandes pueden convertirse en tu navegador. Tus archivos nunca se almacenan ni se comparten."
       },
       {
         "question": "¿Puedo convertir archivos SVG complejos con degradados o estilos incrustados?",
@@ -482,7 +483,7 @@
     "noInstall": "Sin Instalación",
     "explore": "Explorar",
     "svgConverter": "Convertidor SVG",
-    "pngConverter": "Convertidor PNG",
+    "pngConverter": "Convertidor PNG a SVG",
     "features": "Características",
     "howItWorks": "Cómo Funciona",
     "changelog": "Registro de Cambios",
@@ -836,7 +837,7 @@
     "declineAria": "Decline non-essential cookies",
     "dialogAria": "Cookie consent",
     "googleAnalytics": "Google Analytics",
-    "learnMore": "Learn more",
+    "learnMore": "Leer nuestra Política de Cookies",
     "message": "We use cookies to improve your experience and track anonymous usage via",
     "noDataSold": "No personal data is sold."
   },

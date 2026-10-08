@@ -81,6 +81,41 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      {
+        source: '/convert-svg-to-png',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/:locale/convert-svg-to-png',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale/convertir-svg-a-png',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale/svg-in-png-umwandeln',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale/convertir-svg-en-png',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale/converter-svg-para-png',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale/svg-png-henkan',
+        destination: '/:locale',
+        permanent: true,
+      },
     ];
   },
 };

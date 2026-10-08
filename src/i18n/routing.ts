@@ -9,14 +9,6 @@ export const routing = defineRouting({
   localeDetection: true,
   pathnames: {
     "/": "/",
-    "/convert-svg-to-png": {
-      en: "/convert-svg-to-png",
-      es: "/convertir-svg-a-png",
-      de: "/svg-in-png-umwandeln",
-      fr: "/convertir-svg-en-png",
-      pt: "/converter-svg-para-png",
-      ja: "/svg-png-henkan",
-    },
     "/png-to-svg": {
       en: "/png-to-svg",
       es: "/convertir-png-a-svg",

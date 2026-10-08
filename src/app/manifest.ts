@@ -45,7 +45,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "SVG to PNG Converter",
         short_name: "SVG to PNG",
         description: "Fast and high-fidelity SVG to PNG conversion",
-        url: "/convert-svg-to-png",
+        url: "/",
         icons: [{ src: "/icon-192.png", sizes: "192x192" }],
       },
       {

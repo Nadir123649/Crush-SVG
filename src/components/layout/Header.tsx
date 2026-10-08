@@ -143,7 +143,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
-    if (pathname === "/" || pathname === "/convert-svg-to-png") {
+    if (pathname === "/") {
       return {
         label: tNav("svgToPng"),
         href: "/",
@@ -157,7 +157,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, [pathname, tNav]);
 
-  const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
+  const isSvgToPngActive = pathname === "/";
   const isPngToSvgActive = pathname === "/png-to-svg";
   const isSvgToReactActive = pathname === "/svg-to-react";
   const isOtherToolActive =
@@ -423,7 +423,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <Link
               href={currentTool.href}
               onClick={(e) => {
-                if (currentTool.href === "/" && typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
+                if (currentTool.href === "/" && typeof window !== "undefined" && window.location.pathname === "/") {
                   e.preventDefault();
                   const el = document.getElementById("converter");
                   if (el) {

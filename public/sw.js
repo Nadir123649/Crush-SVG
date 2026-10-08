@@ -13,7 +13,6 @@ const OFFLINE_FALLBACK_URL = "/offline.html";
 const PRE_CACHE_URLS = [
   "/",
   "/offline.html",
-  "/convert-svg-to-png",
   "/png-to-svg",
   "/background-remover",
   "/image-resizer",

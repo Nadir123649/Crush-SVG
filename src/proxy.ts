@@ -41,7 +41,6 @@ const CORS_ORIGINS = [
 
 const PUBLIC_PAGES = new Set([
   '/',
-  '/convert-svg-to-png',
   '/png-to-svg',
   '/image-resizer',
   '/background-remover',
