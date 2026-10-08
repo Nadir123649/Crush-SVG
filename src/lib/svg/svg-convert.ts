@@ -126,6 +126,16 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
         CONVERSION_TIMEOUT_MS,
     );
 
+    if (resolvedBgOption === "Transparent") {
+        return {
+            buffer: initialPng,
+            width: info.width,
+            height: info.height,
+            format: "png",
+            warnings,
+        };
+    }
+
     try {
         const removed = await withTimeout(
             processBackgroundRemove(initialPng, {
