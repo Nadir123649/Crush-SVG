@@ -171,14 +171,15 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   return (
     <header className="w-full sticky top-0 z-50">
       <div
-        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px] transition-all duration-300 ${
+        className={`w-full transition-all duration-300 ${
           isScrolled
             ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)] border-b border-[#F0E6DF]"
             : "bg-[#FFFCFA] border-b border-[#F7F1EC]"
         }`}
         ref={navContainerRef}
       >
-        <div className="w-full max-w-[1280px] relative flex items-center justify-between h-[40px] md:h-[46px]">
+        <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
+          <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -665,10 +666,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed top-[66px] left-0 w-full max-h-[calc(100vh-66px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
+        <div className="lg:hidden fixed top-[68px] left-0 w-full max-h-[calc(100vh-68px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2">
+          <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}
           <div className="flex flex-col gap-1">
             <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted px-2 py-1">
@@ -904,6 +907,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             )}
           </div>
         </div>
+      </div>
       )}
     </header>
   );
