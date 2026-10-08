@@ -102,7 +102,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
       title: t("agenciesTitle"),
       description: t("agenciesDesc"),
       href: "/#converter",
-      linkText: t("vectorizeFast"),
+      linkText: t("convertSvgToPng"),
     },
     {
       icon: IMAGES.designers,

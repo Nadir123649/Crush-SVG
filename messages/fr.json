@@ -339,6 +339,7 @@
     "readVectorGuide": "Lire les Bonnes Pratiques Vectorielles",
     "exploreGuides": "Explorer les Guides",
     "vectorizeFast": "Vectoriser Rapidement",
+    "convertSvgToPng": "Convertir SVG en PNG",
     "figmaGuide": "Guide Vectoriel pour Figma",
     "webDevTitle": "Développeurs Web",
     "webDevDesc": "Exportez des graphiques SVG en PNG pour signatures d'e-mails, newsletters et compatibilité navigateurs.",
@@ -389,11 +390,11 @@
       },
       {
         "question": "Ce convertisseur SVG en PNG est-il gratuit et y a-t-il des limites ?",
-        "answer": "Oui. Les invités disposent de 3 conversions gratuites par 24 heures, sans carte bancaire. Un compte vérifié gratuit supprime cette limite. Chaque SVG peut peser jusqu’à 10 Mo."
+        "answer": "Oui. Vous pouvez convertir jusqu'à 3 SVG en PNG sans vous connecter. Connectez-vous pour des conversions SVG en PNG gratuites et illimitées."
       },
       {
         "question": "Puis-je définir des dimensions personnalisées et un fond transparent ?",
-        "answer": "Oui. Définissez une largeur et une hauteur exactes en pixels (de 1 à 4000) ou utilisez une échelle de 0,1x à 16x. Activez l’option de fond transparent pour conserver la transparence, ou choisissez du blanc, du noir ou une couleur personnalisée. La transparence n’est pas activée par défaut."
+        "answer": "Oui. Activez l'option Fond transparent avant de convertir votre SVG pour télécharger un PNG avec fond transparent. Vous pouvez aussi définir une largeur et une hauteur exactes en pixels (de 1 à 4000) ou utiliser une échelle de 0,1x à 16x."
       },
       {
         "question": "Quelle est la taille maximale du PNG ?",
@@ -401,7 +402,7 @@
       },
       {
         "question": "Mes fichiers restent-ils privés ?",
-        "answer": "Votre SVG est envoyé de manière sécurisée (HTTPS) à notre serveur, converti en PNG puis renvoyé. Nous ne conservons ni vos fichiers SVG ni vos fichiers PNG. Nous gardons seulement des données d’utilisation de base, comme la taille du fichier, le succès ou l’échec et un identifiant d’invité ou de compte, pour appliquer la limite gratuite. Votre dernier SVG reste dans l’onglet de votre navigateur jusqu’à sa fermeture."
+        "answer": "Les conversions SVG en PNG standard utilisent notre serveur. Les fichiers SVG volumineux peuvent être convertis dans votre navigateur. Nous ne conservons ni vos fichiers SVG ni vos fichiers PNG. Nous gardons seulement des données d’utilisation de base, comme la taille du fichier, le succès ou l’échec et un identifiant d’invité ou de compte, pour appliquer la limite gratuite. Votre dernier SVG reste dans l’onglet de votre navigateur jusqu’à sa fermeture."
       },
       {
         "question": "Puis-je convertir des SVG complexes avec des dégradés, des tracés de détourage ou des styles intégrés ?",
@@ -411,11 +412,11 @@
     "svg": [
       {
         "question": "CrushSVG est-il gratuit ?",
-        "answer": "Oui, CrushSVG est totalement gratuit. Convertissez vos fichiers SVG en PNG sans installer de logiciel ni fournir de carte bancaire."
+        "answer": "Oui. Vous pouvez convertir jusqu'à 3 SVG en PNG sans vous connecter. Connectez-vous pour des conversions SVG en PNG gratuites et illimitées."
       },
       {
         "question": "CrushSVG gère-t-il la transparence PNG ?",
-        "answer": "Oui ! Le fond transparent est activé par défaut. Vous pouvez aussi choisir un fond blanc, noir ou une couleur sur mesure."
+        "answer": "Oui. Activez l'option Fond transparent avant de convertir votre SVG pour télécharger un PNG avec fond transparent."
       },
       {
         "question": "Jusqu'à quelle échelle puis-je agrandir l'image ?",
@@ -423,7 +424,7 @@
       },
       {
         "question": "Mes fichiers restent-ils confidentiels ?",
-        "answer": "Oui. Le traitement est effectué de manière sécurisée dans votre navigateur et sur des serveurs protégés. Vos fichiers ne sont jamais conservés."
+        "answer": "Les conversions SVG en PNG standard utilisent notre serveur. Les fichiers SVG volumineux peuvent être convertis dans votre navigateur. Vos fichiers ne sont jamais conservés ni partagés."
       },
       {
         "question": "Puis-je convertir des SVG complexes avec des dégradés ?",
@@ -482,7 +483,7 @@
     "noInstall": "Sans Installation",
     "explore": "Explorer",
     "svgConverter": "Convertisseur SVG",
-    "pngConverter": "Convertisseur PNG",
+    "pngConverter": "Convertisseur PNG en SVG",
     "features": "Fonctionnalités",
     "howItWorks": "Comment ça marche",
     "changelog": "Journal des modifications",
@@ -836,7 +837,7 @@
     "declineAria": "Decline non-essential cookies",
     "dialogAria": "Cookie consent",
     "googleAnalytics": "Google Analytics",
-    "learnMore": "Learn more",
+    "learnMore": "Lire notre politique de cookies",
     "message": "We use cookies to improve your experience and track anonymous usage via",
     "noDataSold": "No personal data is sold."
   },
