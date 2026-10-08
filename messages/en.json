@@ -47,6 +47,8 @@
     "ja": "日本語"
   },
   "homepage": {
+    "metaTitle": "Free SVG to PNG Converter Online | CrushSVG",
+    "metaDescription": "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background, entirely in your browser",
     "badgeLoggedIn": "You have unlimited conversions access.",
     "badgeLoggedOut": "3 free conversions. Create a free account for unlimited access.",
     "heroTitlePrefix": "Free Online",
@@ -64,7 +66,7 @@
       "subtitle": "Instantly turn raw SVG files into production-ready TypeScript & JavaScript frontend components with currentColor support."
     },
     "svgToPng": {
-      "title": "SVG to PNG Converter",
+      "title": "Free SVG to PNG Converter Online | CrushSVG",
       "h1": "Free Online SVG to PNG Converter",
       "subtitle": "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background, entirely in your browser"
     },
