@@ -22,7 +22,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
   const shouldShowAuthBadge = showAuthBadge !== false && !badge;
 
   return (
-    <section id="hero" className={`flex flex-col items-center w-full max-w-[361px] md:max-w-[795px] mx-auto mt-[30px] md:mt-[54px] gap-[16px] md:gap-[14px] ${className}`}>
+    <section id="hero" className={`flex flex-col items-center w-full max-w-[795px] mx-auto mt-[24px] md:mt-[54px] gap-[16px] md:gap-[14px] ${className}`}>
       
       {/* Badge */}
       {shouldShowAuthBadge ? (
@@ -73,7 +73,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
       ) : null}
 
       {/* Main Heading */}
-      <h1 className="font-heading font-semibold text-[32px] leading-[34px] md:text-[56px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark">
+      <h1 className="font-heading font-semibold text-[28px] sm:text-[38px] md:text-[56px] leading-[1.15] md:leading-[61px] tracking-[0.02em] md:tracking-[0.04em] text-center text-text-dark">
         {title ? title : (
           <>
             {t("heroTitlePrefix") ? `${t("heroTitlePrefix")} ` : ""}<span className="text-brand-primary">{t("heroTitleHighlight")}</span> {t("heroTitleSuffix")}
@@ -82,7 +82,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
       </h1>
 
       {/* Description */}
-      <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] tracking-[0%] text-center text-text-muted max-w-[361px] md:max-w-[600px]">
+      <p className="font-body font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[22px] tracking-[0%] text-center text-text-muted w-full max-w-[620px]">
         {subtitle ? subtitle : t("heroSubtitle")}
       </p>
       

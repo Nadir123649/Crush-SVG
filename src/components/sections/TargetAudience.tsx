@@ -148,7 +148,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
       </h2>
 
       {/* Cards Container */}
-      <div className="w-full max-w-[360px] md:max-w-[720px] lg:max-w-[1280px] flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-[16px] md:gap-[40px]">
+      <div className="w-full max-w-[720px] lg:max-w-[1280px] flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-[16px] md:gap-[40px]">
         {cards.map((card, index) => (
           <Link
             href={card.href as any}
@@ -158,7 +158,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
             className="flex flex-row md:flex-col w-full bg-white rounded-[12px] md:rounded-[24px] border border-[#F4F4F4] p-[10px] md:p-[24px] gap-[12px] md:gap-0 transition-all duration-300 hover:shadow-[0_10px_40px_-10px_rgba(217,74,30,0.2)] hover:-translate-y-2 cursor-pointer items-center md:items-stretch group"
           >
             {/* Image Box */}
-            <div className="w-[155px] h-[140px] md:w-full md:h-[120px] rounded-[12px] bg-[#FCF1ED] flex items-center justify-center shrink-0">
+            <div className="w-[100px] h-[100px] sm:w-[130px] sm:h-[120px] md:w-full md:h-[120px] rounded-[12px] bg-[#FCF1ED] flex items-center justify-center shrink-0">
               <Image 
                 src={card.icon} 
                 alt={card.title} 

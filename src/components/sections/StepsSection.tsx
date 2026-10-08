@@ -123,7 +123,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       />
 
       {/* Heading */}
-      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
+      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full max-w-[807px]">
         {mode === "background-remover" ? (
           <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
@@ -136,7 +136,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       </h2>
 
       {/* Steps Container */}
-      <div className="w-full max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[40px] mt-[40px] md:mt-[60px] px-[16px] md:px-[0px]">
+      <div className="w-full max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[32px] md:gap-[40px] mt-[32px] md:mt-[60px]">
         {steps.map((step, index) => (
           <div key={index} className="flex flex-col items-center text-center gap-[10px] md:gap-[14px] w-full mx-auto max-w-[320px]">
             <div className="flex flex-col items-center justify-end h-[80px] md:h-[104px]">
