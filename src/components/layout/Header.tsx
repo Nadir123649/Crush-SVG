@@ -26,6 +26,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement>(null);
   const previousPathnameRef = useRef(pathname);
   const pathnameReadyRef = useRef(false);
 
@@ -35,10 +36,16 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     setFailedImageUrl(null);
   }, [user?.photoURL]);
 
-  // Click outside to close dropdowns
+  // Click outside to close dropdowns & mobile drawer
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (navContainerRef.current && !navContainerRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      const isInsideNav = !!navContainerRef.current?.contains(target);
+      const isInsideDrawer = !!mobileDrawerRef.current?.contains(target);
+
+      if (!isInsideNav && !isInsideDrawer) {
         setActiveDropdown("none");
         setMobileMenuOpen(false);
       }
@@ -52,10 +59,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     }
 
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
     document.addEventListener("keydown", handleEscape);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
@@ -495,7 +504,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] md:min-w-[280px] justify-end">
+          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] lg:border-l lg:border-[#E8DED7] lg:pl-[14px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden sm:inline-flex" />
 
@@ -641,8 +650,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="lg:hidden flex items-center">
               <button
                 type="button"
-                onMouseDown={(event) => event.stopPropagation()}
-                onPointerDown={() => {
+                onClick={() => {
                   setActiveDropdown("none");
                   setMobileMenuOpen((v) => !v);
                 }}
@@ -670,7 +678,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed top-[68px] left-0 w-full max-h-[calc(100vh-68px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2">
+        <div
+          ref={mobileDrawerRef}
+          className="lg:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
+        >
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}
           <div className="flex flex-col gap-1">
@@ -680,7 +691,17 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="grid grid-cols-1 gap-1">
               <Link
                 href="/"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  if (pathname === "/" && typeof window !== "undefined") {
+                    const el = document.getElementById("converter");
+                    if (el) {
+                      const offset = 70;
+                      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+                      window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
+                    }
+                  }
+                }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
                   isSvgToPngActive
                     ? "bg-[#FFF5F2] text-brand-primary font-semibold"

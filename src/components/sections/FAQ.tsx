@@ -132,7 +132,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png
         {renderFaqTitle(tFaq("title"))}
       </h2>
 
-      <div className="flex flex-col w-full max-w-[361px] md:max-w-[890px] gap-[12px] md:gap-[24px]">
+      <div className="flex flex-col w-full max-w-[890px] gap-[12px] md:gap-[20px]">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
           return (
