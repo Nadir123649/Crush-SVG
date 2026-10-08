@@ -173,7 +173,7 @@ export default async function RootLayout({
       </head>
 
       <body
-        className="min-h-full flex flex-col items-center bg-background overflow-x-hidden"
+        className="min-h-full flex flex-col items-center bg-background overflow-x-hidden w-full"
         suppressHydrationWarning
       >
         {/* Structured Data (JSON-LD) */}

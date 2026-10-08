@@ -59,7 +59,7 @@ export function ClientLayoutWrapper({ children, logoUrl }: { children: React.Rea
     <>
       <Header logoUrl={logoUrl} />
       <ScrollToTop />
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[80px] flex flex-col flex-1">
+      <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] flex flex-col flex-1">
         <main id="main-content" className="w-full flex-1">
           {children}
         </main>
