@@ -498,6 +498,9 @@ function SvgToPngConverter() {
       const sNum = parseFloat(sStr.replace("x", ""));
       if (!Number.isNaN(sNum) && sNum > 0) {
         options.scale = sNum;
+      } else if (isCustomScale) {
+        setError(tToast("invalidScale"));
+        return;
       }
     }
 
@@ -682,6 +685,13 @@ function SvgToPngConverter() {
           validationError = tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
         }
       }
+    }
+  }
+
+  if (!validationError && !isScaleDisabled && isCustomScale) {
+    const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
+    if (!Number.isFinite(scale) || scale <= 0) {
+      validationError = tToast("invalidScale");
     }
   }
 
@@ -965,7 +975,7 @@ function SvgToPngConverter() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
                       {/* Width Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
-                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                        <label htmlFor="converter-width-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("width")}
                         </label>
                         <div
@@ -973,12 +983,33 @@ function SvgToPngConverter() {
                             openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
-                          <div
-                            onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
-                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                          >
-                            {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
-                          </div>
+                          <input
+                            id="converter-width-input"
+                            type="text"
+                            inputMode="decimal"
+                            value={selectedWidth}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (/^\d*\.?\d*$/.test(value)) {
+                                setSelectedWidth(value);
+                                setIsCustomWidth(true);
+                                resetConversion();
+                              }
+                            }}
+                            onFocus={(event) => {
+                              if (!isCustomWidth && selectedWidth === "Original") {
+                                event.currentTarget.select();
+                              }
+                            }}
+                            aria-label="Width in pixels or centimeters"
+                            autoComplete="off"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none"
+                          />
+                          {selectedWidth !== "Original" && selectedWidth !== "" && (
+                            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
+                              {unit}
+                            </span>
+                          )}
                           <button
                             type="button"
                             aria-label="Toggle width dropdown"
@@ -1040,7 +1071,7 @@ function SvgToPngConverter() {
 
                       {/* Height Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
-                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                        <label htmlFor="converter-height-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("height")}
                         </label>
                         <div
@@ -1048,12 +1079,33 @@ function SvgToPngConverter() {
                             openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
-                          <div
-                            onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
-                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                          >
-                            {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
-                          </div>
+                          <input
+                            id="converter-height-input"
+                            type="text"
+                            inputMode="decimal"
+                            value={selectedHeight}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (/^\d*\.?\d*$/.test(value)) {
+                                setSelectedHeight(value);
+                                setIsCustomHeight(true);
+                                resetConversion();
+                              }
+                            }}
+                            onFocus={(event) => {
+                              if (!isCustomHeight && selectedHeight === "Auto") {
+                                event.currentTarget.select();
+                              }
+                            }}
+                            aria-label="Height in pixels or centimeters"
+                            autoComplete="off"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none"
+                          />
+                          {selectedHeight !== "Auto" && selectedHeight !== "" && (
+                            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
+                              {unit}
+                            </span>
+                          )}
                           <button
                             type="button"
                             aria-label="Toggle height dropdown"
@@ -1204,16 +1256,21 @@ function SvgToPngConverter() {
                               type="text"
                               value={selectedScale}
                               onChange={(e) => {
-                                setSelectedScale(e.target.value);
-                                resetConversion();
+                                const value = e.target.value;
+                                if (/^\d*\.?\d*x?$/i.test(value)) {
+                                  setSelectedScale(value);
+                                  setIsCustomScale(true);
+                                  resetConversion();
+                                }
                               }}
-                              onFocus={() => setOpenDropdown("scale")}
-                              readOnly={!isCustomScale}
+                              onFocus={(event) => {
+                                if (!isCustomScale) {
+                                  event.currentTarget.select();
+                                }
+                              }}
                               aria-label="Scale multiplier factor"
-                              placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
-                              className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${
-                                !isCustomScale ? "cursor-default" : ""
-                              }`}
+                              placeholder="e.g. 6x"
+                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                             />
                             <button
                               type="button"
@@ -1283,89 +1340,6 @@ function SvgToPngConverter() {
                         </div>
                       )}
                     </div>
-
-                    {/* Custom Width / Height Inputs */}
-                    {(isCustomWidth || isCustomHeight) && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                          <label
-                            htmlFor="custom-width-input"
-                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
-                          >
-                            {tDownload("customWidth")}
-                          </label>
-                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                            <input
-                              id="custom-width-input"
-                              type="text"
-                              value={
-                                isCustomWidth
-                                  ? selectedWidth
-                                  : selectedWidth === "Original"
-                                  ? ""
-                                  : selectedWidth.replace(/[^0-9.]/g, "")
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (/^[0-9.]*$/.test(val)) {
-                                  setSelectedWidth(val);
-                                  setIsCustomWidth(true);
-                                }
-                                resetConversion();
-                              }}
-                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                              aria-label="Custom width in pixels or centimeters"
-                              autoComplete="off"
-                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
-                            />
-                            {selectedWidth !== "Original" && selectedWidth !== "" && (
-                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                                {unit}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                          <label
-                            htmlFor="custom-height-input"
-                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
-                          >
-                            {tDownload("customHeight")}
-                          </label>
-                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                            <input
-                              id="custom-height-input"
-                              type="text"
-                              value={
-                                isCustomHeight
-                                  ? selectedHeight
-                                  : selectedHeight === "Auto"
-                                  ? ""
-                                  : selectedHeight.replace(/[^0-9.]/g, "")
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (/^[0-9.]*$/.test(val)) {
-                                  setSelectedHeight(val);
-                                  setIsCustomHeight(true);
-                                }
-                                resetConversion();
-                              }}
-                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                              aria-label="Custom height in pixels or centimeters"
-                              autoComplete="off"
-                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
-                            />
-                            {selectedHeight !== "Auto" && selectedHeight !== "" && (
-                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                                {unit}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Transparent Background Box */}
                     <label
