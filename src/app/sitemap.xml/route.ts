@@ -1,9 +1,10 @@
-import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { useCases } from "@/lib/data/use-cases";
 import { getLocalizedHref, routing, type Locale } from "@/i18n/routing";
 import { Blog, connectToDatabase } from "@/lib/database/db";
-import { SITEMAP_GENERATED_AT, SITEMAP_STATIC_ROUTES } from "./sitemap-routes.generated";
+import { SITEMAP_GENERATED_AT, SITEMAP_STATIC_ROUTES } from "../sitemap-routes.generated";
+import { serializeSitemap } from "@/lib/seo/sitemap-xml";
+import type { MetadataRoute } from "next";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,7 +45,7 @@ function localizedEntries(
   }));
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const route of SITEMAP_STATIC_ROUTES) {
@@ -84,4 +85,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
+}
+
+export async function GET(): Promise<Response> {
+  const xml = serializeSitemap(await getSitemapEntries());
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+    },
+  });
 }
