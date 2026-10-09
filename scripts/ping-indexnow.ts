@@ -1,15 +1,44 @@
-import sitemap from "../src/app/sitemap";
 import { SITE_URL } from "../src/lib/seo";
 
 const INDEXNOW_KEY = "68434d213b77fa63ae8ffaa76729dcee";
+
+function decodeXml(value: string): string {
+  return value.replace(/&(?:lt|gt|quot|apos|amp);/g, (entity) => {
+    switch (entity) {
+      case "&lt;":
+        return "<";
+      case "&gt;":
+        return ">";
+      case "&quot;":
+        return '"';
+      case "&apos;":
+        return "'";
+      case "&amp;":
+        return "&";
+      default:
+        return entity;
+    }
+  });
+}
 
 async function pingIndexNow() {
   console.log("⚡ Pinging IndexNow for instant search engine indexing (Bing, Yandex, Naver)...");
 
   try {
-    const entries = await sitemap();
-    const urlList = entries.map((entry) => entry.url);
-    const host = new URL(SITE_URL || "https://www.crushsvg.net").hostname;
+    const sitemapUrl = `${SITE_URL || "https://www.crushsvg.net"}/sitemap.xml`;
+    const sitemapResponse = await fetch(sitemapUrl);
+    if (!sitemapResponse.ok) {
+      throw new Error(`Failed to read sitemap (${sitemapResponse.status})`);
+    }
+    const xml = await sitemapResponse.text();
+    const urlList = Array.from(xml.matchAll(/<loc>([\s\S]*?)<\/loc>/g), ([, loc]) =>
+      decodeXml(loc.trim())
+    );
+    if (urlList.length === 0) {
+      throw new Error("Sitemap contains no URLs");
+    }
+
+    const host = new URL(sitemapUrl).hostname;
 
     const payload = {
       host,

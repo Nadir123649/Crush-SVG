@@ -66,20 +66,20 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   ] : [
     {
       icon: IMAGES.uploadImage,
-      title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Paste or Upload",
-      description: mode === "raster-to-svg" ? "Drop your raster image or paste from clipboard directly into the converter." : "Drop your SVG file or paste standard markup directly into the field.",
+      title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Upload Your SVG or Paste Code",
+      description: mode === "raster-to-svg" ? "Drop your raster image or paste from clipboard directly into the converter." : "Drag and drop an SVG file, select one from your device, or paste SVG code into the converter.",
       imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
     },
     {
       icon: IMAGES.exportIcon,
-      title: mode === "raster-to-svg" ? "Tune Vector Settings" : "Choose Your Size",
-      description: mode === "raster-to-svg" ? "Adjust quality, color palette, and path smoothing for clean vector curves." : "Adjust width in pixels or simply scale it up for high-resolution output.",
+      title: mode === "raster-to-svg" ? "Tune Vector Settings" : "Choose Size and Background",
+      description: mode === "raster-to-svg" ? "Adjust quality, color palette, and path smoothing for clean vector curves." : "Set your output dimensions or scale. Enable Transparent Background if you want a transparent PNG. Output is limited to 4000 pixels per side.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
     {
       icon: IMAGES.downloadImage,
-      title: mode === "raster-to-svg" ? "Download SVG" : "Download PNG",
-      description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Create sharp, transparent PNGs ready for anywhere.",
+      title: mode === "raster-to-svg" ? "Download SVG" : "Convert and Download",
+      description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Click Convert to PNG, then download the generated PNG image.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
   ]);

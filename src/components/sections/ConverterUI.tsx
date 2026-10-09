@@ -1557,7 +1557,11 @@ function SvgToPngConverter() {
                       </>
                     ) : (
                       <Button
-                        className="w-full sm:w-[300px] max-w-[320px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                        className="w-full sm:w-[300px] max-w-[320px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm !opacity-100 disabled:!opacity-100"
+                        style={{
+                          background: "linear-gradient(to right, #C94418, #E87822)",
+                          opacity: 1,
+                        }}
                         onClick={handleConvert}
                         disabled={converting || isPlaceholderCode || !!validationError}
                       >
