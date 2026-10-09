@@ -4,7 +4,7 @@ export const RASTER_LIMITS = {
   /** Max upload size accepted for vectorization (bytes). */
   MAX_UPLOAD_BYTES: 12 * 1024 * 1024,
   /** Hard cap on total pixels processed inline (width * height). */
-  MAX_PIXELS_INLINE: 12_000_000,
+  MAX_PIXELS_INLINE: 4_000_000,
   /** Higher cap for queued (full-quality) jobs. */
   MAX_PIXELS_QUEUED: 40_000_000,
   /** Largest dimension allowed on input. */

@@ -23,7 +23,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-[16px]"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-[16px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="signup-prompt-title"

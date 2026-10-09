@@ -31,12 +31,17 @@ export default function EditBlogPage() {
     const [isDirty, setIsDirty] = useState(false);
 
     useEffect(() => {
+        // Wait until auth has resolved — do nothing while still loading
+        if (authStatus === "loading") return;
+        // If definitely not authenticated (guest), redirect gracefully instead of crashing
+        if (authStatus === "guest") {
+            setLoading(false);
+            router.replace("/login");
+            return;
+        }
+
         let cancelled = false;
         const loadBlog = async () => {
-            if (authStatus !== "authed") {
-                setLoading(false);
-                return;
-            }
             try {
                 const response = await apiFetch<{ blog: any }>(`/api/v1/admin/blogs/${blogId}`);
                 if (!cancelled && response?.blog) {
@@ -48,10 +53,16 @@ export default function EditBlogPage() {
                     setCoverImage(blog.coverImage || "");
                     setPublished(blog.published || false);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 if (!cancelled) {
-                    showToast("error", "Failed to load blog post", { id: "blog-load" });
-                    router.push("/admin/blogs");
+                    // 401 means session truly expired — redirect to login with clear message
+                    if (err?.status === 401 || err?.statusCode === 401) {
+                        showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                        router.replace("/login");
+                    } else {
+                        showToast("error", "Failed to load blog post", { id: "blog-load" });
+                        router.push("/admin/blogs");
+                    }
                 }
             } finally {
                 if (!cancelled) setLoading(false);
@@ -102,6 +113,11 @@ export default function EditBlogPage() {
                 router.push("/admin/blogs");
             }
         } catch (err: any) {
+            if (err?.status === 401 || err?.statusCode === 401) {
+                showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                router.replace("/login");
+                return;
+            }
             const msg = err?.message || "Failed to update blog post";
             showToast("error", msg, { id: "blog-save" });
         } finally {

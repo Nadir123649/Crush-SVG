@@ -171,13 +171,19 @@ export function parseSvgRoot(svgString: string): {
   const viewBoxMatch = rawAttrs.match(/viewBox="([^"]+)"/i);
   const widthMatch = rawAttrs.match(/width="([^"]+)"/i);
   const heightMatch = rawAttrs.match(/height="([^"]+)"/i);
+  
+  const fillMatch = rawAttrs.match(/fill="([^"]+)"/i);
+  const strokeMatch = rawAttrs.match(/stroke="([^"]+)"/i);
 
   return {
     viewBox: viewBoxMatch ? viewBoxMatch[1] : "0 0 24 24",
     width: widthMatch ? widthMatch[1].replace(/px$/, "") : "24",
     height: heightMatch ? heightMatch[1].replace(/px$/, "") : "24",
     innerContent,
-    rootAttributes: {},
+    rootAttributes: {
+      ...(fillMatch && { fill: fillMatch[1] }),
+      ...(strokeMatch && { stroke: strokeMatch[1] }),
+    },
   };
 }
 
@@ -201,9 +207,20 @@ export function generateSvgCode(
   options: SvgToCodeOptions = {}
 ): string {
   const compName = sanitizeComponentName(options.componentName || "CustomIcon");
-  const { viewBox, width, height, innerContent } = parseSvgRoot(rawSvg);
+  const { viewBox, width, height, innerContent, rootAttributes } = parseSvgRoot(rawSvg);
   const currentColor = !!options.currentColor;
   const jsxInner = convertSvgAttributesToJsx(innerContent, currentColor);
+
+  // Preserve original root fill/stroke — only replace with currentColor if the option is on
+  const fillVal = rootAttributes.fill
+    ? currentColor && rootAttributes.fill !== "none" ? "currentColor" : rootAttributes.fill
+    : "";
+  const strokeVal = rootAttributes.stroke
+    ? currentColor && rootAttributes.stroke !== "none" ? "currentColor" : rootAttributes.stroke
+    : "";
+  const jsxFillStr = fillVal ? ` fill="${fillVal}"` : "";
+  const jsxStrokeStr = strokeVal ? ` stroke="${strokeVal}"` : "";
+
 
   switch (framework) {
     case "react-tsx": {
@@ -222,9 +239,7 @@ export const ${compName} = forwardRef<SVGSVGElement, ${compName}Props>(
       ref={ref}
       width={size}
       height={size}
-      viewBox="${viewBox}"
-      fill="${currentColor ? "currentColor" : "none"}"
-      stroke="${currentColor ? "currentColor" : "none"}"
+      viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       {...props}
@@ -256,9 +271,7 @@ export const ${compName}: React.FC<${compName}Props> = ({
   <svg
     width={size}
     height={size}
-    viewBox="${viewBox}"
-    fill="${currentColor ? "currentColor" : "none"}"
-    stroke="${currentColor ? "currentColor" : "none"}"
+    viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
     {...props}
@@ -282,9 +295,7 @@ export const ${compName} = forwardRef(
       ref={ref}
       width={size}
       height={size}
-      viewBox="${viewBox}"
-      fill="${currentColor ? "currentColor" : "none"}"
-      stroke="${currentColor ? "currentColor" : "none"}"
+      viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       {...props}
@@ -312,9 +323,7 @@ export function ${compName}({
     <svg
       width={size}
       height={size}
-      viewBox="${viewBox}"
-      fill="${currentColor ? "currentColor" : "none"}"
-      stroke="${currentColor ? "currentColor" : "none"}"
+      viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       {...props}
@@ -337,8 +346,7 @@ export default ${compName};
   <svg
     :width="size"
     :height="size"
-    viewBox="${viewBox}"
-    :fill="currentColor ? 'currentColor' : undefined"
+    viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
     xmlns="http://www.w3.org/2000/svg"
     v-bind="$attrs"
   >
@@ -393,8 +401,7 @@ withDefaults(
   class="w-6 h-6 text-gray-800 dark:text-white"
   aria-hidden="true"
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="${viewBox}"
-  fill="none"
+  viewBox="${viewBox}"${jsxFillStr}${jsxStrokeStr}
 >
   ${tailwindInner}
 </svg>

@@ -71,6 +71,9 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
     const dims = parseSvgDimensions(sanitizedSvg);
     const target = computeTargetSize(dims, options);
     const warnings: string[] = [];
+    if (svg.toLowerCase().includes("<script") || svg.toLowerCase().includes("javascript:")) {
+        warnings.push("Inline scripts or JavaScript links were stripped from the SVG for security.");
+    }
 
     const resolvedBgOption = options.bgOption ?? (options.transparent === false ? "White" : "Transparent");
 

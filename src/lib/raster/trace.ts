@@ -46,12 +46,12 @@ export function buildVtracerOptions(
     const maxColors = options.colorCount ?? PHOTO_COLORS[options.quality];
     return {
       preset: "photo",
-      mode: "spline",
-      maxColors,
-      filterSpeckle: q.filterSpeckle,
+      mode: "polygon", // spline over-smooths photos
+      maxColors: maxColors * 2, // Doubling maxColors for photos to retain detail
+      filterSpeckle: Math.max(1, q.filterSpeckle - 2),
       colorPrecision: q.colorPrecision,
       pathPrecision: q.pathPrecision,
-      simplify: q.simplify,
+      simplify: 0, // Never simplify photos heavily
       spliceThreshold: q.spliceThreshold,
       optimize: 2,
     };
