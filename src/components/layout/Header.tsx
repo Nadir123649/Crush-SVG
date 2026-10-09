@@ -213,7 +213,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] sm:gap-[6px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto max-w-[640px]"
+            className="hidden min-[1440px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] sm:gap-[6px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto max-w-[640px]"
           >
             {/* 1. Tools Dropdown */}
             <div className="relative shrink-0">
@@ -647,7 +647,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="lg:hidden flex items-center">
+            <div className="min-[1440px]:hidden flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -680,7 +680,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
       {mobileMenuOpen && (
         <div
           ref={mobileDrawerRef}
-          className="lg:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
+          className="min-[1440px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
         >
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}

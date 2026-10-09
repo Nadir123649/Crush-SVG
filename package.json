@@ -9,8 +9,6 @@
     "postinstall": "node scripts/patch-onnx-binding.mjs && node scripts/patch-vtrace-initsync.mjs",
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "npx tsx scripts/generate-sitemap.ts && npx tsx scripts/ping-indexnow.ts",
-    "sitemap": "npx tsx scripts/generate-sitemap.ts",
     "indexnow": "npx tsx scripts/ping-indexnow.ts",
     "start": "next start",
     "lint": "eslint",

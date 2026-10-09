@@ -11,21 +11,26 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
   const t = useTranslations("footer");
   const isRasterToSvg = pathname === "/png-to-svg";
 
-  const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
-    const targetPath = hash.startsWith("/") ? hash.split("#")[0] : window.location.pathname;
-    const targetHash = hash.includes("#") ? hash.split("#")[1] : hash.replace("#", "");
+  const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Parse href like "/#features" or "/#how-it-works"
+    const [targetPath, targetHash] = href.split("#");
+    const path = targetPath || "/"; // empty string before # means root
     
-    if (typeof window !== "undefined" && (window.location.pathname === targetPath || targetPath === "")) {
-      e.preventDefault();
-      const el = document.getElementById(targetHash);
-      if (el) {
-        const offset = window.innerWidth >= 768 ? 96 : 70;
-        const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-          top: elementPosition - offset,
-          behavior: "smooth"
-        });
+    if (typeof window !== "undefined") {
+      // If we're already on the target page, just scroll to the hash
+      if (window.location.pathname === path) {
+        e.preventDefault();
+        const el = document.getElementById(targetHash);
+        if (el) {
+          const offset = window.innerWidth >= 768 ? 96 : 70;
+          const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: elementPosition - offset,
+            behavior: "smooth"
+          });
+        }
       }
+      // Otherwise, let the Link navigate to the target page (which will then scroll via its own logic)
     }
   };
 
@@ -42,10 +47,10 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
   return (
     <footer className="w-full bg-[#FCF1ED]">
       <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[40px] md:pt-[60px] pb-[20px] flex flex-col items-center">
-        <div className="w-full flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
+        <div className="w-full flex flex-col xl:flex-row justify-between items-center xl:items-start gap-[32px] xl:gap-0">
 
         {/* Left: Logo & Desc */}
-        <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
+        <div className="flex flex-col items-center xl:items-start w-full md:w-[400px] xl:w-[276px] gap-[12px] text-center xl:text-left">
           <Link href="/" onClick={(e) => handlePageClick(e, '/')} aria-label="CrushSVG homepage" className="flex items-center gap-[10px]">
             <Image
               src={logoUrl || IMAGES.logo}
@@ -66,7 +71,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Engineered For Quality (Shown in middle on mobile/tablet) */}
-        <div className="flex flex-col items-center lg:hidden w-full gap-[12px] text-center">
+        <div className="flex flex-col items-center xl:hidden w-full gap-[12px] text-center">
           <h4 className="font-heading font-bold text-[12px] leading-[120%] text-[#353A3E]">{t("qualityTitle")}</h4>
           <div className="flex flex-wrap justify-center gap-[8px]">
             <div className="h-[32px] px-[10px] bg-white rounded-[4px] border border-[#EAEAEA] flex items-center justify-center gap-[6px]">
@@ -90,7 +95,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Middle: Links */}
-        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[40px] lg:gap-[48px] ml-0 lg:ml-[40px] items-center text-center md:text-left">
+        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[40px] lg:gap-[48px] ml-0 xl:ml-[40px] items-center text-center md:text-left">
           {/* Column 1: Explore */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("explore")}</h4>
@@ -107,8 +112,8 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
                 }
               }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
             )}
-            <Link href={"/#features" as any} onClick={(e) => handleHashClick(e, '#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
-            <Link href={"/#how-it-works" as any} onClick={(e) => handleHashClick(e, '#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
+            <Link href="/#features" onClick={(e) => handleHashClick(e, '/#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
+            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '/#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
             <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
             <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>
@@ -139,7 +144,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Right: Engineered For Quality (Desktop only) */}
-        <div className="hidden lg:flex flex-col w-[340px] gap-[21px]">
+        <div className="hidden xl:flex flex-col w-[340px] gap-[21px]">
           <h4 className="font-heading font-bold text-[12px] md:text-[14px] leading-[120%] text-[#353A3E] text-center">{t("qualityTitle")}</h4>
 
           {/* 3 Quality Badges */}
@@ -178,7 +183,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Mobile/Tablet Social Section */}
-        <div className="flex flex-col lg:hidden w-full items-center">
+        <div className="flex flex-col xl:hidden w-full items-center">
           {/* Divider Above Social Icons (Mobile) */}
           <div className="w-full h-[1px] bg-[#353A3E] opacity-10 mb-[16px]"></div>
 
@@ -282,7 +287,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             Powered by <a href="https://www.thenevon.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit The Nevon website" className="text-brand-primary cursor-pointer hover:opacity-80 transition-opacity">@The Nevon</a>
           </span>
         </div>
-        <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex items-center">
+        <div className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563] flex flex-wrap items-center justify-center gap-y-[8px]">
           <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="hover:text-brand-primary transition-colors">{t("terms")}</Link>
           <span className="mx-[8px]">•</span>
           <Link href="/privacy-policy" onClick={(e) => handlePageClick(e, '/privacy-policy')} className="hover:text-brand-primary transition-colors">{t("privacy")}</Link>
