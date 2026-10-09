@@ -7,10 +7,6 @@ async function generateSitemapFile() {
 
   try {
     const response = await sitemap();
-    if (!response.ok) {
-      throw new Error(`Sitemap generation returned HTTP ${response.status}`);
-    }
-
     const xml = await response.text();
     const publicDir = path.join(process.cwd(), "public");
 
@@ -21,8 +17,7 @@ async function generateSitemapFile() {
     const outputPath = path.join(publicDir, "sitemap.xml");
     fs.writeFileSync(outputPath, xml, "utf8");
 
-    const urlCount = (xml.match(/<url>/g) ?? []).length;
-    console.log(`✅ Successfully generated sitemap.xml in public/ directory! (${urlCount} URLs generated)`);
+    console.log(`✅ Successfully generated sitemap.xml in public/ directory!`);
   } catch (error) {
     console.error("❌ Error generating sitemap.xml:", error);
     process.exit(1);

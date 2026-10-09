@@ -23,6 +23,78 @@ function renderFaqTitle(title: string) {
   return title;
 }
 
+function renderFaqAnswer(answer: string) {
+  const htmlRegex = /<a\s+(?:[^>]*?\s+)?href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
+  if (/<a\b[^>]*>/i.test(answer)) {
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = htmlRegex.exec(answer)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(answer.slice(lastIndex, match.index));
+      }
+      const href = match[1];
+      const text = match[2];
+      const isInternal = href.startsWith("/");
+
+      parts.push(
+        isInternal ? (
+          <Link
+            key={match.index}
+            href={href}
+            onClick={(e) => e.stopPropagation()}
+            className="text-brand-primary underline hover:text-[#c4411a] font-medium transition-colors"
+          >
+            {text}
+          </Link>
+        ) : (
+          <a
+            key={match.index}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-brand-primary underline hover:text-[#c4411a] font-medium transition-colors"
+          >
+            {text}
+          </a>
+        )
+      );
+      lastIndex = htmlRegex.lastIndex;
+    }
+
+    if (lastIndex < answer.length) {
+      parts.push(answer.slice(lastIndex));
+    }
+    return parts;
+  }
+
+  if (answer.includes("Privacy Policy")) {
+    const parts = answer.split("Privacy Policy");
+    return (
+      <>
+        {parts.map((part, i) => (
+          <React.Fragment key={i}>
+            {part}
+            {i < parts.length - 1 && (
+              <Link
+                href="/privacy-policy"
+                onClick={(e) => e.stopPropagation()}
+                className="text-brand-primary underline hover:text-[#c4411a] font-medium transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            )}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+
+  return answer;
+}
+
 export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png-page" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const tFaq = useTranslations("FAQ");
   const tFooter = useTranslations("faq_footer");
@@ -163,7 +235,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png
               >
                 <div className="overflow-hidden">
                   <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
-                    {faq.answer}
+                    {renderFaqAnswer(faq.answer)}
                   </p>
                 </div>
               </div>

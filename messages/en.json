@@ -260,16 +260,16 @@
     ],
     "svg": [
       {
-        "title": "Paste or Upload",
-        "description": "Drop your SVG file or paste standard markup directly into the field."
+        "title": "Upload Your SVG or Paste Code",
+        "description": "Drag and drop an SVG file, select one from your device, or paste SVG code into the converter."
       },
       {
-        "title": "Choose Your Size",
-        "description": "Adjust width in pixels or simply scale it up for high-resolution output."
+        "title": "Choose Size and Background",
+        "description": "Set your output dimensions or scale. Enable Transparent Background if you want a transparent PNG. Output is limited to 4000 pixels per side."
       },
       {
-        "title": "Download PNG",
-        "description": "Get a crisp, pixel-perfect PNG with transparent background in seconds."
+        "title": "Convert and Download",
+        "description": "Click Convert to PNG, then download the generated PNG image."
       }
     ],
     "raster": [
@@ -412,7 +412,7 @@
       },
       {
         "question": "Are my files kept private?",
-        "answer": "Standard SVG-to-PNG conversions use our server. Large SVGs may be converted in your browser. We do not save your SVG or PNG files. We only keep basic usage records, such as file size, success or failure and a guest or account ID, to apply the free limit. Your last SVG stays in your browser tab until you close it."
+        "answer": "Yes. Browser-based conversions are processed locally in your browser, while API-based conversions are processed on our server. For more details, see our <a href=\"/privacy-policy\">Privacy Policy</a>."
       },
       {
         "question": "Can I convert complex SVGs with gradients, clipping paths or embedded styles?",
@@ -434,7 +434,7 @@
       },
       {
         "question": "Are my files kept private?",
-        "answer": "Standard SVG-to-PNG conversions use our server. Large SVGs may be converted in your browser. Your files are never stored or shared."
+        "answer": "Yes. Browser-based conversions are processed locally in your browser, while API-based conversions are processed on our server. For more details, see our <a href=\"/privacy-policy\">Privacy Policy</a>."
       },
       {
         "question": "Can I convert complex SVGs with embedded fonts or gradients?",
@@ -1222,8 +1222,8 @@
     "howToImageResizerDesc": "Resize PNG, JPG, and WebP images in seconds.",
     "howToSvgOptimizer": "How to Optimize & Minify SVG Files Online",
     "howToSvgOptimizerDesc": "Compress and clean SVG vector files in three simple steps.",
-    "headingSvgPngLine1": "One File.",
-    "headingSvgPngHighlight": "Three Simple Steps.",
+    "headingSvgPngLine1": "How to Convert",
+    "headingSvgPngHighlight": "SVG to PNG",
     "headingBgRemoverLine1": "One Image.",
     "headingBgRemoverHighlight": "Three Simple Steps.",
     "headingImageResizerLine1": "One Image.",
