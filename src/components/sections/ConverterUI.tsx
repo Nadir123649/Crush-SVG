@@ -212,10 +212,29 @@ function SvgToPngConverter() {
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
 
+    // Seed from localStorage so counter shows instantly on page reload
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("crush_usage_info");
+        if (cached) {
+          const parsed = JSON.parse(cached) as UsageInfo;
+          if (parsed && typeof parsed.conversionsUsed === "number") {
+            setUsage(parsed);
+          }
+        }
+      } catch {}
+    }
+
     let cancelled = false;
     getUsage()
       .then((u) => {
-        if (!cancelled) setUsage(u);
+        if (!cancelled) {
+          setUsage(u);
+          // Persist to localStorage so it survives page reloads
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(u));
+          } catch {}
+        }
       })
       .catch(() => {});
     return () => {
@@ -331,15 +350,46 @@ function SvgToPngConverter() {
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
-  const resultImageUrl = useMemo(() => {
-    if (!result?.data) return "";
-    return `data:${result.mimeType || "image/png"};base64,${result.data}`;
+  const [resultImageUrl, setResultImageUrl] = useState("");
+
+  useEffect(() => {
+    if (!result?.data) {
+      setResultImageUrl("");
+      return;
+    }
+    let cancelled = false;
+    let blobUrl = "";
+    const dataUrl = `data:${result.mimeType || "image/png"};base64,${result.data}`;
+    
+    // Async decode base64 via fetch to prevent main-thread freeze on large images
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        if (cancelled) return;
+        blobUrl = URL.createObjectURL(blob);
+        setResultImageUrl(blobUrl);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setResultImageUrl(dataUrl);
+      });
+
+    return () => {
+      cancelled = true;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
   }, [result]);
 
   const activePreviewUrl = resultImageUrl || previewUrl;
 
   function handleSvgChange(value: string) {
-    setSvgCode(value);
+    let clean = value;
+    if (clean !== SAMPLE_SVG && clean !== DUMMY_CODE && clean.toLowerCase().includes('<svg')) {
+      if (!clean.toLowerCase().includes('xmlns=')) {
+        clean = clean.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+    }
+    setSvgCode(clean);
     setResult(null);
     setError(null);
     setPreviewError(false);
@@ -417,10 +467,12 @@ function SvgToPngConverter() {
 
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
       setError(tToast("invalidSvgFile"));
+      showToast("error", tToast("invalidSvgFile"));
       return;
     }
     if (Number(file.size) > 10 * 1024 * 1024) {
       setError(tToast("fileTooLarge"));
+      showToast("error", tToast("fileTooLarge"));
       return;
     }
     try {
@@ -558,6 +610,9 @@ function SvgToPngConverter() {
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
+      if (res.warnings && res.warnings.length > 0) {
+        res.warnings.forEach(w => showToast("info", w));
+      }
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
         engine: convertInBrowser ? "browser" : "server",
@@ -973,12 +1028,24 @@ function SvgToPngConverter() {
                             openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
-                          <div
-                            onClick={() => setOpenDropdown(openDropdown === "width" ? null : "width")}
-                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                          >
-                            {isCustomWidth ? "Custom" : formatDimensionLabel(selectedWidth, unit)}
-                          </div>
+                          <input
+                            type="text"
+                            value={isCustomWidth ? selectedWidth : selectedWidth === "Original" ? "Original" : selectedWidth}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.trim() === "") {
+                                setSelectedWidth("");
+                                setIsCustomWidth(true);
+                              } else if (/^[0-9.]*$/.test(val)) {
+                                setSelectedWidth(val);
+                                setIsCustomWidth(true);
+                              }
+                              resetConversion();
+                            }}
+                            onFocus={() => setOpenDropdown("width")}
+                            placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                          />
                           <button
                             type="button"
                             aria-label="Toggle width dropdown"
@@ -1048,12 +1115,24 @@ function SvgToPngConverter() {
                             openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
-                          <div
-                            onClick={() => setOpenDropdown(openDropdown === "height" ? null : "height")}
-                            className="flex-1 min-w-0 h-full pl-[8px] md:pl-[12px] pr-[2px] flex items-center font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                          >
-                            {isCustomHeight ? "Custom" : formatDimensionLabel(selectedHeight, unit)}
-                          </div>
+                          <input
+                            type="text"
+                            value={isCustomHeight ? selectedHeight : selectedHeight === "Auto" ? "Auto" : selectedHeight}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.trim() === "") {
+                                setSelectedHeight("");
+                                setIsCustomHeight(true);
+                              } else if (/^[0-9.]*$/.test(val)) {
+                                setSelectedHeight(val);
+                                setIsCustomHeight(true);
+                              }
+                              resetConversion();
+                            }}
+                            onFocus={() => setOpenDropdown("height")}
+                            placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                          />
                           <button
                             type="button"
                             aria-label="Toggle height dropdown"
@@ -1205,15 +1284,13 @@ function SvgToPngConverter() {
                               value={selectedScale}
                               onChange={(e) => {
                                 setSelectedScale(e.target.value);
+                                setIsCustomScale(true);
                                 resetConversion();
                               }}
                               onFocus={() => setOpenDropdown("scale")}
-                              readOnly={!isCustomScale}
                               aria-label="Scale multiplier factor"
-                              placeholder={isCustomScale ? "e.g. 6x" : "e.g. 2x"}
-                              className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${
-                                !isCustomScale ? "cursor-default" : ""
-                              }`}
+                              placeholder="e.g. 6x"
+                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                             />
                             <button
                               type="button"
@@ -1283,89 +1360,6 @@ function SvgToPngConverter() {
                         </div>
                       )}
                     </div>
-
-                    {/* Custom Width / Height Inputs */}
-                    {(isCustomWidth || isCustomHeight) && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] md:gap-[20px] w-full mt-[12px] md:mt-[16px]">
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                          <label
-                            htmlFor="custom-width-input"
-                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
-                          >
-                            {tDownload("customWidth")}
-                          </label>
-                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                            <input
-                              id="custom-width-input"
-                              type="text"
-                              value={
-                                isCustomWidth
-                                  ? selectedWidth
-                                  : selectedWidth === "Original"
-                                  ? ""
-                                  : selectedWidth.replace(/[^0-9.]/g, "")
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (/^[0-9.]*$/.test(val)) {
-                                  setSelectedWidth(val);
-                                  setIsCustomWidth(true);
-                                }
-                                resetConversion();
-                              }}
-                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                              aria-label="Custom width in pixels or centimeters"
-                              autoComplete="off"
-                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
-                            />
-                            {selectedWidth !== "Original" && selectedWidth !== "" && (
-                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                                {unit}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] w-full">
-                          <label
-                            htmlFor="custom-height-input"
-                            className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
-                          >
-                            {tDownload("customHeight")}
-                          </label>
-                          <div className="relative w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors flex items-center px-[12px] md:px-[16px]">
-                            <input
-                              id="custom-height-input"
-                              type="text"
-                              value={
-                                isCustomHeight
-                                  ? selectedHeight
-                                  : selectedHeight === "Auto"
-                                  ? ""
-                                  : selectedHeight.replace(/[^0-9.]/g, "")
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (/^[0-9.]*$/.test(val)) {
-                                  setSelectedHeight(val);
-                                  setIsCustomHeight(true);
-                                }
-                                resetConversion();
-                              }}
-                              placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                              aria-label="Custom height in pixels or centimeters"
-                              autoComplete="off"
-                              className="flex-1 min-w-0 h-full bg-transparent outline-none font-body font-medium text-[14px] md:text-[16px] text-[#353A3E]"
-                            />
-                            {selectedHeight !== "Auto" && selectedHeight !== "" && (
-                              <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] ml-[4px] pointer-events-none select-none">
-                                {unit}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Transparent Background Box */}
                     <label

@@ -89,6 +89,7 @@ const PUBLIC_API_PREFIXES = [
 
   // Public tools
   '/api/v1/convert',
+  '/api/v1/optimize',
   '/api/v1/vectorize',
   '/api/v1/background-remove',
   '/api/v1/usage',

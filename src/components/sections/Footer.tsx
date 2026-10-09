@@ -112,8 +112,16 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
                 }
               }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
             )}
-            <Link href="/#features" onClick={(e) => handleHashClick(e, '/#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
-            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '/#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
+            <Link href={"/#features" as any} onClick={(e) => {
+                if (typeof window !== "undefined" && window.location.pathname === "/") {
+                  handleHashClick(e, '#features');
+                }
+              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
+            <Link href={"/#how-it-works" as any} onClick={(e) => {
+                if (typeof window !== "undefined" && window.location.pathname === "/") {
+                  handleHashClick(e, '#how-it-works');
+                }
+              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
             <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
             <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>

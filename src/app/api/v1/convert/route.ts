@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 
+import { MAX_OUTPUT_SIZE } from '@/lib/svg/svg-dims'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { convertSchema } from '@/lib/svg/convert-validation'
 import { convertSvgQueued } from '@/lib/svg/conversion-queue'
@@ -164,7 +165,7 @@ export async function GET() {
       payload: {
         message: 'SVG to PNG conversion endpoint',
         formats: ['png'],
-        maxOutputSize: 4000,
+        maxOutputSize: MAX_OUTPUT_SIZE,
         example: {
           svg: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="red"/></svg>',
           width: 480,

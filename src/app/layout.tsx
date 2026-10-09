@@ -78,6 +78,7 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
     >
       <head suppressHydrationWarning>
+        <meta charSet="utf-8" />
         {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
             wrong auth panel on the very first frame. Reads the same
             localStorage key AuthProvider uses — no second auth system. */}
