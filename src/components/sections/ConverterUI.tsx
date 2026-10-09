@@ -764,7 +764,7 @@ function SvgToPngConverter() {
       <section
         id="converter"
         aria-busy={converting}
-        className="w-full max-w-[362px] md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[30px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
         <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
@@ -1499,14 +1499,14 @@ function SvgToPngConverter() {
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-[300px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
+                        className="w-full sm:w-[300px] max-w-[320px] h-[42px] px-[16px] md:px-[24px] rounded-[8px] md:rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity"
                       >
                         {tUsage("signUpForFree")}
                       </button>
                     ) : result?.data ? (
                       <>
                         <Button
-                          className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                          className="w-full sm:w-[300px] max-w-[320px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                           onClick={handleDownload}
                           disabled={converting || isPlaceholderCode || !!validationError}
                         >
@@ -1557,7 +1557,7 @@ function SvgToPngConverter() {
                       </>
                     ) : (
                       <Button
-                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                        className="w-full sm:w-[300px] max-w-[320px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleConvert}
                         disabled={converting || isPlaceholderCode || !!validationError}
                       >

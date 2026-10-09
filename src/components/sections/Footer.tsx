@@ -40,8 +40,9 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
   };
 
   return (
-    <footer className="w-full bg-[#FCF1ED] flex flex-col items-center pt-[40px] md:pt-[60px] pb-[20px] px-[16px] md:px-[40px] lg:px-[80px]">
-      <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
+    <footer className="w-full bg-[#FCF1ED]">
+      <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[40px] md:pt-[60px] pb-[20px] flex flex-col items-center">
+        <div className="w-full flex flex-col lg:flex-row justify-between items-center lg:items-start gap-[32px] lg:gap-0">
 
         {/* Left: Logo & Desc */}
         <div className="flex flex-col items-center lg:items-start w-full md:w-[400px] lg:w-[276px] gap-[12px] text-center lg:text-left">
@@ -198,7 +199,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
       </div>
 
       {/* Converters & Engines Section */}
-      <div className="w-full max-w-[1280px] mt-[24px] md:mt-[40px]">
+      <div className="w-full mt-[24px] md:mt-[40px]">
         <h4 className="font-heading font-bold text-[14px] md:text-[16px] leading-[120%] text-[#353A3E] text-center mb-[16px] md:mb-[20px]">{t("convertersEngines")}</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-[12px] md:gap-[16px]">
           <Link
@@ -268,10 +269,10 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
       </div>
 
       {/* Divider */}
-      <div className="w-full max-w-[1280px] h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[40px] mb-[16px] md:mb-[20px]"></div>
+      <div className="w-full h-[1px] bg-[#353A3E] opacity-10 mt-[12px] md:mt-[40px] mb-[16px] md:mb-[20px]"></div>
 
       {/* Bottom Footer */}
-      <div className="w-full max-w-[1280px] flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
+      <div className="w-full flex flex-col-reverse md:flex-row justify-between items-center gap-[16px] md:gap-0 mb-[10px] text-center md:text-left">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-[8px] md:gap-[12px]">
           <span className="font-body font-normal text-[12px] leading-[100%] text-[#4B5563]">
             {t("allRightsReserved")}
@@ -292,6 +293,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           <span className="mx-[8px]">•</span>
           <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="hover:text-brand-primary transition-colors">{t("support")}</Link>
         </div>
+      </div>
       </div>
     </footer>
   );

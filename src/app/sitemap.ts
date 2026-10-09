@@ -38,9 +38,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified,
       changeFrequency,
       priority: locale === "en" ? priority : Math.max(0.6, Number((priority - 0.1).toFixed(1))),
-      alternates: {
-        languages: languageMap,
-      },
     }));
   }
 
@@ -49,7 +46,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 1. Homepage & Core Localized Converters
   const coreConverters = [
     { key: "/", priority: 1.0, freq: "daily" as const },
-    { key: "/convert-svg-to-png", priority: 1.0, freq: "daily" as const },
     { key: "/png-to-svg", priority: 0.9, freq: "weekly" as const },
     { key: "/background-remover", priority: 0.9, freq: "weekly" as const },
     { key: "/image-resizer", priority: 0.9, freq: "weekly" as const },

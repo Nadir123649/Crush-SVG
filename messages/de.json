@@ -47,6 +47,8 @@
     "ja": "日本語"
   },
   "homepage": {
+    "metaTitle": "SVG in PNG umwandeln – Kostenlos & Online | CrushSVG",
+    "metaDescription": "SVG-Dateien sekundenschnell in gestochen scharfe PNG-Bilder konvertieren. Kostenlos, im Browser und mit transparentem Hintergrund. Keine Software-Installation.",
     "badgeLoggedIn": "Sie haben unbegrenzten Zugriff auf Konvertierungen.",
     "badgeLoggedOut": "3 kostenlose Konvertierungen. Kostenloses Konto für unbegrenzten Zugriff erstellen.",
     "heroTitlePrefix": "Von",
@@ -339,6 +341,7 @@
     "readVectorGuide": "Vektor-Best-Practices lesen",
     "exploreGuides": "Anleitungen entdecken",
     "vectorizeFast": "Grafiken schnell vektorisieren",
+    "convertSvgToPng": "SVG in PNG konvertieren",
     "figmaGuide": "Figma Vektor-Anleitung",
     "webDevTitle": "Webentwickler",
     "webDevDesc": "SVG-Grafiken für E-Mail-Vorlagen, Newsletter und ältere Browser zuverlässig in PNGs umwandeln.",
@@ -389,11 +392,11 @@
       },
       {
         "question": "Ist dieser SVG-zu-PNG-Konverter kostenlos und gibt es Limits?",
-        "answer": "Ja. Gäste erhalten 3 kostenlose Konvertierungen pro 24 Stunden, ohne Kreditkarte. Mit einem kostenlosen verifizierten Konto entfällt dieses Limit. Jede SVG darf bis zu 10 MB groß sein."
+        "answer": "Ja. Du kannst bis zu 3 SVGs in PNG umwandeln, ohne dich anzumelden. Melde dich an für unbegrenzte kostenlose SVG-in-PNG-Konvertierungen."
       },
       {
         "question": "Kann ich eigene Abmessungen und einen transparenten Hintergrund festlegen?",
-        "answer": "Ja. Lege eine genaue Breite und Höhe in Pixeln (1 bis 4000) fest oder nutze eine Skalierung von 0,1x bis 16x. Aktiviere den Schalter für den transparenten Hintergrund, um die Transparenz zu behalten, oder wähle stattdessen Weiß, Schwarz oder eine eigene Farbe. Transparent ist nicht standardmäßig aktiviert."
+        "answer": "Ja. Aktiviere die Option „Transparenter Hintergrund“ vor dem Konvertieren deiner SVG, um ein PNG mit transparentem Hintergrund herunterzuladen. Du kannst auch eine genaue Breite und Höhe in Pixeln (1 bis 4000) festlegen oder eine Skalierung von 0,1x bis 16x nutzen."
       },
       {
         "question": "Wie groß darf das PNG maximal sein?",
@@ -401,7 +404,7 @@
       },
       {
         "question": "Bleiben meine Dateien privat?",
-        "answer": "Deine SVG wird sicher (HTTPS) an unseren Server gesendet, in PNG umgewandelt und an dich zurückgegeben. Wir speichern weder deine SVG- noch deine PNG-Dateien. Wir behalten nur grundlegende Nutzungsdaten wie Dateigröße, Erfolg oder Fehler und eine Gast- oder Konto-ID, um das kostenlose Limit anzuwenden. Deine letzte SVG bleibt in deinem Browser-Tab, bis du ihn schließt."
+        "answer": "Standardmäßige SVG-in-PNG-Konvertierungen nutzen unseren Server. Große SVGs können in deinem Browser konvertiert werden. Wir speichern weder deine SVG- noch deine PNG-Dateien. Wir behalten nur grundlegende Nutzungsdaten wie Dateigröße, Erfolg oder Fehler und eine Gast- oder Konto-ID, um das kostenlose Limit anzuwenden. Deine letzte SVG bleibt in deinem Browser-Tab, bis du ihn schließt."
       },
       {
         "question": "Kann ich komplexe SVGs mit Verläufen, Beschneidungspfaden oder eingebetteten Stilen konvertieren?",
@@ -411,11 +414,11 @@
     "svg": [
       {
         "question": "Ist CrushSVG kostenlos nutzbar?",
-        "answer": "Ja, CrushSVG ist kostenlos. Sie können SVG-Dateien in PNG umwandeln, ohne Software zu installieren oder Bezahldaten anzugeben."
+        "answer": "Ja. Sie können bis zu 3 SVGs in PNG umwandeln, ohne sich anzumelden. Melden Sie sich an für unbegrenzte kostenlose SVG-in-PNG-Konvertierungen."
       },
       {
         "question": "Unterstützt CrushSVG transparente PNG-Hintergründe?",
-        "answer": "Ja! Ein transparenter Hintergrund ist standardmäßig aktiv. Sie können auch Weiß, Schwarz oder eine Wunschfarbe wählen."
+        "answer": "Ja. Aktivieren Sie vor der Konvertierung Ihrer SVG die Option „Transparenter Hintergrund“, um ein PNG mit transparentem Hintergrund herunterzuladen."
       },
       {
         "question": "Wie hoch kann ich die SVG-Ausgabe skalieren?",
@@ -423,7 +426,7 @@
       },
       {
         "question": "Bleiben meine Dateien privat und geschützt?",
-        "answer": "Ja. Die Verarbeitung erfolgt geschützt in Ihrem Browser und auf sicheren Servern. Wir speichern oder teilen Ihre Dateien nicht."
+        "answer": "Standardmäßige SVG-in-PNG-Konvertierungen nutzen unseren Server. Große SVGs können in Ihrem Browser konvertiert werden. Ihre Dateien werden niemals gespeichert oder geteilt."
       },
       {
         "question": "Können komplexe SVGs mit Farbverläufen konvertiert werden?",
@@ -482,7 +485,7 @@
     "noInstall": "Keine Installation",
     "explore": "Entdecken",
     "svgConverter": "SVG-Konverter",
-    "pngConverter": "PNG-Konverter",
+    "pngConverter": "PNG-zu-SVG-Konverter",
     "features": "Funktionen",
     "howItWorks": "So funktioniert's",
     "changelog": "Änderungsprotokoll",
@@ -836,7 +839,7 @@
     "declineAria": "Decline non-essential cookies",
     "dialogAria": "Cookie consent",
     "googleAnalytics": "Google Analytics",
-    "learnMore": "Learn more",
+    "learnMore": "Unsere Cookie-Richtlinie lesen",
     "message": "We use cookies to improve your experience and track anonymous usage via",
     "noDataSold": "No personal data is sold."
   },

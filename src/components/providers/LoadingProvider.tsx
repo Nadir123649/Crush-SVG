@@ -31,7 +31,12 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 
   return (
     <LoadingContext.Provider value={value}>
-      <div aria-busy={value.isLoading} inert={value.isLoading || undefined}>
+      <div
+        className="app-shell w-full !w-full min-h-screen flex flex-col"
+        style={{ width: "100%" }}
+        aria-busy={value.isLoading}
+        inert={value.isLoading || undefined}
+      >
         {children}
       </div>
       {value.isLoading && (
