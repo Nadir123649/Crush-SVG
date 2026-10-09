@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import sitemap from "../src/app/sitemap";
 
-
 async function generateSitemapFile() {
   console.log("⚡ Generating sitemap.xml for build...");
 
