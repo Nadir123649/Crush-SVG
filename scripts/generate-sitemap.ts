@@ -2,68 +2,27 @@ import fs from "fs";
 import path from "path";
 import sitemap from "../src/app/sitemap";
 
-function escapeXml(unsafe: string): string {
-  return unsafe.replace(/[<>&'"]/g, (c) => {
-    switch (c) {
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case "&":
-        return "&amp;";
-      case "'":
-        return "&apos;";
-      case '"':
-        return "&quot;";
-      default:
-        return c;
-    }
-  });
-}
-
 async function generateSitemapFile() {
   console.log("⚡ Generating sitemap.xml for build...");
 
   try {
-    const entries = await sitemap();
+    const response = await sitemap();
+    if (!response.ok) {
+      throw new Error(`Sitemap generation returned HTTP ${response.status}`);
+    }
+
+    const xml = await response.text();
     const publicDir = path.join(process.cwd(), "public");
 
     if (!fs.existsSync(publicDir)) {
       fs.mkdirSync(publicDir, { recursive: true });
     }
 
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
-    for (const entry of entries) {
-      xml += `  <url>\n`;
-      xml += `    <loc>${escapeXml(entry.url)}</loc>\n`;
-
-      if (entry.lastModified) {
-        const lastModStr =
-          typeof entry.lastModified === "string"
-            ? entry.lastModified
-            : entry.lastModified.toISOString().split("T")[0];
-        xml += `    <lastmod>${escapeXml(lastModStr)}</lastmod>\n`;
-      }
-
-      if (entry.changeFrequency) {
-        xml += `    <changefreq>${escapeXml(entry.changeFrequency)}</changefreq>\n`;
-      }
-
-      if (entry.priority !== undefined) {
-        xml += `    <priority>${entry.priority.toFixed(1)}</priority>\n`;
-      }
-
-      xml += `  </url>\n`;
-    }
-
-    xml += `</urlset>\n`;
-
     const outputPath = path.join(publicDir, "sitemap.xml");
     fs.writeFileSync(outputPath, xml, "utf8");
 
-    console.log(`✅ Successfully generated sitemap.xml in public/ directory! (${entries.length} URLs generated)`);
+    const urlCount = (xml.match(/<url>/g) ?? []).length;
+    console.log(`✅ Successfully generated sitemap.xml in public/ directory! (${urlCount} URLs generated)`);
   } catch (error) {
     console.error("❌ Error generating sitemap.xml:", error);
     process.exit(1);
