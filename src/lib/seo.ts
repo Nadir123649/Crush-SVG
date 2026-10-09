@@ -407,7 +407,7 @@ export function getFAQSchema(faqs: { question: string; answer: string }[]) {
       name: faq.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: faq.answer,
+        text: faq.answer.replace(/href="\//g, `href="${SITE_URL}/`),
       },
     })),
   };

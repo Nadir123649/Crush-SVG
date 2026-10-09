@@ -77,7 +77,7 @@ export default async function Home({
           </div>
           <Link
             href="/background-remover"
-            className="shrink-0 inline-flex items-center gap-[10px] justify-center h-[42px] md:h-[46px] px-[18px] md:px-[20px] rounded-[9px] bg-brand-primary font-heading font-medium text-[14px] md:text-[15px] text-white hover:bg-[#c4411a] transition-colors md:self-center"
+            className="w-full sm:w-auto shrink-0 inline-flex items-center gap-[10px] justify-center h-[42px] md:h-[46px] px-[18px] md:px-[20px] rounded-[9px] bg-brand-primary font-heading font-medium text-[14px] md:text-[15px] text-white hover:bg-[#c4411a] transition-colors md:self-center"
           >
             {tHome("bgRemoverCtaButton")}
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">

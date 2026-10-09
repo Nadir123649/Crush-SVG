@@ -66,20 +66,20 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   ] : [
     {
       icon: IMAGES.uploadImage,
-      title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Paste or Upload",
-      description: mode === "raster-to-svg" ? "Drop your raster image or paste from clipboard directly into the converter." : "Drop your SVG file or paste standard markup directly into the field.",
+      title: mode === "raster-to-svg" ? "Upload PNG or JPG" : "Upload Your SVG or Paste Code",
+      description: mode === "raster-to-svg" ? "Drop your raster image or paste from clipboard directly into the converter." : "Drag and drop an SVG file, select one from your device, or paste SVG code into the converter.",
       imgClassName: "w-[60px] h-[60px] md:w-[95px] md:h-[95px]"
     },
     {
       icon: IMAGES.exportIcon,
-      title: mode === "raster-to-svg" ? "Tune Vector Settings" : "Choose Your Size",
-      description: mode === "raster-to-svg" ? "Adjust quality, color palette, and path smoothing for clean vector curves." : "Adjust width in pixels or simply scale it up for high-resolution output.",
+      title: mode === "raster-to-svg" ? "Tune Vector Settings" : "Choose Size and Background",
+      description: mode === "raster-to-svg" ? "Adjust quality, color palette, and path smoothing for clean vector curves." : "Set your output dimensions or scale. Enable Transparent Background if you want a transparent PNG. Output is limited to 4000 pixels per side.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
     {
       icon: IMAGES.downloadImage,
-      title: mode === "raster-to-svg" ? "Download SVG" : "Download PNG",
-      description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Create sharp, transparent PNGs ready for anywhere.",
+      title: mode === "raster-to-svg" ? "Download SVG" : "Convert and Download",
+      description: mode === "raster-to-svg" ? "Get clean, infinitely scalable vector SVG paths ready for any project." : "Click Convert to PNG, then download the generated PNG image.",
       imgClassName: "w-[80px] h-[80px] md:w-[104px] md:h-[104px]"
     },
   ]);
@@ -123,7 +123,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       />
 
       {/* Heading */}
-      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark max-w-[361px] md:max-w-[807px]">
+      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full max-w-[807px]">
         {mode === "background-remover" ? (
           <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
@@ -136,7 +136,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       </h2>
 
       {/* Steps Container */}
-      <div className="w-full max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[40px] mt-[40px] md:mt-[60px] px-[16px] md:px-[0px]">
+      <div className="w-full max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[32px] md:gap-[40px] mt-[32px] md:mt-[60px]">
         {steps.map((step, index) => (
           <div key={index} className="flex flex-col items-center text-center gap-[10px] md:gap-[14px] w-full mx-auto max-w-[320px]">
             <div className="flex flex-col items-center justify-end h-[80px] md:h-[104px]">

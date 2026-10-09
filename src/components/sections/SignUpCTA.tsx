@@ -54,7 +54,7 @@ export function SignUpCTA() {
       <div className="w-full max-w-[1280px] flex flex-col lg:flex-row justify-between items-center gap-[40px]">
 
         {/* Left Column */}
-        <div className="w-full max-w-[361px] lg:max-w-[600px] flex flex-col gap-[16px] lg:gap-[24px]">
+        <div className="w-full max-w-[600px] flex flex-col gap-[16px] lg:gap-[24px]">
           <h2 className="font-heading font-semibold text-[24px] leading-[30px] lg:text-[48px] lg:leading-[58px] tracking-[0.04em] text-text-dark text-center lg:text-left">
             {t("titleLine1")}<br className="hidden lg:inline" />{" "}
             <span className="text-[#DA582D]">{t("titleLine2")}</span> {t("titleRequired")}
@@ -95,8 +95,8 @@ export function SignUpCTA() {
         </div>
 
         {/* Right Column */}
-        <div className="w-full max-w-[361px] lg:max-w-[445px] h-auto lg:h-[470px] p-[15px] lg:p-0 bg-[#FAF6F3] rounded-[12px] border border-[#E5E5E5] lg:border-[#EAEAEA] flex items-center justify-center">
-          <div className="w-full max-w-[331px] lg:max-w-[380px] h-auto lg:h-[406px] p-[24px] lg:pt-[40px] lg:px-[24px] lg:pb-[24px] bg-[#FFFFFF] rounded-[12px] border-none flex flex-col items-center">
+        <div className="w-full max-w-[445px] h-auto lg:h-[470px] p-[15px] lg:p-0 bg-[#FAF6F3] rounded-[16px] border border-[#E5E5E5] lg:border-[#EAEAEA] flex items-center justify-center">
+          <div className="w-full max-w-[380px] h-auto lg:h-[406px] p-[20px] sm:p-[24px] lg:pt-[40px] lg:px-[24px] lg:pb-[24px] bg-[#FFFFFF] rounded-[12px] border-none flex flex-col items-center">
 
             {/* User Icon */}
             <Image src={IMAGES.profile} alt="Profile Icon" width={24} height={24} className="mb-[12px] lg:mb-[16px] w-[24px] h-[24px]" />

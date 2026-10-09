@@ -32,7 +32,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
     <section id="features" className="flex flex-col items-center w-full mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       
       {/* Heading & Description */} 
-      <div className="flex flex-col items-center w-full max-w-[361px] md:max-w-[900px] gap-[14px]">
+      <div className="flex flex-col items-center w-full max-w-[900px] gap-[14px]">
         <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[60px] tracking-[0.04em] text-center text-text-dark">
           {renderFeaturesTitle(
             mode === "background-remover"
@@ -50,7 +50,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               : t("svgTitle")
           )}
         </h2>
-        <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18.67px] text-center text-text-muted">
+        <p className="font-body font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[22px] text-center text-text-muted max-w-[640px]">
           {mode === "background-remover" ? (
             t("bgDesc")
           ) : mode === "image-resizer" ? (
@@ -70,7 +70,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       </div>
 
       {/* Badges Row */}
-      <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[30px] md:mt-[62px] max-w-[361px] md:max-w-[1000px]">
+      <div className="flex flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[24px] md:mt-[62px] w-full max-w-[1000px]">
         <Badge text={t("badgeFree")} />
         <Badge
           text={

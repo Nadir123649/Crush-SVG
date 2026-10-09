@@ -1,127 +1,155 @@
-import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { useCases } from "@/lib/data/use-cases";
-import { getAllPosts } from "@/lib/blog";
-import { routing, type Locale } from "@/i18n/routing";
+import { getLocalizedHref, routing } from "@/i18n/routing";
+import { Blog, connectToDatabase } from "@/lib/database/db";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = SITE_URL || "https://www.crushsvg.net";
-  const currentDate = new Date().toISOString().split("T")[0];
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-  function createLocalizedEntries({
-    path,
-    priority,
-    changeFrequency,
-    lastModified = currentDate,
-    localizedSubpaths,
-  }: {
-    path: string;
-    priority: number;
-    changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
-    lastModified?: string;
-    localizedSubpaths?: Record<Locale, string>;
-  }): MetadataRoute.Sitemap {
-    const languageMap: Record<string, string> = {};
-    for (const locale of routing.locales) {
-      if (localizedSubpaths) {
-        const subPath = localizedSubpaths[locale];
-        languageMap[locale] = locale === "en" ? `${baseUrl}${subPath}` : `${baseUrl}/${locale}${subPath}`;
-      } else {
-        const cleanPath = path === "/" ? "" : path.startsWith("/") ? path : `/${path}`;
-        languageMap[locale] = locale === "en" ? `${baseUrl}${cleanPath}` : `${baseUrl}/${locale}${cleanPath}`;
-      }
-    }
-    languageMap["x-default"] = languageMap["en"];
+type ChangeFrequency = "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
 
-    return routing.locales.map((locale) => ({
-      url: languageMap[locale],
+interface SitemapEntry {
+  url: string;
+  lastModified: Date;
+  changeFrequency: ChangeFrequency;
+  priority: number;
+  alternates: Record<string, string>;
+}
+
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, "&#34;")
+    .replace(/'/g, "'");
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function addLocalizedEntries(
+  path: string,
+  changeFrequency: ChangeFrequency,
+  priority: number,
+  lastModified: Date = new Date()
+): SitemapEntry[] {
+  const baseUrl = (SITE_URL || "https://www.crushsvg.net").replace(/\/$/, "");
+  const languages: Record<string, string> = {};
+  for (const locale of routing.locales) {
+    languages[locale] = `${baseUrl}${getLocalizedHref(path, locale)}`;
+  }
+  languages["x-default"] = languages[routing.defaultLocale];
+
+  const entries: SitemapEntry[] = [];
+  for (const locale of routing.locales) {
+    entries.push({
+      url: languages[locale],
       lastModified,
       changeFrequency,
-      priority: locale === "en" ? priority : Math.max(0.6, Number((priority - 0.1).toFixed(1))),
-      alternates: {
-        languages: languageMap,
-      },
-    }));
+      priority: locale === routing.defaultLocale
+        ? priority
+        : Math.max(0.6, Number((priority - 0.1).toFixed(1))),
+      alternates: { ...languages },
+    });
   }
+  return entries;
+}
 
-  const sitemapEntries: MetadataRoute.Sitemap = [];
+export default async function sitemap(): Promise<Response> {
+  const allEntries: SitemapEntry[] = [];
 
-  // 1. Homepage & Core Localized Converters
   const coreConverters = [
-    { key: "/", priority: 1.0, freq: "daily" as const },
-    { key: "/convert-svg-to-png", priority: 1.0, freq: "daily" as const },
-    { key: "/png-to-svg", priority: 0.9, freq: "weekly" as const },
-    { key: "/background-remover", priority: 0.9, freq: "weekly" as const },
-    { key: "/image-resizer", priority: 0.9, freq: "weekly" as const },
-    { key: "/svg-optimizer", priority: 0.9, freq: "weekly" as const },
-    { key: "/favicon-generator", priority: 0.9, freq: "weekly" as const },
-    { key: "/svg-to-react", priority: 0.9, freq: "weekly" as const },
-  ];
+    { path: "/", priority: 1.0, changeFrequency: "daily" as ChangeFrequency },
+    { path: "/png-to-svg", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/background-remover", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/image-resizer", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/svg-optimizer", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/favicon-generator", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/svg-to-react", priority: 0.9, changeFrequency: "weekly" as ChangeFrequency },
+  ] as const;
 
-  for (const config of coreConverters) {
-    const rawPath = routing.pathnames[config.key as keyof typeof routing.pathnames];
-    const localizedSubpaths = typeof rawPath === "object" ? (rawPath as Record<Locale, string>) : undefined;
-
-    sitemapEntries.push(
-      ...createLocalizedEntries({
-        path: config.key,
-        priority: config.priority,
-        changeFrequency: config.freq,
-        localizedSubpaths,
-      })
-    );
+  for (const page of coreConverters) {
+    allEntries.push(...addLocalizedEntries(page.path, page.changeFrequency, page.priority));
   }
 
-  // 2. Static Content Pages
   const staticPages = [
-    { path: "/about", priority: 0.8, freq: "weekly" as const },
-    { path: "/team", priority: 0.7, freq: "monthly" as const },
-    { path: "/changelog", priority: 0.7, freq: "weekly" as const },
-    { path: "/svg-guides", priority: 0.8, freq: "weekly" as const },
-    { path: "/contact-us", priority: 0.6, freq: "monthly" as const },
-    { path: "/help", priority: 0.6, freq: "monthly" as const },
-    { path: "/support", priority: 0.6, freq: "monthly" as const },
-    { path: "/blog", priority: 0.8, freq: "weekly" as const },
-    { path: "/use-case", priority: 0.8, freq: "weekly" as const },
-    { path: "/terms", priority: 0.4, freq: "yearly" as const },
-    { path: "/privacy-policy", priority: 0.4, freq: "yearly" as const },
-    { path: "/cookies", priority: 0.4, freq: "yearly" as const },
-  ];
+    { path: "/about", priority: 0.8, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/team", priority: 0.7, changeFrequency: "monthly" as ChangeFrequency },
+    { path: "/changelog", priority: 0.7, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/svg-guides", priority: 0.8, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/contact-us", priority: 0.6, changeFrequency: "monthly" as ChangeFrequency },
+    { path: "/help", priority: 0.6, changeFrequency: "monthly" as ChangeFrequency },
+    { path: "/support", priority: 0.6, changeFrequency: "monthly" as ChangeFrequency },
+    { path: "/blog", priority: 0.8, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/use-case", priority: 0.8, changeFrequency: "weekly" as ChangeFrequency },
+    { path: "/terms", priority: 0.4, changeFrequency: "yearly" as ChangeFrequency },
+    { path: "/privacy-policy", priority: 0.4, changeFrequency: "yearly" as ChangeFrequency },
+    { path: "/cookies", priority: 0.4, changeFrequency: "yearly" as ChangeFrequency },
+  ] as const;
 
   for (const page of staticPages) {
-    sitemapEntries.push(
-      ...createLocalizedEntries({
-        path: page.path,
-        priority: page.priority,
-        changeFrequency: page.freq,
-      })
-    );
+    allEntries.push(...addLocalizedEntries(page.path, page.changeFrequency, page.priority));
   }
 
-  // 3. Dynamic Blog Articles
-  const posts = getAllPosts();
+  await connectToDatabase();
+  const posts = await Blog.find({ published: true })
+    .select("slug updatedAt createdAt")
+    .lean();
+
   for (const post of posts) {
-    const postDate = post.date ? post.date.split("T")[0] : currentDate;
-    sitemapEntries.push(
-      ...createLocalizedEntries({
-        path: `/blog/${post.slug}`,
-        priority: 0.7,
-        changeFrequency: "weekly",
-        lastModified: postDate,
-      })
+    allEntries.push(
+      ...addLocalizedEntries(
+        `/blog/${encodeURIComponent(post.slug)}`,
+        "weekly",
+        0.7,
+        post.updatedAt || post.createdAt || new Date()
+      )
     );
   }
 
-  // 4. Dynamic Use Case Landing Pages
-  for (const uc of useCases) {
-    sitemapEntries.push(
-      ...createLocalizedEntries({
-        path: `/use-case/${uc.slug}`,
-        priority: 0.8,
-        changeFrequency: "weekly",
-      })
+  for (const useCase of useCases) {
+    allEntries.push(
+      ...addLocalizedEntries(
+        `/use-case/${encodeURIComponent(useCase.slug)}`,
+        "weekly",
+        0.8
+      )
     );
   }
 
-  return sitemapEntries;
+  // Build XML string manually with xhtml namespace and hreflang links
+  const xmlParts: string[] = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+  ];
+
+  for (const entry of allEntries) {
+    xmlParts.push("  <url>");
+    xmlParts.push(`    <loc>${escapeXml(entry.url)}</loc>`);
+    xmlParts.push(`    <lastmod>${formatDate(entry.lastModified)}</lastmod>`);
+    xmlParts.push(`    <changefreq>${entry.changeFrequency}</changefreq>`);
+    xmlParts.push(`    <priority>${entry.priority.toFixed(1)}</priority>`);
+
+    // Add xhtml:link hreflang tags for all locales + x-default
+    for (const [hreflang, href] of Object.entries(entry.alternates)) {
+      xmlParts.push(
+        `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${escapeXml(href)}"/>`
+      );
+    }
+
+    xmlParts.push("  </url>");
+  }
+
+  xmlParts.push("</urlset>");
+
+  const xml = xmlParts.join("\n");
+
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600, s-maxage=86400",
+    },
+  });
 }
