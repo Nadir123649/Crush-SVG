@@ -96,8 +96,10 @@ export function svgToDataUrl(svg: string): string {
 // which must not block the live preview even though the converter handles
 // them fine.
 export function isValidSvgContent(svg: string): boolean {
-  let body = svg.trim().toLowerCase()
+  let body = svg.trim()
   body = body.replace(/^<\?xml[\s\S]*?\?>\s*/, '')
   body = body.replace(/^(<!--[\s\S]*?-->|\s)+/, '')
+  body = body.replace(/^<!doctype[\s\S]*?>\s*/i, '')
+  body = body.toLowerCase()
   return body.startsWith('<svg') && body.includes('</svg>') && body.endsWith('>')
 }

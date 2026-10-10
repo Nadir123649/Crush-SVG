@@ -78,17 +78,6 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
     >
       <head suppressHydrationWarning>
-        {/* ── Auth class sync: set BEFORE <body> paints so CSS hides the
-            wrong auth panel on the very first frame. Reads the same
-            localStorage key AuthProvider uses — no second auth system. */}
-        <Script
-          id="auth-sync"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
-          }}
-        />
-
         {/* Google Search Console */}
         <meta
           name="google-site-verification"
@@ -176,6 +165,15 @@ export default async function RootLayout({
         className="min-h-full flex flex-col items-center bg-background overflow-x-hidden w-full"
         suppressHydrationWarning
       >
+        {/* beforeInteractive scripts are still injected into <head> by Next.js. */}
+        <Script
+          id="auth-sync"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `try{var u=localStorage.getItem('crush_user');document.documentElement.classList.add(u?'user-logged-in':'user-logged-out')}catch(e){document.documentElement.classList.add('user-logged-out')}`,
+          }}
+        />
+
         {/* Structured Data (JSON-LD) */}
         <Script
           id="jsonld-website"

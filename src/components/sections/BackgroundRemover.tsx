@@ -818,6 +818,10 @@ export function BackgroundRemover() {
       setStaleResult(false);
       setPreviewMode("after");
       showToast("success", "Background removed! Your image is ready to download.");
+      const processingWarning = apiRes.headers.get("X-Background-Removal-Warning");
+      if (processingWarning) {
+        showToast("info", processingWarning);
+      }
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
       // Re-read the authoritative quota so guests, verified users and admins all

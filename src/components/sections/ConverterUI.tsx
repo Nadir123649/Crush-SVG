@@ -554,7 +554,39 @@ function SvgToPngConverter() {
           showToast("info", "Large SVG converted in your browser. Background removal isn't applied at this size.");
         }
       } else {
-        res = await convertText(svgCode, { ...options, signal: controller.signal });
+        try {
+          res = await convertText(svgCode, { ...options, signal: controller.signal });
+        } catch (serverError) {
+          if (!(serverError instanceof ApiError) || serverError.code !== "invalid_svg") {
+            throw serverError;
+          }
+
+          const raster = await rasterizeSvgInBrowser(svgCode, { ...options, signal: controller.signal });
+          if (controller.signal.aborted) return;
+
+          let tracked: UsageInfo | null = null;
+          try {
+            tracked = await trackConversionUsage({
+              inputFormat: "svg",
+              outputFormat: "png",
+              originalSize: raster.size,
+              success: true,
+            });
+          } catch (trackError) {
+            console.error("Failed to track usage", trackError);
+          }
+          if (controller.signal.aborted) return;
+
+          res = {
+            ...raster,
+            conversionsUsed: tracked?.conversionsUsed ?? (usage?.conversionsUsed ?? 0) + 1,
+            remaining: tracked?.remaining ?? undefined,
+          };
+          const backgroundNote = browserRasterApproximatesBackground(options)
+            ? " Background handling may differ slightly."
+            : "";
+          showToast("info", `The server couldn't render this SVG, so it was converted in your browser.${backgroundNote}`);
+        }
         if (controller.signal.aborted) return;
       }
 

@@ -16,6 +16,7 @@ export interface BgRemoveResult {
   size: number;
   width: number;
   height: number;
+  warning?: string;
 }
 
 export interface RgbColor {
