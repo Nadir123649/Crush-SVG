@@ -610,6 +610,7 @@ function SvgToPngConverter() {
         if (controller.signal.aborted) return;
       }
 
+      setPreviewError(false);
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
@@ -1005,6 +1006,7 @@ function SvgToPngConverter() {
                     </div>
                   ) : storageRestored && activePreviewUrl && !previewError ? (
                     <img
+                      key={result ? "converted-preview" : "live-preview"}
                       src={activePreviewUrl}
                       alt={result ? tA11y("convertedPngPreview") : tA11y("svgPreview")}
                       className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-md z-10"
