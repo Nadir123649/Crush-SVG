@@ -26,14 +26,8 @@ function localizedEntries(
   path: string,
   lastModified: Date | string = SITEMAP_GENERATED_AT,
   priority = PRIORITY_BY_ROUTE[path] ?? 0.7,
-  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "monthly",
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "daily",
 ): MetadataRoute.Sitemap {
-  const languages: Record<string, string> = {};
-  for (const locale of routing.locales) {
-    languages[locale] = `${BASE_URL}${getLocalizedHref(path, locale)}`;
-  }
-  languages["x-default"] = languages[routing.defaultLocale];
-
   return routing.locales.map((locale) => ({
     url: `${BASE_URL}${getLocalizedHref(path, locale as Locale)}`,
     lastModified,
@@ -41,7 +35,6 @@ function localizedEntries(
     priority: locale === routing.defaultLocale
       ? priority
       : Math.max(0.6, Number((priority - 0.1).toFixed(1))),
-    alternates: { languages },
   }));
 }
 
@@ -54,7 +47,6 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
         route,
         SITEMAP_GENERATED_AT,
         PRIORITY_BY_ROUTE[route],
-        "monthly",
       ),
     );
   }
@@ -70,7 +62,6 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
         `/blog/${encodeURIComponent(post.slug)}`,
         post.updatedAt || post.createdAt || SITEMAP_GENERATED_AT,
         0.7,
-        "monthly",
       ),
     );
   }
@@ -80,7 +71,6 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       `/use-case/${encodeURIComponent(useCase.slug)}`,
       SITEMAP_GENERATED_AT,
       0.8,
-      "monthly",
     ));
   }
 

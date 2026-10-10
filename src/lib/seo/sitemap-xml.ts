@@ -10,7 +10,8 @@ function escapeXml(value: string): string {
 }
 
 function formatLastModified(value: Date | string): string {
-  return value instanceof Date ? value.toISOString() : value;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toISOString().slice(0, 10);
 }
 
 export function serializeSitemap(entries: MetadataRoute.Sitemap): string {
@@ -26,11 +27,6 @@ export function serializeSitemap(entries: MetadataRoute.Sitemap): string {
       entry.priority !== undefined
         ? `    <priority>${entry.priority}</priority>`
         : null,
-      ...Object.entries(entry.alternates?.languages ?? {}).flatMap(
-        ([language, href]) => typeof href === "string"
-          ? [`    <xhtml:link rel="alternate" hreflang="${escapeXml(language)}" href="${escapeXml(href)}" />`]
-          : [],
-      ),
     ].filter((field): field is string => field !== null);
 
     return `  <url>\n${fields.join("\n")}\n  </url>`;
@@ -38,7 +34,7 @@ export function serializeSitemap(entries: MetadataRoute.Sitemap): string {
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls,
     "</urlset>",
     "",
