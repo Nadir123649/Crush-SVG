@@ -124,45 +124,24 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
         });
     }
     pipeline.ensureAlpha();
-    const { data: initialPng, info } = await withTimeout(
-        pipeline.png({ compressionLevel: 3, adaptiveFiltering: true }).toBuffer({ resolveWithObject: true }),
+    const initialPng = await withTimeout(
+        pipeline.png({ compressionLevel: 3, adaptiveFiltering: true }).toBuffer(),
         CONVERSION_TIMEOUT_MS,
     );
 
-    if (resolvedBgOption === "Transparent") {
-        return {
-            buffer: initialPng,
-            width: info.width,
-            height: info.height,
-            format: "png",
-            warnings,
-        };
-    }
-
-    try {
-        const removed = await withTimeout(
-            processBackgroundRemove(initialPng, {
-                bgOption: resolvedBgOption,
-                bgColor: options.bgColor,
-                scale: 100,
-            }),
-            CONVERSION_TIMEOUT_MS,
-        );
-        return {
-            buffer: removed.buffer,
-            width: removed.width,
-            height: removed.height,
-            format: "png",
-            warnings,
-        };
-    } catch {
-        // Fallback: return initial PNG directly if background removal encounters an error
-        return {
-            buffer: initialPng,
-            width: info.width,
-            height: info.height,
-            format: "png",
-            warnings,
-        };
-    }
+    const removed = await withTimeout(
+        processBackgroundRemove(initialPng, {
+            bgOption: resolvedBgOption,
+            bgColor: options.bgColor,
+            scale: 100,
+        }),
+        CONVERSION_TIMEOUT_MS,
+    );
+    return {
+        buffer: removed.buffer,
+        width: removed.width,
+        height: removed.height,
+        format: "png",
+        warnings,
+    };
 }
