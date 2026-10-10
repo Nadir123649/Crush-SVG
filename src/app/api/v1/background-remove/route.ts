@@ -141,6 +141,9 @@ export async function POST(request: NextRequest) {
     headers.set("Content-Length", String(result.size));
     headers.set("X-Image-Width", String(result.width));
     headers.set("X-Image-Height", String(result.height));
+    if (result.warning) {
+      headers.set("X-Background-Removal-Warning", result.warning);
+    }
     if (usage.kind === "guest" && nextUsed !== undefined && remaining !== undefined) {
       headers.set("X-Conversions-Used", String(nextUsed));
       headers.set("X-Conversions-Remaining", String(remaining));
