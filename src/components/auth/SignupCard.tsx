@@ -22,31 +22,40 @@ export function SignupCard() {
         {/* Inputs */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("nameLabel")}</label>
+            <label htmlFor="signup-name" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("nameLabel")}</label>
             <input 
+              id="signup-name"
+              name="name"
               type="text" 
               maxLength={16}
               placeholder={t("namePlaceholder")}
+              autoComplete="name"
               className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("emailLabel")}</label>
+            <label htmlFor="signup-email" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("emailLabel")}</label>
             <input 
+              id="signup-email"
+              name="email"
               type="email" 
               placeholder={t("emailPlaceholder")}
+              autoComplete="email"
               className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
             />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <label className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("passwordLabel")}</label>
+            <label htmlFor="signup-password" className="font-afacad text-[14px] font-semibold text-[#D94A1E]">{t("passwordLabel")}</label>
             <div className="relative w-full">
               <input 
+                id="signup-password"
+                name="password"
                 type="password" 
                 placeholder={t("passwordPlaceholder")}
+                autoComplete="new-password"
                 className="w-full h-[32px] rounded-[4px] border-[1px] border-[#C1C1C1] bg-transparent px-[12px] pr-[32px] font-afacad text-[14px] outline-none focus:border-[#D94A1E] placeholder:text-[#AEAEAE]"
               />
-              <button className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">
+              <button type="button" aria-label="Toggle password visibility" className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-black">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 5C5.63636 5 2 12 2 12C2 12 5.63636 19 12 19C18.3636 19 22 12 22 12C22 12 18.3636 5 12 5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
