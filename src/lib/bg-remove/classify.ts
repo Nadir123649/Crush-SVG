@@ -1,5 +1,3 @@
-import "server-only";
-
 /**
  * Lightweight image-type classifier that distinguishes photographic images
  * (portraits, landscapes) from graphic images (logos, text, flat artwork).
@@ -259,10 +257,10 @@ export function classifyImage(
   }
 
   // ── Signal 2: Local variance (texture) ─────────────────────────
-  // Photos: avgLocalVariance typically 100-2000+ (skin, hair, fabric)
-  // Logos: avgLocalVariance typically <30 (flat fills, gradients)
+  // Detailed illustrations can also have high local variance, so texture
+  // alone must not route an image to MODNet.
   if (stats.avgLocalVariance > 300) {
-    photoScore += 4;
+    photoScore += 3;
   } else if (stats.avgLocalVariance > 100) {
     photoScore += 2;
   } else if (stats.avgLocalVariance > 40) {
@@ -305,8 +303,6 @@ export function classifyImage(
     }
   }
 
-  // Photo needs score >= 4. This means at least 2 strong signals must agree.
-  // Conservative: logos/text will never have skin tones OR high local variance,
-  // so they'll never reach the threshold.
+  // Photo needs score >= 4, so texture must be corroborated by another signal.
   return photoScore >= 4 ? "photo" : "graphic";
 }

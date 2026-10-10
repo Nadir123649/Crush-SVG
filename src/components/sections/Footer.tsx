@@ -100,28 +100,20 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("explore")}</h4>
             {isRasterToSvg ? (
-              <Link href={"/#converter" as any} onClick={(e) => {
+              <Link href="/#converter" onClick={(e) => {
                 if (typeof window !== "undefined" && window.location.pathname === "/") {
                   handleHashClick(e, '#converter');
                 }
               }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgConverter")}</Link>
             ) : (
-              <Link href={"/png-to-svg#converter" as any} onClick={(e) => {
+              <Link href="/png-to-svg#converter" onClick={(e) => {
                 if (typeof window !== "undefined" && window.location.pathname === "/png-to-svg") {
                   handleHashClick(e, '#converter');
                 }
               }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
             )}
-            <Link href={"/#features" as any} onClick={(e) => {
-                if (typeof window !== "undefined" && window.location.pathname === "/") {
-                  handleHashClick(e, '#features');
-                }
-              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
-            <Link href={"/#how-it-works" as any} onClick={(e) => {
-                if (typeof window !== "undefined" && window.location.pathname === "/") {
-                  handleHashClick(e, '#how-it-works');
-                }
-              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
+            <Link href="/#features" onClick={(e) => handleHashClick(e, '/#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
+            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '/#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
             <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
             <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>
@@ -144,10 +136,10 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           {/* Column 4: Use Cases */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("useCases")}</h4>
-            <Link href={"/use-case/svg-to-png-for-react" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("reactNext")}</Link>
-            <Link href={"/use-case/svg-to-png-for-email-signatures" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("emailSignatures")}</Link>
-            <Link href={"/use-case/svg-to-png-transparent-background" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-transparent-background')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("transparentBg")}</Link>
-            <Link href={"/use-case/high-resolution-svg-to-png" as any} onClick={(e) => handlePageClick(e, '/use-case/high-resolution-svg-to-png')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("highResolution")}</Link>
+            <Link href="/use-case/svg-to-png-for-react" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("reactNext")}</Link>
+            <Link href="/use-case/svg-to-png-for-email-signatures" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("emailSignatures")}</Link>
+            <Link href="/use-case/svg-to-png-transparent-background" onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-transparent-background')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("transparentBg")}</Link>
+            <Link href="/use-case/high-resolution-svg-to-png" onClick={(e) => handlePageClick(e, '/use-case/high-resolution-svg-to-png')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("highResolution")}</Link>
           </div>
         </div>
 
