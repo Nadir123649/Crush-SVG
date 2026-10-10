@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { serializeSitemap } from "./sitemap-xml";
 import type { MetadataRoute } from "next";
 
-test("serializes sitemap entries as well-formed XML with a browser stylesheet", () => {
+test("serializes sitemap entries as well-formed plain XML", () => {
   const entries: MetadataRoute.Sitemap = [{
     url: "https://example.com/a?x=1&y=2",
     lastModified: new Date("2026-10-09T00:00:00.000Z"),
@@ -18,7 +18,7 @@ test("serializes sitemap entries as well-formed XML with a browser stylesheet", 
   }];
 
   const xml = serializeSitemap(entries);
-  assert.match(xml, /<\?xml-stylesheet type="text\/xsl" href="\/sitemap\.xsl"\?>/);
+  assert.doesNotMatch(xml, /<\?xml-stylesheet/);
   assert.match(xml, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9"/);
   assert.match(xml, /<loc>https:\/\/example\.com\/a\?x=1&amp;y=2<\/loc>/);
   assert.match(xml, /<lastmod>2026-10-09T00:00:00\.000Z<\/lastmod>/);
