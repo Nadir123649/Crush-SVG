@@ -212,10 +212,29 @@ function SvgToPngConverter() {
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
 
+    // Seed from localStorage so counter shows instantly on page reload
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("crush_usage_info");
+        if (cached) {
+          const parsed = JSON.parse(cached) as UsageInfo;
+          if (parsed && typeof parsed.conversionsUsed === "number") {
+            setUsage(parsed);
+          }
+        }
+      } catch {}
+    }
+
     let cancelled = false;
     getUsage()
       .then((u) => {
-        if (!cancelled) setUsage(u);
+        if (!cancelled) {
+          setUsage(u);
+          // Persist to localStorage so it survives page reloads
+          try {
+            localStorage.setItem("crush_usage_info", JSON.stringify(u));
+          } catch {}
+        }
       })
       .catch(() => {});
     return () => {
@@ -331,15 +350,46 @@ function SvgToPngConverter() {
   const isPlaceholderCode = svgCode === SAMPLE_SVG || svgCode === DUMMY_CODE;
   const previewUrl = showCustomPreview ? previewSvgUrl : "";
 
-  const resultImageUrl = useMemo(() => {
-    if (!result?.data) return "";
-    return `data:${result.mimeType || "image/png"};base64,${result.data}`;
+  const [resultImageUrl, setResultImageUrl] = useState("");
+
+  useEffect(() => {
+    if (!result?.data) {
+      setResultImageUrl("");
+      return;
+    }
+    let cancelled = false;
+    let blobUrl = "";
+    const dataUrl = `data:${result.mimeType || "image/png"};base64,${result.data}`;
+
+    // Async decode base64 via fetch to prevent main-thread freeze on large images
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        if (cancelled) return;
+        blobUrl = URL.createObjectURL(blob);
+        setResultImageUrl(blobUrl);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setResultImageUrl(dataUrl);
+      });
+
+    return () => {
+      cancelled = true;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
   }, [result]);
 
   const activePreviewUrl = resultImageUrl || previewUrl;
 
   function handleSvgChange(value: string) {
-    setSvgCode(value);
+    let clean = value;
+    if (clean !== SAMPLE_SVG && clean !== DUMMY_CODE && clean.toLowerCase().includes('<svg')) {
+      if (!clean.toLowerCase().includes('xmlns=')) {
+        clean = clean.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+    }
+    setSvgCode(clean);
     setResult(null);
     setError(null);
     setPreviewError(false);
@@ -417,10 +467,12 @@ function SvgToPngConverter() {
 
     if (!file.type.includes("svg") && !file.name.toLowerCase().endsWith(".svg")) {
       setError(tToast("invalidSvgFile"));
+      showToast("error", tToast("invalidSvgFile"));
       return;
     }
     if (Number(file.size) > 10 * 1024 * 1024) {
       setError(tToast("fileTooLarge"));
+      showToast("error", tToast("fileTooLarge"));
       return;
     }
     try {
@@ -561,6 +613,9 @@ function SvgToPngConverter() {
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
+      if (res.warnings && res.warnings.length > 0) {
+        res.warnings.forEach(w => showToast("info", w));
+      }
       trackConversion("svg_converted", {
         output_format: res.format ?? "png",
         engine: convertInBrowser ? "browser" : "server",
@@ -997,13 +1052,15 @@ function SvgToPngConverter() {
                               }
                             }}
                             onFocus={(event) => {
+                              setOpenDropdown("width");
                               if (!isCustomWidth && selectedWidth === "Original") {
                                 event.currentTarget.select();
                               }
                             }}
                             aria-label="Width in pixels or centimeters"
                             autoComplete="off"
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none"
+                            placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                           />
                           {selectedWidth !== "Original" && selectedWidth !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1093,13 +1150,15 @@ function SvgToPngConverter() {
                               }
                             }}
                             onFocus={(event) => {
+                              setOpenDropdown("height");
                               if (!isCustomHeight && selectedHeight === "Auto") {
                                 event.currentTarget.select();
                               }
                             }}
                             aria-label="Height in pixels or centimeters"
                             autoComplete="off"
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none"
+                            placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                           />
                           {selectedHeight !== "Auto" && selectedHeight !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1264,6 +1323,7 @@ function SvgToPngConverter() {
                                 }
                               }}
                               onFocus={(event) => {
+                                setOpenDropdown("scale");
                                 if (!isCustomScale) {
                                   event.currentTarget.select();
                                 }

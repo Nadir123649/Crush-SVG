@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
 import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
 
@@ -12,6 +13,9 @@ interface SignupPromptModalProps {
 
 export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
   const t = useTranslations("auth_pages.signupPrompt");
+  const pathname = usePathname();
+  // Encode current path so auth pages redirect user back here after login/signup
+  const returnTo = encodeURIComponent(pathname);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -23,7 +27,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-[16px]"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-[16px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="signup-prompt-title"
@@ -61,7 +65,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
         </p>
 
         <Link
-          href="/signup"
+          href={`/signup?returnTo=${returnTo}`}
           onClick={onClose}
           className="w-full h-[46px] mt-[24px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
         >
@@ -69,7 +73,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
         </Link>
 
         <Link
-          href="/login"
+          href={`/login?returnTo=${returnTo}`}
           onClick={onClose}
           className="w-full h-[46px] mt-[12px] flex items-center justify-center rounded-[12px] border border-[#D94A1E] text-[#D94A1E] font-body font-medium text-[16px] hover:opacity-80 transition-opacity"
         >

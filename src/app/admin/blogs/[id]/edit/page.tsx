@@ -41,6 +41,11 @@ export default function EditBlogPage() {
     const [isDirty, setIsDirty] = useState(false);
 
     useEffect(() => {
+        if (authStatus === "loading") return;
+        if (authStatus === "guest") {
+            router.replace("/login");
+            return;
+        }
         if (authStatus !== "authed") return;
 
         let cancelled = false;
@@ -57,7 +62,7 @@ export default function EditBlogPage() {
                     setCoverImage(blog.coverImage || "");
                     setPublished(blog.published || false);
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 if (cancelled) return;
                 if (err instanceof ApiError && err.status === 401) {
                     redirectingToLogin = true;
@@ -116,6 +121,11 @@ export default function EditBlogPage() {
                 router.push("/admin/blogs");
             }
         } catch (err: unknown) {
+            if (err instanceof ApiError && err.status === 401) {
+                showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                router.replace("/login");
+                return;
+            }
             const msg = err instanceof Error ? err.message : "Failed to update blog post";
             showToast("error", msg, { id: "blog-save" });
         } finally {
