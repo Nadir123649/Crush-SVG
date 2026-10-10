@@ -360,7 +360,7 @@ function SvgToPngConverter() {
     let cancelled = false;
     let blobUrl = "";
     const dataUrl = `data:${result.mimeType || "image/png"};base64,${result.data}`;
-    
+
     // Async decode base64 via fetch to prevent main-thread freeze on large images
     fetch(dataUrl)
       .then(res => res.blob())
@@ -550,6 +550,9 @@ function SvgToPngConverter() {
       const sNum = parseFloat(sStr.replace("x", ""));
       if (!Number.isNaN(sNum) && sNum > 0) {
         options.scale = sNum;
+      } else if (isCustomScale) {
+        setError(tToast("invalidScale"));
+        return;
       }
     }
 
@@ -737,6 +740,13 @@ function SvgToPngConverter() {
           validationError = tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) });
         }
       }
+    }
+  }
+
+  if (!validationError && !isScaleDisabled && isCustomScale) {
+    const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
+    if (!Number.isFinite(scale) || scale <= 0) {
+      validationError = tToast("invalidScale");
     }
   }
 
@@ -1020,7 +1030,7 @@ function SvgToPngConverter() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
                       {/* Width Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
-                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                        <label htmlFor="converter-width-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("width")}
                         </label>
                         <div
@@ -1029,23 +1039,34 @@ function SvgToPngConverter() {
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
                           <input
+                            id="converter-width-input"
                             type="text"
-                            value={isCustomWidth ? selectedWidth : selectedWidth === "Original" ? "Original" : selectedWidth}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val.trim() === "") {
-                                setSelectedWidth("");
+                            inputMode="decimal"
+                            value={selectedWidth}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (/^\d*\.?\d*$/.test(value)) {
+                                setSelectedWidth(value);
                                 setIsCustomWidth(true);
-                              } else if (/^[0-9.]*$/.test(val)) {
-                                setSelectedWidth(val);
-                                setIsCustomWidth(true);
+                                resetConversion();
                               }
-                              resetConversion();
                             }}
-                            onFocus={() => setOpenDropdown("width")}
+                            onFocus={(event) => {
+                              setOpenDropdown("width");
+                              if (!isCustomWidth && selectedWidth === "Original") {
+                                event.currentTarget.select();
+                              }
+                            }}
+                            aria-label="Width in pixels or centimeters"
+                            autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                             className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                           />
+                          {selectedWidth !== "Original" && selectedWidth !== "" && (
+                            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
+                              {unit}
+                            </span>
+                          )}
                           <button
                             type="button"
                             aria-label="Toggle width dropdown"
@@ -1107,7 +1128,7 @@ function SvgToPngConverter() {
 
                       {/* Height Input */}
                       <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
-                        <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
+                        <label htmlFor="converter-height-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("height")}
                         </label>
                         <div
@@ -1116,23 +1137,34 @@ function SvgToPngConverter() {
                           } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
                         >
                           <input
+                            id="converter-height-input"
                             type="text"
-                            value={isCustomHeight ? selectedHeight : selectedHeight === "Auto" ? "Auto" : selectedHeight}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val.trim() === "") {
-                                setSelectedHeight("");
+                            inputMode="decimal"
+                            value={selectedHeight}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (/^\d*\.?\d*$/.test(value)) {
+                                setSelectedHeight(value);
                                 setIsCustomHeight(true);
-                              } else if (/^[0-9.]*$/.test(val)) {
-                                setSelectedHeight(val);
-                                setIsCustomHeight(true);
+                                resetConversion();
                               }
-                              resetConversion();
                             }}
-                            onFocus={() => setOpenDropdown("height")}
+                            onFocus={(event) => {
+                              setOpenDropdown("height");
+                              if (!isCustomHeight && selectedHeight === "Auto") {
+                                event.currentTarget.select();
+                              }
+                            }}
+                            aria-label="Height in pixels or centimeters"
+                            autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
                             className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
                           />
+                          {selectedHeight !== "Auto" && selectedHeight !== "" && (
+                            <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
+                              {unit}
+                            </span>
+                          )}
                           <button
                             type="button"
                             aria-label="Toggle height dropdown"
@@ -1283,11 +1315,19 @@ function SvgToPngConverter() {
                               type="text"
                               value={selectedScale}
                               onChange={(e) => {
-                                setSelectedScale(e.target.value);
-                                setIsCustomScale(true);
-                                resetConversion();
+                                const value = e.target.value;
+                                if (/^\d*\.?\d*x?$/i.test(value)) {
+                                  setSelectedScale(value);
+                                  setIsCustomScale(true);
+                                  resetConversion();
+                                }
                               }}
-                              onFocus={() => setOpenDropdown("scale")}
+                              onFocus={(event) => {
+                                setOpenDropdown("scale");
+                                if (!isCustomScale) {
+                                  event.currentTarget.select();
+                                }
+                              }}
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
                               className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"

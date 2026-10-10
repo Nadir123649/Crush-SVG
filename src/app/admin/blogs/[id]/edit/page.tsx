@@ -1,16 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { SVGProps } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { apiFetch } from "@/lib/client/http";
+import { ApiError, apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { BlogEditor } from "@/components/admin/BlogEditor/BlogEditor";
 import { CoverImageUpload } from "@/components/admin/BlogEditor/CoverImageUpload";
 import { useAuth } from "@/lib/client/auth-context";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 
-const SvgEye = (p: any) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>;
+interface EditableBlog {
+    title?: string;
+    slug?: string;
+    content?: string;
+    excerpt?: string;
+    coverImage?: string | null;
+    published?: boolean;
+}
+
+const SvgEye = (p: SVGProps<SVGSVGElement>) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>;
 
 export default function EditBlogPage() {
     const { status: authStatus } = useAuth();
@@ -31,19 +41,18 @@ export default function EditBlogPage() {
     const [isDirty, setIsDirty] = useState(false);
 
     useEffect(() => {
-        // Wait until auth has resolved — do nothing while still loading
         if (authStatus === "loading") return;
-        // If definitely not authenticated (guest), redirect gracefully instead of crashing
         if (authStatus === "guest") {
-            setLoading(false);
             router.replace("/login");
             return;
         }
+        if (authStatus !== "authed") return;
 
         let cancelled = false;
+        let redirectingToLogin = false;
         const loadBlog = async () => {
             try {
-                const response = await apiFetch<{ blog: any }>(`/api/v1/admin/blogs/${blogId}`);
+                const response = await apiFetch<{ blog: EditableBlog }>(`/api/v1/admin/blogs/${blogId}`);
                 if (!cancelled && response?.blog) {
                     const blog = response.blog;
                     setTitle(blog.title || "");
@@ -53,19 +62,18 @@ export default function EditBlogPage() {
                     setCoverImage(blog.coverImage || "");
                     setPublished(blog.published || false);
                 }
-            } catch (err: any) {
-                if (!cancelled) {
-                    // 401 means session truly expired — redirect to login with clear message
-                    if (err?.status === 401 || err?.statusCode === 401) {
-                        showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
-                        router.replace("/login");
-                    } else {
-                        showToast("error", "Failed to load blog post", { id: "blog-load" });
-                        router.push("/admin/blogs");
-                    }
+            } catch (err: unknown) {
+                if (cancelled) return;
+                if (err instanceof ApiError && err.status === 401) {
+                    redirectingToLogin = true;
+                    showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                    router.replace("/login");
+                    return;
                 }
+                showToast("error", "Failed to load blog post", { id: "blog-load" });
+                router.push("/admin/blogs");
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!cancelled && !redirectingToLogin) setLoading(false);
             }
         };
         loadBlog();
@@ -96,7 +104,7 @@ export default function EditBlogPage() {
 
         setSaving(true);
         try {
-            const response = await apiFetch<{ updated: boolean; blog: any }>(`/api/v1/admin/blogs/${blogId}`, {
+            const response = await apiFetch<{ updated: boolean; blog: EditableBlog }>(`/api/v1/admin/blogs/${blogId}`, {
                 method: "PATCH",
                 body: JSON.stringify({
                     title: title.trim(),
@@ -112,13 +120,13 @@ export default function EditBlogPage() {
                 showToast("success", publish ? "Blog post updated and published!" : "Blog post updated!", { id: "blog-save" });
                 router.push("/admin/blogs");
             }
-        } catch (err: any) {
-            if (err?.status === 401 || err?.statusCode === 401) {
+        } catch (err: unknown) {
+            if (err instanceof ApiError && err.status === 401) {
                 showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
                 router.replace("/login");
                 return;
             }
-            const msg = err?.message || "Failed to update blog post";
+            const msg = err instanceof Error ? err.message : "Failed to update blog post";
             showToast("error", msg, { id: "blog-save" });
         } finally {
             setSaving(false);

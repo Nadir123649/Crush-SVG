@@ -1,9 +1,10 @@
-import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { useCases } from "@/lib/data/use-cases";
 import { getLocalizedHref, routing, type Locale } from "@/i18n/routing";
 import { Blog, connectToDatabase } from "@/lib/database/db";
-import { SITEMAP_GENERATED_AT, SITEMAP_STATIC_ROUTES } from "./sitemap-routes.generated";
+import { SITEMAP_GENERATED_AT, SITEMAP_STATIC_ROUTES } from "../sitemap-routes.generated";
+import { serializeSitemap } from "@/lib/seo/sitemap-xml";
+import type { MetadataRoute } from "next";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,14 +26,8 @@ function localizedEntries(
   path: string,
   lastModified: Date | string = SITEMAP_GENERATED_AT,
   priority = PRIORITY_BY_ROUTE[path] ?? 0.7,
-  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "monthly",
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "daily",
 ): MetadataRoute.Sitemap {
-  const languages: Record<string, string> = {};
-  for (const locale of routing.locales) {
-    languages[locale] = `${BASE_URL}${getLocalizedHref(path, locale)}`;
-  }
-  languages["x-default"] = languages[routing.defaultLocale];
-
   return routing.locales.map((locale) => ({
     url: `${BASE_URL}${getLocalizedHref(path, locale as Locale)}`,
     lastModified,
@@ -40,11 +35,10 @@ function localizedEntries(
     priority: locale === routing.defaultLocale
       ? priority
       : Math.max(0.6, Number((priority - 0.1).toFixed(1))),
-    alternates: { languages },
   }));
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const route of SITEMAP_STATIC_ROUTES) {
@@ -53,7 +47,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         route,
         SITEMAP_GENERATED_AT,
         PRIORITY_BY_ROUTE[route],
-        "monthly",
       ),
     );
   }
@@ -69,7 +62,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `/blog/${encodeURIComponent(post.slug)}`,
         post.updatedAt || post.createdAt || SITEMAP_GENERATED_AT,
         0.7,
-        "monthly",
       ),
     );
   }
@@ -79,9 +71,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       `/use-case/${encodeURIComponent(useCase.slug)}`,
       SITEMAP_GENERATED_AT,
       0.8,
-      "monthly",
     ));
   }
 
   return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
+}
+
+export async function GET(): Promise<Response> {
+  const xml = serializeSitemap(await getSitemapEntries());
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+    },
+  });
 }

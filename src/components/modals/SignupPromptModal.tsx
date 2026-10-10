@@ -83,4 +83,3 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
     </div>
   );
 }
-
