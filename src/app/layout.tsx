@@ -137,13 +137,28 @@ export default async function RootLayout({
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
-              gtag('consent', 'default', {
-                'analytics_storage': 'denied',
-                'ad_storage': 'denied',
-                'ad_user_data': 'denied',
-                'ad_personalization': 'denied',
-                'wait_for_update': 500
-              });
+              window.gtag = gtag;
+              var isConsentGranted = false;
+              try {
+                isConsentGranted = localStorage.getItem('crush_cookie_consent') === 'granted';
+              } catch (e) {}
+
+              if (isConsentGranted) {
+                gtag('consent', 'default', {
+                  'analytics_storage': 'granted',
+                  'ad_storage': 'granted',
+                  'ad_user_data': 'granted',
+                  'ad_personalization': 'granted'
+                });
+              } else {
+                gtag('consent', 'default', {
+                  'analytics_storage': 'denied',
+                  'ad_storage': 'denied',
+                  'ad_user_data': 'denied',
+                  'ad_personalization': 'denied',
+                  'wait_for_update': 500
+                });
+              }
             `,
           }}
         />
