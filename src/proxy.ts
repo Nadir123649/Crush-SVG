@@ -57,6 +57,7 @@ const PUBLIC_PAGES = new Set([
   '/support',
   '/changelog',
   '/team',
+  '/offline',
 
   // Content / documentation
   '/svg-guides',
