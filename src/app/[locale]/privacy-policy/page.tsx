@@ -109,21 +109,34 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section className="flex flex-col gap-[16px]">
-          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">7. Your Rights</h2>
+          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">7. Google AdSense &amp; Third-Party Advertising</h2>
+          <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
+            We partner with third-party advertising vendors, including Google, to serve advertisements when you visit our website. These vendors, including Google, use cookies (including the DoubleClick DART cookie) to serve ads based on your prior visits to our website or other websites on the Internet:
+          </p>
+          <ul className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%] list-disc pl-[24px] flex flex-col gap-[8px]">
+            <li>Google&apos;s use of advertising cookies enables it and its partners to serve personalized and non-personalized ads to our visitors based on their browsing activity across the web.</li>
+            <li>We respect user consent choices through Google Consent Mode v2, and advertising identifiers are restricted in accordance with your preferences.</li>
+            <li>You may opt out of personalized advertising at any time by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">Google Ads Settings</a>.</li>
+            <li>Alternatively, you can opt out of a third-party vendor&apos;s use of cookies for interest-based advertising by visiting the <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">AboutAds Choice Tool</a> or the <a href="https://www.youronlinechoices.com/" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">Your Online Choices</a> portal.</li>
+          </ul>
+        </section>
+
+        <section className="flex flex-col gap-[16px]">
+          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Your Rights</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
             Depending on your location, you may have rights regarding your personal information, including the right to access, correct, or delete the personal information we have collected about you. You can update your account information by logging in, or you may contact us directly to request data deletion.
           </p>
         </section>
 
         <section className="flex flex-col gap-[16px]">
-          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">8. Changes to This Privacy Policy</h2>
+          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">9. Changes to This Privacy Policy</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
             We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the version history in our <Link href="/changelog" className="text-brand-primary hover:underline font-medium">Changelog</Link>.
           </p>
         </section>
 
         <section className="flex flex-col gap-[16px]">
-          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">9. Contact Us</h2>
+          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">10. Contact Us</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
             If you have any questions or concerns about this Privacy Policy, please contact our team via the <Link href="/contact-us" className="text-brand-primary hover:underline font-medium">Contact Form</Link> or email us at <a href="mailto:privacy@crushsvg.net" className="text-brand-primary hover:underline">privacy@crushsvg.net</a>.
           </p>
