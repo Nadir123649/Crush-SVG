@@ -6,6 +6,17 @@
 declare global {
   interface Window {
     dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+function callGtag(...args: unknown[]) {
+  if (typeof window === "undefined") return;
+  if (typeof window.gtag === "function") {
+    window.gtag(...args);
+  } else {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(arguments);
   }
 }
 
@@ -30,31 +41,31 @@ export function trackConversion(
 
 /** Update GA4 and AdSense consent state (called by the cookie banner). */
 export function updateConsentGranted() {
-  pushToDataLayer(["consent", "update", {
+  callGtag("consent", "update", {
     analytics_storage: "granted",
     ad_storage: "granted",
     ad_user_data: "granted",
     ad_personalization: "granted",
-  }]);
+  });
 }
 
 /** Revoke analytics and advertising consent for the current session. */
 export function updateConsentDenied() {
-  pushToDataLayer(["consent", "update", {
+  callGtag("consent", "update", {
     analytics_storage: "denied",
     ad_storage: "denied",
     ad_user_data: "denied",
     ad_personalization: "denied",
-  }]);
+  });
 }
 
 /** Set default consent state to denied (called before GA4 loads). */
 export function setDefaultConsentDenied() {
-  pushToDataLayer(["consent", "default", {
+  callGtag("consent", "default", {
     analytics_storage: "denied",
     ad_storage: "denied",
     ad_user_data: "denied",
     ad_personalization: "denied",
     wait_for_update: 500,
-  }]);
+  });
 }

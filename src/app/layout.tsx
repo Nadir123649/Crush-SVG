@@ -22,6 +22,7 @@ import fallbackMessages from "../../messages/en.json";
 import "./globals.css";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-KK3N72HS";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-VCLLSKB082";
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-2946217028626519";
 
 const bricolage = Bricolage_Grotesque({
@@ -101,10 +102,16 @@ export default async function RootLayout({
           content="68434D213B77FA63AE8FFAA76729DCEE"
         />
 
-        {/* Google AdSense account verification */}
+        {/* Google AdSense account verification & script */}
         <meta
           name="google-adsense-account"
           content={ADSENSE_CLIENT}
+        />
+        <Script
+          id="google-adsense"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
         />
 
         {/* Font Connections */}
@@ -136,6 +143,25 @@ export default async function RootLayout({
                 'ad_personalization': 'denied',
                 'wait_for_update': 500
               });
+            `,
+          }}
+        />
+
+        {/* Google Analytics 4 (gtag.js) */}
+        <Script
+          id="google-tag"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        />
+        <Script
+          id="google-tag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}');
             `,
           }}
         />
