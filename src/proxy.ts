@@ -5,6 +5,7 @@ import { getRequestId } from '@/lib/shared/logger'
 import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { API_DOCS_PATH } from '@/lib/openapi/constants'
+import { isAllowedCorsOrigin } from '@/lib/security/cors-origin'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -14,12 +15,6 @@ const LOCALIZED_API_DOCS_PATTERN = new RegExp(
 )
 
 const API_SUBDOMAINS = ['api.crushsvg.net', 'staging.api.crushsvg.net']
-
-const CORS_ORIGINS = [
-  'https://crushsvg.net',
-  'https://www.crushsvg.net',
-  'https://staging.crushsvg.net',
-]
 
 // ── Route classification ──────────────────────────────────────────────
 //
@@ -89,6 +84,7 @@ const PUBLIC_API_PREFIXES = [
 
   // Public tools
   '/api/v1/convert',
+  '/api/v1/optimize',
   '/api/v1/vectorize',
   '/api/v1/background-remove',
   '/api/v1/usage',
@@ -210,7 +206,7 @@ function setCorsHeaders(
 
   if (
     origin &&
-    CORS_ORIGINS.includes(origin)
+    isAllowedCorsOrigin(origin)
   ) {
     response.headers.set(
       'Access-Control-Allow-Origin',
@@ -284,7 +280,7 @@ export async function proxy(
 
       if (
         origin &&
-        CORS_ORIGINS.includes(origin)
+        isAllowedCorsOrigin(origin)
       ) {
         preflight.headers.set(
           'Access-Control-Allow-Origin',

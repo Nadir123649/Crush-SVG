@@ -40,6 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+src/app/sitemap-routes.generated.ts
 
 # debug files
 public/debug.json

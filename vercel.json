@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "buildCommand": "npm run build",
   "cleanUrls": true,
   "installCommand": "npm install --include=optional && node scripts/patch-onnx-binding.mjs",
   "functions": {

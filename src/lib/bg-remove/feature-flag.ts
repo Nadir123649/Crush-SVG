@@ -7,6 +7,8 @@ import "server-only";
  */
 export function shouldUseModnetEngine(): boolean {
   const val = process.env.BG_REMOVE_USE_MODNET;
-  if (val === undefined || val === "") return true;
+  // Disable MODNet by default because it fails to initialize on many server environments.
+  // We fall back to the legacy color-distance engine unless explicitly enabled.
+  if (val === undefined || val === "") return false;
   return val === "true" || val === "1";
 }

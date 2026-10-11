@@ -26,7 +26,8 @@ const blogSchema = new Schema({
     authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });
 
-blogSchema.index({ slug: 1 }, { unique: true });
+// Note: slug unique index is already defined inline via `unique: true` on the field above.
+// Defining it again here would cause a Mongoose duplicate index warning.
 blogSchema.index({ published: 1, createdAt: -1 });
 blogSchema.index({ authorId: 1 });
 

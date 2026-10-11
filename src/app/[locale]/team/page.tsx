@@ -22,7 +22,7 @@ export async function generateMetadata({
   return constructLocalizedMetadata({
     locale,
     routeKey: "/team",
-    title: t("metaTitle"),
+    title: `${t("metaTitle")} | Team`,
     description: t("metaDesc"),
   });
 }

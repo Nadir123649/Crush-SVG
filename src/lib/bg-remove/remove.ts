@@ -27,7 +27,9 @@ export function removeBackground(
   // If the image already has a transparent background, do not delete the foreground
   if (bg.isTransparent) return out;
 
-  if (bg.coverage < 0.05) {
+  // Lowered from 0.05 to 0.01 — attempt removal even when bg detection is weak
+  // (e.g. gradient backgrounds or images with many foreground edge pixels)
+  if (bg.coverage < 0.01) {
     return out;
   }
 
@@ -38,11 +40,13 @@ export function removeBackground(
 
   const totalPixels = w * h;
   const visited = new Uint8Array(totalPixels);
+  // Queue needs to be larger for 8-directional BFS (worst case: all pixels)
   const queue = new Int32Array(totalPixels);
   let head = 0;
   let tail = 0;
 
   function tryEnqueue(x: number, y: number) {
+    if (x < 0 || x >= w || y < 0 || y >= h) return;
     const idx = y * w + x;
     if (visited[idx]) return;
     const pi = idx * 4;
@@ -76,17 +80,24 @@ export function removeBackground(
     tryEnqueue(w - 1, y);
   }
 
-  // BFS flood-fill from edges
+  // 8-directional BFS flood-fill (includes diagonals) — fixes jagged/rough edges
+  // where 4-directional BFS left behind diagonal background corner pixels
   while (head < tail) {
     const idx = queue[head++];
     const x = idx % w;
     const y = Math.floor(idx / w);
     out[idx * 4 + 3] = 0; // erase connected background pixel
 
-    if (x > 0) tryEnqueue(x - 1, y);
-    if (x < w - 1) tryEnqueue(x + 1, y);
-    if (y > 0) tryEnqueue(x, y - 1);
-    if (y < h - 1) tryEnqueue(x, y + 1);
+    // 4 cardinal directions
+    tryEnqueue(x - 1, y);
+    tryEnqueue(x + 1, y);
+    tryEnqueue(x, y - 1);
+    tryEnqueue(x, y + 1);
+    // 4 diagonal directions (new — fixes jagged corner artifacts)
+    tryEnqueue(x - 1, y - 1);
+    tryEnqueue(x + 1, y - 1);
+    tryEnqueue(x - 1, y + 1);
+    tryEnqueue(x + 1, y + 1);
   }
 
   return out;

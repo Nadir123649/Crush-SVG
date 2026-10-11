@@ -103,7 +103,7 @@ export function ContactUsClient() {
       <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
-        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]">
+        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px]">
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="contact-name" className="font-afacad text-[14px] font-semibold text-brand-primary">{t("nameLabel")}</label>
             <input 
@@ -112,6 +112,8 @@ export function ContactUsClient() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("namePlaceholder")}
+              required
+              minLength={3}
               aria-required="true"
               className={`w-full h-[40px] rounded-[8px] border-[1px] ${isNameInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent px-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
             />
@@ -130,6 +132,7 @@ export function ContactUsClient() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("emailPlaceholder")}
+              required
               aria-required="true"
               className={`w-full h-[40px] rounded-[8px] border-[1px] ${isEmailInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent px-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors`}
             />
@@ -147,6 +150,8 @@ export function ContactUsClient() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t("messagePlaceholder")}
+              required
+              minLength={10}
               aria-required="true"
               rows={5}
               className={`w-full rounded-[8px] border-[1px] ${isMessageInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent p-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors resize-none overflow-y-auto`}
@@ -161,7 +166,6 @@ export function ContactUsClient() {
           <button 
             type="submit"
             disabled={loading}
-            aria-label="Send contact message"
             className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? t("sendingButton") : messageSent ? tContact("sendAnother") : t("sendButton")}
