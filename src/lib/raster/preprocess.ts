@@ -86,11 +86,19 @@ export async function preprocessRaster(
   }
 
   let pipeline = sharp(pixels, { raw: { width, height, channels: 4 } });
-  let hasAlpha = true;
+  let hasAlpha = false;
 
   if (options.background === "custom" && options.bgColor) {
     pipeline = pipeline.flatten({ background: options.bgColor });
     hasAlpha = false;
+  } else {
+    // Check if image actually contains transparent/semi-transparent pixels
+    for (let i = 3; i < pixels.length; i += 16) {
+      if (pixels[i] < 250) {
+        hasAlpha = true;
+        break;
+      }
+    }
   }
 
   // Single PNG encode at the end — no intermediate encodes, no metadata re-read

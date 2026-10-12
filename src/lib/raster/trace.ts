@@ -9,16 +9,17 @@ interface QualityKnobs {
   filterSpeckle: number;
   colorPrecision: number;
   spliceThreshold: number;
+  cornerThreshold: number;
 }
 
 const QUALITY_KNOBS: Record<RasterQuality, QualityKnobs> = {
-  draft: { pathPrecision: 3, simplify: 1, filterSpeckle: 6, colorPrecision: 6, spliceThreshold: 1 },
-  standard: { pathPrecision: 2, simplify: 1, filterSpeckle: 4, colorPrecision: 8, spliceThreshold: 1 },
-  max: { pathPrecision: 1, simplify: 0, filterSpeckle: 2, colorPrecision: 11, spliceThreshold: 0 },
+  draft: { pathPrecision: 5, simplify: 1, filterSpeckle: 4, colorPrecision: 7, spliceThreshold: 2, cornerThreshold: 45 },
+  standard: { pathPrecision: 8, simplify: 0, filterSpeckle: 1, colorPrecision: 9, spliceThreshold: 1, cornerThreshold: 60 },
+  max: { pathPrecision: 8, simplify: 0, filterSpeckle: 0, colorPrecision: 11, spliceThreshold: 0, cornerThreshold: 60 },
 };
 
-const COLOR_DEFAULTS: Record<RasterQuality, number> = { draft: 16, standard: 24, max: 32 };
-const PHOTO_COLORS: Record<RasterQuality, number> = { draft: 24, standard: 32, max: 48 };
+const COLOR_DEFAULTS: Record<RasterQuality, number> = { draft: 16, standard: 32, max: 64 };
+const PHOTO_COLORS: Record<RasterQuality, number> = { draft: 24, standard: 48, max: 64 };
 
 export function buildVtracerOptions(
   imageClass: ImageClass,
@@ -35,9 +36,7 @@ export function buildVtracerOptions(
       adaptive: true,
       filterSpeckle: q.filterSpeckle,
       pathPrecision: q.pathPrecision,
-      simplify: q.simplify,
-      spliceThreshold: q.spliceThreshold,
-      cornerThreshold: 60,
+      cornerThreshold: q.cornerThreshold,
       optimize: 2,
     };
   }
@@ -46,18 +45,18 @@ export function buildVtracerOptions(
     const maxColors = options.colorCount ?? PHOTO_COLORS[options.quality];
     return {
       preset: "photo",
-      mode: "polygon", // spline over-smooths photos
-      maxColors: maxColors * 2, // Doubling maxColors for photos to retain detail
-      filterSpeckle: Math.max(1, q.filterSpeckle - 2),
+      mode: "spline",
+      clustering: "color-cluster",
+      maxColors,
+      filterSpeckle: q.filterSpeckle,
       colorPrecision: q.colorPrecision,
       pathPrecision: q.pathPrecision,
-      simplify: 0, // Never simplify photos heavily
-      spliceThreshold: q.spliceThreshold,
+      cornerThreshold: q.cornerThreshold,
       optimize: 2,
     };
   }
 
-  // color-logo
+// color-logo / graphic artwork (clean shapes, text, sharp corners, smooth curves)
   const maxColors = options.colorCount ?? COLOR_DEFAULTS[options.quality];
   return {
     preset: "poster",
@@ -67,9 +66,8 @@ export function buildVtracerOptions(
     maxColors,
     filterSpeckle: q.filterSpeckle,
     colorPrecision: q.colorPrecision,
-    pathPrecision: q.pathPrecision,
-    simplify: q.simplify,
-    spliceThreshold: q.spliceThreshold,
+    pathPrecision: 8,
+    cornerThreshold: 60,
     optimize: 2,
   };
 }

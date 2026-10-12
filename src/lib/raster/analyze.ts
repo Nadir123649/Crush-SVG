@@ -96,13 +96,18 @@ function classify(
   edgeDensity: number,
   transparentRatio: number,
 ): ImageClass {
-  const detailed = edgeDensity > 0.12 || uniqueColorRatio > 0.25;
   if (isGrayscale) {
+    const detailed = edgeDensity > 0.15 || uniqueColorRatio > 0.25;
     if (detailed) return edgeDensity > 0.18 ? "line-art" : "mono";
     return "mono";
   }
-  if (transparentRatio > 0.02 && !detailed) return "color-logo";
-  if (detailed) return "photo";
+  // If the image has few distinct colors (palette ratio <= 0.30), it's artwork, logo, text or shapes, NOT a natural photo
+  if (uniqueColorRatio <= 0.30) {
+    return "color-logo";
+  }
+  // Natural photos have high unique color ratio AND high edge/texture complexity
+  const isNaturalPhoto = edgeDensity > 0.16 && uniqueColorRatio > 0.35;
+  if (isNaturalPhoto) return "photo";
   return "color-logo";
 }
 
@@ -117,9 +122,6 @@ export function resolveImageClass(mode: RasterMode, analysis: ImageAnalysis): Im
       return "photo";
     case "auto":
     default:
-      if (analysis.imageClass === "line-art") {
-        return "photo";
-      }
       return analysis.imageClass;
   }
 }

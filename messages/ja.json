@@ -1076,6 +1076,8 @@
     "fileInfo": "File: {name} ({size})",
     "high": "High",
     "infinitelyScalable": "Infinitely Scalable",
+    "sourceResolution": "ラスター解像度",
+    "svgOutput": "SVG 出力",
     "inputFormat": "Input Format",
     "livePreview": "Live Preview",
     "low": "Low",

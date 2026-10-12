@@ -81,7 +81,7 @@ const MODE_OPTIONS: DropdownOption[] = [
   { value: "auto", label: "Auto", desc: "Detect logo, line art, or photo" },
   { value: "logo", label: "Logo / Icon", desc: "Posterized color shapes" },
   { value: "line-art", label: "Line Art", desc: "Monochrome vector outlines" },
-  { value: "photo", label: "Photo", desc: "Stylized posterized artwork" },
+  { value: "photo", label: "Photo", desc: "Preserve photo detail in an embedded SVG image" },
 ];
 
 const BACKGROUND_OPTIONS: DropdownOption[] = [
@@ -1067,7 +1067,7 @@ export function RasterToSvgConverter() {
                     {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
                     {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
                     {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
-                    {" · "}{formatFileSize(result.size)} · {t("infinitelyScalable")}
+                    {" · "}{formatFileSize(result.size)} · {result.modeUsed === "vector" ? t("infinitelyScalable") : t("sourceResolution")}
                   </p>
                 )}
               </div>
@@ -1079,7 +1079,7 @@ export function RasterToSvgConverter() {
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {result ? t("vectorOutput") : t("livePreview")}
+                    {result ? (result.modeUsed === "vector" ? t("vectorOutput") : t("svgOutput")) : t("livePreview")}
                   </h2>
 
                   {/* Mode Tabs (Vector / Source / Code) */}
@@ -1094,7 +1094,7 @@ export function RasterToSvgConverter() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        {t("vectorSvgTab")}
+                        {result.modeUsed === "vector" ? t("vectorSvgTab") : t("svgOutput")}
                       </button>
                       <button
                         type="button"
