@@ -212,18 +212,8 @@ const COLOR_PRESETS = [
 ];
 
 type AddedBackground =
-  | { kind: "magic"; id: string }
   | { kind: "photo"; src: string; name: string }
   | { kind: "color"; color: string; gradient?: readonly string[] };
-
-const MAGIC_BACKGROUND_PRESETS = [
-  { id: "sunrise", name: "Sunrise", colors: ["#FFB26B", "#F472B6", "#6D5DFB"] },
-  { id: "ocean", name: "Ocean", colors: ["#72E4D3", "#3487D8", "#263B80"] },
-  { id: "lavender", name: "Lavender", colors: ["#D7B7FF", "#9B8AFB", "#5465D9"] },
-  { id: "peach", name: "Peach glow", colors: ["#FFE3B3", "#FF9A77", "#D85861"] },
-  { id: "forest", name: "Forest mist", colors: ["#B9E4C9", "#4C9B80", "#315B6B"] },
-  { id: "night", name: "Midnight", colors: ["#5865A8", "#392D68", "#191B36"] },
-] as const;
 
 const PHOTO_BACKGROUND_PRESETS = [
   { id: "beach", name: "Beach", src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85" },
@@ -279,17 +269,6 @@ async function compositeBackground(
     } else {
       context.fillStyle = background.color;
     }
-    context.fillRect(0, 0, canvas.width, canvas.height);
-  } else if (background.kind === "magic") {
-    const preset = MAGIC_BACKGROUND_PRESETS.find((item) => item.id === background.id) ?? MAGIC_BACKGROUND_PRESETS[0];
-    const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-    preset.colors.forEach((color, index) => gradient.addColorStop(index / (preset.colors.length - 1), color));
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    const glow = context.createRadialGradient(canvas.width * 0.78, canvas.height * 0.18, 0, canvas.width * 0.78, canvas.height * 0.18, Math.max(canvas.width, canvas.height) * 0.58);
-    glow.addColorStop(0, "rgba(255,255,255,0.32)");
-    glow.addColorStop(1, "rgba(255,255,255,0)");
-    context.fillStyle = glow;
     context.fillRect(0, 0, canvas.width, canvas.height);
   } else {
     const photo = await loadImage(background.src);
@@ -1473,40 +1452,25 @@ export function BackgroundRemover() {
                     </div>
 
                     {backgroundTab === "Magic" && (
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                        {MAGIC_BACKGROUND_PRESETS.map((preset) => (
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        {PHOTO_BACKGROUND_PRESETS.map((preset) => (
                           <button
                             key={preset.id}
                             type="button"
                             aria-label={`Use ${preset.name} background`}
-                            aria-pressed={addedBackground?.kind === "magic" && addedBackground.id === preset.id}
-                            onClick={() => chooseAddedBackground({ kind: "magic", id: preset.id })}
-                            className={`group relative aspect-[4/3] overflow-hidden rounded-[10px] border-2 transition-all ${addedBackground?.kind === "magic" && addedBackground.id === preset.id ? "border-blue-500 ring-2 ring-blue-100" : "border-transparent hover:border-white hover:ring-2 hover:ring-slate-200"}`}
-                            style={{ backgroundImage: `radial-gradient(circle at 78% 18%, rgba(255,255,255,.38), transparent 42%), linear-gradient(135deg, ${preset.colors.join(", ")})` }}
+                            aria-pressed={addedBackground?.kind === "photo" && addedBackground.src === preset.src}
+                            onClick={() => chooseAddedBackground({ kind: "photo", src: preset.src, name: preset.name })}
+                            className={`group relative aspect-[4/3] overflow-hidden rounded-[10px] border-2 transition-all ${addedBackground?.kind === "photo" && addedBackground.src === preset.src ? "border-blue-500 ring-2 ring-blue-100" : "border-transparent hover:ring-2 hover:ring-slate-200"}`}
                           >
-                            <span className="absolute inset-x-0 bottom-0 bg-black/30 px-1 py-1 text-center text-[9px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{preset.name}</span>
+                            <img src={preset.src} alt="" loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-1 text-center text-[10px] font-medium text-white">{preset.name}</span>
                           </button>
                         ))}
                       </div>
                     )}
 
                     {backgroundTab === "Photo" && (
-                      <div>
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                          {PHOTO_BACKGROUND_PRESETS.map((preset) => (
-                            <button
-                              key={preset.id}
-                              type="button"
-                              aria-label={`Use ${preset.name} background`}
-                              aria-pressed={addedBackground?.kind === "photo" && addedBackground.src === preset.src}
-                              onClick={() => chooseAddedBackground({ kind: "photo", src: preset.src, name: preset.name })}
-                              className={`group relative aspect-[4/3] overflow-hidden rounded-[10px] border-2 transition-all ${addedBackground?.kind === "photo" && addedBackground.src === preset.src ? "border-blue-500 ring-2 ring-blue-100" : "border-transparent hover:ring-2 hover:ring-slate-200"}`}
-                            >
-                              <img src={preset.src} alt="" loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                              <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-1 text-center text-[10px] font-medium text-white">{preset.name}</span>
-                            </button>
-                          ))}
-                        </div>
+                      <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-3">
                         <input
                           ref={backgroundFileRef}
                           type="file"
@@ -1517,7 +1481,14 @@ export function BackgroundRemover() {
                             event.target.value = "";
                           }}
                         />
-                        <button type="button" onClick={() => backgroundFileRef.current?.click()} className="mt-3 rounded-[8px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-[11px] font-medium text-[#334155] hover:bg-slate-50">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-body text-[12px] font-medium text-[#334155]">Use a photo from your device</p>
+                          <p className="mt-0.5 font-body text-[10px] text-[#64748B]">PNG, JPG, or WebP ? up to 10 MB</p>
+                          {addedBackground?.kind === "photo" && addedBackground.src.startsWith("data:") && (
+                            <p className="mt-1 truncate font-body text-[10px] text-emerald-700">Selected: {addedBackground.name}</p>
+                          )}
+                        </div>
+                        <button type="button" onClick={() => backgroundFileRef.current?.click()} className="rounded-[8px] bg-white px-3 py-2 text-[11px] font-medium text-[#334155] shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">
                           Upload your own photo
                         </button>
                       </div>
