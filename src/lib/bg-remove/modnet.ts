@@ -1,4 +1,5 @@
 import "server-only";
+import { createRequire } from "node:module";
 import dns from "node:dns";
 import os from "node:os";
 import path from "node:path";
@@ -9,6 +10,7 @@ import type { BgRemoveOptionsParsed } from "./validation";
 import { BG_REMOVE_LIMITS } from "./limits";
 
 const isVercel = !!process.env.VERCEL;
+const appRequire = createRequire(`${process.cwd()}/package.json`);
 
 const MODEL_ID = "Xenova/modnet";
 
@@ -90,7 +92,9 @@ function getHfAgent(): import("undici").Agent {
 const HF_HOSTS = new Set(["huggingface.co", "hf.co"]);
 
 async function loadPipelineWithRetry(): Promise<ModnetPipeline> {
-  const { pipeline, env } = await import("@huggingface/transformers");
+  // Load this Node-only package at runtime instead of asking Next's route
+  // bundler to resolve its large conditional-export/ONNX dependency graph.
+  const { pipeline, env } = appRequire("@huggingface/transformers") as typeof import("@huggingface/transformers");
 
   // Configure env after loading
   env.allowRemoteModels = true;

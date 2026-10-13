@@ -37,7 +37,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["@visioncortex/vtracer", "sharp"],
+  serverExternalPackages: [
+    "@visioncortex/vtracer",
+    "sharp",
+    "@huggingface/transformers",
+    "onnxruntime-node",
+    "onnxruntime-web",
+  ],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
