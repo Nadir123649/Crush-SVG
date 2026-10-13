@@ -1,4 +1,5 @@
 import "server-only";
+import { createRequire } from "node:module";
 import dns from "node:dns";
 import os from "node:os";
 import path from "node:path";
@@ -9,6 +10,7 @@ import type { BgRemoveOptionsParsed } from "./validation";
 import { BG_REMOVE_LIMITS } from "./limits";
 
 const isVercel = !!process.env.VERCEL;
+const appRequire = createRequire(`${process.cwd()}/package.json`);
 
 const MODEL_ID = "Xenova/modnet";
 
@@ -90,7 +92,8 @@ function getHfAgent(): import("undici").Agent {
 const HF_HOSTS = new Set(["huggingface.co", "hf.co"]);
 
 async function loadPipelineWithRetry(): Promise<ModnetPipeline> {
-  const { pipeline, env } = await import("@huggingface/transformers");
+  // Keep this as a runtime require: the installed package's Node entry is CJS.
+  const { pipeline, env } = appRequire("@huggingface/transformers") as typeof import("@huggingface/transformers");
 
   // Configure env after loading
   env.allowRemoteModels = true;

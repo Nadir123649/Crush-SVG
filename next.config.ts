@@ -37,7 +37,20 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["@visioncortex/vtracer", "sharp"],
+  serverExternalPackages: [
+    "@visioncortex/vtracer",
+    "sharp",
+    "@huggingface/transformers",
+    "onnxruntime-node",
+    "onnxruntime-web",
+  ],
+  outputFileTracingIncludes: {
+    "/api/v1/background-remove": [
+      "./node_modules/@huggingface/transformers/**/*",
+      "./node_modules/onnxruntime-node/**/*",
+      "./node_modules/onnxruntime-web/**/*",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
