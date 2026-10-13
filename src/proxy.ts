@@ -542,7 +542,7 @@ export async function proxy(
       canonicalUrl.pathname = canonicalAdminPath
 
       return addRequestId(
-        NextResponse.rewrite(canonicalUrl),
+        NextResponse.redirect(canonicalUrl),
         request
       )
     }
