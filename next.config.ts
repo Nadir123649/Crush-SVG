@@ -47,6 +47,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/v1/background-remove": [
       "./node_modules/@huggingface/transformers/**/*",
+      "./node_modules/onnxruntime-common/**/*",
       "./node_modules/onnxruntime-node/**/*",
       "./node_modules/onnxruntime-web/**/*",
     ],
