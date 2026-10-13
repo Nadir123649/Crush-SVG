@@ -211,6 +211,79 @@ const COLOR_PRESETS = [
   { name: "Emerald", hex: "#059669" },
 ];
 
+type AddedBackground =
+  | { kind: "photo"; src: string; name: string }
+  | { kind: "color"; color: string; gradient?: readonly string[] };
+
+const PHOTO_BACKGROUND_PRESETS = [
+  { id: "beach", name: "Beach", src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85" },
+  { id: "modern-home", name: "Modern home", src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85" },
+  { id: "city", name: "City street", src: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=85" },
+  { id: "forest", name: "Forest", src: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85" },
+  { id: "mountains", name: "Mountains", src: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85" },
+  { id: "architecture", name: "Architecture", src: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1200&q=85" },
+  { id: "lake", name: "Lake", src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=85" },
+  { id: "desert", name: "Desert", src: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1200&q=85" },
+  { id: "autumn-road", name: "Autumn road", src: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=85" },
+] as const;
+
+const COLOR_GRADIENT_PRESETS = [
+  { name: "Pink glow", colors: ["#FFB1A8", "#EF62B7", "#7866E8"] },
+  { name: "Blue glow", colors: ["#5ED8D0", "#318EDB", "#243D8B"] },
+  { name: "Violet glow", colors: ["#C79CFF", "#9B83F2", "#5E65D9"] },
+  { name: "Coral glow", colors: ["#FFD39D", "#FF907A", "#E96F6E"] },
+  { name: "Mint glow", colors: ["#A9DCC7", "#65B49B", "#306B67"] },
+  { name: "Indigo glow", colors: ["#626BAE", "#41417D", "#282343"] },
+] as const;
+
+async function compositeBackground(
+  cutoutUrl: string,
+  background: AddedBackground,
+): Promise<Blob> {
+  const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Could not load the selected background."));
+    image.crossOrigin = "anonymous";
+    image.src = src;
+  });
+
+  const cutout = await loadImage(cutoutUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = cutout.naturalWidth;
+  canvas.height = cutout.naturalHeight;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas 2D context is unavailable.");
+
+  if (background.kind === "color") {
+    if (background.gradient) {
+      const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+      const colors = background.gradient;
+      colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      const glow = context.createRadialGradient(canvas.width * 0.78, canvas.height * 0.18, 0, canvas.width * 0.78, canvas.height * 0.18, Math.max(canvas.width, canvas.height) * 0.58);
+      glow.addColorStop(0, "rgba(255,255,255,0.32)");
+      glow.addColorStop(1, "rgba(255,255,255,0)");
+      context.fillStyle = glow;
+    } else {
+      context.fillStyle = background.color;
+    }
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    const photo = await loadImage(background.src);
+    const scale = Math.max(canvas.width / photo.naturalWidth, canvas.height / photo.naturalHeight);
+    const width = photo.naturalWidth * scale;
+    const height = photo.naturalHeight * scale;
+    context.drawImage(photo, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  }
+
+  context.drawImage(cutout, 0, 0, canvas.width, canvas.height);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not export the composited image.")), "image/png");
+  });
+}
+
 function normalizeHex(input: string): string {
   let hex = input.trim();
   if (!hex.startsWith("#")) hex = "#" + hex;
@@ -475,6 +548,17 @@ export function BackgroundRemover() {
     conversionsUsed?: number;
     remaining?: number;
   } | null>(null);
+  const [staleResult, setStaleResult] = useState(false);
+  const [backgroundTab, setBackgroundTab] = useState<"Magic" | "Photo" | "Color">("Magic");
+  const [addedBackground, setAddedBackground] = useState<AddedBackground | null>(null);
+  const [addedBackgroundColor, setAddedBackgroundColor] = useState("#F2A27C");
+  const [compositedResultUrl, setCompositedResultUrl] = useState<string | null>(null);
+  const [compositedResultSize, setCompositedResultSize] = useState<number | null>(null);
+  const [compositingBackground, setCompositingBackground] = useState(false);
+  const backgroundFileRef = useRef<HTMLInputElement>(null);
+  const compositionRequestRef = useRef(0);
+  const resultUrlRef = useRef<string | null>(null);
+  const compositedUrlRef = useRef<string | null>(null);
 
   // Preview & Dropdowns
   const [previewMode, setPreviewMode] = useState<"before" | "after">("before");
@@ -502,6 +586,78 @@ export function BackgroundRemover() {
   const scaleRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  function clearCompositedResult() {
+    compositionRequestRef.current += 1;
+    if (compositedUrlRef.current) URL.revokeObjectURL(compositedUrlRef.current);
+    compositedUrlRef.current = null;
+    setCompositedResultUrl(null);
+    setCompositedResultSize(null);
+    setCompositingBackground(false);
+  }
+
+  function resetAddedBackground() {
+    clearCompositedResult();
+    setAddedBackground(null);
+    setAddedBackgroundColor("#F2A27C");
+  }
+
+  function clearCurrentResult() {
+    if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+    resultUrlRef.current = null;
+  }
+
+  async function composeSelectedBackground(cutoutUrl: string, background: AddedBackground) {
+    const requestId = ++compositionRequestRef.current;
+    if (compositedUrlRef.current) URL.revokeObjectURL(compositedUrlRef.current);
+    compositedUrlRef.current = null;
+    setCompositedResultUrl(null);
+    setCompositedResultSize(null);
+    setCompositingBackground(true);
+    try {
+      const blob = await compositeBackground(cutoutUrl, background);
+      if (requestId !== compositionRequestRef.current) return;
+      const nextUrl = URL.createObjectURL(blob);
+      compositedUrlRef.current = nextUrl;
+      setCompositedResultUrl(nextUrl);
+      setCompositedResultSize(blob.size);
+    } catch (cause) {
+      if (requestId === compositionRequestRef.current) {
+        showToast("error", cause instanceof Error ? cause.message : "Could not add this background.");
+      }
+    } finally {
+      if (requestId === compositionRequestRef.current) setCompositingBackground(false);
+    }
+  }
+
+  function chooseAddedBackground(background: AddedBackground) {
+    setAddedBackground(background);
+    if (bgOption !== "Transparent") {
+      setBgOption("Transparent");
+      if (result) setStaleResult(true);
+      return;
+    }
+    if (result?.dataUrl && !staleResult) void composeSelectedBackground(result.dataUrl, background);
+  }
+
+  function handleBackgroundPhoto(file: File | undefined) {
+    if (!file) return;
+    if (!(file.type === "image/png" || file.type === "image/jpeg" || file.type === "image/webp")) {
+      showToast("error", "Choose a valid photo image.");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      showToast("error", "Background photo must be 10 MB or smaller.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl === "string") chooseAddedBackground({ kind: "photo", src: dataUrl, name: file.name });
+    };
+    reader.onerror = () => showToast("error", "Could not read the selected background photo.");
+    reader.readAsDataURL(file);
+  }
+
   // Clean up in-flight requests on unmount
   useEffect(() => {
     return () => {
@@ -521,7 +677,9 @@ export function BackgroundRemover() {
       setImageName(null);
       setImageSize(null);
       setImageDims(null);
+      clearCurrentResult();
       setResult(null);
+      resetAddedBackground();
       setStaleResult(false);
       setError(null);
       setUsage(null);
@@ -641,11 +799,10 @@ export function BackgroundRemover() {
   // ── Cleanup Object URLs on unmount ────────────────────────────────────────
   useEffect(() => {
     return () => {
-      if (result?.dataUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(result.dataUrl);
-      }
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+      if (compositedUrlRef.current) URL.revokeObjectURL(compositedUrlRef.current);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Global clipboard paste ─────────────────────────────────────────────────
   useEffect(() => {
@@ -698,7 +855,9 @@ export function BackgroundRemover() {
     setFile(f);
     setImageName(f.name);
     setImageSize(f.size);
+    clearCurrentResult();
     setResult(null);
+    resetAddedBackground();
     setStaleResult(false);
     setPreviewMode("before");
 
@@ -730,7 +889,9 @@ export function BackgroundRemover() {
     setImageName(null);
     setImageSize(null);
     setImageDims(null);
+    clearCurrentResult();
     setResult(null);
+    resetAddedBackground();
     setStaleResult(false);
     setError(null);
     setPreviewMode("before");
@@ -758,6 +919,7 @@ export function BackgroundRemover() {
 
     setError(null);
     setProcessing(true);
+    clearCompositedResult();
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -800,9 +962,8 @@ export function BackgroundRemover() {
       const objectUrl = URL.createObjectURL(blob);
 
       // Revoke previous Object URL to prevent memory leaks
-      if (result?.dataUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(result.dataUrl);
-      }
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+      resultUrlRef.current = objectUrl;
 
       // Read usage info from response headers
       const conversionsUsed = apiRes.headers.get("X-Conversions-Used");
@@ -817,6 +978,9 @@ export function BackgroundRemover() {
       });
       setStaleResult(false);
       setPreviewMode("after");
+      if (addedBackground && bgOption === "Transparent") {
+        void composeSelectedBackground(objectUrl, addedBackground);
+      }
       showToast("success", "Background removed! Your image is ready to download.");
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
@@ -859,8 +1023,8 @@ export function BackgroundRemover() {
   function handleDownload() {
     if (!result?.dataUrl) return;
     const a = document.createElement("a");
-    a.href = result.dataUrl;
-    a.download = `crushsvg-bg-removed-${Date.now()}.png`;
+    a.href = compositedResultUrl || result.dataUrl;
+    a.download = `${addedBackground ? "crushsvg-bg-edited" : "crushsvg-bg-removed"}-${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -877,7 +1041,6 @@ export function BackgroundRemover() {
   const quotaDisplay = resolveQuotaDisplay(usage);
   const limitReached = hasQuotaLimitReached(usage);
   const hasResult = !!result?.dataUrl;
-  const [staleResult, setStaleResult] = useState(false);
   const fileExt = imageName ? imageName.split(".").pop()?.toUpperCase() : "IMAGE";
 
   const bgSwatchColor =
@@ -1195,7 +1358,7 @@ export function BackgroundRemover() {
 
                 {/* Main Preview Container */}
                 <div className="w-full h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]">
-                  {bgOption === "Transparent" && hasResult && previewMode === "after" && (
+                  {bgOption === "Transparent" && !addedBackground && hasResult && previewMode === "after" && (
                     <div
                       className="absolute inset-0 opacity-20 pointer-events-none"
                       style={{
@@ -1216,10 +1379,15 @@ export function BackgroundRemover() {
                   ) : previewMode === "after" && result?.dataUrl ? (
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
                       <img
-                        src={result.dataUrl}
-                        alt="Background removed result"
+                        src={compositedResultUrl || result.dataUrl}
+                        alt={addedBackground ? "Background changed result" : "Background removed result"}
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
+                      {compositingBackground && (
+                        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white/95 px-3 py-1 text-[11px] text-[#475569] shadow-sm">
+                          Applying background…
+                        </span>
+                      )}
                     </div>
                   ) : previewMode === "before" && dataUrl ? (
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
@@ -1258,6 +1426,113 @@ export function BackgroundRemover() {
                     </div>
                   ) : null}
                 </div>
+
+                {dataUrl && (
+                  <div className="mt-[12px] rounded-[16px] border border-[#E2E8F0] bg-white p-[12px] md:p-[14px] shadow-xs">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="font-heading font-semibold text-[13px] md:text-[14px] text-[#334155]">Add a background</h3>
+                        <p className="font-body text-[11px] text-[#64748B]">Choose a style, photo, or color behind your cutout.</p>
+                      </div>
+                      {addedBackground && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">Selected</span>}
+                    </div>
+                    <div role="tablist" aria-label="Background type" className="mb-3 flex gap-1 rounded-full bg-[#F1F5F9] p-1">
+                      {(["Magic", "Photo", "Color"] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          role="tab"
+                          aria-selected={backgroundTab === tab}
+                          onClick={() => setBackgroundTab(tab)}
+                          className={`flex-1 rounded-full px-3 py-2 font-body text-[12px] font-medium transition-colors ${backgroundTab === tab ? "bg-white text-[#334155] shadow-sm" : "text-[#64748B] hover:text-[#334155]"}`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+
+                    {backgroundTab === "Magic" && (
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        {PHOTO_BACKGROUND_PRESETS.map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            aria-label={`Use ${preset.name} background`}
+                            aria-pressed={addedBackground?.kind === "photo" && addedBackground.src === preset.src}
+                            onClick={() => chooseAddedBackground({ kind: "photo", src: preset.src, name: preset.name })}
+                            className={`group relative aspect-[4/3] overflow-hidden rounded-[10px] border-2 transition-all ${addedBackground?.kind === "photo" && addedBackground.src === preset.src ? "border-blue-500 ring-2 ring-blue-100" : "border-transparent hover:ring-2 hover:ring-slate-200"}`}
+                          >
+                            <img src={preset.src} alt="" loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-1 text-center text-[10px] font-medium text-white">{preset.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {backgroundTab === "Photo" && (
+                      <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-3">
+                        <input
+                          ref={backgroundFileRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          className="hidden"
+                          onChange={(event) => {
+                            handleBackgroundPhoto(event.target.files?.[0]);
+                            event.target.value = "";
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-body text-[12px] font-medium text-[#334155]">Use a photo from your device</p>
+                          <p className="mt-0.5 font-body text-[10px] text-[#64748B]">PNG, JPG, or WebP ? up to 10 MB</p>
+                          {addedBackground?.kind === "photo" && addedBackground.src.startsWith("data:") && (
+                            <p className="mt-1 truncate font-body text-[10px] text-emerald-700">Selected: {addedBackground.name}</p>
+                          )}
+                        </div>
+                        <button type="button" onClick={() => backgroundFileRef.current?.click()} className="rounded-[8px] bg-white px-3 py-2 text-[11px] font-medium text-[#334155] shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">
+                          Upload your own photo
+                        </button>
+                      </div>
+                    )}
+
+                    {backgroundTab === "Color" && (
+                      <div>
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                          {COLOR_GRADIENT_PRESETS.map((preset) => (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              title={preset.name}
+                              aria-label={`Use ${preset.name} background`}
+                              aria-pressed={addedBackground?.kind === "color" && addedBackground.gradient === preset.colors}
+                              onClick={() => chooseAddedBackground({ kind: "color", color: preset.colors[0], gradient: preset.colors })}
+                              className={`aspect-[4/3] min-h-[48px] rounded-[10px] border border-white shadow-sm transition hover:scale-[1.03] ${addedBackground?.kind === "color" && addedBackground.gradient === preset.colors ? "ring-2 ring-blue-500 ring-offset-2" : "ring-1 ring-slate-200"}`}
+                              style={{ backgroundImage: `radial-gradient(circle at 75% 20%, rgba(255,255,255,.38), transparent 42%), linear-gradient(135deg, ${preset.colors.join(", ")})` }}
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={addedBackgroundColor}
+                            onChange={(event) => setAddedBackgroundColor(event.target.value.toUpperCase())}
+                            aria-label="Choose background color"
+                            className="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+                          />
+                          <button type="button" onClick={() => chooseAddedBackground({ kind: "color", color: addedBackgroundColor })} className="rounded-[8px] bg-[#F1F5F9] px-3 py-2 text-[11px] font-medium text-[#334155] hover:bg-slate-200">
+                            Choose a custom color
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {staleResult && addedBackground && (
+                      <p className="mt-3 rounded-[8px] bg-amber-50 px-3 py-2 text-[11px] text-amber-800">Run Remove Background again to apply this background to the new cutout.</p>
+                    )}
+                    {addedBackground && bgOption === "Transparent" && !staleResult && (
+                      <button type="button" onClick={resetAddedBackground} className="mt-3 text-[11px] font-medium text-[#64748B] underline underline-offset-2 hover:text-[#334155]">Remove added background</button>
+                    )}
+                  </div>
+                )}
 
                 {/* ========================================================== */}
                 {/* Background Remover Settings (1x2 Grid)                    */}
@@ -1391,7 +1666,7 @@ export function BackgroundRemover() {
                         <Button
                           className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                           onClick={handleDownload}
-                          disabled={processing}
+                          disabled={processing || compositingBackground || (!!addedBackground && !compositedResultUrl)}
                         >
                           <span className="flex items-center justify-center gap-[8px] text-[15px] md:text-[16px] w-full">
                             {t("downloadButton")}
@@ -1429,7 +1704,7 @@ export function BackgroundRemover() {
                     {/* Result Details */}
                     {result && result.size > 0 && (
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
-                        Transparent PNG &middot; {formatFileSize(result.size)}
+                        {addedBackground ? "Background added PNG" : bgOption === "Transparent" ? "Transparent PNG" : `${bgOption === "Custom" ? customColor : bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
                         {imageDims ? ` · ${imageDims.width}×${imageDims.height} px` : ""}
                       </p>
                     )}
