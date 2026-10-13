@@ -44,6 +44,13 @@ const nextConfig: NextConfig = {
     "onnxruntime-node",
     "onnxruntime-web",
   ],
+  outputFileTracingIncludes: {
+    "/api/v1/background-remove": [
+      "./node_modules/@huggingface/transformers/**/*",
+      "./node_modules/onnxruntime-node/**/*",
+      "./node_modules/onnxruntime-web/**/*",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
