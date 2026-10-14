@@ -51,6 +51,13 @@ const nextConfig: NextConfig = {
       "./node_modules/onnxruntime-node/**/*",
       "./node_modules/onnxruntime-web/**/*",
     ],
+    // PNG-to-SVG runs the same background-removal pipeline inside this route.
+    "/api/v1/vectorize": [
+      "./node_modules/@huggingface/transformers/**/*",
+      "./node_modules/onnxruntime-common/**/*",
+      "./node_modules/onnxruntime-node/**/*",
+      "./node_modules/onnxruntime-web/**/*",
+    ],
   },
   images: {
     formats: ["image/avif", "image/webp"],
