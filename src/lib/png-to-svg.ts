@@ -2,7 +2,7 @@ import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 import { getAccessToken } from "@/lib/client/http";
 
 export type TracingMode = "auto" | "logo" | "line-art" | "photo";
-export type PaletteLevel = "auto" | "8" | "24" | "48";
+export type PaletteLevel = "auto" | "8" | "24" | "48" | "96";
 export type QualityLevel = "low" | "standard" | "high";
 export type BackgroundMode = "preserve" | "transparent" | "custom";
 

@@ -34,7 +34,7 @@ export async function analyzeImage(
     height = rawInput.height;
     channels = rawInput.channels;
   } else {
-    const res = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+    const res = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     data = res.data;
     width = res.info.width;
     height = res.info.height;
@@ -46,10 +46,12 @@ export async function analyzeImage(
   const hasA = channels === 4;
 
   let transparent = 0;
-  let graySum = 0;
   let edge = 0;
+  let chromaticSamples = 0;
+  let visibleSamples = 0;
+  let edgeSamples = 0;
   const palette = new Set<number>();
-  const sampleW = Math.ceil(width / stride);
+  const grayPalette = new Set<number>();
   const at = (x: number, y: number) => (y * width + x) * channels;
 
   let sampled = 0;
@@ -60,28 +62,44 @@ export async function analyzeImage(
       const g = data[i + 1];
       const b = data[i + 2];
       const a = hasA ? data[i + 3] : 255;
-      if (a < 24) transparent++;
+      if (a < 24) {
+        transparent++;
+        sampled++;
+        continue;
+      }
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
-      graySum += (max - min) / 255;
+      if (max - min >= 18) chromaticSamples++;
       palette.add(((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4));
+      grayPalette.add(Math.round((0.299 * r + 0.587 * g + 0.114 * b) / 16));
+      visibleSamples++;
       // edge test against right/down neighbor
       if (x + stride < width) {
         const j = at(x + stride, y);
-        if (Math.abs(r - data[j]) + Math.abs(g - data[j + 1]) + Math.abs(b - data[j + 2]) > 48) edge++;
+        const neighborAlpha = hasA ? data[j + 3] : 255;
+        if (neighborAlpha >= 24) {
+          edgeSamples++;
+          if (Math.abs(r - data[j]) + Math.abs(g - data[j + 1]) + Math.abs(b - data[j + 2]) > 48) edge++;
+        }
       }
       sampled++;
     }
   }
-  if (sampled === 0) sampled = 1;
+  if (visibleSamples === 0) visibleSamples = 1;
 
   const transparentRatio = transparent / sampled;
-  const isGrayscale = graySum / sampled < 0.08;
-  const uniqueColorRatio = Math.min(1, palette.size / sampled);
-  const edgeDensity = edge / sampled;
+  // Fully transparent pixels often contain black RGB values. Including them
+  // made colorful cutouts look monochrome and sent them through the B/W tracer.
+  // A mean saturation threshold misclassifies muted photos as grayscale.
+  // Require nearly all visible pixels to be neutral before selecting B/W trace.
+  const isGrayscale = chromaticSamples / visibleSamples < 0.03;
+  // The ratio over all 4096 RGB buckets remains available as a diversity signal.
+  const uniqueColorRatio = Math.min(1, palette.size / 4096);
+  const grayToneRatio = Math.min(1, grayPalette.size / 16);
+  const edgeDensity = edgeSamples === 0 ? 0 : edge / edgeSamples;
 
   return {
-    imageClass: classify(isGrayscale, uniqueColorRatio, edgeDensity, transparentRatio),
+    imageClass: classify(isGrayscale, palette.size, uniqueColorRatio, grayToneRatio, edgeDensity),
     transparentRatio,
     hasAlpha: hasAlpha || transparentRatio > 0.001,
     isGrayscale,
@@ -92,17 +110,23 @@ export async function analyzeImage(
 
 function classify(
   isGrayscale: boolean,
+  distinctColorBuckets: number,
   uniqueColorRatio: number,
+  grayToneRatio: number,
   edgeDensity: number,
-  transparentRatio: number,
 ): ImageClass {
-  const detailed = edgeDensity > 0.12 || uniqueColorRatio > 0.25;
   if (isGrayscale) {
-    if (detailed) return edgeDensity > 0.18 ? "line-art" : "mono";
+    // Photos and shaded drawings have many gray levels; keep those tonal
+    // regions instead of forcing them through the binary black/white tracer.
+    if (grayToneRatio > 0.65 && edgeDensity > 0.08) return "photo";
+    if (edgeDensity > 0.15) return "line-art";
     return "mono";
   }
-  if (transparentRatio > 0.02 && !detailed) return "color-logo";
-  if (detailed) return "photo";
+  // JPEG compression, camera noise, skin, hair, and soft backgrounds can make
+  // a photo's local edge density look deceptively low. A rich occupied palette
+  // is a stronger signal than the old requirement for both high palette ratio
+  // and high edge density (which made real photos fall through to poster art).
+  if (distinctColorBuckets > 128 || uniqueColorRatio > 0.3) return "photo";
   return "color-logo";
 }
 
@@ -117,9 +141,6 @@ export function resolveImageClass(mode: RasterMode, analysis: ImageAnalysis): Im
       return "photo";
     case "auto":
     default:
-      if (analysis.imageClass === "line-art") {
-        return "photo";
-      }
       return analysis.imageClass;
   }
 }

@@ -1101,6 +1101,8 @@
     "resultVectorPaths": "Vector Paths",
     "resultPixelPerfect": "Pixel-Perfect",
     "infinitelyScalable": "Infinitely Scalable",
+    "sourceResolution": "Raster Resolution",
+    "svgOutput": "SVG Output",
     "errorInvalidFile": "Please select a valid image file",
     "errorTooLarge": "File size must be less than 10MB",
     "errorConversion": "Conversion failed. Please try again.",

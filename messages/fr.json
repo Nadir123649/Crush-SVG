@@ -1076,6 +1076,8 @@
     "fileInfo": "File: {name} ({size})",
     "high": "High",
     "infinitelyScalable": "Infinitely Scalable",
+    "sourceResolution": "Résolution raster",
+    "svgOutput": "Sortie SVG",
     "inputFormat": "Input Format",
     "livePreview": "Live Preview",
     "low": "Low",

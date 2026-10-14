@@ -11,7 +11,10 @@ export const rasterOptionsSchema = z
   .object({
     mode: rasterModeSchema.default("auto"),
     quality: rasterQualitySchema.default("standard"),
-    colorCount: z.coerce.number().int().min(2).max(64).optional(),
+    colorCount: z.preprocess(
+      (value) => value === null || value === "" || value === "auto" ? undefined : value,
+      z.coerce.number().int().min(2).max(128).optional(),
+    ),
     background: rasterBackgroundSchema.default("preserve"),
     bgColor: z
       .string()
