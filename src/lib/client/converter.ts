@@ -98,6 +98,7 @@ export function svgToDataUrl(svg: string): string {
 export function isValidSvgContent(svg: string): boolean {
   let body = svg.trim().toLowerCase()
   body = body.replace(/^<\?xml[\s\S]*?\?>\s*/, '')
+  body = body.replace(/^<!doctype[\s\S]*?>\s*/, '')
   body = body.replace(/^(<!--[\s\S]*?-->|\s)+/, '')
-  return body.startsWith('<svg') && body.includes('</svg>') && body.endsWith('>')
+  return body.startsWith('<svg') && body.includes('</svg>')
 }

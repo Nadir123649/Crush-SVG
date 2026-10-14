@@ -1,12 +1,13 @@
 import { z } from "zod";
+import { MAX_OUTPUT_SIZE } from "@/lib/svg/svg-dims";
 
 export const convertSchema = z.object({
     svg: z.string().min(1, "SVG content is required").max(10 * 1024 * 1024, "SVG content too large. Maximum size is 10MB."),
     format: z
         .enum(["png"], { message: "Unsupported format. Currently supported: [png]" })
         .default("png"),
-    width: z.number().int().min(1).max(4000, "Width must be between 1 and 4000 px").optional(),
-    height: z.number().int().min(1).max(4000, "Height must be between 1 and 4000 px").optional(),
+    width: z.number().int().min(1).max(MAX_OUTPUT_SIZE, `Width must be between 1 and ${MAX_OUTPUT_SIZE} px`).optional(),
+    height: z.number().int().min(1).max(MAX_OUTPUT_SIZE, `Height must be between 1 and ${MAX_OUTPUT_SIZE} px`).optional(),
     scale: z
         .number()
         .min(0.1, "Scale must be between 0.1x and 16x")

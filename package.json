@@ -7,7 +7,9 @@
   },
   "scripts": {
     "postinstall": "node scripts/patch-onnx-binding.mjs && node scripts/patch-vtrace-initsync.mjs",
+    "predev": "node scripts/generate-sitemap-routes.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/generate-sitemap-routes.mjs",
     "build": "next build",
     "indexnow": "npx tsx scripts/ping-indexnow.ts",
     "start": "next start",

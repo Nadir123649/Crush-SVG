@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { svgToDataUrl } from "@/lib/client/converter";
-import { convertPngToSvg, type QualityLevel, type BackgroundMode, type TracingMode, type PaletteLevel } from "@/lib/png-to-svg";
-import { getAccessToken, ApiError } from "@/lib/client/http";
+import type { QualityLevel, TracingMode, PaletteLevel } from "@/lib/png-to-svg";
+import { getAccessToken, ApiError, authFetch } from "@/lib/client/http";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
@@ -34,13 +34,7 @@ const QUALITY_OPTIONS: DropdownOption[] = [
   { value: "draft", label: "Low", desc: "Smooth, lightweight paths" },
 ];
 
-const QUALITY_MAP: Record<string, QualityLevel> = {
-  draft: "low",
-  standard: "standard",
-  max: "high",
-};
-
-const BG_MAP: Record<string, BackgroundMode> = {
+const BG_MAP: Record<string, "preserve" | "transparent" | "custom"> = {
   Preserve: "preserve",
   Transparent: "transparent",
   Custom: "custom",
@@ -53,11 +47,12 @@ const MODE_MAP: Record<string, TracingMode> = {
   photo: "photo",
 };
 
-const PALETTE_MAP: Record<string, PaletteLevel> = {
-  Auto: "auto",
+const PALETTE_MAP: Record<string, PaletteLevel | undefined> = {
+  Auto: undefined,
   "8": "8",
   "24": "24",
   "48": "48",
+  "96": "96",
 };
 
 function normalizeHex(input: string): string {
@@ -75,13 +70,14 @@ const COLOR_OPTIONS: DropdownOption[] = [
   { value: "8", label: "Limited (8)", desc: "Flat palette for icons & logos" },
   { value: "24", label: "Rich (24)", desc: "More colors for detailed graphics" },
   { value: "48", label: "Full (48)", desc: "High color depth for photos" },
+  { value: "96", label: "Maximum (96)", desc: "More tonal detail for photos" },
 ];
 
 const MODE_OPTIONS: DropdownOption[] = [
   { value: "auto", label: "Auto", desc: "Detect logo, line art, or photo" },
   { value: "logo", label: "Logo / Icon", desc: "Posterized color shapes" },
   { value: "line-art", label: "Line Art", desc: "Monochrome vector outlines" },
-  { value: "photo", label: "Photo", desc: "Stylized posterized artwork" },
+  { value: "photo", label: "Photo", desc: "Preserve the original colors and transparency in the SVG" },
 ];
 
 const BACKGROUND_OPTIONS: DropdownOption[] = [
@@ -659,30 +655,56 @@ export function RasterToSvgConverter() {
         fileToConvert = new File([blob], imageName || "restored-image.png", { type: blob.type });
       }
 
-      const res = await convertPngToSvg(fileToConvert, {
-        quality: QUALITY_MAP[rasterQuality] ?? "standard",
-        background: BG_MAP[rasterBackground] ?? "preserve",
-        backgroundColor:
-          rasterBackground === "Custom"
-            ? normalizeHex(rasterBgColor)
-            : undefined,
-        tracingMode: MODE_MAP[rasterMode] ?? "auto",
-        palette: PALETTE_MAP[rasterColors] ?? "auto",
+      const formData = new FormData();
+      formData.append("file", fileToConvert);
+      formData.append("mode", MODE_MAP[rasterMode] ?? "auto");
+      formData.append("quality", rasterQuality === "max" ? "max" : rasterQuality === "draft" ? "draft" : "standard");
+      const colorCount = PALETTE_MAP[rasterColors];
+      if (colorCount) formData.append("colorCount", colorCount);
+      formData.append("background", BG_MAP[rasterBackground] ?? "preserve");
+      if (rasterBackground === "Custom") formData.append("bgColor", normalizeHex(rasterBgColor));
+
+      const response = await authFetch("/api/v1/vectorize", {
+        method: "POST",
+        body: formData,
         signal: controller.signal,
       });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.success || !body.payload?.svg) {
+        const apiError = body?.payload?.error;
+        throw new ApiError(
+          response.status,
+          apiError?.code ?? "vectorization_failed",
+          apiError?.message ?? "Could not vectorize this image. Please try again."
+        );
+      }
+      const converted = body.payload as {
+        svg: string;
+        modeUsed?: "pixel" | "vector";
+        size?: number;
+        imageClass?: string;
+        advisory?: string;
+        conversionsUsed?: number;
+        remaining?: number;
+      };
+      const resolvedMode: TracingMode = converted.imageClass === "mono" || converted.imageClass === "line-art"
+        ? "line-art"
+        : converted.imageClass === "photo" ? "photo" : "logo";
 
       if (controller.signal.aborted) return;
 
       setResult({
-        svg: res.svg,
-        size: res.outputSize,
-        modeUsed: res.modeUsed,
-        tracingModeUsed: res.tracingModeUsed,
-        resolvedTracingMode: res.resolvedTracingMode,
-        paletteUsed: res.paletteUsed,
-        qualityUsed: res.qualityUsed,
-        backgroundColorUsed: res.backgroundColorUsed,
-        advisory: res.advisory,
+        svg: converted.svg,
+        size: new Blob([converted.svg]).size,
+        modeUsed: converted.modeUsed ?? "vector",
+        tracingModeUsed: MODE_MAP[rasterMode] ?? "auto",
+        resolvedTracingMode: resolvedMode,
+        paletteUsed: PALETTE_MAP[rasterColors] ? String(PALETTE_MAP[rasterColors]) as PaletteLevel : "auto",
+        qualityUsed: rasterQuality === "max" ? "high" : rasterQuality === "draft" ? "low" : "standard",
+        backgroundColorUsed: rasterBackground === "Custom" ? normalizeHex(rasterBgColor) : undefined,
+        advisory: converted.advisory,
+        conversionsUsed: converted.conversionsUsed,
+        remaining: converted.remaining,
       });
       setPreviewMode("vector");
       conversionSucceeded = true;
@@ -1067,7 +1089,7 @@ export function RasterToSvgConverter() {
                     {BG_MAP[rasterBackground] === "transparent" ? " · Transparent" : ""}
                     {result.backgroundColorUsed ? ` · BG ${result.backgroundColorUsed}` : ""}
                     {result.advisory ? ` · ⚠ ${result.advisory}` : ""}
-                    {" · "}{formatFileSize(result.size)} · {t("infinitelyScalable")}
+                    {" · "}{formatFileSize(result.size)} · {result.modeUsed === "vector" ? t("infinitelyScalable") : t("sourceResolution")}
                   </p>
                 )}
               </div>
@@ -1079,7 +1101,7 @@ export function RasterToSvgConverter() {
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {result ? t("vectorOutput") : t("livePreview")}
+                    {result ? (result.modeUsed === "vector" ? t("vectorOutput") : t("svgOutput")) : t("livePreview")}
                   </h2>
 
                   {/* Mode Tabs (Vector / Source / Code) */}
@@ -1094,7 +1116,7 @@ export function RasterToSvgConverter() {
                             : "text-[#64748B] hover:text-[#202427]"
                         }`}
                       >
-                        {t("vectorSvgTab")}
+                        {result.modeUsed === "vector" ? t("vectorSvgTab") : t("svgOutput")}
                       </button>
                       <button
                         type="button"

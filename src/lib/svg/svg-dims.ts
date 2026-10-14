@@ -2,7 +2,9 @@ export interface SvgDimensions {
     width?: number;
     height?: number;
 }
-export const MAX_OUTPUT_SIZE = 4000;
+// Must match the documented API limit (8192 px).
+// Both convert-validation.ts and this file read from here — one source of truth.
+export const MAX_OUTPUT_SIZE = 8192;
 const LENGTH_RE = /^(\d+(?:\.\d+)?)(px)?$/i;
 function parseLength(value: string | undefined): number | undefined {
     if (!value)

@@ -64,14 +64,17 @@ export default async function CookiesPage({
             <strong>Essential Cookies:</strong> These cookies are strictly necessary to provide you with services available through our website and to use some of its features. Without these, core functionalities like user logins cannot be provided.
           </p>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            <strong>Performance & Analytics Cookies:</strong> These cookies collect information that is used either in aggregate form to help us understand how our website is being used, or to help us customize our website and application for you in order to enhance your experience.
+            <strong>Performance &amp; Analytics Cookies:</strong> These cookies collect information that is used either in aggregate form to help us understand how our website is being used, or to help us customize our website and application for you in order to enhance your experience.
+          </p>
+          <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
+            <strong>Advertising &amp; Targeting Cookies (Google AdSense):</strong> Third-party advertising partners (including Google) set cookies (such as DoubleClick DART cookies) to serve relevant advertisements, prevent the same ad from reappearing, and measure ad performance. These cookies operate in compliance with Google Consent Mode v2 and respect your choices.
           </p>
         </section>
 
         <section className="flex flex-col gap-[16px]">
-          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">3. Third-Party Cookies</h2>
+          <h2 className="font-heading font-semibold text-[24px] text-[#353A3E]">3. Third-Party &amp; Advertising Cookies</h2>
           <p className="font-body font-normal text-[16px] text-[#5A524C] leading-[160%]">
-            In some special cases, we also use cookies provided by trusted third parties. For example, we use analytics services (such as Google Analytics) which use cookies to track things such as how long you spend on the site and the pages that you visit so we can continue to produce engaging content.
+            In some special cases, we use cookies provided by trusted third parties. We use Google Analytics and Google Tag Manager to understand site performance. Furthermore, third-party advertising vendors, including Google, use cookies to serve ads based on prior visits to this or other websites. You may opt out of personalized advertising anytime by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">Google Ads Settings</a> or <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-brand-primary hover:underline font-medium">aboutads.info</a>.
           </p>
         </section>
 

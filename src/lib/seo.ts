@@ -1,7 +1,24 @@
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net").replace(/\/$/, "");
+const DEFAULT_SITE_URL = "https://www.crushsvg.net";
+function getSiteUrl(): string {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!configuredSiteUrl) return DEFAULT_SITE_URL;
+
+  try {
+    const parsedUrl = new URL(configuredSiteUrl);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isLocalhost = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname);
+    if (!/^https?:$/.test(parsedUrl.protocol)) return DEFAULT_SITE_URL;
+    if (process.env.NODE_ENV === "production" && isLocalhost) return DEFAULT_SITE_URL;
+    return parsedUrl.origin;
+  } catch {
+    return DEFAULT_SITE_URL;
+  }
+}
+
+export const SITE_URL = getSiteUrl();
 
 export const DEFAULT_KEYWORDS = [
   "crush svg",

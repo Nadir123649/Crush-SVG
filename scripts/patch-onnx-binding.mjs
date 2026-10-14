@@ -1,12 +1,21 @@
 import { writeFileSync, existsSync } from "fs";
-import { join } from "path";
+import { dirname, join } from "path";
+import { createRequire } from "module";
 
 const cwd = process.cwd();
-const base =
-  "node_modules/@huggingface/transformers/node_modules/onnxruntime-node/dist";
+const appRequire = createRequire(join(cwd, "package.json"));
+let onnxDist;
+try {
+  // npm may hoist ONNX out of @huggingface/transformers/node_modules. Resolve
+  // it from the Transformers package so both nested and hoisted installs work.
+  const transformersEntry = appRequire.resolve("@huggingface/transformers");
+  onnxDist = dirname(createRequire(transformersEntry).resolve("onnxruntime-node"));
+} catch {
+  onnxDist = join(cwd, "node_modules/onnxruntime-node/dist");
+}
 
 // 1. Stub binding.js so require("onnxruntime-node") doesn't crash
-const bindingPath = join(cwd, base, "binding.js");
+const bindingPath = join(onnxDist, "binding.js");
 if (existsSync(bindingPath)) {
   writeFileSync(
     bindingPath,
@@ -30,7 +39,7 @@ exports.initOrt = () => {};
 }
 
 // 2. Replace index.js to use WASM backend instead of native
-const indexPath = join(cwd, base, "index.js");
+const indexPath = join(onnxDist, "index.js");
 if (existsSync(indexPath)) {
   writeFileSync(
     indexPath,

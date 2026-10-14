@@ -9,7 +9,7 @@ export type RasterBackground = "preserve" | "transparent" | "custom";
 export interface RasterOptions {
   mode: RasterMode;
   quality: RasterQuality;
-  /** Target color count for color modes. 2-64. Omitted/auto lets the engine decide. */
+  /** Target color count for color modes. 2-128. Omitted/auto lets the engine decide. */
   colorCount?: number;
   background: RasterBackground;
   /** Hex color used when background === "custom". */
@@ -20,6 +20,8 @@ export type ImageClass = "mono" | "line-art" | "color-logo" | "photo";
 
 export interface RasterResult {
   svg: string;
+  /** Whether the SVG contains editable vector paths or an embedded raster image. */
+  modeUsed: "pixel" | "vector";
   width: number;
   height: number;
   /** The engine class that was actually used (after auto-resolution). */
