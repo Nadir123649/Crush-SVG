@@ -1008,6 +1008,34 @@ export async function convertPngToSvg(
     preprocessed = preprocessGrayscale(processedImageData);
   }
 
+  // Vector tracing necessarily posterizes photographs into a limited set of
+  // color regions. Embed photos directly so Auto and Photo mode preserve the
+  // source pixels instead of returning a visibly degraded faux-vector trace.
+  if (resolvedMode === "photo") {
+    const preserveSource = background === "preserve";
+    const outputWidth = preserveSource ? origW : drawW;
+    const outputHeight = preserveSource ? origH : drawH;
+    const photoDataUrl = preserveSource
+      ? dataUrl
+      : imageDataToDataUrl(processedImageData, drawW, drawH);
+    const svg = buildPixelSvg(photoDataUrl, outputWidth, outputHeight);
+    return {
+      svg,
+      modeUsed: "pixel",
+      tracingModeUsed: tracingMode,
+      resolvedTracingMode: resolvedMode,
+      paletteUsed: palette,
+      qualityUsed: quality,
+      backgroundUsed: background,
+      backgroundColorUsed: customHex,
+      advisory: "Photo embedded in the SVG to preserve its colors and detail. The image is not editable vector paths.",
+      width: outputWidth,
+      height: outputHeight,
+      originalSize: file.size,
+      outputSize: new Blob([svg]).size,
+    };
+  }
+
   /* ── Step 4: Build background color for vtrace ─────────────────── */
   // The custom colour is baked into the traced pixels, so in colour modes the
   // tracer picks it up as one of its own layers and no plate is needed — and a
