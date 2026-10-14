@@ -6,6 +6,8 @@ import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { getClientIp } from '@/lib/security/ip'
 import { toUserDTO } from '@/lib/auth/auth'
 import { isVerifiedProfile } from '@/lib/auth/roles'
+import { revokeAllSessions } from '@/lib/auth/sessions'
+import { invalidateSessionCache } from '@/lib/middleware/auth-middleware'
 
 export const runtime = 'nodejs'
 
@@ -40,7 +42,10 @@ export async function DELETE(
     }
   }
 
-  await User.deleteOne({ uid })
+  const deletion = await User.deleteOne({ uid })
+  if (deletion.deletedCount !== 1) {
+    return errorResponse(404, 'not_found', 'User not found', undefined, request)
+  }
 
   await AuditLog.create({
     adminId: who.user.id,
@@ -104,6 +109,8 @@ export async function PATCH(
     }
   }
 
+  const roleChanged = role !== undefined && role !== user.role
+
   if (displayName !== undefined) {
     if (typeof displayName !== 'string' || displayName.trim().length === 0) {
       return errorResponse(400, 'invalid_name', 'Display name cannot be empty', undefined, request)
@@ -117,6 +124,11 @@ export async function PATCH(
   if (role) user.role = role
 
   await user.save()
+
+  if (roleChanged) {
+    await revokeAllSessions(user._id, 'revoked')
+    await invalidateSessionCache()
+  }
 
   await AuditLog.create({
     adminId: who.user.id,

@@ -40,8 +40,33 @@ export async function GET(request: NextRequest) {
       { "details.newDisplayName": { $regex: search, $options: 'i' } },
       { "details.message": { $regex: search, $options: 'i' } },
       { "details.error": { $regex: search, $options: 'i' } },
-      { $expr: { $regexMatch: { input: { $toString: "$createdAt" }, regex: search, options: "i" } } }
     ];
+
+    const isDateSearch = /^\d{4}(-\d{2})?(-\d{2})?$/.test(search);
+    if (isDateSearch) {
+      const parts = search.split('-').map(Number);
+      let start: Date;
+      let end: Date;
+      if (parts.length === 1) {
+        start = new Date(Date.UTC(parts[0], 0, 1, 0, 0, 0, 0));
+        end = new Date(Date.UTC(parts[0], 11, 31, 23, 59, 59, 999));
+      } else if (parts.length === 2) {
+        start = new Date(Date.UTC(parts[0], parts[1] - 1, 1, 0, 0, 0, 0));
+        end = new Date(Date.UTC(parts[0], parts[1], 0, 23, 59, 59, 999));
+      } else {
+        start = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0));
+        end = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999));
+      }
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        filterOr.push({ createdAt: { $gte: start, $lte: end } });
+      }
+    } else if (/\d/.test(search)) {
+      filterOr.push({
+        $expr: {
+          $regexMatch: { input: { $toString: "$createdAt" }, regex: search, options: "i" }
+        }
+      });
+    }
 
     const searchLower = search.toLowerCase();
     if (searchLower === 'error' || searchLower === 'fail') {
