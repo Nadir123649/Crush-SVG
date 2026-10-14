@@ -17,6 +17,15 @@ const QUALITY_KNOBS: Record<RasterQuality, QualityKnobs> = {
   max: { pathPrecision: 1, simplify: 0, filterSpeckle: 2, colorPrecision: 11, spliceThreshold: 0 },
 };
 
+// VTracer 1.0.0-alpha.4 silently collapses multi-color artwork to one gray
+// layer at colorPrecision 9 and above. Keep quality tiers within the range
+// that preserves separate color layers.
+const MAX_SAFE_COLOR_PRECISION = 6;
+
+function safeColorPrecision(value: number): number {
+  return Math.min(value, MAX_SAFE_COLOR_PRECISION);
+}
+
 const COLOR_DEFAULTS: Record<RasterQuality, number> = { draft: 16, standard: 24, max: 32 };
 const PHOTO_COLORS: Record<RasterQuality, number> = { draft: 24, standard: 32, max: 48 };
 
@@ -49,7 +58,7 @@ export function buildVtracerOptions(
       mode: "polygon", // spline over-smooths photos
       maxColors: maxColors * 2, // Doubling maxColors for photos to retain detail
       filterSpeckle: Math.max(1, q.filterSpeckle - 2),
-      colorPrecision: q.colorPrecision,
+      colorPrecision: safeColorPrecision(q.colorPrecision),
       pathPrecision: q.pathPrecision,
       simplify: 0, // Never simplify photos heavily
       spliceThreshold: q.spliceThreshold,
@@ -66,7 +75,7 @@ export function buildVtracerOptions(
     hierarchical: hasAlpha ? "cutout" : "stacked",
     maxColors,
     filterSpeckle: q.filterSpeckle,
-    colorPrecision: q.colorPrecision,
+    colorPrecision: safeColorPrecision(q.colorPrecision),
     pathPrecision: q.pathPrecision,
     simplify: q.simplify,
     spliceThreshold: q.spliceThreshold,
