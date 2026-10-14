@@ -2,7 +2,7 @@ import { VTrace, type VTraceOptions } from "@buzz-dee/vtrace";
 import { getAccessToken } from "@/lib/client/http";
 
 export type TracingMode = "auto" | "logo" | "line-art" | "photo";
-export type PaletteLevel = "auto" | "8" | "24" | "48";
+export type PaletteLevel = "auto" | "8" | "24" | "48" | "96";
 export type QualityLevel = "low" | "standard" | "high";
 export type BackgroundMode = "preserve" | "transparent" | "custom";
 
@@ -36,7 +36,6 @@ const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const DEFAULT_MAX_DIMENSION = 2000;
 const UPSCALE_THRESHOLD = 1500;
-const VECTOR_SIZE_RATIO_LIMIT = 2.5;
 
 /* ── Quality → vtrace knobs ───────────────────────────────────────── */
 
@@ -1008,6 +1007,34 @@ export async function convertPngToSvg(
     preprocessed = preprocessGrayscale(processedImageData);
   }
 
+  // Vector tracing necessarily posterizes photographs into a limited set of
+  // color regions. Embed photos directly so Auto and Photo mode preserve the
+  // source pixels instead of returning a visibly degraded faux-vector trace.
+  if (resolvedMode === "photo") {
+    const preserveSource = background === "preserve";
+    const outputWidth = preserveSource ? origW : drawW;
+    const outputHeight = preserveSource ? origH : drawH;
+    const photoDataUrl = preserveSource
+      ? dataUrl
+      : imageDataToDataUrl(processedImageData, drawW, drawH);
+    const svg = buildPixelSvg(photoDataUrl, outputWidth, outputHeight);
+    return {
+      svg,
+      modeUsed: "pixel",
+      tracingModeUsed: tracingMode,
+      resolvedTracingMode: resolvedMode,
+      paletteUsed: palette,
+      qualityUsed: quality,
+      backgroundUsed: background,
+      backgroundColorUsed: customHex,
+      advisory: "Photo embedded in the SVG to preserve its colors and detail. The image is not editable vector paths.",
+      width: outputWidth,
+      height: outputHeight,
+      originalSize: file.size,
+      outputSize: new Blob([svg]).size,
+    };
+  }
+
   /* ── Step 4: Build background color for vtrace ─────────────────── */
   // The custom colour is baked into the traced pixels, so in colour modes the
   // tracer picks it up as one of its own layers and no plate is needed — and a
@@ -1051,35 +1078,6 @@ export async function convertPngToSvg(
       wantsCustomPlate
     );
     const outputSize = new Blob([processed]).size;
-
-    // Photo fallback: if output is oversized, embed as pixel
-    if (resolvedMode === "photo" && outputSize > file.size * VECTOR_SIZE_RATIO_LIMIT) {
-      let fallbackDataUrl = dataUrl;
-      if (isTransparent) {
-        // Reuse already-processed data, just dilate alpha
-        const fbDilated = dilateAlpha(processedImageData);
-        fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
-      } else if (isCustom && customHex) {
-        fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
-      }
-      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
-      advisory = "Photo mode: vector output exceeded size limit, fell back to pixel-embed SVG.";
-      return {
-        svg: fallbackSvg,
-        modeUsed: "pixel",
-        tracingModeUsed: tracingMode,
-        resolvedTracingMode: resolvedMode,
-        paletteUsed: palette,
-        qualityUsed: quality,
-        backgroundUsed: background,
-        backgroundColorUsed: customHex,
-        advisory,
-        width: drawW,
-        height: drawH,
-        originalSize: file.size,
-        outputSize: new Blob([fallbackSvg]).size,
-      };
-    }
 
     return {
       svg: processed,

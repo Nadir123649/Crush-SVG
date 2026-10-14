@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
     const response = successResponse(
       {
         svg: result.svg,
+        modeUsed: result.modeUsed,
         width: result.width,
         height: result.height,
         imageClass: result.imageClass,

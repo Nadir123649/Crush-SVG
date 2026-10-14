@@ -58,6 +58,32 @@ export async function rasterToSvg(
   const prepared = await preprocessRaster(buffer, options, maxPixels);
   const analysis = await analyzeImage(prepared.png, prepared.hasAlpha);
   const imageClass = resolveImageClass(options.mode, analysis);
+
+  // Color tracing turns photographs into posterized shapes and can collapse
+  // fine color detail, especially around transparent cutouts. Keep photos
+  // visually faithful by embedding the normalized PNG in a standards-based SVG.
+  // Logos and illustrations continue through the editable vector tracer below.
+  if (imageClass === "photo") {
+    const svg = buildPhotoSvg(prepared.png, prepared.width, prepared.height);
+    const size = Buffer.byteLength(svg, "utf8");
+    if (size > RASTER_LIMITS.MAX_SVG_BYTES) {
+      throw new RasterConversionError(
+        "image_too_complex",
+        "The color-preserving SVG is too large. Try a smaller or more compressed image.",
+      );
+    }
+    return {
+      svg,
+      modeUsed: "pixel",
+      width: prepared.width,
+      height: prepared.height,
+      imageClass,
+      colorCount: 0,
+      size,
+      advisory: "Photo colors and transparency are preserved by embedding the image in the SVG. Its pixels are not editable vector paths.",
+    };
+  }
+
   const vtOptions = buildVtracerOptions(imageClass, options, prepared.hasAlpha);
 
   const rawSvg = await withTimeout(
@@ -75,20 +101,25 @@ export async function rasterToSvg(
   });
   const { svg, width, height } = validateRasterOutput(withMeta);
 
-  const advisory =
-    imageClass === "photo"
-      ? "Photos vectorize as stylized posterized artwork, not as a 1:1 edit-friendly illustration. For pixel-perfect fidelity, keep the original raster."
-      : undefined;
-
   return {
     svg,
+    modeUsed: "vector",
     width,
     height,
     imageClass,
     colorCount: countSvgColors(svg),
     size: svg.length,
-    advisory,
   };
+}
+
+function buildPhotoSvg(png: Buffer, width: number, height: number): string {
+  const data = png.toString("base64");
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+    `<title>Photo preserved in SVG</title>`,
+    `<image width="${width}" height="${height}" preserveAspectRatio="none" href="data:image/png;base64,${data}" />`,
+    `</svg>`,
+  ].join("");
 }
 
 /** Quick heuristic: should this job go to the (optional) worker queue? */
