@@ -6,6 +6,7 @@ import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
 import { API_DOCS_PATH } from '@/lib/openapi/constants'
 import { isAllowedCorsOrigin } from '@/lib/security/cors-origin'
+import { getCanonicalAdminPathname } from '@/lib/shared/admin-routing'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -512,7 +513,12 @@ export async function proxy(
   // ADMIN PAGES
   // ───────────────────────────────────────────────────────────────────
 
-  if (isAdminPage(pathname)) {
+  const canonicalAdminPath = getCanonicalAdminPathname(
+    pathname,
+    routing.locales
+  )
+
+  if (isAdminPage(pathname) || canonicalAdminPath !== null) {
     const refreshToken =
       request.cookies.get(
         'crushsvg_refresh'
@@ -528,6 +534,16 @@ export async function proxy(
     if (!decoded || decoded.role !== 'admin') {
       return NextResponse.redirect(
         new URL('/', request.url)
+      )
+    }
+
+    if (canonicalAdminPath) {
+      const canonicalUrl = url.clone()
+      canonicalUrl.pathname = canonicalAdminPath
+
+      return addRequestId(
+        NextResponse.redirect(canonicalUrl),
+        request
       )
     }
 
