@@ -36,7 +36,6 @@ const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const DEFAULT_MAX_DIMENSION = 2000;
 const UPSCALE_THRESHOLD = 1500;
-const VECTOR_SIZE_RATIO_LIMIT = 2.5;
 
 /* ── Quality → vtrace knobs ───────────────────────────────────────── */
 
@@ -1079,35 +1078,6 @@ export async function convertPngToSvg(
       wantsCustomPlate
     );
     const outputSize = new Blob([processed]).size;
-
-    // Photo fallback: if output is oversized, embed as pixel
-    if (resolvedMode === "photo" && outputSize > file.size * VECTOR_SIZE_RATIO_LIMIT) {
-      let fallbackDataUrl = dataUrl;
-      if (isTransparent) {
-        // Reuse already-processed data, just dilate alpha
-        const fbDilated = dilateAlpha(processedImageData);
-        fallbackDataUrl = imageDataToDataUrl(fbDilated, drawW, drawH);
-      } else if (isCustom && customHex) {
-        fallbackDataUrl = imageDataToDataUrl(processedImageData, drawW, drawH);
-      }
-      const fallbackSvg = buildPixelSvg(fallbackDataUrl, drawW, drawH);
-      advisory = "Photo mode: vector output exceeded size limit, fell back to pixel-embed SVG.";
-      return {
-        svg: fallbackSvg,
-        modeUsed: "pixel",
-        tracingModeUsed: tracingMode,
-        resolvedTracingMode: resolvedMode,
-        paletteUsed: palette,
-        qualityUsed: quality,
-        backgroundUsed: background,
-        backgroundColorUsed: customHex,
-        advisory,
-        width: drawW,
-        height: drawH,
-        originalSize: file.size,
-        outputSize: new Blob([fallbackSvg]).size,
-      };
-    }
 
     return {
       svg: processed,
