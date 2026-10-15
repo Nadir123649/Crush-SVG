@@ -222,7 +222,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png
                 </h3>
                 <Image
                   src={IMAGES.dropdown}
-                  alt="Toggle FAQ"
+                  alt={tFooter("toggleAlt")}
                   width={16}
                   height={12}
                   className={`w-[12px] h-[9px] md:w-[16px] md:h-[12px] object-contain transform transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180' : ''}`}

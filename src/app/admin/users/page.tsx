@@ -37,6 +37,8 @@ export default function UsersPage() {
   const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
   const [totalItems, setTotalItems] = useState<number>(() => initialCached?.meta?.total || 0);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -307,6 +309,59 @@ export default function UsersPage() {
     }
   };
 
+  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      const msg = "Please upload a valid .csv file";
+      setError(msg);
+      showToast("error", msg, { id: "import-users" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      const msg = "CSV file exceeds the 2 MB size limit";
+      setError(msg);
+      showToast("error", msg, { id: "import-users" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setImporting(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await apiFetch<{
+        importedCount: number;
+        message?: string;
+        users?: any[];
+      }>("/api/v1/admin/users/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const count = response?.importedCount ?? 0;
+      showToast("success", response?.message || `Successfully imported ${count} users.`, { id: "import-users" });
+      invalidateAdminCache("admin_users");
+      const importedUsers = response?.users;
+      if (Array.isArray(importedUsers) && importedUsers.length > 0) {
+        setUsers((prev) => [...importedUsers, ...prev]);
+        setTotalItems((prev) => prev + count);
+      }
+    } catch (err: any) {
+      const msg = err?.message || "Failed to import CSV. Please verify file format.";
+      setError(msg);
+      showToast("error", msg, { id: "import-users" });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
@@ -350,7 +405,27 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <ExportButton onClick={handleExportCSV} disabled={loading || exporting} className="w-[130px]" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleImportCSV}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading || exporting || importing}
+            className="w-[130px] h-[40px] text-sm font-medium gap-2 shadow-sm flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" x2="12" y1="3" y2="15" />
+            </svg>
+            {importing ? "Importing..." : "Import CSV"}
+          </Button>
+          <ExportButton onClick={handleExportCSV} disabled={loading || exporting || importing} className="w-[130px]" />
           <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] h-[40px] text-sm font-medium gap-2 shadow-sm flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User
