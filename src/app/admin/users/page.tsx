@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { UserFilters } from "./UserFilters";
-import { apiFetch } from "@/lib/client/http";
+import { apiFetch, apiBlob } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
@@ -36,6 +36,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState<number>(() => initialCached?.meta?.total_pages || 1);
   const [totalItems, setTotalItems] = useState<number>(() => initialCached?.meta?.total || 0);
+  const [exporting, setExporting] = useState(false);
   
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -277,53 +278,32 @@ export default function UsersPage() {
 
   const handleExportCSV = async () => {
     try {
-      let data = users && users.length > 0 ? users : [];
-      if (data.length === 0) {
-        const queryParams = new URLSearchParams();
-        queryParams.set("page", "1");
-        queryParams.set("limit", "100");
-        if (search) queryParams.set("search", search);
-        if (role !== "all") queryParams.set("role", role);
-        if (status !== "all") queryParams.set("status", status);
+      setExporting(true);
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.set("search", search);
+      if (role !== "all") queryParams.set("role", role);
+      if (status !== "all") queryParams.set("status", status);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortOrder) queryParams.set("sortOrder", sortOrder);
 
-        const response = await apiFetch<{ data: any[] }>(`/api/v1/admin/users?${queryParams.toString()}`);
-        if (response?.data) data = response.data;
-      }
-
-      if (!data || data.length === 0) {
-        setError("No users to export");
-        return;
-      }
-
-      const isGoogleUser = (u: any) => Array.isArray(u.providers) && u.providers.some((p: string) => p === 'google' || p === 'google.com');
-      const isVerifiedUser = (u: any) => u.isVerified === true || isGoogleUser(u);
-
-      const headers = ["ID", "Email", "Display Name", "Role", "Status", "Provider", "Conversions Used", "Created At"];
-      const rows = data.map((u: any) => [
-        u.uid || u.id,
-        u.email || "",
-        u.displayName || "",
-        u.role || "user",
-        isVerifiedUser(u) ? "Verified" : "Unverified",
-        isGoogleUser(u) ? "Google" : "Email",
-        u.conversionsUsed?.toString() || "0",
-        new Date(u.createdAt).toLocaleString()
-      ]);
-
-      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
+      const blob = await apiBlob(`/api/v1/admin/users/export?${queryParams.toString()}`);
+      const filename = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
       const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `users-export-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       showToast("success", "Users exported successfully!", { id: "export-users" });
-    } catch (err) {
-      setError("Failed to export users");
+    } catch (err: any) {
+      const msg = err?.message || "Failed to export users";
+      setError(msg);
+      showToast("error", msg, { id: "export-users" });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -370,7 +350,7 @@ export default function UsersPage() {
         </div>
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <ExportButton onClick={handleExportCSV} disabled={loading} className="w-[130px]" />
+          <ExportButton onClick={handleExportCSV} disabled={loading || exporting} className="w-[130px]" />
           <Button variant="solid" onClick={() => setAddUserModalOpen(true)} className="w-[130px] h-[40px] text-sm font-medium gap-2 shadow-sm flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Add User

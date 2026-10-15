@@ -92,7 +92,8 @@ function getHfAgent(): import("undici").Agent {
 const HF_HOSTS = new Set(["huggingface.co", "hf.co"]);
 
 async function loadPipelineWithRetry(): Promise<ModnetPipeline> {
-  // Keep this as a runtime require: the installed package's Node entry is CJS.
+  // Load this Node-only package at runtime instead of asking Next's route
+  // bundler to resolve its large conditional-export/ONNX dependency graph.
   const { pipeline, env } = appRequire("@huggingface/transformers") as typeof import("@huggingface/transformers");
 
   // Configure env after loading

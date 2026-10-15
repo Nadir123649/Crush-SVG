@@ -99,30 +99,22 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           {/* Column 1: Explore */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("explore")}</h4>
-            {isRasterToSvg ? (
-              <Link href={"/#converter" as any} onClick={(e) => {
-                if (typeof window !== "undefined" && window.location.pathname === "/") {
-                  handleHashClick(e, '#converter');
-                }
-              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgConverter")}</Link>
-            ) : (
-              <Link href={"/png-to-svg#converter" as any} onClick={(e) => {
-                if (typeof window !== "undefined" && window.location.pathname === "/png-to-svg") {
-                  handleHashClick(e, '#converter');
-                }
-              }} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
-            )}
-            <Link href="/#features" onClick={(e) => handleHashClick(e, '/#features')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("features")}</Link>
-            <Link href="/#how-it-works" onClick={(e) => handleHashClick(e, '/#how-it-works')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("howItWorks")}</Link>
-            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
+            <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgConverter")}</Link>
+            <Link href="/png-to-svg" onClick={(e) => handlePageClick(e, '/png-to-svg')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
+            <Link href="/background-remover" onClick={(e) => handlePageClick(e, '/background-remover')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</Link>
+            <Link href="/image-resizer" onClick={(e) => handlePageClick(e, '/image-resizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("imageResizerFull")}</Link>
+            <Link href="/svg-optimizer" onClick={(e) => handlePageClick(e, '/svg-optimizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</Link>
+            <Link href="/favicon-generator" onClick={(e) => handlePageClick(e, '/favicon-generator')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("faviconGeneratorFull")}</Link>
             <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>
           {/* Column 2: Resources */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("resources")}</h4>
+            <Link href="/blog" onClick={(e) => handlePageClick(e, '/blog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Blog</Link>
             <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgGuides")}</Link>
             <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("helpFaq")}</Link>
             <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("supportHub")}</Link>
+            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
             <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("contactUs")}</Link>
           </div>
           {/* Column 3: Company */}

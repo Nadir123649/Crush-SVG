@@ -6,13 +6,16 @@ import { useState, useEffect, useRef } from "react";
 import { apiFetch, authFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { AdminLoader } from "@/components/admin/AdminLoader";
-import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
+import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight, invalidateAdminCache } from "@/lib/client/admin-cache";
+
 
 export default function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [addingAdmin, setAddingAdmin] = useState(false);
+  const [clearCacheModalOpen, setClearCacheModalOpen] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
   
   const [cachedSettings] = useState(() => getAdminCached<any>("admin_settings", 120_000));
   const [loading, setLoading] = useState(!cachedSettings);
@@ -171,6 +174,23 @@ export default function SettingsPage() {
       }
     } finally {
       setAddingAdmin(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setClearingCache(true);
+    try {
+      await apiFetch<{ purged: boolean }>("/api/v1/admin/cache/purge", {
+        method: "POST",
+      });
+      // Invalidate all client-side admin cache so next navigations refetch fresh data
+      invalidateAdminCache();
+      setClearCacheModalOpen(false);
+      showToast("success", "Global cache cleared successfully.", { id: "clear-cache" });
+    } catch (err: any) {
+      showToast("error", err.message || "Failed to clear cache.", { id: "clear-cache" });
+    } finally {
+      setClearingCache(false);
     }
   };
 
@@ -439,7 +459,85 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* ROW 4 */}
+        {/* System Card */}
+        <section className="xl:col-span-3 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col">
+          <h3 className="font-heading font-semibold text-xl text-text-dark mb-4">System</h3>
+          <div className="w-full h-px bg-[#F2EDE8] mb-6"></div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-0.5">
+              <span className="font-body font-bold text-sm text-text-dark">Clear Global Cache</span>
+              <span className="font-body text-sm text-text-muted">
+                Purge all server-side cache tags and reset local data caches. Use after manual database changes.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setClearCacheModalOpen(true)}
+              className="shrink-0 flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-body font-semibold text-sm px-4 py-2.5 rounded-[8px] border border-red-200 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+              </svg>
+              Clear Cache
+            </button>
+          </div>
+        </section>
+
       </div>
+
+      {/* Clear Global Cache Confirmation Modal */}
+      {clearCacheModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => { if (!clearingCache) setClearCacheModalOpen(false); }}
+        >
+          <div
+            className="bg-white rounded-[12px] shadow-xl w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-lg text-text-dark">Clear Global Cache</h3>
+                <p className="font-body text-sm text-text-muted">This will invalidate all cached data.</p>
+              </div>
+            </div>
+            <p className="font-body text-sm text-text-dark mb-6">
+              Are you sure you want to clear the global cache? All server-side cached pages and data will be purged and your local admin cache will be reset. Users may experience slightly slower responses until caches are rebuilt.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setClearCacheModalOpen(false)}
+                disabled={clearingCache}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                onClick={handleClearCache}
+                disabled={clearingCache}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {clearingCache ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  "Clear Cache"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

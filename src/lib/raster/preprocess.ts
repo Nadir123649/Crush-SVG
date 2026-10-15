@@ -32,8 +32,13 @@ export async function preprocessRaster(
         scale: 100,
       });
       workingBuffer = bgResult.buffer;
-    } catch {
-      /* Fallback to original buffer */
+    } catch (error) {
+      console.error("[raster] Transparent background removal failed:", error);
+      throw new RasterConversionError(
+        "vectorization_failed",
+        "Background removal failed. Please try again in a moment.",
+        503,
+      );
     }
   } else if (options.background === "custom" && options.bgColor) {
     try {
@@ -43,8 +48,13 @@ export async function preprocessRaster(
         scale: 100,
       });
       workingBuffer = bgResult.buffer;
-    } catch {
-      /* Fallback to original buffer */
+    } catch (error) {
+      console.error("[raster] Custom background processing failed:", error);
+      throw new RasterConversionError(
+        "vectorization_failed",
+        "Background processing failed. Please try again in a moment.",
+        503,
+      );
     }
   }
 

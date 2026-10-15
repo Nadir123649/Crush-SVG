@@ -157,7 +157,10 @@ export async function DELETE(
         return errorResponse(404, 'not_found', 'Blog post not found', undefined, request)
     }
 
-    await Blog.deleteOne({ _id: id })
+    const deletion = await Blog.deleteOne({ _id: id })
+    if (deletion.deletedCount !== 1) {
+        return errorResponse(404, 'not_found', 'Blog post not found', undefined, request)
+    }
 
     await AuditLog.create({
         adminId: who.user.id,

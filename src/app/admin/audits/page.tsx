@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
-import { apiFetch } from "@/lib/client/http";
+import { apiFetch, apiBlob } from "@/lib/client/http";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -34,6 +34,7 @@ export default function AuditsPage() {
   const [totalPages, setTotalPages] = useState(() => initialCached?.meta?.total_pages || 1);
   const [loading, setLoading] = useState(() => !initialCached);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -125,53 +126,28 @@ export default function AuditsPage() {
 
   const handleExportCSV = async () => {
     try {
-      let data = audits && audits.length > 0 ? audits : [];
-      if (data.length === 0) {
-        const queryParams = new URLSearchParams();
-        queryParams.set("page", "1");
-        queryParams.set("limit", "100");
-        if (search) queryParams.set("search", search);
+      setExporting(true);
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.set("search", search);
 
-        const response = await apiFetch<{
-          data: any[];
-          meta: { total: number; page: number; per_page: number; total_pages: number; has_next: boolean; has_prev: boolean };
-        }>(`/api/v1/admin/audits?${queryParams.toString()}`);
-        if (response?.data) data = response.data;
-      }
-
-      if (!data || data.length === 0) {
-        setError("No audit logs to export");
-        return;
-      }
-
-      const headers = ["Timestamp (UTC)", "Level", "Event Type", "Action Description", "User", "IP Address"];
-
-      const rows = data.map((audit: any) => [
-        new Date(audit.createdAt).toLocaleString(),
-        getSeverityLevel(audit.action).charAt(0).toUpperCase() + getSeverityLevel(audit.action).slice(1),
-        `${audit.action} ${audit.resourceType || ''}`.trim(),
-        audit.details && Object.keys(audit.details).length > 0
-          ? JSON.stringify(audit.details)
-          : `${audit.action} performed on ${audit.resourceType || 'system'} (${audit.target || audit.resourceId || 'N/A'})`,
-        audit.adminId,
-        audit.ipAddress || 'N/A'
-      ]);
-
-      const csvContent = [headers.join(","), ...rows.map((row: any) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))].join("\n");
-      
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
+      const blob = await apiBlob(`/api/v1/admin/audits/export?${queryParams.toString()}`);
+      const filename = `audits-export-${new Date().toISOString().split('T')[0]}.csv`;
       const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `audits-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", filename);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       showToast("success", "Audit log exported successfully!", { id: "export-audits" });
-    } catch (err) {
-      setError("Failed to export audit logs");
+    } catch (err: any) {
+      const msg = err?.message || "Failed to export audit logs";
+      setError(msg);
+      showToast("error", msg, { id: "export-audits" });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -203,7 +179,7 @@ export default function AuditsPage() {
             className="pl-10 pr-4 py-2.5 bg-white border border-[#F2EDE8] rounded-[8px] font-body text-sm text-text-dark focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-shadow min-w-[240px] shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]"
           />
         </div>
-        <ExportButton onClick={handleExportCSV} className="w-[130px]" />
+        <ExportButton onClick={handleExportCSV} disabled={loading || exporting} className="w-[130px]" />
       </div>
 
       {/* Main Card containing the Table */}
