@@ -1,17 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { constructLocalizedMetadata, SITE_URL, getBreadcrumbSchema } from "@/lib/seo";
-import { useCases, useCaseCategories } from "@/lib/data/use-cases";
+import { getLocalizedUseCases, useCaseCategories } from "@/lib/data/use-cases";
 import { ALL_CATEGORIES } from "@/lib/data/use-case-filter";
 import { Hero } from "@/components/sections/Hero";
 import { UseCaseListing } from "@/components/use-case/UseCaseListing";
 import { AdBanner } from "@/components/ui/AdBanner";
-
-const META_TITLE = "SVG Converter Use Cases | CrushSVG";
-const META_DESC =
-  "Explore how people use CrushSVG: convert SVG to PNG for React, email signatures, Canva, Cricut, Shopify, WordPress and more.";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -23,11 +19,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations("use_case");
   return constructLocalizedMetadata({
     locale,
     routeKey: "/use-case",
-    title: META_TITLE,
-    description: META_DESC,
+    title: t("metaTitle"),
+    description: t("metaDesc"),
     keywords: [
       "svg to png use cases",
       "svg converter for react",
@@ -46,18 +43,21 @@ export default async function UseCaseIndexPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("use_case");
+  const localizedUseCases = getLocalizedUseCases(locale);
+
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: META_TITLE,
-    description: META_DESC,
+    name: t("metaTitle"),
+    description: t("metaDesc"),
     url: `${SITE_URL}${prefix}/use-case`,
     isPartOf: { "@type": "WebSite", name: "CrushSVG", url: SITE_URL },
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: useCases.map((uc, index) => ({
+      itemListElement: localizedUseCases.map((uc, index) => ({
         "@type": "ListItem",
         position: index + 1,
         name: uc.title,
@@ -83,18 +83,18 @@ export default async function UseCaseIndexPage({
       />
 
       <Hero
-        badge="CrushSVG Use Cases"
+        badge={t("listingBadge")}
         title={
           <>
-            Built for Every Workflow,{" "}
-            <span className="text-brand-primary">Ready in Seconds</span>
+            {t("listingTitle")}{" "}
+            <span className="text-brand-primary">{t("listingTitleHighlight")}</span>
           </>
         }
-        subtitle="See how designers, developers and store owners use CrushSVG to convert, optimize and prepare vector graphics for the tools they work in."
+        subtitle={t("listingSubtitle")}
         className="mb-6 md:mb-10"
       />
 
-      <UseCaseListing useCases={useCases} categories={[ALL_CATEGORIES, ...useCaseCategories]} />
+      <UseCaseListing useCases={localizedUseCases} categories={[ALL_CATEGORIES, ...useCaseCategories]} />
 
       <AdBanner />
     </main>

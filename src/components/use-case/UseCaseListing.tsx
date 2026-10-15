@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import type { UseCase } from "@/lib/data/use-cases";
-import { ALL_CATEGORIES, filterUseCases } from "@/lib/data/use-case-filter";
+import { ALL_CATEGORIES, filterUseCases, categoryKey } from "@/lib/data/use-case-filter";
 import { UseCaseCard } from "@/components/use-case/UseCaseCard";
 
 interface UseCaseListingProps {
@@ -12,8 +13,15 @@ interface UseCaseListingProps {
 }
 
 export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
+  const t = useTranslations("use_case");
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const labelFor = (cat: string) => {
+    if (cat === ALL_CATEGORIES) return t("all");
+    const key = categoryKey(cat);
+    return key ? t(`categories.${key}`) : cat;
+  };
 
   const filtered = useMemo(
     () => filterUseCases(useCases, selectedCategory, searchQuery),
@@ -38,7 +46,7 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
                     : "bg-white border border-[#EAEAEA] text-[#4B5563] hover:border-brand-primary hover:text-brand-primary"
                 }`}
               >
-                {cat}
+                {labelFor(cat)}
               </button>
             );
           })}
@@ -62,15 +70,15 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search use cases..."
-            aria-label="Search use cases"
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchAria")}
             className="w-full pl-[38px] pr-[32px] py-[9px] bg-[#FAF6F3] rounded-[10px] text-[14px] text-text-dark placeholder:text-text-muted border border-[#EAEAEA] focus:border-brand-primary focus:bg-white focus:outline-none transition-all font-body"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              aria-label="Clear search"
+              aria-label={t("clearSearchAria")}
               className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[12px] text-text-muted hover:text-text-dark font-body"
             >
               ✕
@@ -99,10 +107,10 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
         ) : (
           <div className="w-full text-center py-[60px] bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA]">
             <p className="font-heading font-semibold text-[20px] text-text-dark mb-[8px]">
-              No matching use cases found
+              {t("noResultsTitle")}
             </p>
             <p className="font-body text-[14px] text-text-muted mb-[20px]">
-              Try adjusting your search query or select another category.
+              {t("noResultsBody")}
             </p>
             <button
               type="button"
@@ -112,7 +120,7 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
               }}
               className="px-[20px] py-[10px] rounded-[8px] bg-[#D94A1E] text-white font-heading font-medium text-[14px] hover:bg-[#c4411a] transition-colors"
             >
-              Reset Filters
+              {t("resetFilters")}
             </button>
           </div>
         )}
@@ -122,10 +130,12 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
       <section className="w-full bg-[#FAF6F3] border border-[#EAEAEA] rounded-[16px] md:rounded-[24px] p-[24px] md:p-[44px] flex flex-col md:flex-row items-center justify-between gap-[24px]">
         <div className="flex flex-col items-center md:items-start gap-[8px] text-center md:text-left max-w-[640px]">
           <h3 className="font-heading font-semibold text-[20px] md:text-[26px] leading-[26px] md:leading-[32px] tracking-[0.04em] text-text-dark">
-            Ready to convert your <span className="text-[#DA582D]">SVG</span>?
+            {t("ctaHeadingPre")}
+            <span className="text-[#DA582D]">SVG</span>
+            {t("ctaHeadingPost")}
           </h3>
           <p className="font-body font-normal text-[14px] md:text-[16px] leading-[22px] text-text-muted">
-            Upload your vector file and get crisp, high-resolution PNGs in seconds. Free, browser-based, no install needed.
+            {t("ctaBody")}
           </p>
         </div>
         <div className="flex items-center gap-[12px] shrink-0">
@@ -133,7 +143,7 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
             href="/#converter"
             className="inline-flex items-center justify-center h-[42px] md:h-[46px] px-[20px] md:px-[26px] rounded-[8px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] font-heading font-medium text-[14px] md:text-[16px] text-white tracking-[0.04em] hover:opacity-90 transition-opacity"
           >
-            Launch Converter
+            {t("launchConverter")}
           </Link>
         </div>
       </section>
