@@ -77,36 +77,27 @@ function resolveFill(options: BrowserRasterOptions): string | null {
   }
 }
 
-const PLAIN_LENGTH_RE = /^\s*\d+(?:\.\d+)?(?:px)?\s*$/i
-
 /**
- * Firefox cannot draw an SVG image onto a canvas when the root element has no
- * usable intrinsic size (e.g. only a viewBox, or width="100%"). Give the root
- * explicit pixel width/height derived from the viewBox in that case. Only the
- * root tag is rewritten; the rest of the (potentially multi-MB) document is
- * left untouched.
+ * Rasterize the SVG image at the requested output dimensions. Without this,
+ * browsers may decode it at its original intrinsic size and upscale that
+ * bitmap on the canvas, making even 2x exports look soft. Only the root tag is
+ * rewritten; the rest of the (potentially multi-MB) document is left untouched.
  */
-function withIntrinsicSize(svg: string, dims: SvgDimensions): string {
-  if (!dims.width || !dims.height) return svg
+function withRenderSize(svg: string, dims: SvgDimensions, width: number, height: number): string {
   const rootMatch = /<svg\b[^>]*>/i.exec(svg)
   if (!rootMatch) return svg
 
   const tag = rootMatch[0]
-  const attr = (name: string) =>
-    new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(tag)
-  const widthAttr = attr('width')
-  const heightAttr = attr('height')
-  const hasPlainSize =
-    widthAttr !== null &&
-    heightAttr !== null &&
-    PLAIN_LENGTH_RE.test(widthAttr[1] ?? widthAttr[2] ?? widthAttr[3] ?? '') &&
-    PLAIN_LENGTH_RE.test(heightAttr[1] ?? heightAttr[2] ?? heightAttr[3] ?? '')
-  if (hasPlainSize) return svg
-
-  const stripped = tag
+  let sized = tag
     .replace(/\swidth\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i, '')
     .replace(/\sheight\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i, '')
-  const patched = stripped.replace(/^<svg\b/i, `<svg width="${dims.width}" height="${dims.height}"`)
+  // When there is no viewBox, the original pixel dimensions also define the
+  // SVG user coordinate system. Add one before enlarging the viewport so the
+  // browser scales the vector artwork instead of clipping it.
+  if (!/\sviewBox\s*=/i.test(sized) && dims.width && dims.height) {
+    sized = sized.replace(/^<svg\b/i, `<svg viewBox="0 0 ${dims.width} ${dims.height}"`)
+  }
+  const patched = sized.replace(/^<svg\b/i, `<svg width="${width}" height="${height}"`)
   return svg.slice(0, rootMatch.index) + patched + svg.slice(rootMatch.index + tag.length)
 }
 
@@ -181,7 +172,11 @@ async function render(svg: string, options: BrowserRasterOptions): Promise<Brows
     throw error
   }
 
-  const blob = new Blob([withIntrinsicSize(svg, dims)], { type: 'image/svg+xml;charset=utf-8' })
+  const renderWidth = target.width ?? dims.width ?? 300
+  const renderHeight = target.height ?? dims.height ?? 150
+  const blob = new Blob([withRenderSize(svg, dims, renderWidth, renderHeight)], {
+    type: 'image/svg+xml;charset=utf-8',
+  })
   const url = URL.createObjectURL(blob)
   try {
     const img = await loadImage(url, signal)
