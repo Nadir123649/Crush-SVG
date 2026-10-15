@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import type { UseCase } from "@/lib/data/use-cases";
+import { categoryKey } from "@/lib/data/use-case-filter";
 
 type UseCaseCardData = Pick<UseCase, "slug" | "title" | "description" | "features" | "category">;
 
@@ -24,21 +26,25 @@ const ICON_PATHS: Record<string, string> = {
 const FALLBACK_ICON = ICON_PATHS["Web & Dev"];
 
 export function UseCaseCard({ useCase }: { useCase: UseCaseCardData }) {
+  const t = useTranslations("use_case");
+  const categoryMessageKey = categoryKey(useCase.category);
+
   return (
     <Link
       href={`/use-case/${useCase.slug}` as never}
-      className="relative flex flex-col w-full bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA] p-[18px] md:p-[24px] gap-[16px] overflow-hidden transition-all duration-300 hover:shadow-[0px_10px_40px_rgba(217,74,30,0.14)] hover:-translate-y-1 cursor-pointer group"
-      style={{ boxShadow: "0px 4px 30px rgba(0, 0, 0, 0.03)" }}
+      className="relative flex flex-col w-full bg-white rounded-[20px] md:rounded-[24px] border border-[#F2EDE8] p-[20px] md:p-[26px] gap-[18px] overflow-hidden transition-all duration-300 ease-in-out hover:bg-[#FFFBF7] hover:border-[#F1B7A1] hover:shadow-[0px_14px_40px_-6px_rgba(217,74,30,0.12)] hover:-translate-y-1.5 cursor-pointer group shadow-[0px_4px_24px_0px_rgba(0,0,0,0.03)]"
     >
-      <span className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Top subtle brand accent line on hover */}
+      <span className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
+      {/* Card Header: Icon & Category Badge */}
       <div className="flex items-center justify-between gap-[12px]">
-        <div className="w-[44px] h-[44px] rounded-[12px] bg-gradient-to-br from-[#D94A1E] to-[#FF9A3D] flex items-center justify-center shadow-[0px_6px_16px_rgba(217,74,30,0.25)] transition-transform duration-300 group-hover:scale-105">
+        <div className="w-[48px] h-[48px] rounded-[14px] bg-[#FFF1EB] border border-[#F0C9B9] flex items-center justify-center text-brand-primary group-hover:bg-gradient-to-br group-hover:from-[#D94A1E] group-hover:to-[#FF9A3D] group-hover:text-white group-hover:border-transparent group-hover:shadow-[0px_8px_20px_rgba(217,74,30,0.25)] transition-all duration-300 shrink-0">
           <svg
-            className="w-[22px] h-[22px] text-white"
+            className="w-[22px] h-[22px] transition-transform duration-300 group-hover:scale-110"
             fill="none"
             stroke="currentColor"
-            strokeWidth={1.8}
+            strokeWidth={1.9}
             strokeLinecap="round"
             strokeLinejoin="round"
             viewBox="0 0 24 24"
@@ -47,42 +53,52 @@ export function UseCaseCard({ useCase }: { useCase: UseCaseCardData }) {
             <path d={ICON_PATHS[useCase.category] ?? FALLBACK_ICON} />
           </svg>
         </div>
-        <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary bg-[#FCF1ED] border border-[#F2EDE8] px-[10px] py-[3px] rounded-full whitespace-nowrap">
-          {useCase.category}
+        <span className="font-body text-[11.5px] md:text-[12px] font-semibold text-brand-primary bg-[#FFF6F2] border border-[#F5D8CC] px-[12px] py-[3.5px] rounded-full whitespace-nowrap tracking-wide">
+          {categoryMessageKey ? t(`categories.${categoryMessageKey}`) : useCase.category}
         </span>
       </div>
 
-      <div className="flex flex-col gap-[10px] w-full min-w-0 flex-1">
-        <h3 className="font-heading font-semibold text-[18px] md:text-[20px] leading-[24px] md:leading-[27px] tracking-[0.03em] text-text-dark group-hover:text-brand-primary transition-colors line-clamp-2">
+      {/* Card Body: Title, Description, and Features */}
+      <div className="flex flex-col gap-[12px] w-full min-w-0 flex-1">
+        <h3 className="font-heading font-bold text-[19px] md:text-[20px] leading-[25px] md:leading-[27px] tracking-tight text-[#202427] group-hover:text-brand-primary transition-colors line-clamp-2">
           {useCase.title}
         </h3>
-        <p className="font-body font-normal text-[14px] leading-[22px] text-text-muted line-clamp-3">
+        <p className="font-body font-normal text-[13.5px] md:text-[14px] leading-[22px] md:leading-[23px] text-text-muted line-clamp-3">
           {useCase.description}
         </p>
 
-        <ul className="flex flex-col gap-[8px] pt-[4px]">
+        {/* Feature Highlights with Brand Checkmarks */}
+        <ul className="flex flex-col gap-[9px] pt-[6px]">
           {useCase.features.slice(0, 3).map((feature) => (
-            <li key={feature} className="flex items-start gap-[8px] font-body text-[13px] leading-[19px] text-[#4B5563]">
-              <svg
-                className="w-[16px] h-[16px] mt-[2px] shrink-0 text-brand-primary"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M5 13l4 4L19 7" />
-              </svg>
+            <li
+              key={feature}
+              className="flex items-start gap-[10px] font-body text-[13px] leading-[20px] text-[#4B5563]"
+            >
+              <div className="w-[16px] h-[16px] rounded-full bg-[#FFF1EB] flex items-center justify-center shrink-0 mt-[2px] text-brand-primary">
+                <svg
+                  className="w-[10px] h-[10px]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
               <span className="line-clamp-2">{feature}</span>
             </li>
           ))}
         </ul>
 
-        <div className="mt-auto pt-[10px] flex items-center gap-1.5 text-[14px] font-heading font-medium text-brand-primary group-hover:gap-2.5 transition-all">
-          <span>View Use Case</span>
-          <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
+        {/* Footer Link with Interactive Circular Arrow */}
+        <div className="mt-auto pt-[14px] border-t border-[#F2EDE8] flex items-center justify-between text-[13.5px] md:text-[14px] font-heading font-semibold text-brand-primary">
+          <span>{t("viewUseCase")}</span>
+          <span className="w-[26px] h-[26px] rounded-full bg-[#FFF1EB] text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-300 flex items-center justify-center text-xs group-hover:translate-x-0.5">
+            &rarr;
+          </span>
         </div>
       </div>
     </Link>
