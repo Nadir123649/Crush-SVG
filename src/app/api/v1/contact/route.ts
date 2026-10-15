@@ -57,9 +57,11 @@ export async function POST(request: NextRequest) {
 
   const parsed = contactSchema.safeParse(body)
   if (!parsed.success) {
-    const fieldErrors = parsed.error.flatten().fieldErrors
-    const first = fieldErrors.name?.[0] ?? fieldErrors.email?.[0] ?? fieldErrors.message?.[0] ?? 'Invalid input'
-    return errorResponse(400, 'validation_error', first, undefined, request)
+    console.warn(
+      'Contact form validation failed:',
+      parsed.error.issues.map(({ path, code }) => ({ path, code }))
+    )
+    return errorResponse(400, 'validation_error', 'Invalid contact form submission.', undefined, request)
   }
 
   const { name, email, message } = parsed.data
@@ -81,7 +83,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Surface the failure so the visitor knows the message was NOT delivered,
     // instead of silently dropping it.
-    console.error('Contact form delivery failed:', error)
+    console.error('Contact form delivery failed:', error instanceof Error
+      ? { name: error.name, stack: error.stack?.split('\n').slice(1).join('\n') }
+      : { type: typeof error })
     return errorResponse(500, 'server_error', 'Failed to send message. Please try again.', undefined, request)
   }
 }

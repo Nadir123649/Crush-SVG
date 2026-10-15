@@ -216,15 +216,15 @@ type AddedBackground =
   | { kind: "color"; color: string; gradient?: readonly string[] };
 
 const PHOTO_BACKGROUND_PRESETS = [
-  { id: "beach", name: "Beach", src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85" },
-  { id: "modern-home", name: "Modern home", src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85" },
-  { id: "city", name: "City street", src: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=85" },
-  { id: "forest", name: "Forest", src: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85" },
-  { id: "mountains", name: "Mountains", src: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85" },
-  { id: "architecture", name: "Architecture", src: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1200&q=85" },
-  { id: "lake", name: "Lake", src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=85" },
-  { id: "desert", name: "Desert", src: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1200&q=85" },
-  { id: "autumn-road", name: "Autumn road", src: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=85" },
+  { id: "beach", name: "Beach", src: "/background-presets/beach.jpg" },
+  { id: "modern-home", name: "Modern home", src: "/background-presets/modern-home.jpg" },
+  { id: "city", name: "City street", src: "/background-presets/city.jpg" },
+  { id: "forest", name: "Forest", src: "/background-presets/forest.jpg" },
+  { id: "mountains", name: "Mountains", src: "/background-presets/mountains.jpg" },
+  { id: "architecture", name: "Architecture", src: "/background-presets/architecture.jpg" },
+  { id: "lake", name: "Lake", src: "/background-presets/lake.jpg" },
+  { id: "desert", name: "Desert", src: "/background-presets/desert.jpg" },
+  { id: "autumn-road", name: "Autumn road", src: "/background-presets/autumn-road.jpg" },
 ] as const;
 
 const COLOR_GRADIENT_PRESETS = [
