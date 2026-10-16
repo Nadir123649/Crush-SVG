@@ -176,8 +176,9 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
     return { payload: null, sessionDead: false }
   }
   // The refresh route only reports a dead session authoritatively: 401/403
-  // (revoked session / deleted user) or 200 with success:false (missing or
-  // invalid token) — in all of those it also deletes the cookie. Rate limits
+  // (revoked session / deleted user) or an explicit 200 success:false (missing
+  // or invalid token) — in all of those it also deletes the cookie. A malformed
+  // or incomplete 200 response is not proof that the cookie is invalid. Rate limits
   // (429) and server errors are transient; clearing the session there would
   // log out a perfectly valid user and poison the stored snapshot, flashing
   // guest UI on the next refresh.
@@ -185,7 +186,7 @@ async function doRefresh(silent = false): Promise<RefreshResult> {
     refreshServerErrorStreak++
     return { payload: null, sessionDead: false }
   }
-  const sessionIsDead = res.status === 401 || res.status === 403 || (res.status === 200 && body?.success !== true)
+  const sessionIsDead = res.status === 401 || res.status === 403 || (res.status === 200 && body?.success === false)
   if (res.status !== 200 || body?.success !== true || !body?.payload) {
     if (!silent && sessionIsDead) onAuthExpired?.()
     return { payload: null, sessionDead: sessionIsDead }

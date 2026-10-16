@@ -188,7 +188,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         }`}
         ref={navContainerRef}
       >
-        <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] min-[1024px]:px-[24px] min-[1280px]:px-[40px] min-[1440px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
+        <div className="w-full max-w-[1680px] mx-auto px-[16px] md:px-[40px] lg:px-[40px] min-[1024px]:px-[24px] min-[1280px]:px-[40px] min-[1440px]:px-[40px] pt-[14px] md:pt-[20px] pb-[14px]">
           <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
@@ -214,10 +214,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1024px]:flex relative min-[1440px]:absolute left-auto min-[1440px]:left-1/2 translate-x-0 min-[1440px]:-translate-x-1/2 min-[1024px]:mx-1 min-[1024px]:min-w-0 min-[1024px]:flex-1 min-[1440px]:flex-none items-center justify-center gap-0 min-[1280px]:gap-[2px] min-[1440px]:gap-[6px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[2px] min-[1280px]:p-[4px] z-10 w-auto min-[1024px]:max-w-[600px]"
+            className="hidden min-[1024px]:grid min-[1024px]:grid-cols-6 min-[1024px]:flex-1 min-[1024px]:min-w-0 min-[1024px]:max-w-[540px] min-[1440px]:absolute min-[1440px]:left-1/2 min-[1440px]:w-[540px] min-[1440px]:-translate-x-1/2 mx-2 min-[1280px]:mx-4 items-center rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[2px] min-[1280px]:p-[4px] z-10"
           >
             {/* 1. Tools Dropdown */}
-            <div className="relative shrink-0">
+            <div className="relative min-w-0">
               <button
                 type="button"
                 onClick={() =>
@@ -225,7 +225,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 }
                 aria-expanded={activeDropdown === "tools"}
                 aria-haspopup="true"
-                className={`flex items-center gap-[5px] px-[2px] min-[1280px]:px-[6px] min-[1440px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
+                className={`flex w-full min-w-0 items-center justify-center gap-[4px] px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
                   activeDropdown === "tools"
                     ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                     : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -446,7 +446,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   }
                 }
               }}
-              className={`shrink-0 px-[2px] min-[1280px]:px-[8px] min-[1440px]:px-[14px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 currentTool.isActive
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -458,7 +458,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 3. Use Cases */}
             <Link
               href="/use-case"
-              className={`shrink-0 px-[2px] min-[1280px]:px-[6px] min-[1440px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/use-case")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -470,7 +470,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
-              className={`shrink-0 px-[2px] min-[1280px]:px-[6px] min-[1440px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -482,7 +482,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 5. Guides */}
             <Link
               href="/svg-guides"
-              className={`shrink-0 px-[2px] min-[1280px]:px-[6px] min-[1440px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/svg-guides")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -494,7 +494,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 6. Need Help? */}
             <Link
               href="/contact-us"
-              className={`shrink-0 px-[2px] min-[1280px]:px-[6px] min-[1440px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[11px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -505,7 +505,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex shrink-0 items-center gap-[8px] sm:gap-[10px] md:gap-[12px] lg:border-l lg:border-[#E8DED7] lg:pl-[14px] justify-end">
+          <div className="relative z-20 flex shrink-0 items-center gap-[8px] sm:gap-[10px] md:gap-[12px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden min-[1280px]:inline-flex" />
 
