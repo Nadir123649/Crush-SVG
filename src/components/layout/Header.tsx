@@ -7,12 +7,13 @@ import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
+  const locale = useLocale();
   const tNav = useTranslations("navigation");
   const tAuth = useTranslations("authentication");
   const tToasts = useTranslations("toasts");
@@ -20,6 +21,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const desktopNavTextSize =
+    locale === "ja"
+      ? "text-[10px] min-[1280px]:text-[10px] min-[1440px]:text-[10px]"
+      : locale === "de" || locale === "es"
+        ? "text-[10px] min-[1280px]:text-[11px] min-[1440px]:text-[11px]"
+        : "text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px]";
 
   const [activeDropdown, setActiveDropdown] = useState<"none" | "tools" | "profile" | "language">("none");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -225,7 +232,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 }
                 aria-expanded={activeDropdown === "tools"}
                 aria-haspopup="true"
-                className={`flex w-full min-w-0 items-center justify-center gap-[4px] px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
+                className={`flex w-full min-w-0 items-center justify-center gap-[4px] px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
                   activeDropdown === "tools"
                     ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                     : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -446,7 +453,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   }
                 }
               }}
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 currentTool.isActive
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -458,7 +465,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 3. Use Cases */}
             <Link
               href="/use-case"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/use-case")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -470,7 +477,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -482,7 +489,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 5. Guides */}
             <Link
               href="/svg-guides"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/svg-guides")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -494,13 +501,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 6. Need Help? */}
             <Link
               href="/contact-us"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              aria-label={tNav("needHelp")}
+              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
               }`}
             >
-              {tNav("needHelp")}
+              {locale === "ja" ? "ヘルプ" : tNav("needHelp")}
             </Link>
           </nav>
 
