@@ -7,13 +7,12 @@ import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
-  const locale = useLocale();
   const tNav = useTranslations("navigation");
   const tAuth = useTranslations("authentication");
   const tToasts = useTranslations("toasts");
@@ -21,12 +20,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const { user, status, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const desktopNavTextSize =
-    locale === "ja"
-      ? "text-[10px] min-[1280px]:text-[10px] min-[1440px]:text-[10px]"
-      : locale === "de" || locale === "es"
-        ? "text-[10px] min-[1280px]:text-[11px] min-[1440px]:text-[11px]"
-        : "text-[10px] min-[1280px]:text-[13px] min-[1440px]:text-[14px]";
 
   const [activeDropdown, setActiveDropdown] = useState<"none" | "tools" | "profile" | "language">("none");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,7 +27,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
-  const mobileDrawerRef = useRef<HTMLDivElement>(null);
   const previousPathnameRef = useRef(pathname);
   const pathnameReadyRef = useRef(false);
 
@@ -44,16 +36,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     setFailedImageUrl(null);
   }, [user?.photoURL]);
 
-  // Click outside to close dropdowns & mobile drawer
+  // Click outside to close dropdowns
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent | TouchEvent) {
-      const target = event.target as Node | null;
-      if (!target) return;
-
-      const isInsideNav = !!navContainerRef.current?.contains(target);
-      const isInsideDrawer = !!mobileDrawerRef.current?.contains(target);
-
-      if (!isInsideNav && !isInsideDrawer) {
+    function handleClickOutside(event: MouseEvent) {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target as Node)) {
         setActiveDropdown("none");
         setMobileMenuOpen(false);
       }
@@ -67,12 +53,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside, { passive: true });
     document.addEventListener("keydown", handleEscape);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
@@ -160,7 +144,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
-    if (pathname === "/") {
+    if (pathname === "/" || pathname === "/convert-svg-to-png") {
       return {
         label: tNav("svgToPng"),
         href: "/",
@@ -174,7 +158,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, [pathname, tNav]);
 
-  const isSvgToPngActive = pathname === "/";
+  const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
   const isPngToSvgActive = pathname === "/png-to-svg";
   const isSvgToReactActive = pathname === "/svg-to-react";
   const isOtherToolActive =
@@ -188,15 +172,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   return (
     <header className="w-full sticky top-0 z-50">
       <div
-        className={`w-full transition-all duration-300 ${
+        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px] transition-all duration-300 ${
           isScrolled
             ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)] border-b border-[#F0E6DF]"
             : "bg-[#FFFCFA] border-b border-[#F7F1EC]"
         }`}
         ref={navContainerRef}
       >
-        <div className="w-full max-w-[1680px] mx-auto px-[16px] md:px-[40px] lg:px-[40px] min-[1024px]:px-[24px] min-[1280px]:px-[40px] min-[1440px]:px-[40px] pt-[14px] md:pt-[20px] pb-[14px]">
-          <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
+        <div className="w-full max-w-[1280px] relative flex items-center justify-between h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -221,10 +204,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1024px]:grid min-[1024px]:grid-cols-6 min-[1024px]:flex-1 min-[1024px]:min-w-0 min-[1024px]:max-w-[540px] min-[1440px]:absolute min-[1440px]:left-1/2 min-[1440px]:w-[540px] min-[1440px]:-translate-x-1/2 mx-2 min-[1280px]:mx-4 items-center rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[2px] min-[1280px]:p-[4px] z-10"
+            className="hidden min-[1280px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-start gap-[4px] sm:gap-[6px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-[min(640px,calc(100vw-32px))] max-w-[calc(100vw-32px)] overflow-x-auto overflow-y-hidden"
           >
             {/* 1. Tools Dropdown */}
-            <div className="relative min-w-0">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() =>
@@ -232,7 +215,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 }
                 aria-expanded={activeDropdown === "tools"}
                 aria-haspopup="true"
-                className={`flex w-full min-w-0 items-center justify-center gap-[4px] px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
+                className={`flex items-center gap-[5px] px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
                   activeDropdown === "tools"
                     ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                     : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -441,7 +424,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <Link
               href={currentTool.href}
               onClick={(e) => {
-                if (currentTool.href === "/" && typeof window !== "undefined" && window.location.pathname === "/") {
+                if (currentTool.href === "/" && typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
                   e.preventDefault();
                   const el = document.getElementById("converter");
                   if (el) {
@@ -453,7 +436,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   }
                 }
               }}
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[14px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 currentTool.isActive
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -465,7 +448,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 3. Use Cases */}
             <Link
               href="/use-case"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/use-case")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -477,7 +460,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -489,7 +472,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 5. Guides */}
             <Link
               href="/svg-guides"
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/svg-guides")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -501,19 +484,18 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 6. Need Help? */}
             <Link
               href="/contact-us"
-              aria-label={tNav("needHelp")}
-              className={`w-full min-w-0 px-0 py-[7px] rounded-[8px] font-body font-semibold ${desktopNavTextSize} leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
               }`}
             >
-              {locale === "ja" ? "ヘルプ" : tNav("needHelp")}
+              {tNav("needHelp")}
             </Link>
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex shrink-0 items-center gap-[8px] sm:gap-[10px] md:gap-[12px] justify-end">
+          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] md:min-w-[280px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden min-[1280px]:inline-flex" />
 
@@ -532,7 +514,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 href="/login"
                 onClick={() => saveAuthRedirectUrl()}
                 variant="outline"
-                className="w-[80px] h-[34px] rounded-[10px] text-[14px] min-[1280px]:w-[110px] md:h-[40px] md:rounded-[12px] min-[1280px]:text-[15px] bg-[#FFFFFF] px-[0px]"
+                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
               >
                 {tAuth("login")}
               </Button>
@@ -540,7 +522,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               <Button
                 href="/signup"
                 variant="solid"
-                className="w-[84px] h-[34px] rounded-[10px] text-[14px] min-[1280px]:w-[115px] md:h-[40px] md:rounded-[12px] min-[1280px]:text-[15px] px-[0px]"
+                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
               >
                 {tAuth("signup")}
               </Button>
@@ -566,14 +548,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               >
                 {user?.photoURL && failedImageUrl !== user.photoURL ? (
                   <Image
-                    key={user.photoURL}
                     src={user.photoURL}
                     alt=""
                     width={28}
                     height={28}
                     className="rounded-full object-cover w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
                     unoptimized
-                    loading="eager"
                     referrerPolicy="no-referrer"
                     onError={() => setFailedImageUrl(user.photoURL ?? null)}
                   />
@@ -659,10 +639,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="min-[1024px]:hidden flex items-center">
+            <div className="min-[1280px]:hidden flex items-center">
               <button
                 type="button"
-                onClick={() => {
+                onMouseDown={(event) => event.stopPropagation()}
+                onPointerDown={() => {
                   setActiveDropdown("none");
                   setMobileMenuOpen((v) => !v);
                 }}
@@ -686,23 +667,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
         </div>
       </div>
-    </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div
-          ref={mobileDrawerRef}
-          className="min-[1024px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
-        >
-          <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
-          {/* Language Switcher in Mobile Drawer */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#F2EDE8] px-2">
-            <span className="font-heading font-semibold text-[13px] text-text-dark">
-              {tLanguage("label")}
-            </span>
-            <LanguageSwitcher listboxId="mobile-language-listbox" />
-          </div>
-
+        <div className="min-[1280px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 px-6 flex flex-col gap-4 z-40 animate-in slide-in-from-top-2">
           {/* Tools Category */}
           <div className="flex flex-col gap-1">
             <span className="font-heading font-semibold text-[11px] uppercase tracking-wider text-text-muted px-2 py-1">
@@ -711,17 +679,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="grid grid-cols-1 gap-1">
               <Link
                 href="/"
-                onClick={(e) => {
-                  setMobileMenuOpen(false);
-                  if (pathname === "/" && typeof window !== "undefined") {
-                    const el = document.getElementById("converter");
-                    if (el) {
-                      const offset = 70;
-                      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                      window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
-                    }
-                  }
-                }}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-colors ${
                   isSvgToPngActive
                     ? "bg-[#FFF5F2] text-brand-primary font-semibold"
@@ -873,6 +831,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             />
           </div>
 
+          {/* Language Switcher in Mobile Drawer */}
+          <div className="flex items-center justify-between pt-3 border-t border-[#F2EDE8] px-2">
+            <span className="font-heading font-semibold text-[13px] text-text-dark">
+              {tLanguage("label")}
+            </span>
+            <LanguageSwitcher listboxId="mobile-language-listbox" />
+          </div>
+
           {/* Mobile guest actions */}
           <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "authed" ? "!hidden" : ""}`}>
             <Button
@@ -940,7 +906,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             )}
           </div>
         </div>
-      </div>
       )}
     </header>
   );

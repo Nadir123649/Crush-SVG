@@ -262,18 +262,18 @@ export function SvgToCodeUI() {
   return (
     <section
       id="converter"
-      className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+      className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
     >
       {/* Outer Dashed Border Box */}
-      <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
+      <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
         {/* Inner Dashed Border Box */}
-        <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
+        <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
           
           {/* Top row with symmetrical 537px columns */}
-          <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
+          <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
             
             {/* Left Column (SVG Code & Drag Drop) - 537px Width */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   {tUpload("svgCodeTab")}
@@ -312,7 +312,7 @@ export function SvgToCodeUI() {
               </div>
 
               {/* SVG Code Textarea Box */}
-              <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+              <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                 <textarea
                   id="react-svg-textarea"
                   value={svgInput}
@@ -320,7 +320,7 @@ export function SvgToCodeUI() {
                   placeholder="<svg ...>...</svg>"
                   spellCheck={false}
                   aria-label="SVG input code"
-                  className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
+                  className="w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto overscroll-contain brand-scrollbar"
                 />
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                 <button
@@ -401,7 +401,7 @@ export function SvgToCodeUI() {
             </div>
 
             {/* Right Column (Visual Preview & Framework Output) - 537px Width */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   {t("livePreview")}
@@ -415,7 +415,7 @@ export function SvgToCodeUI() {
 
               {/* Live Vector Visual Preview Box */}
               <div
-                className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
+                className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
                 style={{
                   backgroundImage:
                     "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
@@ -434,17 +434,17 @@ export function SvgToCodeUI() {
               </div>
 
               {/* Controls & Framework Settings Card */}
-              <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col justify-between">
-                <div className="p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[12px]">
+              <div className="w-full min-w-0 mt-[16px] md:mt-[20px] grow flex flex-col justify-between">
+                <div className="w-full min-w-0 max-w-full p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[12px]">
                   
                   {/* Framework Pill Tabs */}
-                  <div className="flex items-center gap-[6px] overflow-x-auto pb-[2px] brand-scrollbar">
+                  <div role="group" aria-label="Conversion formats" className="flex w-full min-w-0 max-w-full items-center gap-[6px] overflow-x-auto overflow-y-hidden overscroll-x-contain pb-[2px] brand-scrollbar">
                     {FRAMEWORK_TABS.map((tab) => (
                       <button
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-[10px] py-[5px] rounded-[8px] font-heading font-semibold text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        className={`shrink-0 px-[10px] py-[5px] rounded-[8px] font-heading font-semibold text-[12px] whitespace-nowrap transition-all cursor-pointer ${
                           activeTab === tab.id
                             ? "bg-brand-primary text-white shadow-xs"
                             : "bg-[#FAF6F3] text-text-dark hover:bg-[#FFF5F2] hover:text-brand-primary border border-[#E8DED7]"
@@ -456,7 +456,7 @@ export function SvgToCodeUI() {
                   </div>
 
                   {/* Component Options Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[10px] pt-[8px] border-t border-[#E8DED7] flex-wrap">
+                  <div className="flex min-w-0 max-w-full flex-col sm:flex-row items-start sm:items-center justify-between gap-[10px] pt-[8px] border-t border-[#E8DED7] flex-wrap">
                     <div className="flex items-center gap-[8px] w-full sm:w-auto">
                       <label className="font-heading font-semibold text-[13px] text-text-dark shrink-0">
                         {t("componentNameLabel")}:
@@ -466,11 +466,11 @@ export function SvgToCodeUI() {
                         value={componentName}
                         onChange={(e) => setComponentName(e.target.value)}
                         placeholder="RocketIcon"
-                        className="px-[10px] py-[4px] rounded-[6px] border border-[#E8DED7] font-mono text-[12.5px] text-text-dark focus:outline-none focus:border-brand-primary w-full sm:w-[150px]"
+                        className="min-w-0 flex-1 px-[10px] py-[4px] rounded-[6px] border border-[#E8DED7] font-mono text-[12.5px] text-text-dark focus:outline-none focus:border-brand-primary sm:flex-none sm:w-[150px]"
                       />
                     </div>
 
-                    <div className="flex items-center gap-[14px] flex-wrap">
+                    <div className="flex min-w-0 max-w-full items-center gap-[14px] flex-wrap">
                       <label className="inline-flex items-center gap-[6px] cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -504,7 +504,7 @@ export function SvgToCodeUI() {
                 {/* Primary Export Button Row */}
                 <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                   <Button
-                    className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm cursor-pointer"
+                    className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm cursor-pointer"
                     onClick={handleDownload}
                     disabled={!generatedCode}
                   >

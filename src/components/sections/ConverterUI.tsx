@@ -780,19 +780,19 @@ function SvgToPngConverter() {
       <section
         id="converter"
         aria-busy={converting}
-        className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
+        <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
+          <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
             {/* Top row with columns */}
-            <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* Left Column (SVG Code) */}
-              <div className="w-full lg:w-[537px] flex flex-col">
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
-                  <div className="flex items-center gap-[10px]">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
+                  <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
+                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
                     <button
                       type="button"
                       onClick={handleClearSvg}
@@ -820,7 +820,7 @@ function SvgToPngConverter() {
                         {tUpload("clear")}
                       </span>
                     </button>
-                    <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                    <span suppressHydrationWarning className="min-w-0 break-words text-right font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "loading"
                         ? "\u00A0"
                         : quotaDisplay.kind === "unlimited"
@@ -931,7 +931,7 @@ function SvgToPngConverter() {
                   } mt-[16px] flex flex-col items-center justify-center gap-[8px] md:gap-[10px] p-[16px] md:p-[40px] cursor-pointer hover:bg-gray-50 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary active:border-solid transition-colors`}
                 >
                   <Image src={IMAGES.drag} alt="Drag Cloud" width={64} height={64} className="object-contain w-[56px] h-[56px] md:w-[64px] md:h-[64px] transition-transform duration-300 group-hover:scale-105" style={{ width: "auto", height: "auto" }} />
-                  <div className="font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
+                  <div className="max-w-full min-w-0 break-words font-body text-[14px] md:text-[16px] leading-[18.67px] text-text-dark">
                     <span className="font-normal">{tUpload("dragOrSelectSvg")}</span>
                     <span className="font-medium text-brand-primary">{tUpload("selectSvg")}</span>
                   </div>
@@ -987,13 +987,13 @@ function SvgToPngConverter() {
               </div>
 
               {/* Right Column (Live Preview) */}
-              <div className="w-full lg:w-[537px] flex flex-col">
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
+                  <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">
                     {result ? tDownload("convertedPngPreview") : tDownload("livePreview")}
                   </h2>
                   {result && (
-                    <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    <span className="min-w-0 max-w-full break-words text-center font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                       {tDownload("pngReady")}{result.width && result.height ? ` (${result.width}×${result.height})` : ""}
                     </span>
                   )}
@@ -1037,16 +1037,16 @@ function SvgToPngConverter() {
                 </div>
 
                 {/* Settings & Controls */}
-                <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col">
+                <div className="w-full min-w-0 mt-[16px] md:mt-[20px] grow flex flex-col">
                   <div
-                    className={`w-full h-full flex flex-col justify-between transition-all duration-300 ${
+                    className={`w-full min-w-0 h-full flex flex-col justify-between transition-all duration-300 ${
                       converting ? "hidden md:flex md:pointer-events-none opacity-50" : ""
                     }`}
                   >
                     {/* Dropdowns Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
+                    <div className="grid min-w-0 grid-cols-1 md:grid-cols-3 gap-[12px] md:gap-[20px] w-full">
                       {/* Width Input */}
-                      <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
+                      <div className="flex min-w-0 flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={widthRef}>
                         <label htmlFor="converter-width-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("width")}
                         </label>
@@ -1144,7 +1144,7 @@ function SvgToPngConverter() {
                       </div>
 
                       {/* Height Input */}
-                      <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
+                      <div className="flex min-w-0 flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={heightRef}>
                         <label htmlFor="converter-height-input" className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                           {tDownload("height")}
                         </label>
@@ -1243,7 +1243,7 @@ function SvgToPngConverter() {
 
                       {/* Unit / Scale Dropdown */}
                       {isScaleDisabled ? (
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
+                        <div className="flex min-w-0 flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={unitRef}>
                           <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
                             {tDownload("unit")}
                           </label>
@@ -1315,7 +1315,7 @@ function SvgToPngConverter() {
                           )}
                         </div>
                       ) : (
-                        <div className="flex flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
+                        <div className="flex min-w-0 flex-col flex-1 gap-[6px] md:gap-[8px] relative" ref={scaleRef}>
                           <label
                             htmlFor="scale-multiplier-input"
                             className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]"
@@ -1421,7 +1421,7 @@ function SvgToPngConverter() {
                     {/* Transparent Background Box */}
                     <label
                       htmlFor="transparent-bg-toggle"
-                      className="w-full h-[48px] md:h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex items-center justify-between cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
+                      className="w-full min-w-0 min-h-[48px] md:min-h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex flex-wrap items-center justify-between gap-[8px] cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
                     >
                       <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
                         {tDownload("transparent")} {tDownload("background")}
@@ -1443,8 +1443,8 @@ function SvgToPngConverter() {
 
                     {/* Custom Background Color Selection when Transparent is unchecked
                     {!transparent && (
-                      <div className="w-full rounded-[12px] border border-[#8F8F8F] mt-[12px] p-[12px] md:p-[16px] bg-white flex flex-col gap-[10px]">
-                        <div className="flex items-center justify-between">
+                      <div className="w-full min-w-0 rounded-[12px] border border-[#8F8F8F] mt-[12px] p-[12px] md:p-[16px] bg-white flex flex-col gap-[10px]">
+                        <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px]">
                           <span className="font-body font-medium text-[13px] md:text-[15px] text-[#353A3E]">
                             Background Color
                           </span>

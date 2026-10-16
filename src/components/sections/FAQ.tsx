@@ -195,29 +195,29 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png
   };
 
   return (
-    <section id="faq" className="w-full flex flex-col items-center mb-[60px] md:mb-[50px] scroll-mt-[100px] md:scroll-mt-[140px]">
+    <section id="faq" className="w-full min-w-0 flex flex-col items-center mb-[60px] md:mb-[50px] scroll-mt-[100px] md:scroll-mt-[140px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getFAQSchema(faqs)) }}
       />
-      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
+      <h2 className="w-full min-w-0 max-w-full break-words [overflow-wrap:anywhere] font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
         {renderFaqTitle(tFaq("title"))}
       </h2>
 
-      <div className="flex flex-col w-full max-w-[890px] gap-[12px] md:gap-[20px]">
+      <div className="flex min-w-0 w-full max-w-[890px] flex-col gap-[12px] md:gap-[20px]">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
           return (
             <div 
               key={index}
               onClick={() => toggleFaq(index)}
-              className="w-full bg-white rounded-[12px] p-[12px] md:p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center"
+              className="w-full min-w-0 bg-white rounded-[12px] p-[12px] md:p-[24px] cursor-pointer transition-all duration-300 flex flex-col justify-center"
               style={{
                 boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)"
               }}
             >
-              <div className="flex justify-between items-center gap-[10px]">
-                <h3 className="font-heading font-medium text-[16px] text-text-dark">
+              <div className="flex min-w-0 justify-between items-center gap-[10px]">
+                <h3 className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-medium text-[16px] text-text-dark">
                   {faq.question}
                 </h3>
                 <Image
@@ -234,7 +234,7 @@ export function FAQ({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "svg-to-png
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
+                  <p className="min-w-0 break-words [overflow-wrap:anywhere] font-body font-normal text-[14px] md:text-[16px] leading-[18px] md:leading-[24px] text-text-muted">
                     {renderFaqAnswer(faq.answer)}
                   </p>
                 </div>

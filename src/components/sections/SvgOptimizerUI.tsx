@@ -165,17 +165,17 @@ export function SvgOptimizerUI() {
   return (
     <section
       id="converter"
-      className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+      className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
     >
       {/* Outer Dashed Border Box */}
-      <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
+      <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
         {/* Inner Dashed Border Box */}
-        <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
+        <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
           {/* Top row with columns */}
-          <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
+          <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
             {/* Left Column (SVG Code & Drag Drop) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                 <div className="flex items-center gap-[10px]">
                   <button
@@ -205,7 +205,7 @@ export function SvgOptimizerUI() {
               </div>
 
               {/* SVG Code Box */}
-              <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+              <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                 <textarea
                   id="optimizer-svg-textarea"
                   value={svgCode}
@@ -213,7 +213,7 @@ export function SvgOptimizerUI() {
                   placeholder={SAMPLE_OPTIMIZE_SVG}
                   spellCheck={false}
                   aria-label="SVG input code"
-                  className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
+                  className="w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                 />
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                 <button
@@ -258,7 +258,7 @@ export function SvgOptimizerUI() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
                 }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border ${
+                className={`w-full min-w-0 max-w-full h-[150px] md:h-[167px] rounded-[16px] border ${
                   dragOver
                     ? "border-solid border-brand-primary bg-gray-50"
                     : "border-dashed md:border-solid border-[#8F8F8F] bg-transparent"
@@ -286,16 +286,16 @@ export function SvgOptimizerUI() {
               </p>
 
               <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
-                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex min-w-0 items-center justify-start gap-[6px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                  <span>{tUpload("privateNotice")}</span>
+                  <span className="min-w-0 break-words">{tUpload("privateNotice")}</span>
                 </p>
               </div>
             </div>
 
             {/* Right Column (Live Preview & Optimization Controls) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{t("previewTitle")}</h2>
                 {optimization.percentSaved > 0 && (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -306,7 +306,7 @@ export function SvgOptimizerUI() {
 
               {/* Live Preview Box */}
               <div
-                className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
+                className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
                 style={{
                   backgroundImage:
                     "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
@@ -326,11 +326,11 @@ export function SvgOptimizerUI() {
               </div>
 
               {/* Settings & Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col justify-between">
-                <div className="p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[10px]">
+              <div className="w-full min-w-0 mt-[16px] md:mt-[20px] grow flex flex-col justify-between">
+                <div className="w-full min-w-0 max-w-full p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[10px]">
                   <h3 className="font-heading font-semibold text-[14px] text-text-dark">{t("optionsTitle")}</h3>
-                  <div className="grid grid-cols-2 gap-[8px] text-[12px] md:text-[13px] font-body text-[#475569]">
-                    <label className="flex items-center gap-[8px] cursor-pointer select-none">
+                  <div className="grid min-w-0 grid-cols-2 gap-[8px] text-[12px] md:text-[13px] font-body text-[#475569]">
+                    <label className="flex min-w-0 items-center gap-[8px] cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={stripMetadata}
@@ -339,7 +339,7 @@ export function SvgOptimizerUI() {
                       />
                       <span className="truncate">{t("stripMetadata")}</span>
                     </label>
-                    <label className="flex items-center gap-[8px] cursor-pointer select-none">
+                    <label className="flex min-w-0 items-center gap-[8px] cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={stripComments}
@@ -348,7 +348,7 @@ export function SvgOptimizerUI() {
                       />
                       <span className="truncate">{t("stripComments")}</span>
                     </label>
-                    <label className="flex items-center gap-[8px] cursor-pointer select-none">
+                    <label className="flex min-w-0 items-center gap-[8px] cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={removeEmptyContainers}
@@ -357,7 +357,7 @@ export function SvgOptimizerUI() {
                       />
                       <span className="truncate">{t("cleanEmptyTags")}</span>
                     </label>
-                    <label className="flex items-center gap-[8px] cursor-pointer select-none">
+                    <label className="flex min-w-0 items-center gap-[8px] cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={minifyColors}
@@ -390,7 +390,7 @@ export function SvgOptimizerUI() {
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-[8px] md:gap-[12px] mt-[12px]">
+                <div className="grid min-w-0 grid-cols-3 gap-[8px] md:gap-[12px] mt-[12px]">
                   <div className="flex flex-col p-[8px] md:p-[10px] bg-white rounded-[10px] border border-[#8F8F8F] text-center">
                     <span className="text-[10px] md:text-[11px] uppercase tracking-wider text-text-muted font-heading font-semibold">
                       {t("statOriginal")}
@@ -420,7 +420,7 @@ export function SvgOptimizerUI() {
                 {/* Action Buttons Row */}
                 <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                   <Button
-                    className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                    className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                     onClick={handleDownload}
                     disabled={!optimization.optimizedSvg || !isValid}
                   >
