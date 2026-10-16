@@ -131,7 +131,7 @@ function VectorDropdown({
   const selected = options.find((o) => o.value === value) || options[0];
 
   return (
-    <div className="flex flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
+    <div className="flex min-w-0 flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
       <label className="text-[#475569] font-heading font-semibold text-[14px] md:text-[16px] leading-[18.67px]">
         {label}
       </label>
@@ -787,24 +787,24 @@ export function RasterToSvgConverter() {
     <>
       <section
         id="converter"
-        className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
+        <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
+          <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
                 {/* Column Header */}
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
+                  <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">
                     {t("sourceImage")}
                   </h2>
-                  <div className="flex items-center gap-[10px]">
+                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
                     {/* Clear Button */}
                     <button
                       type="button"
@@ -836,7 +836,7 @@ export function RasterToSvgConverter() {
 
                     {/* Usage Counter */}
                     {status !== "loading" && (usage || status === "authed") && (
-                      <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                      <span className="min-w-0 break-words text-right font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {quotaDisplay.kind === "unlimited"
                           ? t("unlimitedConversions")
                           : quotaDisplay.kind === "counted"
@@ -953,7 +953,7 @@ export function RasterToSvgConverter() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
                     }}
-                    className={`w-full h-[220px] md:h-[302px] rounded-[16px] border ${
+                  className={`w-full min-w-0 max-w-full h-[220px] md:h-[302px] rounded-[16px] border ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/30"
                         : "border-dashed md:border-solid border-[#8F8F8F] bg-white"
@@ -968,17 +968,17 @@ export function RasterToSvgConverter() {
                       style={{ width: "auto", height: "auto" }}
                     />
 
-                    <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
+                    <div className="max-w-full min-w-0 break-words font-body text-[15px] md:text-[17px] text-text-dark text-center">
                       <span className="font-normal">Drag &amp; Drop or </span>
                       <span className="font-semibold text-brand-primary">{t("selectImage")}</span>
                     </div>
 
-                     <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
+                     <p className="max-w-full min-w-0 break-words font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
                        {t("uploadHint")}
                      </p>
 
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
+                    <div className="flex min-w-0 max-w-full items-center justify-center gap-2 mt-1">
+                      <span className="inline-flex min-w-0 max-w-full flex-wrap items-center justify-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
                         <kbd className="font-mono text-[10px] bg-white border border-gray-300 px-1 rounded text-[#475569]">
                           Ctrl+V
                         </kbd>{" "}
@@ -990,7 +990,7 @@ export function RasterToSvgConverter() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
-                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                  <div className="w-full min-w-0 max-w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
                     {/* Row 1: File Info */}
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="flex items-center gap-[8px] min-w-0">
@@ -1009,7 +1009,7 @@ export function RasterToSvgConverter() {
                     </div>
 
                     {/* Row 2: 3 Metrics Cards */}
-                    <div className="grid grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
+                    <div className="grid min-w-0 grid-cols-3 gap-[8px] text-[12px] md:text-[13px]">
                       <div className="bg-white border border-gray-200/80 rounded-lg p-[6px] md:p-[8px] flex flex-col">
                         <span className="text-[#64748B] text-[10px] md:text-[11px] font-body">{t("dimensions")}</span>
                         <strong className="font-medium text-[#202427] text-[12px] md:text-[13px] truncate">
@@ -1039,9 +1039,9 @@ export function RasterToSvgConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
-                    <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex items-center justify-between">
-                      <span>{t("dualEngineTitle")}</span>
+                  <div className="w-full min-w-0 max-w-full h-auto min-h-[176px] md:h-[180px] rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[14px] md:p-[16px] flex flex-col justify-between mt-[16px] transition-all">
+                    <div className="font-heading font-semibold text-[13px] md:text-[14px] text-[#475569] flex min-w-0 flex-wrap items-center justify-between gap-[6px]">
+                      <span className="min-w-0 break-words">{t("dualEngineTitle")}</span>
                       <span className="text-[11px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">{t("dualEngineBadge")}</span>
                     </div>
                     <ul className="text-[12px] md:text-[13px] text-[#64748B] flex flex-col gap-[4px]">
@@ -1070,14 +1070,14 @@ export function RasterToSvgConverter() {
                 )}
 
                 {/* Privacy Assurance Text */}
-                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
+                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex min-w-0 items-center justify-start gap-[6px] mt-[16px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                  <span>{t("privateNotice")}</span>
+                  <span className="min-w-0 break-words">{t("privateNotice")}</span>
                 </p>
 
                 {/* Result Details */}
                 {result && result.size > 0 && (
-                  <p className="font-body font-normal text-[12px] md:text-[13px] text-[#64748B] mt-[10px]">
+                  <p className="w-full min-w-0 max-w-full break-words font-body font-normal text-[12px] md:text-[13px] text-[#64748B] mt-[10px]">
                     {result.modeUsed === "vector" ? t("resultVectorPaths") : t("resultPixelPerfect")}
                     {result.tracingModeUsed === "auto" && result.resolvedTracingMode
                       ? ` · Auto → ${result.resolvedTracingMode.charAt(0).toUpperCase()}${result.resolvedTracingMode.slice(1)}`
@@ -1097,16 +1097,16 @@ export function RasterToSvgConverter() {
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Vector Controls                 */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] min-w-0 flex flex-col">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
                 {/* Column Header with View Mode Tabs */}
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
+                  <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">
                     {result ? (result.modeUsed === "vector" ? t("vectorOutput") : t("svgOutput")) : t("livePreview")}
                   </h2>
 
                   {/* Mode Tabs (Vector / Source / Code) */}
                   {result && (
-                    <div className="flex items-center gap-[4px] bg-[#F1F5F9] p-[3px] rounded-[8px]">
+                    <div className="flex min-w-0 max-w-full flex-wrap items-center gap-[4px] bg-[#F1F5F9] p-[3px] rounded-[8px]">
                       <button
                         type="button"
                         onClick={() => setPreviewMode("vector")}
@@ -1251,11 +1251,11 @@ export function RasterToSvgConverter() {
                 {/* Vector Settings (2x2 Grid)                                */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full h-auto mt-[16px] md:mt-[20px] transition-all duration-300 flex flex-col justify-between ${
+                  className={`w-full min-w-0 mt-[16px] md:mt-[20px] transition-all duration-300 flex flex-col justify-between ${
                     converting ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[20px] w-full h-full">
+                  <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[20px] w-full h-full">
                     {/* Quality Dropdown */}
                     <VectorDropdown
                       label={t("qualityLabel")}
@@ -1362,19 +1362,19 @@ export function RasterToSvgConverter() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
+                  <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-[12px] md:gap-[16px] mt-[12px] md:mt-[16px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !isSvgResult) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+                        className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
                       >
                         {t("signUpUnlimited")}
                       </button>
                     ) : isSvgResult ? (
                       <>
                         <Button
-                          className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                          className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                           onClick={handleDownload}
                           disabled={converting}
                         >
@@ -1423,7 +1423,7 @@ export function RasterToSvgConverter() {
                       </>
                     ) : (
                       <Button
-                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                        className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleConvert}
                         disabled={converting || !rasterDataUrl}
                       >

@@ -43,7 +43,7 @@ export default async function Home({
   const tHome = await getTranslations({ locale, namespace: "homepage" });
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full min-w-0 max-w-full flex flex-col items-center">
       <Hero />
       <ConverterUI />
       <Features />

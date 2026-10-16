@@ -1051,18 +1051,18 @@ export function BackgroundRemover() {
       <section
         id="converter"
         aria-busy={processing}
-        className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
+        <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
+          <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex min-w-0 flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
                 {/* Column Header */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
@@ -1319,7 +1319,7 @@ export function BackgroundRemover() {
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Controls                       */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col justify-between">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col justify-between">
                 <div className="flex flex-col">
                 {/* Column Header with View Mode Tabs */}
                 <div className="flex items-center justify-between mb-[12px] h-[36px]">
@@ -1452,7 +1452,7 @@ export function BackgroundRemover() {
                     </div>
 
                     {backgroundTab === "Magic" && (
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-4">
                         {PHOTO_BACKGROUND_PRESETS.map((preset) => (
                           <button
                             key={preset.id}
@@ -1496,7 +1496,7 @@ export function BackgroundRemover() {
 
                     {backgroundTab === "Color" && (
                       <div>
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                        <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-6">
                           {COLOR_GRADIENT_PRESETS.map((preset) => (
                             <button
                               key={preset.name}
@@ -1538,11 +1538,11 @@ export function BackgroundRemover() {
                 {/* Background Remover Settings (1x2 Grid)                    */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${
+                  className={`w-full min-w-0 mt-[16px] md:mt-[20px] transition-all duration-300 ${
                     processing ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                  <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
                     {/* Background Dropdown */}
                     <BgRemoverDropdown
                       label="Background"
@@ -1703,7 +1703,7 @@ export function BackgroundRemover() {
 
                     {/* Result Details */}
                     {result && result.size > 0 && !staleResult && (
-                      <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
+                      <p className="w-full min-w-0 max-w-full break-words text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-1">
                         {addedBackground ? "Background added PNG" : bgOption === "Transparent" ? "Transparent PNG" : `${bgOption === "Custom" ? customColor : bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
                         {imageDims ? ` · ${imageDims.width}×${imageDims.height} px` : ""}
                       </p>
