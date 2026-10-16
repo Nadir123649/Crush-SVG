@@ -4,7 +4,7 @@
 
 **Test run:** Playwright, Chromium, local development server
 
-**Regression spec:** [`tests/e2e/viewport-overflow.spec.ts`](tests/e2e/viewport-overflow.spec.ts)
+**Regression specs:** [`tests/e2e/viewport-overflow.spec.ts`](tests/e2e/viewport-overflow.spec.ts), [`tests/e2e/header-zoom-layout.spec.ts`](tests/e2e/header-zoom-layout.spec.ts)
 
 ## Checks performed
 
@@ -14,7 +14,8 @@ The test loaded each route and checked that the document had no horizontal overf
 | --- | ---: | --- |
 | Desktop, 1280x800 | 36: six tools x six locales | PASS |
 | Mobile, 375x812 | 11 reported route/locale cases | PASS |
-| **Total** | **47 route/viewport checks** | **PASS** |
+| Header, 1280 CSS px (80%-zoom equivalent) | 6 locale layout checks | PASS |
+| **Total** | **53 route and layout checks** | **PASS** |
 
 ### Desktop routes
 
@@ -38,7 +39,7 @@ English routes use the unprefixed path; other locales use `/{locale}/{route}`.
 
 ## Outcome
 
-All 47 checks passed. No tested page had document-level horizontal scrolling, and no route returned a missing or HTTP error response. No layout fixes were needed after this run.
+All 47 route/viewport checks passed. The additional header check passed in all six locales: the navigation fits between the logo and account controls without overlap or clipped options. No tested page had document-level horizontal scrolling, and no route returned a missing or HTTP error response.
 
 `git diff --check` also passed.
 
