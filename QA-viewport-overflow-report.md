@@ -14,8 +14,9 @@ The test loaded each route and checked that the document had no horizontal overf
 | --- | ---: | --- |
 | Desktop, 1280x800 | 36: six tools x six locales | PASS |
 | Mobile, 375x812 | 11 reported route/locale cases | PASS |
-| Header, 1280 CSS px (80%-zoom equivalent) | 6 locale layout checks | PASS |
-| **Total** | **53 route and layout checks** | **PASS** |
+| Header, 1024px and 1280px | 12 locale/width layout checks | PASS |
+| Mobile header drawer, 375px | 1 navigation access check | PASS |
+| **Total** | **60 route and layout checks** | **PASS** |
 
 ### Desktop routes
 
@@ -39,7 +40,7 @@ English routes use the unprefixed path; other locales use `/{locale}/{route}`.
 
 ## Outcome
 
-All 47 route/viewport checks passed. The additional header check passed in all six locales: the navigation fits between the logo and account controls without overlap or clipped options. No tested page had document-level horizontal scrolling, and no route returned a missing or HTTP error response.
+All 47 route/viewport checks passed. The header layout checks passed at 1024px and 1280px in all six locales: the navigation fits between the logo and account controls without overlap or clipped options. At 375px, the mobile drawer keeps the navigation links accessible. No tested page had document-level horizontal scrolling, and no route returned a missing or HTTP error response.
 
 `git diff --check` also passed.
 

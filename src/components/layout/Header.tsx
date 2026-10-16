@@ -172,7 +172,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   return (
     <header className="w-full sticky top-0 z-50">
       <div
-        className={`w-full flex justify-center px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px] transition-all duration-300 ${
+        className={`w-full flex justify-center px-[12px] min-[640px]:px-[16px] min-[768px]:px-[20px] min-[1024px]:px-[24px] min-[1280px]:px-[32px] pt-[14px] md:pt-[20px] pb-[14px] transition-all duration-300 ${
           isScrolled
             ? "bg-[#FFFCFA]/95 backdrop-blur-md shadow-[0px_4px_20px_0px_rgba(0,0,0,0.04)] border-b border-[#F0E6DF]"
             : "bg-[#FFFCFA] border-b border-[#F7F1EC]"
@@ -204,7 +204,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1280px]:flex relative flex-1 min-w-0 max-w-[640px] mx-2 min-[1280px]:mx-4 items-center justify-center gap-[2px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 overflow-x-auto overflow-y-hidden"
+            className="hidden min-[1024px]:flex relative flex-1 min-w-0 max-w-[640px] mx-2 min-[1280px]:mx-4 items-center justify-center gap-[2px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 overflow-x-auto overflow-y-hidden"
           >
             {/* 1. Tools Dropdown */}
             <div className="relative shrink-0">
@@ -495,12 +495,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] md:min-w-[280px] justify-end">
+          <div className="flex shrink-0 items-center gap-[8px] sm:gap-[10px] md:gap-[12px] border-l border-[#E8DED7] pl-[10px] md:pl-[14px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden min-[1280px]:inline-flex" />
 
             {/* Language Switcher (Tablet & Desktop, Controlled so opening it closes Account) */}
-            <div className="hidden sm:inline-block">
+            <div className="hidden min-[1280px]:block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
                 isOpen={activeDropdown === "language"}
@@ -509,7 +509,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            <div className={`logged-out-only hidden md:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+            <div className={`logged-out-only hidden min-[1280px]:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
               <Button
                 href="/login"
                 onClick={() => saveAuthRedirectUrl()}
@@ -529,7 +529,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Authenticated profile menu */}
-            <div className={`logged-in-only relative ${status === "guest" ? "!hidden" : ""}`}>
+            <div className={`logged-in-only relative hidden min-[1280px]:block ${status === "guest" ? "!hidden" : ""}`}>
               {(isAuthenticated || user) && (
                 <>
               <button
