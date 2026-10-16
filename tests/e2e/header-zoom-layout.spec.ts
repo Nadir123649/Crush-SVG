@@ -1,14 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("header navigation fits on small laptop widths in every locale", async ({ page }) => {
+test("main-style header stays fitted across laptop and desktop widths in every locale", async ({ page }) => {
+  test.setTimeout(180_000);
+
   for (const route of ["/", "/ja", "/pt", "/fr", "/de", "/es"]) {
     await page.goto(route);
 
-    for (const width of [1024, 1280]) {
+    for (const width of [1024, 1280, 1440, 1536, 1600]) {
       // A 1024px laptop at 80% browser zoom has roughly 1280 CSS pixels.
       await page.setViewportSize({ width, height: 800 });
 
-      const geometry = await page.locator("header > div > div").evaluate((row) => {
+      const geometry = await page.locator("header > div > div > div").evaluate((row) => {
         const [logo, navigation, controls] = Array.from(row.children).slice(0, 3);
         const box = (element: Element) => {
           const { left, right } = element.getBoundingClientRect();
