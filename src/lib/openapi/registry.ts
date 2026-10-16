@@ -150,7 +150,7 @@ const vectorizeBody = registry.register(
     file: z.string().describe("Image file (multipart/form-data)"),
     mode: z.enum(["auto", "logo", "line-art", "photo"]).optional(),
     quality: z.enum(["draft", "standard", "max"]).optional(),
-    colorCount: z.number().int().min(2).max(64).optional(),
+    colorCount: z.number().int().min(2).max(128).optional(),
     background: z.enum(["preserve", "transparent", "custom"]).optional(),
     bgColor: z.string().optional(),
   })

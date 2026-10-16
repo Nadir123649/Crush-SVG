@@ -614,6 +614,7 @@ function SvgToPngConverter() {
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
+      triggerDownload(res);
       if (res.warnings && res.warnings.length > 0) {
         res.warnings.forEach(w => showToast("info", w));
       }
@@ -664,10 +665,10 @@ function SvgToPngConverter() {
     }
   }
 
-  function handleDownload() {
-    if (!result?.data) return;
-    const downloadUrl = `data:${result.mimeType};base64,${result.data}`;
-    const ext = result.format === "jpeg" ? "jpg" : result.format;
+  function triggerDownload(download: ConvertResponse | null) {
+    if (!download?.data) return;
+    const downloadUrl = `data:${download.mimeType || "image/png"};base64,${download.data}`;
+    const ext = download.format === "jpeg" ? "jpg" : download.format || "png";
     const a = document.createElement("a");
     a.href = downloadUrl;
     a.download = `crushsvg-${Date.now()}.${ext}`;
@@ -676,10 +677,14 @@ function SvgToPngConverter() {
     a.remove();
     showToast("success", tToast("downloadStarted"));
     trackConversion("png_downloaded", { output_format: ext });
-    if (limitReached && status !== "authed") {
+    if ((limitReached || download.remaining === 0) && status !== "authed") {
       setLimitDownloadDone(true);
       setShowSignupPrompt(true);
     }
+  }
+
+  function handleDownload() {
+    triggerDownload(result);
   }
 
   async function handleCopyImageToClipboard() {

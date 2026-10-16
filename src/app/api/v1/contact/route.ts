@@ -1,11 +1,14 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { Settings } from '@/lib/database/db'
+import { Settings, connectToDatabase } from '@/lib/database/db'
 import { sendEmail } from '@/lib/integrations/email'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 
 export const runtime = 'nodejs'
+// The email transport may retry once after a network timeout. Give the
+// serverless handler enough time to finish delivery and return its result.
+export const maxDuration = 30
 
 const FALLBACK_RECIPIENT = 'support@crushsvg.net'
 
@@ -14,7 +17,7 @@ const FALLBACK_RECIPIENT = 'support@crushsvg.net'
 const contactSchema = z.object({
   name: z.string().trim().min(3, 'Name must be at least 3 characters').max(100, 'Name is too long'),
   email: z.string().trim().email('Invalid email format').max(254, 'Email is too long'),
-  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(5000, 'Message is too long'),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(2000, 'Message is too long'),
 })
 
 function escapeHtml(value: string): string {
@@ -34,6 +37,11 @@ function singleLine(value: string): string {
 async function resolveRecipient(): Promise<string> {
   if (process.env.CONTACT_EMAIL_TO) return process.env.CONTACT_EMAIL_TO
   try {
+    // Mongoose buffers queries when the application connection has not been
+    // opened yet. That can hold this public serverless request until Mongoose's
+    // much longer buffer timeout, so establish the normal bounded connection
+    // first and fall back immediately if the database is unavailable.
+    await connectToDatabase()
     const settings = await Settings.findOne().lean()
     if (settings?.supportEmail) return settings.supportEmail
   } catch (error) {

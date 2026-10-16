@@ -50,7 +50,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         <div className="w-full flex flex-col xl:flex-row justify-between items-center xl:items-start gap-[32px] xl:gap-0">
 
         {/* Left: Logo & Desc */}
-        <div className="flex flex-col items-center xl:items-start w-full md:w-[400px] xl:w-[276px] gap-[12px] text-center xl:text-left">
+        <div className="flex flex-col items-center xl:items-start w-full md:w-[400px] xl:w-[240px] gap-[12px] text-center xl:text-left">
           <Link href="/" onClick={(e) => handlePageClick(e, '/')} aria-label="CrushSVG homepage" className="flex items-center gap-[10px]">
             <Image
               src={logoUrl || IMAGES.logo}
@@ -95,9 +95,9 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Middle: Links */}
-        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[40px] lg:gap-[48px] ml-0 xl:ml-[40px] items-center text-center md:text-left">
+        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[40px] lg:gap-[48px] xl:gap-[20px] ml-0 xl:ml-[32px] items-center text-center md:text-left">
           {/* Column 1: Explore */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
+          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("explore")}</h4>
             <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgConverter")}</Link>
             <Link href="/png-to-svg" onClick={(e) => handlePageClick(e, '/png-to-svg')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
@@ -108,7 +108,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>
           {/* Column 2: Resources */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
+          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("resources")}</h4>
             <Link href="/blog" onClick={(e) => handlePageClick(e, '/blog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Blog</Link>
             <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgGuides")}</Link>
@@ -118,7 +118,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("contactUs")}</Link>
           </div>
           {/* Column 3: Company */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
+          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("company")}</h4>
             <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("aboutUs")}</Link>
             <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("ourTeam")}</Link>
@@ -126,7 +126,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("termsOfService")}</Link>
           </div>
           {/* Column 4: Use Cases */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] gap-[10px] md:gap-[14px]">
+          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("useCases")}</h4>
             <Link href={"/use-case/svg-to-png-for-react" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("reactNext")}</Link>
             <Link href={"/use-case/svg-to-png-for-email-signatures" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("emailSignatures")}</Link>
@@ -198,69 +198,69 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
       {/* Converters & Engines Section */}
       <div className="w-full mt-[24px] md:mt-[40px]">
         <h4 className="font-heading font-bold text-[14px] md:text-[16px] leading-[120%] text-[#353A3E] text-center mb-[16px] md:mb-[20px]">{t("convertersEngines")}</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[12px] md:gap-[16px]">
+        <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] md:grid-cols-4 gap-[12px] md:gap-[16px]">
           <Link
             href="/"
             onClick={(e) => handlePageClick(e, '/')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">SVG</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToPngFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgToPngDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToPngFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgToPngDesc")}</span>
           </Link>
           <Link
             href="/png-to-svg"
             onClick={(e) => handlePageClick(e, '/png-to-svg')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">PNG</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("pngToSvgFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("pngToSvgDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("pngToSvgFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("pngToSvgDesc")}</span>
           </Link>
           <Link
             href="/image-resizer"
             onClick={(e) => handlePageClick(e, '/image-resizer')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">PX</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("imageResizerFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("imageResizerDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("imageResizerFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("imageResizerDesc")}</span>
           </Link>
           <Link
             href="/background-remover"
             onClick={(e) => handlePageClick(e, '/background-remover')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">AI</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("bgRemoverDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("bgRemoverDesc")}</span>
           </Link>
           <Link
             href="/svg-optimizer"
             onClick={(e) => handlePageClick(e, '/svg-optimizer')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">OPT</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgOptimizerDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgOptimizerDesc")}</span>
           </Link>
           <Link
             href="/favicon-generator"
             onClick={(e) => handlePageClick(e, '/favicon-generator')}
-            className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">ICO</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("faviconGeneratorFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("faviconGeneratorDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("faviconGeneratorFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("faviconGeneratorDesc")}</span>
           </Link>
           <Link
             href="/svg-to-react"
             onClick={(e) => handlePageClick(e, '/svg-to-react')}
-            className="col-span-2 md:col-span-1 w-1/2 md:w-auto justify-self-center md:justify-self-stretch grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="col-span-2 md:col-span-1 w-1/2 min-w-0 md:w-auto justify-self-center md:justify-self-stretch grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">RCT</span>
-            <span className="font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToReactFull")}</span>
-            <span className="col-span-2 font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgToReactDesc")}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToReactFull")}</span>
+            <span className="col-span-2 min-w-0 break-words [overflow-wrap:anywhere] font-body text-[11px] md:text-[12px] text-text-muted text-left">{t("svgToReactDesc")}</span>
           </Link>
         </div>
       </div>

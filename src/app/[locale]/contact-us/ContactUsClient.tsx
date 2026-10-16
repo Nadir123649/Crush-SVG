@@ -152,6 +152,7 @@ export function ContactUsClient() {
               placeholder={t("messagePlaceholder")}
               required
               minLength={10}
+              maxLength={2000}
               aria-required="true"
               rows={5}
               className={`w-full rounded-[8px] border-[1px] ${isMessageInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent p-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors resize-none overflow-y-auto`}

@@ -13,6 +13,7 @@ let sendFailure: Error | null = null;
 
 mock.module("@/lib/database/db", {
   namedExports: {
+    connectToDatabase: async () => {},
     Settings: {
       findOne: () => ({
         lean: async () => ({ supportEmail: "admin@example.test" }),

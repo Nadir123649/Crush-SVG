@@ -64,6 +64,7 @@
     "cloudinary": "^2.10.0",
     "firebase": "^12.17.1",
     "firebase-admin": "^14.2.0",
+    "fast-xml-parser": "^5.11.2",
     "gray-matter": "^4.0.3",
     "jose": "^6.2.8",
     "jsonwebtoken": "^9.0.3",

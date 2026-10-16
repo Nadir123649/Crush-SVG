@@ -104,10 +104,9 @@ export async function processBackgroundRemove(
       const processModnet = await getModnetProcessor();
       return await processModnet(workingBuffer, options);
     } catch (err) {
-      // Do NOT hide a MODNet failure behind the legacy engine. For a photo the
-      // AI result is authoritative; silently returning the colour-distance
-      // output instead would look like a successful but much worse result.
-      // Surface the error so the route can classify and report it.
+      // Do not substitute the low-accuracy color-distance engine for a photo.
+      // If the AI model is unavailable, fail clearly instead of returning a
+      // misleading cutout that looks successful but retains the background.
       console.error("[bg-remove] MODNet failed for a photo/portrait image:", err);
       throw err;
     }

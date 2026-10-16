@@ -17,7 +17,12 @@ export function trackConversionUsage(metadata: {
     body: JSON.stringify({ metadata })
   }).then(usage => {
     if (typeof window !== 'undefined' && usage) {
-      localStorage.setItem('crush_usage_info', JSON.stringify(usage));
+      try {
+        localStorage.setItem('crush_usage_info', JSON.stringify(usage));
+      } catch {
+        // Usage still updates in memory when browser storage is unavailable.
+      }
+      window.dispatchEvent(new CustomEvent('crushUsageUpdated', { detail: usage }));
     }
     return usage;
   });

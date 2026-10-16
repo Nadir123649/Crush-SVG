@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Link, useRouter } from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMAGES } from "@/lib/shared/images";
@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/lib/firebase/firebase-client";
 import { ApiError } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
+import { clearAuthRedirectUrl, getAuthRedirectUrl } from "@/lib/client/auth-redirect";
 interface AuthCardProps {
   type: "login" | "signup";
   returnTo?: string;
@@ -21,9 +22,11 @@ type SubmittingState = "email" | null;
 
 export function AuthCard({ type, returnTo }: AuthCardProps) {
   const isLogin = type === "login";
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = returnTo || searchParams.get("returnTo") || "/";
+  const returnToParam = returnTo || searchParams.get("returnTo");
+  const redirectTo = () => getAuthRedirectUrl(returnToParam);
+  const authSwitchHref = (path: "/login" | "/signup") =>
+    returnToParam ? `${path}?returnTo=${encodeURIComponent(returnToParam)}` : path;
   const { login, register, loginWithOAuth, resendVerification } = useAuth();
   const t = useTranslations("auth_pages");
   const tToast = useTranslations("toasts");
@@ -69,7 +72,9 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
       if (isLogin) {
         await login(email, password, rememberMe);
         loginSucceeded = true;
-        router.push(redirectTo as any);
+        const destination = redirectTo();
+        clearAuthRedirectUrl();
+        window.location.assign(destination);
       } else {
         await register(name.trim(), email, password);
         trackConversion("sign_up", { method: "email" });
@@ -95,7 +100,9 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
-      router.push(redirectTo as any);
+      const destination = redirectTo();
+      clearAuthRedirectUrl();
+      window.location.assign(destination);
     } catch (err) {
       // Closing the popup (or a cancelled popup request) is a cancellation,
       // not an error — keep the form clean and silent.
@@ -144,7 +151,7 @@ async function handleOAuth(provider: OAuthProvider) {
                 {t("resendVerification")}
               </button>
             )}
-            <Link href="/login" className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E]">
+            <Link href={authSwitchHref("/login")} className="font-afacad text-[14px] text-[#4B5563] hover:text-[#D94A1E]">
               {t("backToLogin")}
             </Link>
           </div>
@@ -171,9 +178,9 @@ async function handleOAuth(provider: OAuthProvider) {
           </h1>
           <p className="font-afacad text-[14px] text-[#000000]">
             {isLogin ? (
-              <>{t("newUserPrompt")} <Link href="/signup" className="text-[#D94A1E] font-semibold hover:underline">{t("signUpLink")}</Link></>
+              <>{t("newUserPrompt")} <Link href={authSwitchHref("/signup")} className="text-[#D94A1E] font-semibold hover:underline">{t("signUpLink")}</Link></>
             ) : (
-              <>{t("alreadyUserPrompt")} <Link href="/login" className="text-[#D94A1E] font-semibold hover:underline">{t("logInLink")}</Link></>
+              <>{t("alreadyUserPrompt")} <Link href={authSwitchHref("/login")} className="text-[#D94A1E] font-semibold hover:underline">{t("logInLink")}</Link></>
             )}
           </p>
         </div>

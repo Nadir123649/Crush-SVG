@@ -10,6 +10,7 @@ import { ApiError, authFetch } from "@/lib/client/http";
 import { IMAGES } from "@/lib/shared/images";
 import { API_DOCS_PATH } from "@/lib/openapi/constants";
 import { getLocalizedHref, type Locale } from "@/i18n/routing";
+import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function ProfileDashboardUI() {
   const t = useTranslations("profile_dashboard");
@@ -41,6 +42,7 @@ export function ProfileDashboardUI() {
   function reportKeyFailure(failure: Response | unknown, fallbackMessage: string) {
     if (failure instanceof ApiError && failure.code === "session_expired") {
       // authFetch has already shown the session-expired toast.
+      saveAuthRedirectUrl();
       window.location.assign(getLocalizedHref("/login", locale));
       return;
     }
@@ -48,6 +50,7 @@ export function ProfileDashboardUI() {
       failure instanceof Response ? failure.status : failure instanceof ApiError ? failure.status : 0;
     if (status === 401) {
       showToast("error", t("sessionExpired"));
+      saveAuthRedirectUrl();
       window.location.assign(getLocalizedHref("/login", locale));
       return;
     }
@@ -124,7 +127,7 @@ export function ProfileDashboardUI() {
 
   async function handleCopyBaseUrl() {
     try {
-      await navigator.clipboard.writeText("https://crushsvg.net/api/v1");
+      await navigator.clipboard.writeText("https://www.crushsvg.net/api/v1");
       setCopiedBaseUrl(true);
       setTimeout(() => setCopiedBaseUrl(false), 2000);
       showToast("success", "API Base URL copied to clipboard!");
@@ -137,7 +140,7 @@ export function ProfileDashboardUI() {
 
   const codeSnippets: Record<string, Record<string, string>> = {
     convert: {
-      curl: `curl -X POST https://crushsvg.net/api/v1/convert \\
+      curl: `curl -X POST https://www.crushsvg.net/api/v1/convert \\
   -H "Authorization: Bearer ${sampleKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -147,7 +150,7 @@ export function ProfileDashboardUI() {
     "format": "png"
   }'`,
       js: `// Convert SVG to PNG via CrushSVG REST API
-const response = await fetch("https://crushsvg.net/api/v1/convert", {
+const response = await fetch("https://www.crushsvg.net/api/v1/convert", {
   method: "POST",
   headers: {
     "Authorization": "Bearer ${sampleKey}",
@@ -165,7 +168,7 @@ console.log("Download URL:", data.payload.downloadUrl);`,
       python: `import requests
 
 # Convert SVG to PNG via CrushSVG REST API
-url = "https://crushsvg.net/api/v1/convert"
+url = "https://www.crushsvg.net/api/v1/convert"
 headers = {
     "Authorization": "Bearer ${sampleKey}",
     "Content-Type": "application/json"
@@ -180,7 +183,7 @@ response = requests.post(url, json=payload, headers=headers)
 print(response.json())`,
       php: `<?php
 // Convert SVG to PNG via CrushSVG REST API
-$ch = curl_init('https://crushsvg.net/api/v1/convert');
+$ch = curl_init('https://www.crushsvg.net/api/v1/convert');
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Bearer ${sampleKey}',
     'Content-Type: application/json'
@@ -198,7 +201,7 @@ echo $result;
 ?>`,
     },
     vectorize: {
-      curl: `curl -X POST https://crushsvg.net/api/v1/vectorize \\
+      curl: `curl -X POST https://www.crushsvg.net/api/v1/vectorize \\
   -H "Authorization: Bearer ${sampleKey}" \\
   -F "image=@icon.png" \\
   -F "colorMode=color" \\
@@ -208,7 +211,7 @@ const formData = new FormData();
 formData.append("image", fileInput.files[0]);
 formData.append("colorMode", "color");
 
-const response = await fetch("https://crushsvg.net/api/v1/vectorize", {
+const response = await fetch("https://www.crushsvg.net/api/v1/vectorize", {
   method: "POST",
   headers: { "Authorization": "Bearer ${sampleKey}" },
   body: formData
@@ -219,7 +222,7 @@ console.log("SVG Vector:", result.payload.svgContent);`,
       python: `import requests
 
 # Vectorize bitmap image into scalable SVG
-url = "https://crushsvg.net/api/v1/vectorize"
+url = "https://www.crushsvg.net/api/v1/vectorize"
 headers = {"Authorization": "Bearer ${sampleKey}"}
 files = {"image": open("icon.png", "rb")}
 data = {"colorMode": "color", "filterSpeckle": 4}
@@ -227,7 +230,7 @@ data = {"colorMode": "color", "filterSpeckle": 4}
 response = requests.post(url, headers=headers, files=files, data=data)
 print(response.json())`,
       php: `<?php
-$ch = curl_init('https://crushsvg.net/api/v1/vectorize');
+$ch = curl_init('https://www.crushsvg.net/api/v1/vectorize');
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ${sampleKey}']);
 curl_setopt($ch, CURLOPT_POSTFIELDS, [
     'image' => new CURLFile('icon.png'),
@@ -240,14 +243,14 @@ echo $response;
 ?>`,
     },
     bgRemove: {
-      curl: `curl -X POST https://crushsvg.net/api/v1/background-remove \\
+      curl: `curl -X POST https://www.crushsvg.net/api/v1/background-remove \\
   -H "Authorization: Bearer ${sampleKey}" \\
   -F "image=@photo.jpg"`,
       js: `// Neural AI Background Removal
 const formData = new FormData();
 formData.append("image", fileInput.files[0]);
 
-const response = await fetch("https://crushsvg.net/api/v1/background-remove", {
+const response = await fetch("https://www.crushsvg.net/api/v1/background-remove", {
   method: "POST",
   headers: { "Authorization": "Bearer ${sampleKey}" },
   body: formData
@@ -257,7 +260,7 @@ const blob = await response.blob();`,
       python: `import requests
 
 # Neural AI Background Removal
-url = "https://crushsvg.net/api/v1/background-remove"
+url = "https://www.crushsvg.net/api/v1/background-remove"
 headers = {"Authorization": "Bearer ${sampleKey}"}
 files = {"image": open("photo.jpg", "rb")}
 
@@ -265,7 +268,7 @@ response = requests.post(url, headers=headers, files=files)
 with open("transparent.png", "wb") as f:
     f.write(response.content)`,
       php: `<?php
-$ch = curl_init('https://crushsvg.net/api/v1/background-remove');
+$ch = curl_init('https://www.crushsvg.net/api/v1/background-remove');
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ${sampleKey}']);
 curl_setopt($ch, CURLOPT_POSTFIELDS, ['image' => new CURLFile('photo.jpg')]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -275,10 +278,10 @@ file_put_contents('transparent.png', $res);
 ?>`,
     },
     usage: {
-      curl: `curl -X GET https://crushsvg.net/api/v1/usage \\
+      curl: `curl -X GET https://www.crushsvg.net/api/v1/usage \\
   -H "Authorization: Bearer ${sampleKey}"`,
       js: `// Retrieve remaining quota & usage
-const res = await fetch("https://crushsvg.net/api/v1/usage", {
+const res = await fetch("https://www.crushsvg.net/api/v1/usage", {
   headers: { "Authorization": "Bearer ${sampleKey}" }
 });
 const { payload } = await res.json();
@@ -286,12 +289,12 @@ console.log(\`Used: \${payload.conversionsUsed} / \${payload.remaining} remainin
       python: `import requests
 
 response = requests.get(
-    "https://crushsvg.net/api/v1/usage",
+    "https://www.crushsvg.net/api/v1/usage",
     headers={"Authorization": "Bearer ${sampleKey}"}
 )
 print(response.json())`,
       php: `<?php
-$ch = curl_init('https://crushsvg.net/api/v1/usage');
+$ch = curl_init('https://www.crushsvg.net/api/v1/usage');
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ${sampleKey}']);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 echo curl_exec($ch);
@@ -472,7 +475,7 @@ curl_close($ch);
 
               {/* Bottom Source Text & Privacy */}
               <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px]">
-                Base Gateway: <code className="font-mono text-[12px] text-brand-primary bg-[#FAF6F3] px-1 py-0.5 rounded">https://crushsvg.net/api/v1</code>
+                Base Gateway: <code className="font-mono text-[12px] text-brand-primary bg-[#FAF6F3] px-1 py-0.5 rounded">https://www.crushsvg.net/api/v1</code>
               </p>
 
               <div className="mt-[16px] lg:mt-auto flex flex-col w-full">

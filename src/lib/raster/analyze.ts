@@ -122,12 +122,6 @@ function classify(
     if (edgeDensity > 0.15 || uniqueColorRatio > 0.25) return edgeDensity > 0.18 ? "line-art" : "mono";
     return "mono";
   }
-    // Photos and shaded drawings have many gray levels; keep those tonal
-    // regions instead of forcing them through the binary black/white tracer.
-    if (grayToneRatio > 0.65 && edgeDensity > 0.08) return "photo";
-    if (edgeDensity > 0.15) return "line-art";
-    return "mono";
-  }
   // JPEG compression, camera noise, skin, hair, and soft backgrounds can make
   // a photo's local edge density look deceptively low. A rich occupied palette
   // is a stronger signal than the old requirement for both high palette ratio

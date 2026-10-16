@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { getAccessToken } from "@/lib/client/http";
-import { getUsage } from "@/lib/client/sessions";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -644,6 +644,14 @@ export function ImageResizer() {
       });
       setPreviewMode("after");
       showToast("success", "Image resized! Ready to download.");
+      void trackConversionUsage({
+        inputFormat: imageName?.split(".").pop()?.toLowerCase() || "image",
+        outputFormat,
+        originalSize: imageSize ?? undefined,
+        success: true,
+      })
+        .then(setUsage)
+        .catch(() => {});
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Resize failed. Please try again.";
       setError(msg);
