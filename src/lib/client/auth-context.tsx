@@ -212,10 +212,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setTimeout(() => void attemptRefresh(attempt + 1), REFRESH_BACKOFF_MS[attempt])
             return
           }
-          // Transient failure — keep stale auth state so the user isn't
-          // logged out mid-session. The next page load will attempt refresh
-          // again from storage.
-          setStatus('guest')
+          // The stored user/token snapshot may still be valid. Keep an already
+          // restored session authed through a transient refresh outage; only
+          // resolve to guest here when initial storage restoration left us in
+          // the loading state (for example, malformed local storage).
+          setStatus((current) => current === 'loading' ? 'guest' : current)
           return
         }
         clearAuth()

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getUseCaseBySlug, useCases } from "@/lib/data/use-cases";
+import { getLocalizedUseCase } from "@/lib/data/use-case-translations";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { FAQ } from "@/components/sections/FAQ";
 import { Hero } from "@/components/sections/Hero";
@@ -30,10 +31,11 @@ export async function generateMetadata({ params }: UseCasePageProps) {
       description: t("notFoundDesc"),
     });
   }
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
   return constructLocalizedMetadata({
     locale,
     routeKey: `/use-case/${useCase.slug}`,
-    title: `${useCase.title} | CrushSVG`,
+    title: `${localizedUseCase.title} | CrushSVG`,
     description: useCase.description,
     keywords: useCase.keywords,
   });
@@ -57,13 +59,14 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
   setRequestLocale(locale);
   const useCase = getUseCaseBySlug(slug, locale);
   if (!useCase) notFound();
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
 
   const t = await getTranslations("use_case");
 
   const useCaseSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: useCase.title,
+    name: localizedUseCase.title,
     description: useCase.description,
     url: `${SITE_URL}${locale === "en" ? `/use-case/${useCase.slug}` : `/${locale}/use-case/${useCase.slug}`}`,
     isPartOf: {
@@ -84,7 +87,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
       <Hero
         badge={`${useCase.icon} ${t("badge")}`}
         title={
-          renderHeroTitle(useCase.h1, useCase.highlight)
+          renderHeroTitle(localizedUseCase.h1, useCase.highlight)
         }
         subtitle={useCase.description}
         className="mb-[24px] md:mb-[40px]"
@@ -115,7 +118,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
         >
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
-            {t("whyHeading", { h1: useCase.h1 })}
+            {t("whyHeading", { h1: localizedUseCase.h1 })}
           </h2>
           <ul className="flex flex-col gap-[16px]">
             {useCase.features.map((feature, idx) => (

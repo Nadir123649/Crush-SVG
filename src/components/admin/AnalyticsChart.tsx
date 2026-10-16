@@ -13,9 +13,8 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
   const [mouseY, setMouseY] = useState<number | null>(null);
   const chartContainerRef = React.useRef<HTMLDivElement>(null);
 
-  // Default mock data if not enough data points
-  const chartData = data.length >= 7 ? data : [120, 240, 180, 310, 290, 420, 390];
-  const chartLabels = labels.length >= 7 ? labels : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const chartData = data;
+  const chartLabels = labels;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (chartContainerRef.current) {
@@ -31,21 +30,13 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
     setHoverIndex(null);
   };
 
-  // Calculate max for Y-axis scaling (ensure it's at least 10 for small data)
-  const maxValue = Math.max(...chartData, 10);
-  const getNiceMax = (val: number) => {
-    if (val === 0) return 10;
-    const magnitude = Math.pow(10, Math.floor(Math.log10(val)));
-    const firstDigit = val / magnitude;
-    let niceDigit;
-    if (firstDigit <= 1) niceDigit = 1;
-    else if (firstDigit <= 2) niceDigit = 2;
-    else if (firstDigit <= 5) niceDigit = 5;
-    else niceDigit = 10;
-    return niceDigit * magnitude;
-  };
-  const yAxisMaxRaw = getNiceMax(maxValue);
-  const yAxisMax = yAxisMaxRaw % 4 === 0 ? yAxisMaxRaw : yAxisMaxRaw + (4 - (yAxisMaxRaw % 4));
+  // Use four equal intervals with human-friendly tick sizes (e.g. 0, 10, 20, 30, 40).
+  const maxValue = Math.max(...chartData, 0);
+  const rawStep = Math.max(maxValue / 4, 1);
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalizedStep = rawStep / magnitude;
+  const niceStep = (normalizedStep <= 1 ? 1 : normalizedStep <= 2 ? 2 : normalizedStep <= 5 ? 5 : 10) * magnitude;
+  const yAxisMax = niceStep * 4;
 
   // 5 grid lines (0%, 25%, 50%, 75%, 100%)
   const yAxisLines = [4, 3, 2, 1, 0].map(i => (yAxisMax * i) / 4);
@@ -101,7 +92,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
         )}
 
         {/* Bars Container */}
-        <div className="relative z-10 flex flex-1 ml-10 pb-[24px] items-end justify-between px-2 sm:px-6">
+        <div className="relative z-10 flex flex-1 ml-10 pb-[24px] items-end justify-between gap-1 sm:gap-2 px-2 sm:px-6">
           {chartData.map((val, i) => {
             const heightPct = (val / yAxisMax) * 100;
             const isHovered = hoverIndex === i;
