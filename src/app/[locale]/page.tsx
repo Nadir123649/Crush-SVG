@@ -8,6 +8,7 @@ import { SignUpCTA } from "@/components/sections/SignUpCTA";
 import { StepsSection } from "@/components/sections/StepsSection";
 import { TargetAudience } from "@/components/sections/TargetAudience";
 import { FAQ } from "@/components/sections/FAQ";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Link, routing } from "@/i18n/routing";
 
@@ -90,6 +91,7 @@ export default async function Home({
       <StepsSection />
       <TargetAudience />
       <AdBanner />
+      <Testimonials />
       <FAQ />
     </div>
   );

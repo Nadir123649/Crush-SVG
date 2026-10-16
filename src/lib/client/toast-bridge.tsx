@@ -50,7 +50,7 @@ function InfoIcon() {
 // dismissed before showing the next) and identical messages fired within the
 // dedupe window are swallowed to avoid spam. Pass an `id` to prevent duplicate
 // toasts for the same action (e.g. rapid button clicks).
-export function showToast(kind: ToastKind, message: string, opts?: { id?: string }) {
+export function showToast(kind: ToastKind, message: string, opts?: { id?: string; duration?: number }) {
   const now = Date.now()
   if (message === lastMessage && now - lastShownAt < DEDUPE_WINDOW_MS) return
 
@@ -58,7 +58,10 @@ export function showToast(kind: ToastKind, message: string, opts?: { id?: string
     toast.dismiss(activeToastId)
   }
 
-  const options = opts?.id ? { id: opts.id } : undefined
+  const options =
+    opts?.id !== undefined || opts?.duration !== undefined
+      ? { id: opts?.id, duration: opts?.duration }
+      : undefined
 
   const id =
     kind === "success"

@@ -73,7 +73,7 @@ export default function SettingsPage() {
       if (response?.settings) {
         setSettings(response.settings);
         setAdminCached("admin_settings", response.settings);
-        showToast("success", "Settings saved successfully!", { id: "save-settings" });
+        showToast("success", "Settings saved successfully!", { id: "save-settings", duration: 3000 });
       }
     } catch (err) {
       showToast("error", "Failed to save settings.", { id: "save-settings" });

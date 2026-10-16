@@ -1702,7 +1702,7 @@ export function BackgroundRemover() {
                     )}
 
                     {/* Result Details */}
-                    {result && result.size > 0 && (
+                    {result && result.size > 0 && !staleResult && (
                       <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
                         {addedBackground ? "Background added PNG" : bgOption === "Transparent" ? "Transparent PNG" : `${bgOption === "Custom" ? customColor : bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
                         {imageDims ? ` · ${imageDims.width}×${imageDims.height} px` : ""}

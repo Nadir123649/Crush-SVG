@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getUseCaseBySlug, useCases } from "@/lib/data/use-cases";
+import { getLocalizedUseCase } from "@/lib/data/use-case-translations";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { FAQ } from "@/components/sections/FAQ";
 import { Hero } from "@/components/sections/Hero";
@@ -20,19 +21,21 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: UseCasePageProps) {
   const { locale, slug } = await params;
-  const useCase = getUseCaseBySlug(slug);
+  const useCase = getUseCaseBySlug(slug, locale);
   if (!useCase) {
+    const t = await getTranslations("use_case");
     return constructLocalizedMetadata({
       locale,
       routeKey: `/use-case/${slug}`,
-      title: "Not Found",
-      description: "This use case does not exist.",
+      title: t("notFoundTitle"),
+      description: t("notFoundDesc"),
     });
   }
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
   return constructLocalizedMetadata({
     locale,
     routeKey: `/use-case/${useCase.slug}`,
-    title: `${useCase.title} | CrushSVG`,
+    title: `${localizedUseCase.title} | CrushSVG`,
     description: useCase.description,
     keywords: useCase.keywords,
   });
@@ -54,13 +57,16 @@ function renderHeroTitle(h1: string, highlight?: string) {
 export default async function UseCasePage({ params }: UseCasePageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const useCase = getUseCaseBySlug(slug);
+  const useCase = getUseCaseBySlug(slug, locale);
   if (!useCase) notFound();
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
+
+  const t = await getTranslations("use_case");
 
   const useCaseSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: useCase.title,
+    name: localizedUseCase.title,
     description: useCase.description,
     url: `${SITE_URL}${locale === "en" ? `/use-case/${useCase.slug}` : `/${locale}/use-case/${useCase.slug}`}`,
     isPartOf: {
@@ -79,9 +85,9 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
 
       {/* Hero */}
       <Hero
-        badge={`${useCase.icon} Use Case`}
+        badge={`${useCase.icon} ${t("badge")}`}
         title={
-          renderHeroTitle(useCase.h1, useCase.highlight)
+          renderHeroTitle(localizedUseCase.h1, useCase.highlight)
         }
         subtitle={useCase.description}
         className="mb-[24px] md:mb-[40px]"
@@ -112,7 +118,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
         >
           <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
-            Why CrushSVG for {useCase.h1}?
+            {t("whyHeading", { h1: localizedUseCase.h1 })}
           </h2>
           <ul className="flex flex-col gap-[16px]">
             {useCase.features.map((feature, idx) => (
@@ -123,7 +129,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
                     {feature}
                   </strong>
                   <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">
-                    Pixel-perfect conversion engineered for this exact use case.
+                    {t("featureBlurb")}
                   </span>
                 </div>
               </li>
@@ -133,14 +139,14 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           {/* Quick tool callout inside the card */}
           <div className="mt-8 p-5 md:p-6 rounded-[10px] bg-[#FCF1ED] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <p className="font-heading font-semibold text-text-dark text-base">Try it right now — it&apos;s free.</p>
-              <p className="font-afacad text-sm text-text-muted">No signup required for your first 3 conversions.</p>
+              <p className="font-heading font-semibold text-text-dark text-base">{t("tryNow")}</p>
+              <p className="font-afacad text-sm text-text-muted">{t("noSignup")}</p>
             </div>
             <Link
               href="/"
               className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
             >
-              Open Converter &rarr;
+              {t("openConverter")} &rarr;
             </Link>
           </div>
         </section>
@@ -156,18 +162,18 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
       <div className="w-full max-w-[800px] mt-4 p-7 md:p-8 bg-[#FCF1ED] rounded-[12px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
         <div>
           <h3 className="font-heading font-semibold text-xl text-text-dark mb-1">
-            Still have questions about SVG conversion?
+            {t("stillQuestions")}
           </h3>
           <p className="font-afacad text-sm text-text-muted">
-            Browse our guides or reach out to the team.
+            {t("browseGuides")}
           </p>
         </div>
         <div className="flex gap-3 shrink-0">
           <Button href="/svg-guides" variant="outline" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold border border-[#E5DFDA]">
-            SVG Guides
+            {t("svgGuides")}
           </Button>
           <Button href="/contact-us" variant="solid" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold">
-            Contact Support
+            {t("contactSupport")}
           </Button>
         </div>
       </div>

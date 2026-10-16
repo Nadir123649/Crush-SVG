@@ -932,6 +932,16 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
+                {error && (
+                  <p
+                    role="alert"
+                    aria-live="polite"
+                    className="mt-2 rounded-[8px] border border-red-200 bg-red-50 px-3 py-2 font-body text-[12px] text-red-700"
+                  >
+                    {error}
+                  </p>
+                )}
+
                 {/* Bottom Source Text */}
                 <p className="font-body font-normal text-[12px] md:text-[14px] text-[#475569] mt-[12px] md:mt-[10px]">
                   {dims.width && dims.height

@@ -54,13 +54,7 @@ export default function AdminDashboard() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading && !data) {
-    return (
-      <AdminLoader message="Loading dashboard..." className="min-h-[calc(100vh-140px)]" />
-    );
-  }
-
-  if (!data) {
+  if (!data && !loading) {
     return <div className="text-center p-8 text-red-500">Failed to load dashboard data.</div>;
   }
 
@@ -72,7 +66,7 @@ export default function AdminDashboard() {
     recentAudits,
     recentConversions,
     conversionsLast10Days
-  } = data;
+  } = data ?? {};
 
   // Format chart data
   const chartData = [];
@@ -80,12 +74,12 @@ export default function AdminDashboard() {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   
   for (let i = 9; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const today = new Date();
+    const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
+    const dateStr = d.toISOString().slice(0, 10);
     const match = conversionsLast10Days?.find((c: any) => c._id === dateStr);
     
-    chartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
+    chartLabels.push(`${days[d.getUTCDay()]} ${d.getUTCDate()}`);
     chartData.push(match ? match.count : 0);
   }
 
@@ -95,6 +89,12 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* Row 1: KPIs */}
       <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        {!data ? (
+          <div className="md:col-span-3 lg:col-span-5">
+            <AdminLoader message="Loading dashboard..." />
+          </div>
+        ) : (
+          <>
         <KpiCard 
           title="Total Registered Users" 
           icon={SvgUsers} 
@@ -125,6 +125,8 @@ export default function AdminDashboard() {
           value={mrr} 
           description="No revenue recorded yet" 
         />
+          </>
+        )}
       </section>
 
       {/* Row 2: Overview Chart & Live Feed */}
@@ -139,7 +141,11 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex-1 w-full min-h-0">
-            <AnalyticsChart data={chartData} labels={chartLabels} />
+            {data ? (
+              <AnalyticsChart data={chartData} labels={chartLabels} />
+            ) : (
+              <AdminLoader message="Loading chart..." />
+            )}
           </div>
         </div>
 
@@ -156,6 +162,10 @@ export default function AdminDashboard() {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-5 pr-2 brand-scrollbar">
+            {!data ? (
+              <AdminLoader message="Loading activity..." className="min-h-[300px]" />
+            ) : (
+              <>
             {recentAudits?.map((audit: any, index: number) => {
               const isUser = audit.resourceType === 'user';
               const isSettings = audit.resourceType === 'settings';
@@ -176,6 +186,8 @@ export default function AdminDashboard() {
             })}
             {recentAudits?.length === 0 && (
               <p className="text-sm text-text-muted text-center mt-10">No recent activity</p>
+            )}
+              </>
             )}
           </div>
         </div>
@@ -199,6 +211,14 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="text-[14px]">
+              {!data ? (
+                <tr>
+                  <td colSpan={5} className="p-5">
+                    <AdminLoader message="Loading conversions..." className="min-h-[200px]" />
+                  </td>
+                </tr>
+              ) : (
+              <>
               {recentConversions?.map((conv: any) => (
                 <tr key={conv._id?.toString()} className="border-b border-[#F2EDE8] hover:bg-[#FFFCFA] transition-colors">
                   <td className="p-5 text-text-dark font-medium truncate max-w-[200px]">
@@ -226,6 +246,8 @@ export default function AdminDashboard() {
                 <tr>
                   <td colSpan={5} className="p-10 text-center text-text-muted font-medium">No recent conversions found.</td>
                 </tr>
+              )}
+              </>
               )}
             </tbody>
           </table>
