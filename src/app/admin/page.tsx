@@ -74,12 +74,12 @@ export default function AdminDashboard() {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   
   for (let i = 9; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const today = new Date();
+    const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
+    const dateStr = d.toISOString().slice(0, 10);
     const match = conversionsLast10Days?.find((c: any) => c._id === dateStr);
     
-    chartLabels.push(`${days[d.getDay()]} ${d.getDate()}`);
+    chartLabels.push(`${days[d.getUTCDay()]} ${d.getUTCDate()}`);
     chartData.push(match ? match.count : 0);
   }
 

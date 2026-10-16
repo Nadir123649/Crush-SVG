@@ -6,6 +6,8 @@ import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { IMAGES } from "@/lib/shared/images";
 import { useTranslations } from "next-intl";
+import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
+import { useSearchParams } from "next/navigation";
 
 interface SignupPromptModalProps {
   onClose: () => void;
@@ -14,8 +16,10 @@ interface SignupPromptModalProps {
 export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
   const t = useTranslations("auth_pages.signupPrompt");
   const pathname = usePathname();
-  // Encode current path so auth pages redirect user back here after login/signup
-  const returnTo = encodeURIComponent(pathname);
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  // Carry route query parameters and keep session storage as a fallback for the hash.
+  const returnTo = encodeURIComponent(`${pathname}${query ? `?${query}` : ""}`);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -66,7 +70,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
 
         <Link
           href={`/signup?returnTo=${returnTo}`}
-          onClick={onClose}
+          onClick={() => { saveAuthRedirectUrl(); onClose(); }}
           className="w-full h-[46px] mt-[24px] flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[16px] hover:opacity-90 transition-opacity"
         >
           {t("signupButton")}
@@ -74,7 +78,7 @@ export function SignupPromptModal({ onClose }: SignupPromptModalProps) {
 
         <Link
           href={`/login?returnTo=${returnTo}`}
-          onClick={onClose}
+          onClick={() => { saveAuthRedirectUrl(); onClose(); }}
           className="w-full h-[46px] mt-[12px] flex items-center justify-center rounded-[12px] border border-[#D94A1E] text-[#D94A1E] font-body font-medium text-[16px] hover:opacity-80 transition-opacity"
         >
           {t("loginLink")}

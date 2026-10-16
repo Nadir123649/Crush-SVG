@@ -10,6 +10,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
@@ -152,7 +153,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
-    if (pathname === "/") {
+    if (pathname === "/" || pathname === "/convert-svg-to-png") {
       return {
         label: tNav("svgToPng"),
         href: "/",
@@ -166,7 +167,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, [pathname, tNav]);
 
-  const isSvgToPngActive = pathname === "/";
+  const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
   const isPngToSvgActive = pathname === "/png-to-svg";
   const isSvgToReactActive = pathname === "/svg-to-react";
   const isOtherToolActive =
@@ -187,8 +188,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         }`}
         ref={navContainerRef}
       >
-        <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
-          <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
+        <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[24px] min-[1536px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
+        <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -213,7 +214,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1440px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
+            className="hidden min-[1024px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
           >
             {/* 1. Tools Dropdown */}
             <div className="relative shrink-0">
@@ -433,7 +434,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <Link
               href={currentTool.href}
               onClick={(e) => {
-                if (currentTool.href === "/" && typeof window !== "undefined" && window.location.pathname === "/") {
+                if (currentTool.href === "/" && typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname === "/convert-svg-to-png")) {
                   e.preventDefault();
                   const el = document.getElementById("converter");
                   if (el) {
@@ -504,12 +505,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] lg:border-l lg:border-[#E8DED7] lg:pl-[14px] justify-end">
+          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1536px]:border-l min-[1536px]:border-[#E8DED7] min-[1536px]:pl-[14px] justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
-            <PwaInstallButton variant="icon" className="hidden sm:inline-flex" />
+            <PwaInstallButton variant="icon" className="hidden min-[1536px]:inline-flex" />
 
             {/* Language Switcher (Tablet & Desktop, Controlled so opening it closes Account) */}
-            <div className="hidden sm:inline-block">
+            <div className="hidden min-[1536px]:inline-block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
                 isOpen={activeDropdown === "language"}
@@ -518,9 +519,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            <div className={`logged-out-only hidden md:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+            <div className={`logged-out-only hidden min-[1536px]:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
               <Button
                 href="/login"
+                onClick={() => saveAuthRedirectUrl()}
                 variant="outline"
                 className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
               >
@@ -537,7 +539,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Authenticated profile menu */}
-            <div className={`logged-in-only relative ${status === "guest" ? "!hidden" : ""}`}>
+            <div className={`logged-in-only relative hidden min-[1536px]:block ${status === "guest" ? "!hidden" : ""}`}>
               {(isAuthenticated || user) && (
                 <>
               <button
@@ -647,7 +649,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="min-[1440px]:hidden flex items-center">
+            <div className="min-[1536px]:hidden flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -673,14 +675,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div
           ref={mobileDrawerRef}
-          className="min-[1440px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
+          className="min-[1536px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
         >
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}
@@ -691,9 +693,9 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <div className="grid grid-cols-1 gap-1">
               <Link
                 href="/"
-                onClick={(e) => {
+                onClick={() => {
                   setMobileMenuOpen(false);
-                  if (pathname === "/" && typeof window !== "undefined") {
+                  if ((pathname === "/" || pathname === "/convert-svg-to-png") && typeof window !== "undefined") {
                     const el = document.getElementById("converter");
                     if (el) {
                       const offset = 70;
@@ -867,7 +869,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               href="/login"
               variant="outline"
               className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => { saveAuthRedirectUrl(); setMobileMenuOpen(false); }}
             >
               {tAuth("login")}
             </Button>
@@ -927,8 +929,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               </>
             )}
           </div>
+          </div>
         </div>
-      </div>
       )}
     </header>
   );

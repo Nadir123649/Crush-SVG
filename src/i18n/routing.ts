@@ -57,6 +57,14 @@ export const routing = defineRouting({
       pt: "/svg-para-react",
       ja: "/svg-react-henkan",
     },
+    "/compare/crushsvg-vs-vectorizer-ai": {
+      en: "/compare/crushsvg-vs-vectorizer-ai",
+      es: "/comparar/crushsvg-vs-vectorizer-ai",
+      de: "/vergleich/crushsvg-vs-vectorizer-ai",
+      fr: "/comparatif/crushsvg-vs-vectorizer-ai",
+      pt: "/comparar/crushsvg-vs-vectorizer-ai",
+      ja: "/hikaku/crushsvg-vs-vectorizer-ai",
+    },
     "/profile": {
       en: "/profile",
       es: "/perfil",

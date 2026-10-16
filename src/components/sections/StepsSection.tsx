@@ -114,7 +114,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
   }));
 
   return (
-    <section id="how-it-works" className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
+    <section id="how-it-works" className="w-full min-w-0 flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -123,7 +123,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       />
 
       {/* Heading */}
-      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full max-w-[807px]">
+      <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full min-w-0 max-w-[807px] break-words [overflow-wrap:anywhere]">
         {mode === "background-remover" ? (
           <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
@@ -136,9 +136,9 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
       </h2>
 
       {/* Steps Container */}
-      <div className="w-full max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[32px] md:gap-[40px] mt-[32px] md:mt-[60px]">
+      <div className="w-full min-w-0 max-w-[1044px] grid grid-cols-1 md:grid-cols-3 gap-[32px] md:gap-[40px] mt-[32px] md:mt-[60px]">
         {steps.map((step, index) => (
-          <div key={index} className="flex flex-col items-center text-center gap-[10px] md:gap-[14px] w-full mx-auto max-w-[320px]">
+          <div key={index} className="flex min-w-0 flex-col items-center text-center gap-[10px] md:gap-[14px] w-full mx-auto max-w-[320px]">
             <div className="flex flex-col items-center justify-end h-[80px] md:h-[104px]">
               <Image 
                 src={step.icon} 
@@ -148,10 +148,10 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
                 className={`object-contain ${step.imgClassName}`}
               />
             </div>
-            <h3 className="font-heading font-medium text-[20px] md:text-[24px] leading-[1.2] text-text-dark mt-[4px] h-[48px] md:h-[60px] flex flex-col justify-center text-center w-full">
+            <h3 className="font-heading font-medium text-[20px] md:text-[24px] leading-[1.2] text-text-dark mt-[4px] h-[48px] md:h-[60px] flex flex-col justify-center text-center w-full min-w-0 break-words [overflow-wrap:anywhere]">
               {step.title}
             </h3>
-            <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] text-text-muted">
+            <p className="font-body font-normal text-[14px] md:text-[16px] leading-[18px] text-text-muted min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
               {step.description}
             </p>
           </div>

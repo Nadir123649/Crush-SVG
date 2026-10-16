@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { useAuth, type AuthStatus } from "@/lib/client/auth-context";
 import { getAccessToken } from "@/lib/client/http";
-import { getUsage } from "@/lib/client/sessions";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -97,7 +97,7 @@ function Dropdown({
   const selected = options.find((o) => o.value === value) || options[0];
 
   return (
-    <div className="flex flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
+    <div className="flex min-w-0 flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
       <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
         {label}
       </label>
@@ -213,7 +213,7 @@ interface DimensionInputProps {
 
 function DimensionInput({ label, value, onChange, disabled, suffix = "px" }: DimensionInputProps) {
   return (
-    <div className="flex flex-col flex-1 gap-[6px]">
+    <div className="flex min-w-0 flex-col flex-1 gap-[6px]">
       <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
         {label}
       </label>
@@ -644,6 +644,14 @@ export function ImageResizer() {
       });
       setPreviewMode("after");
       showToast("success", "Image resized! Ready to download.");
+      void trackConversionUsage({
+        inputFormat: imageName?.split(".").pop()?.toLowerCase() || "image",
+        outputFormat,
+        originalSize: imageSize ?? undefined,
+        success: true,
+      })
+        .then(setUsage)
+        .catch(() => {});
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Resize failed. Please try again.";
       setError(msg);
@@ -677,24 +685,24 @@ export function ImageResizer() {
   return (
     <section
       id="converter"
-      className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+      className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
     >
       {/* Outer Dashed Border Box */}
-      <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
+      <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
 {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col px-0 md:px-[40px] py-[20px] transition-all duration-300">
+          <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col px-0 md:px-[40px] py-[20px] transition-all duration-300">
           {/* Two-Column Grid */}
-          <div className="flex flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
+          <div className="flex min-w-0 flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
             {/* ============================================================ */}
             {/* LEFT COLUMN: Source Image Upload & Info                      */}
             {/* ============================================================ */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               {/* Column Header */}
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
+                <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">
                   {t("sourceImage")}
                 </h2>
-                <div className="flex items-center gap-[10px]">
+                <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
                   <button
                     type="button"
                     onClick={handleClear}
@@ -724,7 +732,7 @@ export function ImageResizer() {
                   </button>
 
                   {(usage || status === "authed") && (
-                    <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                    <span className="min-w-0 break-words text-right font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {quotaDisplay.kind === "unlimited"
                         ? t("unlimitedConversions")
                         : quotaDisplay.kind === "counted"
@@ -820,7 +828,7 @@ export function ImageResizer() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
                   }}
-                  className={`w-full h-[220px] md:h-[302px] rounded-[16px] border ${
+                  className={`w-full min-w-0 max-w-full h-[220px] md:h-[302px] rounded-[16px] border ${
                     dragOver
                       ? "border-solid border-brand-primary bg-orange-50/30"
                       : "border-dashed md:border-solid border-[#8F8F8F] bg-white"
@@ -834,15 +842,15 @@ export function ImageResizer() {
                     className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
                     style={{ width: "auto", height: "auto" }}
                   />
-                  <div className="font-body text-[15px] md:text-[17px] text-text-dark text-center">
+                  <div className="max-w-full min-w-0 break-words font-body text-[15px] md:text-[17px] text-text-dark text-center">
                     <span className="font-normal">Drag &amp; Drop or </span>
                     <span className="font-semibold text-brand-primary">{t("selectImageButton")}</span>
                   </div>
-                  <p className="font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
+                  <p className="max-w-full min-w-0 break-words font-body text-[12px] md:text-[14px] text-[#64748B] text-center">
                     {t("formatsUpTo")}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
+                  <div className="flex min-w-0 max-w-full items-center justify-center gap-2 mt-1">
+                    <span className="inline-flex min-w-0 max-w-full flex-wrap items-center justify-center gap-1 text-[11px] text-[#64748B] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
                       <kbd className="font-mono text-[10px] bg-white border border-gray-300 px-1 rounded text-[#475569]">
                         Ctrl+V
                       </kbd>{" "}
@@ -854,7 +862,7 @@ export function ImageResizer() {
 
               {/* Source Metadata or Feature Guide Box */}
               {hasImage ? (
-                <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
+                <div className="w-full min-w-0 max-w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
                   <div className="flex items-center justify-between gap-[10px]">
                     <div className="flex items-center gap-[8px] min-w-0">
                       <div className="w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
@@ -870,7 +878,7 @@ export function ImageResizer() {
                       {formatFileSize(imageSize)}
                     </span>
                   </div>
-                  <div className="flex items-stretch gap-[6px]">
+                  <div className="flex min-w-0 items-stretch gap-[6px]">
                     <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
                       <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">{t("dimensionsLabel")}</span>
                       <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
@@ -884,7 +892,7 @@ export function ImageResizer() {
                       </strong>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[8px] text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
                     <span className="truncate">
                       {outputFormat.toUpperCase()} &middot; {scale}%
                     </span>
@@ -892,9 +900,9 @@ export function ImageResizer() {
                   </div>
                 </div>
               ) : (
-                <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
-                  <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex items-center justify-between mb-[6px]">
-                    <span>{t("featureTitle")}</span>
+                <div className="w-full min-w-0 max-w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
+                  <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex min-w-0 flex-wrap items-center justify-between gap-[6px] mb-[6px]">
+                    <span className="min-w-0 break-words">{t("featureTitle")}</span>
                     <span className="text-[10px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
                       {t("featureFormats")}
                     </span>
@@ -921,7 +929,7 @@ export function ImageResizer() {
               )}
 
               {/* Privacy Assurance Text */}
-              <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
+              <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex min-w-0 items-center justify-start gap-[6px] mt-[16px]">
                 <Image
                   src={IMAGES.lock}
                   alt="Lock"
@@ -930,18 +938,18 @@ export function ImageResizer() {
                   className="shrink-0 w-[12px] h-[12px]"
                   style={{ width: "auto", height: "auto" }}
                 />
-                <span>{t("privacyText")}</span>
+                <span className="min-w-0 break-words">{t("privacyText")}</span>
               </p>
             </div>
 
             {/* ============================================================ */}
             {/* RIGHT COLUMN: Live Preview & Controls                       */}
             {/* ============================================================ */}
-            <div className="w-full lg:w-[537px] flex flex-col justify-between">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col justify-between">
               <div className="flex flex-col">
                 {/* Column Header with View Mode Tabs */}
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
-                  <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
+                  <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">
                     {hasResult ? t("resultHeader") : t("livePreview")}
                   </h2>
 
@@ -974,7 +982,7 @@ export function ImageResizer() {
                 </div>
 
                 {/* Main Preview Container */}
-                <div className="w-full h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]">
+                <div className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]">
                   {resizing ? (
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-brand-primary rounded-full animate-spin" />
@@ -1024,13 +1032,13 @@ export function ImageResizer() {
                 {/* Resize Settings                                           */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${
+                    className={`w-full min-w-0 mt-[16px] md:mt-[20px] transition-all duration-300 ${
                     resizing ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                  <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
                     {/* Dimension Inputs Row */}
-                    <div className="flex items-stretch gap-[8px] sm:col-span-2">
+                    <div className="flex min-w-0 items-stretch gap-[8px] sm:col-span-2">
                       <DimensionInput
                         label={t("widthLabel")}
                         value={targetWidth}
@@ -1126,7 +1134,7 @@ export function ImageResizer() {
 
               {/* Action CTA Buttons Row */}
               {resizing ? (
-                <div className="w-full h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
+                <div className="w-full min-w-0 h-[48px] mt-[16px] flex flex-col items-center justify-center gap-[6px]">
                   <div className="w-full sm:w-[280px] lg:w-[340px] h-[6px] bg-[#E2E8F0] rounded-full overflow-hidden relative">
                     <div
                       className={`absolute top-0 left-0 h-full bg-[#D94A1E] transition-all ease-out ${
@@ -1135,16 +1143,16 @@ export function ImageResizer() {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span className="font-body text-[12px] text-[#64748B]">
+                  <span className="min-w-0 max-w-full break-words text-center font-body text-[12px] text-[#64748B]">
                     {t("resizingProgress", { width: targetWidth, height: targetHeight })}
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[20px]">
+                <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[20px]">
                   {hasResult ? (
                     <>
                       <Button
-                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                        className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleDownload}
                         disabled={resizing}
                       >
@@ -1175,7 +1183,7 @@ export function ImageResizer() {
                     </>
                   ) : (
                     <Button
-                      className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                      className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                       onClick={handleResize}
                       disabled={resizing || !hasImage}
                     >
@@ -1194,7 +1202,7 @@ export function ImageResizer() {
 
                   {/* Result Details */}
                   {result && (
-                    <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
+                    <p className="w-full min-w-0 max-w-full break-words text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-1">
                       {result.format.toUpperCase()} &middot; {result.width}×{result.height} px
                       {result.blob.size > 0 ? ` · ${formatFileSize(result.blob.size)}` : ""}
                     </p>

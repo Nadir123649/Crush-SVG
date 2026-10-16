@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/client/auth-context";
 import { AppLoader } from "@/components/ui/AppLoader";
+import { clearAuthRedirectUrl, getAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 interface GuestOnlyProps {
   children: ReactNode;
@@ -12,7 +12,6 @@ interface GuestOnlyProps {
 
 export function GuestOnly({ children }: GuestOnlyProps) {
   const { status } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectedRef = useRef(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -27,10 +26,11 @@ export function GuestOnly({ children }: GuestOnlyProps) {
     if (initiallyAuthedRef.current && status === "authed" && !redirectedRef.current) {
       redirectedRef.current = true;
       setRedirecting(true);
-      const returnTo = searchParams.get("returnTo") || "/";
-      router.replace(returnTo as any);
+      const returnTo = getAuthRedirectUrl(searchParams.get("returnTo"));
+      clearAuthRedirectUrl();
+      window.location.replace(returnTo);
     }
-  }, [status, router, searchParams]);
+  }, [status, searchParams]);
 
   // If user navigated directly while already authed, or is redirecting after login,
   // show a stable loader with full min-height so header and footer never collapse.

@@ -309,7 +309,7 @@
       },
       {
         "title": "Convert and Download",
-        "description": "Click Convert to PNG, then download the generated PNG image."
+        "description": "Click Convert to PNG and the generated image downloads automatically."
       }
     ],
     "raster": [
@@ -1081,6 +1081,93 @@
       "tip1": "Use images with clear subject-background contrast",
       "tip2": "Higher resolution images produce better results",
       "tip3": "Works best with portraits, products, and objects"
+    },
+    "ui": {
+      "sourceImage": "Source Image",
+      "clearUploadedImage": "Clear uploaded image",
+      "clear": "Clear",
+      "unlimitedConversions": "Unlimited conversions",
+      "conversionsUsed": "{used} of {total} free conversions used",
+      "uploadImage": "Upload image file for background removal",
+      "livePreview": "Live Preview",
+      "backgroundChanged": "Background changed result",
+      "backgroundRemoved": "Background removed result",
+      "applyingBackground": "Applying background…",
+      "originalImage": "Original source image",
+      "uploadedPreview": "Uploaded preview",
+      "removeBackgroundHint": "Click “Remove Background” below",
+      "uploadPlaceholder": "Upload placeholder",
+      "previewPlaceholder": "Preview will appear here",
+      "addBackground": "Add a background",
+      "addBackgroundDescription": "Choose a style, photo, or color behind your cutout.",
+      "selected": "Selected",
+      "backgroundType": "Background type",
+      "tabs": {
+        "magic": "Magic",
+        "photo": "Photo",
+        "color": "Color"
+      },
+      "presets": {
+        "beach": "Beach",
+        "modern-home": "Modern home",
+        "city": "City street",
+        "forest": "Forest",
+        "mountains": "Mountains",
+        "architecture": "Architecture",
+        "lake": "Lake",
+        "desert": "Desert",
+        "autumn-road": "Autumn road"
+      },
+      "usePreset": "Use {preset} background",
+      "usePhotoFromDevice": "Use a photo from your device",
+      "photoFormatsLimit": "PNG, JPG, or WebP — up to 10 MB",
+      "selectedPhoto": "Selected: {name}",
+      "uploadOwnPhoto": "Upload your own photo",
+      "chooseBackgroundColor": "Choose background color",
+      "chooseCustomColor": "Choose a custom color",
+      "staleBackgroundWarning": "Run Remove Background again to apply this background to the new cutout.",
+      "removeAddedBackground": "Remove added background",
+      "background": "Background",
+      "outputScale": "Output Scale",
+      "backgroundAddedPng": "Background added PNG",
+      "transparentPng": "Transparent PNG",
+      "bgOptions": {
+        "transparent": {
+          "label": "Transparent",
+          "desc": "Remove background, alpha PNG"
+        },
+        "white": {
+          "label": "White",
+          "desc": "Solid white background"
+        },
+        "black": {
+          "label": "Black",
+          "desc": "Solid black background"
+        },
+        "custom": {
+          "label": "Custom Color",
+          "desc": "Fill with chosen background color"
+        }
+      },
+      "gradientNames": {
+        "pink": "Pink glow",
+        "blue": "Blue glow",
+        "violet": "Violet glow",
+        "coral": "Coral glow",
+        "mint": "Mint glow",
+        "indigo": "Indigo glow"
+      },
+      "errorAddBackground": "Could not add this background.",
+      "errorPhotoType": "Choose a valid photo image.",
+      "errorPhotoSize": "Background photo must be 10 MB or smaller.",
+      "errorReadPhoto": "Could not read the selected background photo.",
+      "successPasted": "Image pasted from clipboard",
+      "errorFileType": "Unsupported file type. Please upload PNG, JPG, or WebP.",
+      "errorFileSize": "Image exceeds 10MB limit.",
+      "successCleared": "Cleared image and settings",
+      "errorNoImage": "No image selected. Upload an image to get started.",
+      "successRemoved": "Background removed! Your image is ready to download.",
+      "successDownload": "Your download has started"
     }
   },
   "faq_footer": {
@@ -1338,7 +1425,7 @@
     "radiusLabel": "Corner Radius",
     "downloadIcoOnly": "Download favicon.ico",
     "downloadWebpOnly": "Download 512px WebP",
-    "copyHeadTags": "Copy HTML <head> Tags",
+    "copyHeadTags": "Copy HTML head Tags",
     "downloadFullPackZip": "Download Complete Favicon Pack (.ZIP)",
     "zippingPack": "Creating ZIP archive...",
     "invalidSvgFile": "Please select a valid .svg vector file.",
@@ -1351,7 +1438,7 @@
     "icoDownloadedSuccess": "favicon.ico downloaded successfully!",
     "webpDownloadedSuccess": "WebP image exported successfully!",
     "webpFailed": "Failed to generate WebP image.",
-    "snippetCopied": "HTML <head> snippet copied to clipboard!",
+    "snippetCopied": "HTML head snippet copied to clipboard!",
     "copyFailed": "Failed to copy to clipboard."
   },
   "profile_dashboard": {

@@ -66,7 +66,7 @@ export default async function SvgOptimizerPage({
   const tTools = await getTranslations({ locale, namespace: "tool_pages.svgOptimizer" });
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full min-w-0 max-w-full flex flex-col items-center">
       <Hero
         title={renderHeroTitle(tTools("h1"))}
         subtitle={tTools("subtitle")}

@@ -10,6 +10,7 @@ import { BlogEditor } from "@/components/admin/BlogEditor/BlogEditor";
 import { CoverImageUpload } from "@/components/admin/BlogEditor/CoverImageUpload";
 import { useAuth } from "@/lib/client/auth-context";
 import { AdminLoader } from "@/components/admin/AdminLoader";
+import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 interface EditableBlog {
     title?: string;
@@ -43,6 +44,7 @@ export default function EditBlogPage() {
     useEffect(() => {
         if (authStatus === "loading") return;
         if (authStatus === "guest") {
+            saveAuthRedirectUrl();
             router.replace("/login");
             return;
         }
@@ -67,6 +69,7 @@ export default function EditBlogPage() {
                 if (err instanceof ApiError && err.status === 401) {
                     redirectingToLogin = true;
                     showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                    saveAuthRedirectUrl();
                     router.replace("/login");
                     return;
                 }
@@ -123,6 +126,7 @@ export default function EditBlogPage() {
         } catch (err: unknown) {
             if (err instanceof ApiError && err.status === 401) {
                 showToast("error", "Your session has expired. Please log in again.", { id: "session-expired" });
+                saveAuthRedirectUrl();
                 router.replace("/login");
                 return;
             }

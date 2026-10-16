@@ -337,7 +337,7 @@ disabled,
   const selected = options.find((o) => o.value === value) || options[0];
 
   return (
-    <div className="flex flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
+    <div className="flex min-w-0 flex-col flex-1 gap-[6px] relative" ref={dropdownRef}>
       <label className="text-[#475569] font-heading font-semibold text-[13px] md:text-[15px] leading-[18px]">
         {label}
       </label>
@@ -396,7 +396,7 @@ disabled,
 
       {isOpen && (
         <div
-          className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-40 overflow-hidden flex flex-col"
+          className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#8F8F8F] rounded-[12px] shadow-xl z-[60] overflow-hidden flex flex-col"
           style={{ maxHeight: `${panelMaxHeight}px` }}
         >
           <div
@@ -524,6 +524,27 @@ disabled,
 export function BackgroundRemover() {
   const t = useTranslations("bg_remover");
   const tUsage = useTranslations("usage");
+  const localizedBgOptions: DropdownOption[] = [
+    { ...BG_OPTIONS[0], label: t("ui.bgOptions.transparent.label"), desc: t("ui.bgOptions.transparent.desc") },
+    { ...BG_OPTIONS[1], label: t("ui.bgOptions.white.label"), desc: t("ui.bgOptions.white.desc") },
+    { ...BG_OPTIONS[2], label: t("ui.bgOptions.black.label"), desc: t("ui.bgOptions.black.desc") },
+    { ...BG_OPTIONS[3], label: t("ui.bgOptions.custom.label"), desc: t("ui.bgOptions.custom.desc") },
+  ];
+  const localizedGradientNames = [
+    t("ui.gradientNames.pink"), t("ui.gradientNames.blue"), t("ui.gradientNames.violet"),
+    t("ui.gradientNames.coral"), t("ui.gradientNames.mint"), t("ui.gradientNames.indigo"),
+  ];
+  const localizedPhotoPresetNames = {
+    beach: t("ui.presets.beach"),
+    "modern-home": t("ui.presets.modern-home"),
+    city: t("ui.presets.city"),
+    forest: t("ui.presets.forest"),
+    mountains: t("ui.presets.mountains"),
+    architecture: t("ui.presets.architecture"),
+    lake: t("ui.presets.lake"),
+    desert: t("ui.presets.desert"),
+    "autumn-road": t("ui.presets.autumn-road"),
+  };
   const { status, sessionVersion } = useAuth();
 
   // Settings
@@ -620,9 +641,9 @@ export function BackgroundRemover() {
       compositedUrlRef.current = nextUrl;
       setCompositedResultUrl(nextUrl);
       setCompositedResultSize(blob.size);
-    } catch (cause) {
+    } catch {
       if (requestId === compositionRequestRef.current) {
-        showToast("error", cause instanceof Error ? cause.message : "Could not add this background.");
+        showToast("error", t("ui.errorAddBackground"));
       }
     } finally {
       if (requestId === compositionRequestRef.current) setCompositingBackground(false);
@@ -642,11 +663,11 @@ export function BackgroundRemover() {
   function handleBackgroundPhoto(file: File | undefined) {
     if (!file) return;
     if (!(file.type === "image/png" || file.type === "image/jpeg" || file.type === "image/webp")) {
-      showToast("error", "Choose a valid photo image.");
+      showToast("error", t("ui.errorPhotoType"));
       return;
     }
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      showToast("error", "Background photo must be 10 MB or smaller.");
+      showToast("error", t("ui.errorPhotoSize"));
       return;
     }
     const reader = new FileReader();
@@ -654,7 +675,7 @@ export function BackgroundRemover() {
       const dataUrl = reader.result;
       if (typeof dataUrl === "string") chooseAddedBackground({ kind: "photo", src: dataUrl, name: file.name });
     };
-    reader.onerror = () => showToast("error", "Could not read the selected background photo.");
+    reader.onerror = () => showToast("error", t("ui.errorReadPhoto"));
     reader.readAsDataURL(file);
   }
 
@@ -817,7 +838,7 @@ export function BackgroundRemover() {
             if (f) {
               e.preventDefault();
               handleFile(f);
-              showToast("success", "Image pasted from clipboard");
+              showToast("success", t("ui.successPasted"));
               return;
             }
           }
@@ -842,13 +863,13 @@ export function BackgroundRemover() {
 
     if (!isPng && !isJpg && !isWebp) {
       setError(t("errorInvalidFile"));
-      showToast("error", "Unsupported file type. Please upload PNG, JPG, or WebP.");
+      showToast("error", t("ui.errorFileType"));
       return;
     }
 
     if (f.size > MAX_FILE_SIZE_BYTES) {
       setError(t("errorTooLarge"));
-      showToast("error", "Image exceeds 10MB limit.");
+      showToast("error", t("ui.errorFileSize"));
       return;
     }
 
@@ -902,13 +923,13 @@ export function BackgroundRemover() {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {}
-    showToast("success", "Cleared image and settings");
+    showToast("success", t("ui.successCleared"));
   }
 
   // ── Process (remove background) ────────────────────────────────────────────
   async function handleRemoveBackground() {
     if (!file && !dataUrl) {
-      showToast("error", "No image selected. Upload an image to get started.");
+      showToast("error", t("ui.errorNoImage"));
       return;
     }
 
@@ -981,7 +1002,7 @@ export function BackgroundRemover() {
       if (addedBackground && bgOption === "Transparent") {
         void composeSelectedBackground(objectUrl, addedBackground);
       }
-      showToast("success", "Background removed! Your image is ready to download.");
+      showToast("success", t("ui.successRemoved"));
       trackConversion("svg_converted", { output_format: "png", tool: "background_remover" });
 
       // Re-read the authoritative quota so guests, verified users and admins all
@@ -1028,7 +1049,7 @@ export function BackgroundRemover() {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    showToast("success", "Your download has started");
+    showToast("success", t("ui.successDownload"));
     trackConversion("png_downloaded", { output_format: "png", tool: "background_remover" });
 
     if (hasQuotaLimitReached(usage) && status !== "authed") {
@@ -1051,22 +1072,22 @@ export function BackgroundRemover() {
       <section
         id="converter"
         aria-busy={processing}
-        className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
       >
         {/* Outer Dashed Border Box */}
-        <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
+        <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
           {/* Inner Dashed Border Box */}
-          <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
+          <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] md:py-[20px] transition-all duration-300">
             {/* Two-Column Grid */}
-            <div className="flex flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
+            <div className="flex min-w-0 flex-col lg:flex-row items-stretch justify-center w-full gap-[24px] md:gap-[30px]">
               {/* ============================================================ */}
               {/* LEFT COLUMN: Source Image Upload & Info                      */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
                 {/* Column Header */}
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    Source Image
+                    {t("ui.sourceImage")}
                   </h2>
                   <div className="flex items-center gap-[10px]">
                     {/* Clear Button */}
@@ -1074,7 +1095,7 @@ export function BackgroundRemover() {
                       type="button"
                       onClick={handleClear}
                       disabled={processing || !dataUrl}
-                      aria-label="Clear uploaded image"
+                      aria-label={t("ui.clearUploadedImage")}
                       className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 ${
                         dataUrl
                           ? processing
@@ -1094,7 +1115,7 @@ export function BackgroundRemover() {
                       />
                       <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
                       <span className={`relative z-10 text-[#D94A1E] ${processing ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
-                        Clear
+                        {t("ui.clear")}
                       </span>
                     </button>
 
@@ -1102,9 +1123,9 @@ export function BackgroundRemover() {
                     {(usage || status === "authed") && (
                       <span className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                         {quotaDisplay.kind === "unlimited"
-                          ? "Unlimited conversions"
+                          ? t("ui.unlimitedConversions")
                           : quotaDisplay.kind === "counted"
-                          ? `${quotaDisplay.used} of ${quotaDisplay.total} free conversions used`
+                          ? t("ui.conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
                           : "\u00A0"}
                       </span>
                     )}
@@ -1116,7 +1137,7 @@ export function BackgroundRemover() {
                   ref={fileInputRef}
                   id="bg-remover-file-upload"
                   type="file"
-                  aria-label="Upload image file for background removal"
+                  aria-label={t("ui.uploadImage")}
                   accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
                   className="absolute w-0 h-0 opacity-0 overflow-hidden"
                   onChange={(e) => {
@@ -1141,7 +1162,7 @@ export function BackgroundRemover() {
                     onKeyDown={(e) => {
                       if ((e.key === "Enter" || e.key === " ") && !processing) fileInputRef.current?.click();
                     }}
-                    className={`relative w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
+                    className={`relative w-full min-w-0 max-w-full h-[220px] md:h-[302px] rounded-[16px] border cursor-pointer ${
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/40"
                         : `border-[#8F8F8F] bg-white ${processing ? '' : 'hover:bg-gray-50/60'} focus-visible:border-brand-primary focus-visible:outline-none`
@@ -1207,11 +1228,11 @@ export function BackgroundRemover() {
                       dragOver
                         ? "border-solid border-brand-primary bg-orange-50/30"
                         : "border-dashed md:border-solid border-[#8F8F8F] bg-white"
-                    } flex flex-col items-center justify-center gap-[10px] md:gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50/80 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary transition-colors`}
+                    } flex min-w-0 max-w-full flex-col items-center justify-center gap-[10px] md:gap-[12px] p-[20px] cursor-pointer hover:bg-gray-50/80 focus-visible:border-brand-primary focus-visible:border-solid focus:outline-none active:border-brand-primary transition-colors`}
                   >
                     <Image
                       src={IMAGES.drag}
-                      alt="Upload Image"
+                      alt={t("ui.uploadImage")}
                       width={72}
                       height={72}
                       className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
@@ -1236,8 +1257,8 @@ export function BackgroundRemover() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {dataUrl ? (
-                  <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
-                    <div className="flex items-center justify-between gap-[10px]">
+                  <div className="w-full min-w-0 max-w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-[6px]">
                       <div className="flex items-center gap-[8px] min-w-0">
                         <div className="px-1.5 min-w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
                           <span className="font-heading font-bold text-[9px] text-brand-primary">
@@ -1252,7 +1273,7 @@ export function BackgroundRemover() {
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
-                    <div className="flex items-stretch gap-[6px]">
+                    <div className="flex min-w-0 items-stretch gap-[6px]">
                       <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
                         <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Dimensions</span>
                         <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
@@ -1266,7 +1287,7 @@ export function BackgroundRemover() {
                         </strong>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[8px] text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
                       <span className="truncate">
                         {bgOption === "Custom" ? customColor : bgOption} &middot; {scale}%
                       </span>
@@ -1274,8 +1295,8 @@ export function BackgroundRemover() {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
-                    <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex items-center justify-between mb-[6px]">
+                  <div className="w-full min-w-0 max-w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col mt-[12px] transition-all">
+                    <div className="font-heading font-semibold text-[12px] md:text-[13px] text-[#475569] flex min-w-0 flex-wrap items-center justify-between gap-[6px] mb-[6px]">
                       <span>{t("features.title")}</span>
                       <span className="text-[10px] font-normal text-brand-primary bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-full">
                         PNG &amp; JPG
@@ -1303,7 +1324,7 @@ export function BackgroundRemover() {
                 )}
 
                 {/* Privacy Assurance Text */}
-                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] mt-[16px]">
+                <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex min-w-0 items-center justify-start gap-[6px] mt-[16px]">
                   <Image
                     src={IMAGES.lock}
                     alt="Lock"
@@ -1312,19 +1333,19 @@ export function BackgroundRemover() {
                     className="shrink-0 w-[12px] h-[12px]"
                     style={{ width: "auto", height: "auto" }}
                   />
-                  <span>100% Private &amp; Secure - Your images are processed securely and never stored.</span>
+                  <span className="min-w-0 break-words">100% Private &amp; Secure - Your images are processed securely and never stored.</span>
                 </p>
               </div>
 
               {/* ============================================================ */}
               {/* RIGHT COLUMN: Live Preview & Controls                       */}
               {/* ============================================================ */}
-              <div className="w-full lg:w-[537px] flex flex-col justify-between">
+              <div className="w-full min-w-0 lg:w-[537px] flex flex-col justify-between">
                 <div className="flex flex-col">
                 {/* Column Header with View Mode Tabs */}
-                <div className="flex items-center justify-between mb-[12px] h-[36px]">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                   <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-                    {hasResult ? t("resultLabel") : "Live Preview"}
+                    {hasResult ? t("resultLabel") : t("ui.livePreview")}
                   </h2>
 
                   {/* Mode Tabs (Before / After) */}
@@ -1357,7 +1378,7 @@ export function BackgroundRemover() {
                 </div>
 
                 {/* Main Preview Container */}
-                <div className="w-full h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]">
+                <div className="w-full min-w-0 h-[220px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-white p-[16px] md:p-[24px]">
                   {bgOption === "Transparent" && !addedBackground && hasResult && previewMode === "after" && (
                     <div
                       className="absolute inset-0 opacity-20 pointer-events-none"
@@ -1380,12 +1401,12 @@ export function BackgroundRemover() {
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
                       <img
                         src={compositedResultUrl || result.dataUrl}
-                        alt={addedBackground ? "Background changed result" : "Background removed result"}
+                        alt={addedBackground ? t("ui.backgroundChanged") : t("ui.backgroundRemoved")}
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
                       {compositingBackground && (
                         <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white/95 px-3 py-1 text-[11px] text-[#475569] shadow-sm">
-                          Applying background…
+                          {t("ui.applyingBackground")}
                         </span>
                       )}
                     </div>
@@ -1393,7 +1414,7 @@ export function BackgroundRemover() {
                     <div className="relative w-full h-full flex flex-col items-center justify-center">
                       <img
                         src={dataUrl}
-                        alt="Original source image"
+                        alt={t("ui.originalImage")}
                         className="max-w-full max-h-full object-contain drop-shadow-md"
                       />
                       <span className="absolute bottom-2 right-2 bg-brand-primary text-white text-[12px] font-heading px-2 py-0.5 rounded shadow-xs">
@@ -1404,12 +1425,12 @@ export function BackgroundRemover() {
                     <div className="relative w-full h-full flex flex-col items-center justify-center opacity-85">
                       <img
                         src={dataUrl}
-                        alt="Uploaded preview"
+                        alt={t("ui.uploadedPreview")}
                         className="max-w-full max-h-full object-contain filter grayscale-[30%]"
                       />
                       <div className="absolute inset-0 bg-white/40 flex items-center justify-center">
                         <span className="bg-white/90 backdrop-blur-xs border border-gray-200 text-text-dark font-body font-medium text-[13px] px-3 py-1.5 rounded-full shadow-sm">
-                          Click &ldquo;Remove Background&rdquo; below
+                          {t("ui.removeBackgroundHint")}
                         </span>
                       </div>
                     </div>
@@ -1417,11 +1438,11 @@ export function BackgroundRemover() {
                     <div className="flex flex-col items-center justify-center gap-2">
                       <img
                         src={IMAGES.uploadImage}
-                        alt="Upload placeholder"
+                        alt={t("ui.uploadPlaceholder")}
                         className="w-[64px] h-[64px] object-contain"
                       />
                       <p className="font-body text-[13px] text-[#94A3B8]">
-                        {t("previewLabel")} will appear here
+                        {t("ui.previewPlaceholder")}
                       </p>
                     </div>
                   ) : null}
@@ -1429,14 +1450,14 @@ export function BackgroundRemover() {
 
                 {dataUrl && (
                   <div className="mt-[12px] rounded-[16px] border border-[#E2E8F0] bg-white p-[12px] md:p-[14px] shadow-xs">
-                    <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-3">
                       <div>
-                        <h3 className="font-heading font-semibold text-[13px] md:text-[14px] text-[#334155]">Add a background</h3>
-                        <p className="font-body text-[11px] text-[#64748B]">Choose a style, photo, or color behind your cutout.</p>
+                        <h3 className="font-heading font-semibold text-[13px] md:text-[14px] text-[#334155]">{t("ui.addBackground")}</h3>
+                        <p className="font-body text-[11px] text-[#64748B]">{t("ui.addBackgroundDescription")}</p>
                       </div>
-                      {addedBackground && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">Selected</span>}
+                      {addedBackground && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">{t("ui.selected")}</span>}
                     </div>
-                    <div role="tablist" aria-label="Background type" className="mb-3 flex gap-1 rounded-full bg-[#F1F5F9] p-1">
+                    <div role="tablist" aria-label={t("ui.backgroundType")} className="mb-3 flex gap-1 rounded-full bg-[#F1F5F9] p-1">
                       {(["Magic", "Photo", "Color"] as const).map((tab) => (
                         <button
                           key={tab}
@@ -1446,24 +1467,24 @@ export function BackgroundRemover() {
                           onClick={() => setBackgroundTab(tab)}
                           className={`flex-1 rounded-full px-3 py-2 font-body text-[12px] font-medium transition-colors ${backgroundTab === tab ? "bg-white text-[#334155] shadow-sm" : "text-[#64748B] hover:text-[#334155]"}`}
                         >
-                          {tab}
+                          {tab === "Magic" ? t("ui.tabs.magic") : tab === "Photo" ? t("ui.tabs.photo") : t("ui.tabs.color")}
                         </button>
                       ))}
                     </div>
 
                     {backgroundTab === "Magic" && (
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-4">
                         {PHOTO_BACKGROUND_PRESETS.map((preset) => (
                           <button
                             key={preset.id}
                             type="button"
-                            aria-label={`Use ${preset.name} background`}
+                            aria-label={t("ui.usePreset", { preset: localizedPhotoPresetNames[preset.id] })}
                             aria-pressed={addedBackground?.kind === "photo" && addedBackground.src === preset.src}
                             onClick={() => chooseAddedBackground({ kind: "photo", src: preset.src, name: preset.name })}
                             className={`group relative aspect-[4/3] overflow-hidden rounded-[10px] border-2 transition-all ${addedBackground?.kind === "photo" && addedBackground.src === preset.src ? "border-blue-500 ring-2 ring-blue-100" : "border-transparent hover:ring-2 hover:ring-slate-200"}`}
                           >
                             <img src={preset.src} alt="" loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-1 text-center text-[10px] font-medium text-white">{preset.name}</span>
+                            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-1 text-center text-[10px] font-medium text-white">{localizedPhotoPresetNames[preset.id]}</span>
                           </button>
                         ))}
                       </div>
@@ -1482,27 +1503,27 @@ export function BackgroundRemover() {
                           }}
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="font-body text-[12px] font-medium text-[#334155]">Use a photo from your device</p>
-                          <p className="mt-0.5 font-body text-[10px] text-[#64748B]">PNG, JPG, or WebP ? up to 10 MB</p>
+                          <p className="font-body text-[12px] font-medium text-[#334155]">{t("ui.usePhotoFromDevice")}</p>
+                          <p className="mt-0.5 font-body text-[10px] text-[#64748B]">{t("ui.photoFormatsLimit")}</p>
                           {addedBackground?.kind === "photo" && addedBackground.src.startsWith("data:") && (
-                            <p className="mt-1 truncate font-body text-[10px] text-emerald-700">Selected: {addedBackground.name}</p>
+                            <p className="mt-1 truncate font-body text-[10px] text-emerald-700">{t("ui.selectedPhoto", { name: addedBackground.name })}</p>
                           )}
                         </div>
                         <button type="button" onClick={() => backgroundFileRef.current?.click()} className="rounded-[8px] bg-white px-3 py-2 text-[11px] font-medium text-[#334155] shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">
-                          Upload your own photo
+                          {t("ui.uploadOwnPhoto")}
                         </button>
                       </div>
                     )}
 
                     {backgroundTab === "Color" && (
                       <div>
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                          {COLOR_GRADIENT_PRESETS.map((preset) => (
+                        <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-6">
+                          {COLOR_GRADIENT_PRESETS.map((preset, index) => (
                             <button
                               key={preset.name}
                               type="button"
-                              title={preset.name}
-                              aria-label={`Use ${preset.name} background`}
+                              aria-label={t("ui.usePreset", { preset: localizedGradientNames[index] })}
+                              title={localizedGradientNames[index]}
                               aria-pressed={addedBackground?.kind === "color" && addedBackground.gradient === preset.colors}
                               onClick={() => chooseAddedBackground({ kind: "color", color: preset.colors[0], gradient: preset.colors })}
                               className={`aspect-[4/3] min-h-[48px] rounded-[10px] border border-white shadow-sm transition hover:scale-[1.03] ${addedBackground?.kind === "color" && addedBackground.gradient === preset.colors ? "ring-2 ring-blue-500 ring-offset-2" : "ring-1 ring-slate-200"}`}
@@ -1515,21 +1536,21 @@ export function BackgroundRemover() {
                             type="color"
                             value={addedBackgroundColor}
                             onChange={(event) => setAddedBackgroundColor(event.target.value.toUpperCase())}
-                            aria-label="Choose background color"
+                            aria-label={t("ui.chooseBackgroundColor")}
                             className="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
                           />
                           <button type="button" onClick={() => chooseAddedBackground({ kind: "color", color: addedBackgroundColor })} className="rounded-[8px] bg-[#F1F5F9] px-3 py-2 text-[11px] font-medium text-[#334155] hover:bg-slate-200">
-                            Choose a custom color
+                            {t("ui.chooseCustomColor")}
                           </button>
                         </div>
                       </div>
                     )}
 
                     {staleResult && addedBackground && (
-                      <p className="mt-3 rounded-[8px] bg-amber-50 px-3 py-2 text-[11px] text-amber-800">Run Remove Background again to apply this background to the new cutout.</p>
+                      <p className="mt-3 rounded-[8px] bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{t("ui.staleBackgroundWarning")}</p>
                     )}
                     {addedBackground && bgOption === "Transparent" && !staleResult && (
-                      <button type="button" onClick={resetAddedBackground} className="mt-3 text-[11px] font-medium text-[#64748B] underline underline-offset-2 hover:text-[#334155]">Remove added background</button>
+                      <button type="button" onClick={resetAddedBackground} className="mt-3 text-[11px] font-medium text-[#64748B] underline underline-offset-2 hover:text-[#334155]">{t("ui.removeAddedBackground")}</button>
                     )}
                   </div>
                 )}
@@ -1538,16 +1559,16 @@ export function BackgroundRemover() {
                 {/* Background Remover Settings (1x2 Grid)                    */}
                 {/* ========================================================== */}
                 <div
-                  className={`w-full mt-[16px] md:mt-[20px] transition-all duration-300 ${
+                  className={`w-full min-w-0 mt-[16px] md:mt-[20px] transition-all duration-300 ${
                     processing ? "pointer-events-none opacity-50" : ""
                   }`}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
+                  <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 gap-[12px] md:gap-[16px] w-full">
                     {/* Background Dropdown */}
                     <BgRemoverDropdown
-                      label="Background"
+                      label={t("ui.background")}
                       value={bgOption}
-                      options={BG_OPTIONS}
+                      options={localizedBgOptions}
                       onChange={(val) => {
                         setBgOption(val);
                         if (val !== "Custom") {
@@ -1610,7 +1631,7 @@ export function BackgroundRemover() {
 
                     {/* Scale Dropdown */}
                     <BgRemoverDropdown
-                      label="Output Scale"
+                      label={t("ui.outputScale")}
                       value={scale}
                       options={SCALE_OPTIONS}
                       onChange={(val) => {
@@ -1652,19 +1673,19 @@ export function BackgroundRemover() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[20px] relative">
+                  <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[20px] relative">
                     {mounted && limitReached && status !== "authed" && (limitDownloadDone || !hasResult) ? (
                       <button
                         type="button"
                         onClick={() => setShowSignupPrompt(true)}
-                        className="w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+                        className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[16px] md:px-[24px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-body font-medium text-[14px] md:text-[16px] flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
                       >
                         {tUsage("signUpForFree")}
                       </button>
                     ) : hasResult && !staleResult ? (
                       <>
                         <Button
-                          className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                          className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                           onClick={handleDownload}
                           disabled={processing || compositingBackground || (!!addedBackground && !compositedResultUrl)}
                         >
@@ -1684,7 +1705,7 @@ export function BackgroundRemover() {
                       </>
                     ) : (
                       <Button
-                        className="w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
+                        className="w-full max-w-[300px] h-[44px] md:h-[48px] px-[12px] md:px-[32px] rounded-[12px] gap-[8px] shadow-sm"
                         onClick={handleRemoveBackground}
                         disabled={processing || !dataUrl}
                       >
@@ -1703,8 +1724,8 @@ export function BackgroundRemover() {
 
                     {/* Result Details */}
                     {result && result.size > 0 && !staleResult && (
-                      <p className="text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] whitespace-nowrap mt-1">
-                        {addedBackground ? "Background added PNG" : bgOption === "Transparent" ? "Transparent PNG" : `${bgOption === "Custom" ? customColor : bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
+                      <p className="w-full min-w-0 max-w-full break-words text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-1">
+                        {addedBackground ? t("ui.backgroundAddedPng") : bgOption === "Transparent" ? t("ui.transparentPng") : `${bgOption === "Custom" ? customColor : localizedBgOptions.find((option) => option.value === bgOption)?.label ?? bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
                         {imageDims ? ` · ${imageDims.width}×${imageDims.height} px` : ""}
                       </p>
                     )}

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function Navbar({ logoUrl }: { logoUrl?: string }) {
   const { user, logout } = useAuth();
@@ -198,6 +199,7 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
             <div className="logged-out-only flex items-center gap-[14px] md:gap-[16px]">
               <Button
                 href="/login"
+                onClick={() => saveAuthRedirectUrl()}
                 variant="outline"
                 className="w-[80px] h-[32px] rounded-[8px] text-[14px] md:w-[139px] md:h-[42px] md:rounded-[12px] md:text-[16px] bg-[#FFFFFF] px-[0px]"
               >

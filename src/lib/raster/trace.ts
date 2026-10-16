@@ -18,14 +18,11 @@ interface QualityKnobs {
 const QUALITY_KNOBS: Record<RasterQuality, QualityKnobs> = {
   draft: { pathPrecision: 5, simplify: 1, filterSpeckle: 4, colorPrecision: 7, layerDifference: 24, lengthThreshold: 6, maxIterations: 6, spliceThreshold: 2, cornerThreshold: 45 },
   standard: { pathPrecision: 8, simplify: 0, filterSpeckle: 1, colorPrecision: 9, layerDifference: 16, lengthThreshold: 4, maxIterations: 10, spliceThreshold: 1, cornerThreshold: 60 },
-  max: { pathPrecision: 8, simplify: 0, filterSpeckle: 0, colorPrecision: 11, layerDifference: 10, lengthThreshold: 2.5, maxIterations: 15, spliceThreshold: 0, cornerThreshold: 45 },
+  max: { pathPrecision: 8, simplify: 0, filterSpeckle: 0, colorPrecision: 11, layerDifference: 10, lengthThreshold: 2.5, maxIterations: 15, spliceThreshold: 0, cornerThreshold: 60 },
 };
 
-// VTracer 1.0.0-alpha.4 silently collapses multi-color artwork to one gray
-// layer at colorPrecision 9 and above. Keep the quality tiers, but clamp the
-// engine input to the highest precision that preserves separate color layers.
+// VTracer 1.0.0-alpha.4 collapses multi-color artwork at precision 9+.
 const MAX_SAFE_COLOR_PRECISION = 6;
-
 function safeColorPrecision(value: number): number {
   return Math.min(value, MAX_SAFE_COLOR_PRECISION);
 }

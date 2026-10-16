@@ -4,7 +4,11 @@ import { routing } from '@/i18n/routing'
 import { getRequestId } from '@/lib/shared/logger'
 import { verifyRefreshTokenEdge } from '@/lib/auth/edge-tokens'
 import { unauthorizedResponse } from '@/lib/http/unauthorized'
-import { API_DOCS_PATH } from '@/lib/openapi/constants'
+import {
+  API_DOCS_PATH,
+  getApiDocsRedirect,
+  getApiFrontendOrigin,
+} from '@/lib/openapi/constants'
 import { isAllowedCorsOrigin } from '@/lib/security/cors-origin'
 import { getCanonicalAdminPathname } from '@/lib/shared/admin-routing'
 
@@ -192,12 +196,8 @@ function isApiSubdomain(
   )
 }
 
-const API_DOCS_ALIASES = new Set(['/docs', API_DOCS_PATH, '/swagger'])
-
 function frontendOriginFor(apiHostname: string): string {
-  return apiHostname.startsWith('staging.')
-    ? 'https://staging.crushsvg.net'
-    : 'https://crushsvg.net'
+  return getApiFrontendOrigin(apiHostname)
 }
 
 function setCorsHeaders(
@@ -377,13 +377,11 @@ export async function proxy(
     // Conventional docs paths on the API host point at the canonical docs
     // page on the frontend. 302 (not 301) so browsers/CDNs don't cache it
     // while the canonical host is still being settled.
-    if (
-      API_DOCS_ALIASES.has(pathname) &&
-      (request.method === 'GET' || request.method === 'HEAD')
-    ) {
+    const docsRedirect = getApiDocsRedirect(pathname, request.method, hostname!)
+    if (docsRedirect) {
       return addRequestId(
         NextResponse.redirect(
-          new URL(API_DOCS_PATH, frontendOriginFor(hostname!)),
+          docsRedirect,
           302
         ),
         request

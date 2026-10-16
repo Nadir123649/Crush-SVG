@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { mock, test } from "node:test";
 import { NextRequest } from "next/server";
 
+mock.module("server-only", { namedExports: {} });
+
 type DeleteResult = { deletedCount: number };
 
 let userRecord: { role: "admin" | "user"; email: string } = {

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getUseCaseBySlug, useCases } from "@/lib/data/use-cases";
-import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
-import { FAQ } from "@/components/sections/FAQ";
+import { getUseCaseFAQs } from "@/lib/data/use-case-faqs";
+import { getLocalizedUseCase } from "@/lib/data/use-case-translations";
+import { constructLocalizedMetadata, getFAQSchema, SITE_URL } from "@/lib/seo";
+import { UseCaseFaqSection } from "@/components/use-case/UseCaseFaqSection";
 import { Hero } from "@/components/sections/Hero";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
@@ -30,10 +32,11 @@ export async function generateMetadata({ params }: UseCasePageProps) {
       description: t("notFoundDesc"),
     });
   }
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
   return constructLocalizedMetadata({
     locale,
     routeKey: `/use-case/${useCase.slug}`,
-    title: `${useCase.title} | CrushSVG`,
+    title: `${localizedUseCase.title} | CrushSVG`,
     description: useCase.description,
     keywords: useCase.keywords,
   });
@@ -57,13 +60,18 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
   setRequestLocale(locale);
   const useCase = getUseCaseBySlug(slug, locale);
   if (!useCase) notFound();
+  const localizedUseCase = getLocalizedUseCase(useCase, locale);
 
-  const t = await getTranslations("use_case");
+  const [t, tFaq] = await Promise.all([
+    getTranslations("use_case"),
+    getTranslations("FAQ"),
+  ]);
+  const faqs = getUseCaseFAQs(useCase.slug);
 
   const useCaseSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: useCase.title,
+    name: localizedUseCase.title,
     description: useCase.description,
     url: `${SITE_URL}${locale === "en" ? `/use-case/${useCase.slug}` : `/${locale}/use-case/${useCase.slug}`}`,
     isPartOf: {
@@ -74,24 +82,30 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
+    <div className="w-full min-w-0 max-w-full overflow-x-clip flex flex-col items-center md:pb-[60px] min-h-[60vh]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(useCaseSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(useCaseSchema).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getFAQSchema(faqs)).replace(/</g, "\\u003c"),
+        }}
       />
 
       {/* Hero */}
       <Hero
         badge={`${useCase.icon} ${t("badge")}`}
         title={
-          renderHeroTitle(useCase.h1, useCase.highlight)
+          renderHeroTitle(localizedUseCase.h1, useCase.highlight)
         }
         subtitle={useCase.description}
         className="mb-[24px] md:mb-[40px]"
       />
 
       {/* Feature badges row */}
-      <div className="w-full max-w-[800px] flex flex-wrap justify-center gap-[10px] mb-[32px] md:mb-[48px]">
+      <div className="w-full min-w-0 max-w-[800px] flex flex-wrap justify-center gap-[10px] mb-[32px] md:mb-[48px]">
         {useCase.features.map((feature, idx) => (
           <div
             key={idx}
@@ -99,33 +113,33 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
               border: "1px solid transparent",
               background: "linear-gradient(#FFFCFA, #FFFCFA) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
             }}
-            className="flex items-center gap-[8px] h-[29px] rounded-[6px] px-[12px]"
+            className="flex min-w-0 max-w-full items-center gap-[8px] min-h-[29px] rounded-[6px] px-[12px] py-[4px]"
           >
             <div className="w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0" />
-            <span className="font-body font-medium text-[12px] md:text-[14px] text-text-dark">{feature}</span>
+            <span className="min-w-0 break-words font-body font-medium text-[12px] md:text-[14px] text-text-dark">{feature}</span>
           </div>
         ))}
       </div>
 
       {/* Main content */}
-      <div className="w-full max-w-[800px] flex flex-col gap-[32px] md:gap-[48px]">
+      <div className="w-full min-w-0 max-w-[800px] flex flex-col gap-[32px] md:gap-[48px]">
         {/* Why use CrushSVG card */}
         <section
-          className="w-full flex flex-col bg-white rounded-[12px] p-[28px] md:p-[44px] border border-[#F2EDE8]"
+          className="w-full min-w-0 flex flex-col bg-white rounded-[12px] p-[20px] md:p-[44px] border border-[#F2EDE8]"
           style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
         >
-          <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
-            {t("whyHeading", { h1: useCase.h1 })}
+          <h2 className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[16px]">
+            {t("whyHeading", { h1: localizedUseCase.h1 })}
           </h2>
           <ul className="flex flex-col gap-[16px]">
             {useCase.features.map((feature, idx) => (
-              <li key={idx} className="flex gap-[12px] items-start">
+              <li key={idx} className="flex min-w-0 gap-[12px] items-start">
                 <div className="mt-[8px] w-[6px] h-[6px] rounded-full bg-brand-primary shrink-0" />
-                <div>
-                  <strong className="font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">
+                <div className="min-w-0">
+                  <strong className="break-words [overflow-wrap:anywhere] font-afacad text-[16px] md:text-[18px] font-semibold text-text-dark block mb-[4px]">
                     {feature}
                   </strong>
-                  <span className="font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">
+                  <span className="break-words [overflow-wrap:anywhere] font-afacad text-[16px] md:text-[18px] text-text-muted leading-[1.6]">
                     {t("featureBlurb")}
                   </span>
                 </div>
@@ -134,14 +148,14 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           </ul>
 
           {/* Quick tool callout inside the card */}
-          <div className="mt-8 p-5 md:p-6 rounded-[10px] bg-[#FCF1ED] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
+          <div className="mt-8 min-w-0 p-5 md:p-6 rounded-[10px] bg-[#FCF1ED] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="min-w-0 max-w-full">
               <p className="font-heading font-semibold text-text-dark text-base">{t("tryNow")}</p>
               <p className="font-afacad text-sm text-text-muted">{t("noSignup")}</p>
             </div>
             <Link
               href="/"
-              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+              className="max-w-full break-words px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white text-sm font-semibold hover:opacity-90 transition-opacity sm:shrink-0"
             >
               {t("openConverter")} &rarr;
             </Link>
@@ -152,12 +166,9 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
       {/* AdSense Unit */}
       <AdBanner />
 
-      {/* FAQ */}
-      <FAQ />
-
       {/* Bottom CTA Banner */}
-      <div className="w-full max-w-[800px] mt-4 p-7 md:p-8 bg-[#FCF1ED] rounded-[12px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-        <div>
+      <div className="w-full min-w-0 max-w-[800px] mt-4 p-5 md:p-8 bg-[#FCF1ED] rounded-[12px] border border-[#F2EDE8] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+        <div className="min-w-0 max-w-full">
           <h3 className="font-heading font-semibold text-xl text-text-dark mb-1">
             {t("stillQuestions")}
           </h3>
@@ -165,15 +176,17 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
             {t("browseGuides")}
           </p>
         </div>
-        <div className="flex gap-3 shrink-0">
-          <Button href="/svg-guides" variant="outline" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold border border-[#E5DFDA]">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:shrink-0">
+          <Button href="/svg-guides" variant="outline" className="h-auto min-h-[40px] w-full whitespace-normal break-words px-5 py-2.5 rounded-xl text-sm font-semibold border border-[#E5DFDA] sm:w-auto">
             {t("svgGuides")}
           </Button>
-          <Button href="/contact-us" variant="solid" className="px-5 py-2.5 h-[40px] rounded-xl text-sm font-semibold">
+          <Button href="/contact-us" variant="solid" className="h-auto min-h-[40px] w-full whitespace-normal break-words px-5 py-2.5 rounded-xl text-sm font-semibold sm:w-auto">
             {t("contactSupport")}
           </Button>
         </div>
       </div>
+
+      <UseCaseFaqSection faqs={faqs} heading={tFaq("title")} />
     </div>
   );
 }

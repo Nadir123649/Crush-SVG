@@ -230,17 +230,17 @@ export function FaviconGeneratorUI() {
   return (
     <section
       id="converter"
-      className="w-full max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+      className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
     >
       {/* Outer Dashed Border Box */}
-      <div className="w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
+      <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300 lg:min-h-[500px]">
         {/* Inner Dashed Border Box */}
-        <div className="w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
+        <div className="w-full min-w-0 max-w-full h-auto bg-transparent md:bg-[#FFFFFF] border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[24px] flex flex-col justify-center px-0 md:px-[40px] py-[20px] transition-all duration-300 lg:min-h-[476px]">
           {/* Top row with columns */}
-          <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
+          <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
             {/* Left Column (SVG Code & Drag Drop) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                 <div className="flex items-center gap-[10px]">
                   <button
@@ -276,7 +276,7 @@ export function FaviconGeneratorUI() {
               </div>
 
               {/* SVG Code Box */}
-              <div className="relative w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+              <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
                 <textarea
                   id="favicon-svg-textarea"
                   value={svgCode}
@@ -314,7 +314,7 @@ export function FaviconGeneratorUI() {
                   setDragOver(false);
                   void handleFile(e.dataTransfer.files?.[0]);
                 }}
-                className={`w-full h-[150px] md:h-[167px] rounded-[16px] border border-dashed flex flex-col items-center justify-center p-[20px] md:p-[28px] mt-[16px] md:mt-[20px] cursor-pointer transition-colors ${
+                className={`w-full min-w-0 max-w-full h-[150px] md:h-[167px] rounded-[16px] border border-dashed flex flex-col items-center justify-center p-[20px] md:p-[28px] mt-[16px] md:mt-[20px] cursor-pointer transition-colors ${
                   dragOver
                     ? "border-brand-primary bg-brand-primary/5"
                     : "border-[#8F8F8F] hover:border-brand-primary bg-[#FFFFFF]"
@@ -343,18 +343,18 @@ export function FaviconGeneratorUI() {
                   : tUpload("sourceSizeUnknown")}
               </p>
 
-              <div className="mt-[16px] lg:mt-auto flex flex-col w-full">
-                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+              <div className="mt-[16px] lg:mt-auto flex min-w-0 flex-col w-full">
+                <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex min-w-0 items-center justify-start gap-[6px]">
                   <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                  <span>{tUpload("privateNotice")}</span>
+                  <span className="min-w-0 break-words">{tUpload("privateNotice")}</span>
                 </p>
               </div>
             </div>
 
             {/* Right Column (Device Previews & Options) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               {/* Preview Tabs */}
-              <div className="flex items-center justify-between mb-[12px] h-[36px]">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <div className="flex items-center gap-[6px] bg-[#F1F5F9] p-[3px] rounded-[8px]">
                   <button
                     type="button"
@@ -390,7 +390,7 @@ export function FaviconGeneratorUI() {
               </div>
 
               {/* Realistic Preview Window */}
-              <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] flex flex-col overflow-hidden shadow-inner">
+              <div className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] flex flex-col overflow-hidden shadow-inner">
                 {/* Browser Tab Mockup View */}
                 {activePreviewTab === "tab" && (
                   <div className="w-full h-full flex flex-col bg-[#F1F5F9]">
@@ -455,44 +455,44 @@ export function FaviconGeneratorUI() {
               </div>
 
               {/* Favicon Customization Controls */}
-              <div className="w-full mt-[16px] md:mt-[20px] grow shrink-0 flex flex-col justify-between">
-                <div className="p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[12px]">
+              <div className="w-full min-w-0 mt-[16px] md:mt-[20px] grow flex flex-col justify-between">
+                <div className="w-full min-w-0 max-w-full p-[14px] md:p-[16px] bg-white rounded-[14px] border border-[#8F8F8F] flex flex-col gap-[12px]">
                   <h3 className="font-heading font-semibold text-[14px] text-text-dark">{t("customizationTitle")}</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
+                  <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 gap-[10px]">
                     {/* App Name */}
-                    <label className="flex flex-col gap-1 font-body text-[12px] text-[#475569]">
+                    <label className="flex min-w-0 flex-col gap-1 font-body text-[12px] text-[#475569]">
                       <span className="font-medium">{t("appNameLabel")}</span>
                       <input
                         type="text"
                         value={appName}
                         onChange={(e) => setAppName(e.target.value)}
                         placeholder="My App"
-                        className="w-full px-3 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[13px] outline-none focus:border-brand-primary"
+                        className="w-full min-w-0 px-3 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[13px] outline-none focus:border-brand-primary"
                       />
                     </label>
 
                     {/* Theme Color */}
-                    <label className="flex flex-col gap-1 font-body text-[12px] text-[#475569]">
+                    <label className="flex min-w-0 flex-col gap-1 font-body text-[12px] text-[#475569]">
                       <span className="font-medium">{t("themeColorLabel")}</span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
                         <input
                           type="color"
                           value={themeColor}
                           onChange={(e) => setThemeColor(e.target.value)}
-                          className="w-8 h-8 rounded border border-[#CBD5E1] cursor-pointer p-0"
+                          className="w-8 h-8 shrink-0 rounded border border-[#CBD5E1] cursor-pointer p-0"
                         />
                         <input
                           type="text"
                           value={themeColor}
                           onChange={(e) => setThemeColor(e.target.value)}
-                          className="w-full px-2 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[12px] font-mono outline-none focus:border-brand-primary"
+                          className="w-full min-w-0 flex-1 px-2 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[12px] font-mono outline-none focus:border-brand-primary"
                         />
                       </div>
                     </label>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-[10px]">
+                  <div className="grid min-w-0 grid-cols-2 gap-[10px]">
                     {/* Padding Slider */}
                     <div className="flex flex-col gap-1">
                       <div className="flex justify-between text-[11px] font-body text-[#475569]">
@@ -564,7 +564,7 @@ export function FaviconGeneratorUI() {
               variant="solid"
               onClick={handleDownloadZip}
               disabled={!packResult || isZipping}
-              className="w-[300px] h-[44px] md:h-[48px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full max-w-[300px] h-[44px] md:h-[48px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isZipping ? t("zippingPack") : t("downloadFullPackZip")}
             </Button>

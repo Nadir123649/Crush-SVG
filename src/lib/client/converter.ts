@@ -1,4 +1,5 @@
 import { apiBlob, apiFetch, withTimeoutSignal } from '@/lib/client/http'
+import { validateSvgMarkup } from '@/lib/svg/validate-svg-markup'
 
 export interface ConvertRequest {
   width?: number
@@ -96,9 +97,5 @@ export function svgToDataUrl(svg: string): string {
 // which must not block the live preview even though the converter handles
 // them fine.
 export function isValidSvgContent(svg: string): boolean {
-  let body = svg.trim().toLowerCase()
-  body = body.replace(/^<\?xml[\s\S]*?\?>\s*/, '')
-  body = body.replace(/^<!doctype[\s\S]*?>\s*/, '')
-  body = body.replace(/^(<!--[\s\S]*?-->|\s)+/, '')
-  return body.startsWith('<svg') && body.includes('</svg>')
+  return validateSvgMarkup(svg).valid
 }

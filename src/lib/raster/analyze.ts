@@ -119,7 +119,7 @@ function classify(
     // Photos and shaded drawings have many gray levels; keep those tonal
     // regions instead of forcing them through the binary black/white tracer.
     if (grayToneRatio > 0.65 && edgeDensity > 0.08) return "photo";
-    if (edgeDensity > 0.15) return "line-art";
+    if (edgeDensity > 0.15 || uniqueColorRatio > 0.25) return edgeDensity > 0.18 ? "line-art" : "mono";
     return "mono";
   }
   // JPEG compression, camera noise, skin, hair, and soft backgrounds can make

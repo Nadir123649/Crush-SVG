@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { updateConsentDenied, updateConsentGranted } from "@/lib/client/analytics";
@@ -12,9 +13,11 @@ type ConsentValue = "granted" | "denied" | null;
 
 export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentValue | "loading">("loading");
+  const [mounted, setMounted] = useState(false);
   const t = useTranslations("cookie_consent");
 
   useEffect(() => {
+    setMounted(true);
     const stored = localStorage.getItem(CONSENT_KEY) as ConsentValue | null;
     // If previously granted, immediately fire consent update for this session
     if (stored === "granted") {
@@ -38,16 +41,16 @@ export function CookieConsentBanner() {
   }
 
   // Don't render if user already made a choice
-  if (consent !== null) return null;
+  if (!mounted || consent !== null) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4 md:pb-6"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[1000] flex justify-center px-4 pb-[max(16px,env(safe-area-inset-bottom))] md:pb-[max(24px,env(safe-area-inset-bottom))]"
       role="dialog"
       aria-modal="false"
       aria-label={t("dialogAria")}
     >
-      <div className="w-full max-w-[720px] bg-white border border-[#E5E7EB] rounded-[16px] shadow-lg px-[20px] py-[16px] md:px-[28px] md:py-[18px] flex flex-col md:flex-row items-start md:items-center gap-[14px] md:gap-[20px]">
+      <div className="pointer-events-auto w-full max-w-[720px] bg-white border border-[#E5E7EB] rounded-[16px] shadow-[0_12px_40px_rgba(32,36,39,0.2)] px-[16px] py-[12px] md:px-[24px] md:py-[14px] flex flex-col md:flex-row items-start md:items-center gap-[10px] md:gap-[16px]">
         {/* Text */}
         <p className="font-body text-[14px] text-[#5A524C] leading-[160%] flex-1">
           {t("message")}{" "}
@@ -87,6 +90,7 @@ export function CookieConsentBanner() {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
