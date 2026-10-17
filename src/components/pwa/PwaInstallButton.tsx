@@ -17,7 +17,6 @@ export function PwaInstallButton({
   const t = useTranslations("pwa");
   const [showTooltip, setShowTooltip] = useState(false);
   const {
-    isInstallable,
     isInstalled,
     isIOS,
     isModalOpen,
@@ -26,8 +25,9 @@ export function PwaInstallButton({
     promptInstall,
   } = usePWAInstall();
 
-  // If already installed or browser does not support install, do not show button
-  if (isInstalled || !isInstallable) {
+  // Keep the install affordance visible where the browser cannot expose a native
+  // prompt; clicking it opens the fallback instructions modal instead.
+  if (isInstalled) {
     return null;
   }
 

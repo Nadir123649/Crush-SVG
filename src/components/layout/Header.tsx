@@ -192,7 +192,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         ref={navContainerRef}
       >
         <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[24px] min-[1536px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
-        <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
+        <div className="w-full relative flex items-center justify-between min-[1024px]:grid min-[1024px]:grid-cols-[1fr_auto_1fr] h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -217,7 +217,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1024px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
+            className="hidden min-[1024px]:flex absolute left-1/2 -translate-x-1/2 min-[1024px]:static min-[1024px]:translate-x-0 min-[1024px]:justify-self-center items-center justify-center gap-[4px] min-[1024px]:gap-[2px] min-[1280px]:gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
           >
             {/* 1. Tools Dropdown */}
             <div className="relative shrink-0">
@@ -228,7 +228,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 }
                 aria-expanded={activeDropdown === "tools"}
                 aria-haspopup="true"
-                className={`flex items-center gap-[5px] px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
+                className={`flex items-center gap-[5px] px-[10px] min-[1024px]:px-[6px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all cursor-pointer select-none whitespace-nowrap ${
                   activeDropdown === "tools"
                     ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                     : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -449,7 +449,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   }
                 }
               }}
-              className={`shrink-0 px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[12px] min-[1024px]:px-[6px] min-[1280px]:px-[12px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 currentTool.isActive
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -461,7 +461,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 3. Use Cases */}
             <Link
               href="/use-case"
-              className={`shrink-0 px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/use-case")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -473,7 +473,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
-              className={`shrink-0 px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -485,7 +485,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 5. Guides */}
             <Link
               href="/svg-guides"
-              className={`shrink-0 px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/svg-guides")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -497,7 +497,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 6. Need Help? */}
             <Link
               href="/contact-us"
-              className={`shrink-0 px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
+              className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/contact-us")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
                   : "text-text-body hover:text-brand-primary hover:bg-white/50"
@@ -508,12 +508,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1536px]:border-l min-[1536px]:border-[#E8DED7] min-[1536px]:pl-[14px] justify-end">
+          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1024px]:gap-[8px] min-[1280px]:gap-[12px] min-[1024px]:border-l min-[1024px]:border-[#E8DED7] min-[1024px]:pl-[8px] min-[1280px]:pl-[14px] min-[1024px]:justify-self-end justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
-            <PwaInstallButton variant="icon" className="hidden min-[1536px]:inline-flex" />
+            <PwaInstallButton variant="icon" className="hidden min-[1024px]:inline-flex" />
 
             {/* Language Switcher (Tablet & Desktop, Controlled so opening it closes Account) */}
-            <div className="hidden min-[1536px]:inline-block">
+            <div className="hidden min-[1024px]:inline-block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
                 isOpen={activeDropdown === "language"}
@@ -522,12 +522,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            <div className={`logged-out-only hidden min-[1536px]:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+            <div className={`logged-out-only hidden min-[1024px]:flex items-center gap-[8px] min-[1280px]:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
               <Button
                 href="/login"
                 onClick={() => saveAuthRedirectUrl()}
                 variant="outline"
-                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] bg-[#FFFFFF] px-[0px]"
+                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[68px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[110px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] bg-[#FFFFFF] px-[0px]"
               >
                 {tAuth("login")}
               </Button>
@@ -535,14 +535,14 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               <Button
                 href="/signup"
                 variant="solid"
-                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] px-[0px]"
+                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[72px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[115px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] px-[0px]"
               >
                 {tAuth("signup")}
               </Button>
             </div>
 
             {/* Authenticated profile menu */}
-            <div className={`logged-in-only relative hidden min-[1536px]:block ${status === "guest" ? "!hidden" : ""}`}>
+            <div className={`logged-in-only relative hidden min-[1024px]:block ${status === "guest" ? "!hidden" : ""}`}>
               {(isAuthenticated || user) && (
                 <>
               <button
@@ -576,7 +576,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                   </span>
                 )}
 
-                <span className="hidden sm:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[80px] md:max-w-[130px] truncate">
+                <span className="hidden min-[1280px]:inline-block font-body font-medium text-[12px] md:text-[14px] text-text-dark max-w-[130px] truncate">
                   {user?.displayName || user?.email}
                 </span>
 
@@ -652,7 +652,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="min-[1536px]:hidden flex items-center">
+            <div className="min-[1024px]:hidden flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -685,7 +685,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
       {mobileMenuOpen && (
         <div
           ref={mobileDrawerRef}
-          className="min-[1536px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
+          className="min-[1024px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
         >
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}
