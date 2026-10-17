@@ -12,6 +12,9 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
+const isSvgToPngPath = (path: string) =>
+  path === "/" || path === "/convert-svg-to-png";
+
 export function Header({ logoUrl }: { logoUrl?: string }) {
   const tNav = useTranslations("navigation");
   const tAuth = useTranslations("authentication");
@@ -153,7 +156,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isActive: true,
       };
     }
-    if (pathname === "/" || pathname === "/convert-svg-to-png") {
+    if (isSvgToPngPath(pathname)) {
       return {
         label: tNav("svgToPng"),
         href: "/",
@@ -167,7 +170,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
     };
   }, [pathname, tNav]);
 
-  const isSvgToPngActive = pathname === "/" || pathname === "/convert-svg-to-png";
+  const isSvgToPngActive = isSvgToPngPath(pathname);
   const isPngToSvgActive = pathname === "/png-to-svg";
   const isSvgToReactActive = pathname === "/svg-to-react";
   const isOtherToolActive =
@@ -695,7 +698,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 href="/"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  if ((pathname === "/" || pathname === "/convert-svg-to-png") && typeof window !== "undefined") {
+                  if (isSvgToPngPath(pathname) && typeof window !== "undefined") {
                     const el = document.getElementById("converter");
                     if (el) {
                       const offset = 70;
