@@ -192,7 +192,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         ref={navContainerRef}
       >
         <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[24px] min-[1536px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
-        <div className="w-full relative flex items-center justify-between h-[40px] md:h-[46px]">
+        <div className="w-full relative flex items-center justify-between min-[1280px]:grid min-[1280px]:grid-cols-[1fr_auto_1fr] h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -217,7 +217,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           {/* Center: Desktop Navigation Bar (Tools -> Current Tool -> Blog -> Guides -> Need Help) */}
           <nav
             aria-label="Main Navigation"
-            className="hidden min-[1024px]:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
+            className="hidden min-[1024px]:flex absolute left-1/2 -translate-x-1/2 min-[1280px]:static min-[1280px]:translate-x-0 min-[1280px]:justify-self-center items-center justify-center gap-[4px] rounded-[10px] border border-[#EEE5DE] bg-[#FAF6F3] p-[4px] z-10 w-auto"
           >
             {/* 1. Tools Dropdown */}
             <div className="relative shrink-0">
@@ -508,12 +508,12 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1536px]:border-l min-[1536px]:border-[#E8DED7] min-[1536px]:pl-[14px] justify-end">
+          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1280px]:border-l min-[1280px]:border-[#E8DED7] min-[1280px]:pl-[14px] min-[1280px]:justify-self-end justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
-            <PwaInstallButton variant="icon" className="hidden min-[1536px]:inline-flex" />
+            <PwaInstallButton variant="icon" className="hidden min-[1280px]:inline-flex" />
 
             {/* Language Switcher (Tablet & Desktop, Controlled so opening it closes Account) */}
-            <div className="hidden min-[1536px]:inline-block">
+            <div className="hidden min-[1280px]:inline-block">
               <LanguageSwitcher
                 listboxId="desktop-language-listbox"
                 isOpen={activeDropdown === "language"}
@@ -522,7 +522,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            <div className={`logged-out-only hidden min-[1536px]:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+            <div className={`logged-out-only hidden min-[1280px]:flex items-center gap-[8px] md:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
               <Button
                 href="/login"
                 onClick={() => saveAuthRedirectUrl()}
@@ -542,7 +542,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Authenticated profile menu */}
-            <div className={`logged-in-only relative hidden min-[1536px]:block ${status === "guest" ? "!hidden" : ""}`}>
+            <div className={`logged-in-only relative hidden min-[1280px]:block ${status === "guest" ? "!hidden" : ""}`}>
               {(isAuthenticated || user) && (
                 <>
               <button
@@ -652,7 +652,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="min-[1536px]:hidden flex items-center">
+            <div className="min-[1280px]:hidden flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -685,7 +685,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
       {mobileMenuOpen && (
         <div
           ref={mobileDrawerRef}
-          className="min-[1536px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
+          className="min-[1280px]:hidden fixed top-[68px] md:top-[80px] left-0 w-full max-h-[calc(100vh-68px)] md:max-h-[calc(100vh-80px)] overflow-y-auto bg-[#FFFCFA] border-b border-[#F2EDE8] shadow-[0px_16px_32px_0px_rgba(0,0,0,0.08)] py-5 z-40 animate-in slide-in-from-top-2"
         >
           <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] flex flex-col gap-4">
           {/* Tools Category */}
