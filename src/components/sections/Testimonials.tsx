@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Testimonial {
@@ -22,7 +20,7 @@ const TESTIMONIALS: Testimonial[] = [
     role: "Lead Frontend Engineer",
     avatar: "/testimonials/alex.png",
     content:
-      "CrushSVG transformed how our team handles vector exports. Complex SVGs become pixel-perfect PNGs in seconds — rendering headaches are completely gone.",
+      "CrushSVG transformed how our team handles vector exports. Complex SVGs become pixel-perfect PNGs in seconds, and rendering headaches are completely gone.",
     rating: 5,
   },
   {
@@ -40,7 +38,7 @@ const TESTIMONIALS: Testimonial[] = [
     role: "Creative Agency Director",
     avatar: "/testimonials/marcus.png",
     content:
-      "In our fast-paced agency, precision matters. What you preview on CrushSVG is exactly what you download — sharp, clean PNGs with zero surprises.",
+      "In our fast-paced agency, precision matters. What you preview on CrushSVG is exactly what you download: sharp, clean PNGs with zero surprises.",
     rating: 4.5,
   },
   {
@@ -67,7 +65,7 @@ const TESTIMONIALS: Testimonial[] = [
     role: "Head of Brand Design",
     avatar: "/testimonials/chloe.png",
     content:
-      "Paste raw SVG code, get a transparent PNG — it's that simple. Our marketing turnaround for social banners and ads has never been faster.",
+      "Paste raw SVG code and get a transparent PNG. It's that simple. Our marketing turnaround for social banners and ads has never been faster.",
     rating: 5,
   },
 ];
@@ -137,10 +135,7 @@ function TestimonialCard({ item }: { item: Testimonial }) {
   return (
     <article
       className="
-        w-full sm:w-full
-        md:w-[calc((100%-24px)/2)]
-        lg:w-[calc((100%-48px)/3)]
-        shrink-0 snap-start
+        w-[82vw] max-w-[380px] shrink-0
         bg-white rounded-[20px]
         border border-[#F0EAE4]
         shadow-[0px_2px_16px_rgba(0,0,0,0.05)]
@@ -197,50 +192,16 @@ function TestimonialCard({ item }: { item: Testimonial }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function Testimonials() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeDot, setActiveDot] = useState(0);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(true);
-
-  const sync = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setCanLeft(el.scrollLeft > 6);
-    setCanRight(max > 0 && el.scrollLeft < max - 6);
-    if (max > 0) {
-      setActiveDot(Math.min(2, Math.max(0, Math.round((el.scrollLeft / max) * 2))));
-    }
-  };
-
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const card = el.firstElementChild as HTMLElement | null;
-    const step = card ? card.offsetWidth + 24 : el.clientWidth;
-    el.scrollBy({ left: dir === "left" ? -step : step, behavior: "smooth" });
-  };
-
-  const goTo = (i: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    el.scrollTo({ left: (max * i) / 2, behavior: "smooth" });
-    setActiveDot(i);
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) {
-      sync();
-      el.addEventListener("scroll", sync, { passive: true });
-    }
-    window.addEventListener("resize", sync);
-    return () => {
-      el?.removeEventListener("scroll", sync);
-      window.removeEventListener("resize", sync);
-    };
-  }, []);
+  const renderCards = (copy = false) => (
+    <div
+      className={`flex shrink-0 gap-6 pr-6${copy ? " testimonial-marquee-copy--duplicate" : ""}`}
+      aria-hidden={copy || undefined}
+    >
+      {TESTIMONIALS.map((item) => (
+        <TestimonialCard key={`${copy ? "copy-" : ""}${item.id}`} item={item} />
+      ))}
+    </div>
+  );
 
   return (
     <section
@@ -253,64 +214,17 @@ export function Testimonials() {
         <span className="text-brand-primary">Designers & Developers</span>
       </h2>
 
-      {/* Carousel wrapper */}
+      {/* Continuous marquee */}
       <div className="w-full max-w-[1280px] px-4 sm:px-6">
-        {/* Track */}
         <div
-          ref={scrollRef}
-          className="w-full flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 px-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="testimonial-marquee w-full"
+          role="region"
+          aria-label="Customer testimonials"
         >
-          {TESTIMONIALS.map((item) => (
-            <TestimonialCard key={item.id} item={item} />
-          ))}
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-4 mt-8 md:mt-10">
-          {/* Left arrow */}
-          <button
-            type="button"
-            onClick={() => scroll("left")}
-            disabled={!canLeft}
-            aria-label="Previous testimonials"
-            className="w-9 h-9 rounded-full border border-[#EAEAEA] bg-white flex items-center justify-center text-[#57534E] hover:border-brand-primary hover:text-brand-primary hover:bg-[#FFF9F7] active:scale-95 transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed shadow-[0px_2px_8px_rgba(0,0,0,0.06)]"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-
-          {/* Dots */}
-          <div role="tablist" aria-label="Testimonial slides" className="flex items-center gap-[7px]">
-            {[0, 1, 2].map((i) => (
-              <button
-                key={i}
-                role="tab"
-                type="button"
-                aria-selected={activeDot === i}
-                aria-label={`Slide ${i + 1}`}
-                onClick={() => goTo(i)}
-                className={`rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary ${
-                  activeDot === i
-                    ? "w-5 h-[7px] bg-brand-primary"
-                    : "w-[7px] h-[7px] bg-[#DDD0CA] hover:bg-[#FFBFA8]"
-                }`}
-              />
-            ))}
+          <div className="testimonial-marquee-track py-2">
+            {renderCards()}
+            {renderCards(true)}
           </div>
-
-          {/* Right arrow */}
-          <button
-            type="button"
-            onClick={() => scroll("right")}
-            disabled={!canRight}
-            aria-label="Next testimonials"
-            className="w-9 h-9 rounded-full border border-[#EAEAEA] bg-white flex items-center justify-center text-[#57534E] hover:border-brand-primary hover:text-brand-primary hover:bg-[#FFF9F7] active:scale-95 transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed shadow-[0px_2px_8px_rgba(0,0,0,0.06)]"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
         </div>
       </div>
     </section>

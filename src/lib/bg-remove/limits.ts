@@ -1,7 +1,7 @@
 import "server-only";
 
 export const BG_REMOVE_LIMITS = {
-  MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+  MAX_UPLOAD_BYTES: 2 * 1024 * 1024,
   MAX_PIXELS: 20_000_000,
   MAX_DIMENSION: 8000,
   MIN_DIMENSION: 8,

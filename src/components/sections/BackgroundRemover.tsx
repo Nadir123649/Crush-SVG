@@ -34,14 +34,14 @@ function dataUrlToBlob(dataUrl: string): Blob {
 }
 
 const STORAGE_KEY = "crush_bg_remover_state";
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 /**
  * Vercel rejects serverless function request bodies above ~4.5 MB with
  * `413 FUNCTION_PAYLOAD_TOO_LARGE` before the route handler ever runs. Because
  * the image travels inside the multipart body, anything above that is unusable
- * in production even though the server-side 10 MB guard would accept it.
+ * in production even though the server-side upload guard would accept it.
  *
  * Files at or below MAX_SAFE_UPLOAD_BYTES are uploaded untouched — no Canvas
  * decode is performed for them at all.
@@ -999,6 +999,8 @@ export function BackgroundRemover() {
       });
       setStaleResult(false);
       setPreviewMode("after");
+      const processingWarning = apiRes.headers.get("X-Background-Removal-Warning");
+      if (processingWarning) showToast("info", processingWarning);
       if (addedBackground && bgOption === "Transparent") {
         void composeSelectedBackground(objectUrl, addedBackground);
       }

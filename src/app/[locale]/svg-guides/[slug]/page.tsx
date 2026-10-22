@@ -74,7 +74,7 @@ export default async function SvgGuideArticlePage({ params }: SvgGuidePageProps)
   ]);
 
   return (
-    <main className="w-full min-h-[60vh] bg-background px-4 pb-16">
+    <main className="w-full min-h-[60vh] bg-background px-4 pb-16 overflow-x-clip">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, "\\u003c") }}
@@ -84,7 +84,7 @@ export default async function SvgGuideArticlePage({ params }: SvgGuidePageProps)
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, "\\u003c") }}
       />
 
-      <div className="mx-auto flex w-full max-w-[900px] flex-col items-center">
+      <div className="mx-auto flex w-full max-w-[900px] min-w-0 flex-col items-center">
         <nav aria-label="Breadcrumb" className="w-full pt-6 text-sm text-text-muted">
           <ol className="flex flex-wrap items-center gap-2">
             <li><Link href="/" className="hover:text-brand-primary hover:underline">Home</Link></li>

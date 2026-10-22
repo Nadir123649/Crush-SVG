@@ -104,10 +104,16 @@ export async function processBackgroundRemove(
       const processModnet = await getModnetProcessor();
       return await processModnet(workingBuffer, options);
     } catch (err) {
-      // Do not substitute the low-accuracy color-distance engine for a photo.
-      // If the AI model is unavailable, fail clearly instead of returning a
-      // misleading cutout that looks successful but retains the background.
       console.error("[bg-remove] MODNet failed for a photo/portrait image:", err);
+      if (err instanceof BgRemoveError && err.code === "model_unavailable") {
+        console.warn("[bg-remove] Falling back to the basic engine because MODNet is unavailable.");
+        const result = await processLegacyFromRaw(rawData, w, h, options);
+        return {
+          ...result,
+          warning:
+            "The AI model is temporarily unavailable, so basic background removal was used. The result may need extra cleanup.",
+        };
+      }
       throw err;
     }
   }
