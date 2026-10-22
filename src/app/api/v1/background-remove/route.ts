@@ -67,14 +67,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const form = await request.formData();
-    const file = form.get("file");
-
-    if (!(file instanceof File)) {
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
       return errorResponse(
         400,
         "missing_file",
-        "No image file provided.",
+        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
+        undefined,
+        request,
+      );
+    }
+    const file = form.get("file");
+
+    if (!(file instanceof File) || file.size === 0) {
+      return errorResponse(
+        400,
+        "missing_file",
+        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
         undefined,
         request,
       );

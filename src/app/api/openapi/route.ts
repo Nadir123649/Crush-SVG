@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const generator = new OpenApiGeneratorV3(registry.definitions);
 
   const spec = generator.generateDocument({
-    openapi: "3.0.0",
+    openapi: "3.1.0",
     info: {
       title: "CrushSVG API",
       version: "1.0.0",
@@ -27,7 +27,10 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(spec, {
     headers: {
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
       "Cache-Control": "public, max-age=3600",
+      "Content-Type": "application/json",
     },
   });
 }

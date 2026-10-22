@@ -13,7 +13,7 @@ import { isAdminEmail } from '@/lib/auth/roles'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const rl = await checkRateLimit(request, 'auth:login', 10, 60_000)
+  const rl = await checkRateLimit(request, 'auth:login', 5, 60_000)
   if (!rl.allowed) {
     return errorResponse(429, 'rate_limit_exceeded', 'Too many requests.', rateLimitHeaders(rl), request)
   }

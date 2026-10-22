@@ -30,8 +30,8 @@ export async function recordFailure(request: NextRequest, identifier: string): P
         return 30000;
     }
     if (count >= 5) {
-        await applyLockout(store, identifier, ip, 5000);
-        return 5000;
+        await applyLockout(store, identifier, ip, 60000);
+        return 60000;
     }
     return null;
 }

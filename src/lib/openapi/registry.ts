@@ -88,7 +88,7 @@ const registerBody = registry.register(
   z.object({
     name: z.string().min(3).max(16),
     email: z.string().email(),
-    password: z.string().min(8).max(20),
+    password: z.string().min(8).max(128),
   })
 );
 
@@ -96,7 +96,7 @@ const changePasswordBody = registry.register(
   "ChangePasswordBody",
   z.object({
     currentPassword: z.string().min(1),
-    newPassword: z.string().min(8).max(20),
+    newPassword: z.string().min(8).max(128),
   })
 );
 
@@ -111,7 +111,7 @@ const resetPasswordBody = registry.register(
   "ResetPasswordBody",
   z.object({
     token: z.string(),
-    password: z.string().min(8).max(20),
+    password: z.string().min(8).max(128),
   })
 );
 
