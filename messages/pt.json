@@ -195,6 +195,7 @@
     "conversionsLeft": "{count} Conversões Grátis Restantes",
     "lastFreeConversion": "Última Conversão Gratuita",
     "signUpForFree": "Criar Conta Gratuita",
+    "loginRequired": "Voc? usou suas 3 convers?es gratuitas. Fa?a login para continuar.",
     "unlimitedConversions": "Conversões Ilimitadas",
     "conversionsUsed": "{used} de {total} conversões gratuitas utilizadas"
   },
@@ -559,6 +560,7 @@
     "transparentPng": "PNG Transparente",
     "noInstall": "Sem Instalação",
     "explore": "Explorar",
+    "compareTools": "Comparar ferramentas",
     "svgConverter": "Conversor SVG",
     "pngConverter": "Conversor PNG para SVG",
     "features": "Recursos",

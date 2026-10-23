@@ -6,33 +6,12 @@ import { IMAGES } from "@/lib/shared/images";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
+type FooterLinkHref = React.ComponentProps<typeof Link>["href"];
+
 export function Footer({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
   const t = useTranslations("footer");
   const isRasterToSvg = pathname === "/png-to-svg";
-
-  const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Parse href like "/#features" or "/#how-it-works"
-    const [targetPath, targetHash] = href.split("#");
-    const path = targetPath || "/"; // empty string before # means root
-    
-    if (typeof window !== "undefined") {
-      // If we're already on the target page, just scroll to the hash
-      if (window.location.pathname === path) {
-        e.preventDefault();
-        const el = document.getElementById(targetHash);
-        if (el) {
-          const offset = window.innerWidth >= 768 ? 96 : 70;
-          const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({
-            top: elementPosition - offset,
-            behavior: "smooth"
-          });
-        }
-      }
-      // Otherwise, let the Link navigate to the target page (which will then scroll via its own logic)
-    }
-  };
 
   const handlePageClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (typeof window !== "undefined" && window.location.pathname === href) {
@@ -95,28 +74,25 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
         </div>
 
         {/* Middle: Links */}
-        <div className="flex flex-col md:flex-row gap-[24px] md:gap-[40px] lg:gap-[48px] xl:gap-[20px] ml-0 xl:ml-[32px] items-center text-center md:text-left">
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-5 gap-y-8 text-center md:grid-cols-4 md:text-left xl:ml-[32px]">
           {/* Column 1: Explore */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-[10px] md:items-start md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("explore")}</h4>
-            <Link href="/" onClick={(e) => handlePageClick(e, '/')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgConverter")}</Link>
-            <Link href="/png-to-svg" onClick={(e) => handlePageClick(e, '/png-to-svg')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("pngConverter")}</Link>
-            <Link href="/background-remover" onClick={(e) => handlePageClick(e, '/background-remover')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</Link>
-            <Link href="/image-resizer" onClick={(e) => handlePageClick(e, '/image-resizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("imageResizerFull")}</Link>
-            <Link href="/svg-optimizer" onClick={(e) => handlePageClick(e, '/svg-optimizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</Link>
+            <Link href="/cookies" onClick={(e) => handlePageClick(e, '/cookies')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("cookies")}</Link>
+            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
+            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("contactUs")}</Link>
+            <Link href="/compare/crushsvg-vs-vectorizer-ai" onClick={(e) => handlePageClick(e, '/compare/crushsvg-vs-vectorizer-ai')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("compareTools")}</Link>
           </div>
           {/* Column 2: Resources */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-[10px] md:items-start md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("resources")}</h4>
             <Link href="/blog" onClick={(e) => handlePageClick(e, '/blog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">Blog</Link>
             <Link href="/svg-guides" onClick={(e) => handlePageClick(e, '/svg-guides')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgGuides")}</Link>
             <Link href="/help" onClick={(e) => handlePageClick(e, '/help')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("helpFaq")}</Link>
             <Link href="/support" onClick={(e) => handlePageClick(e, '/support')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("supportHub")}</Link>
-            <Link href="/changelog" onClick={(e) => handlePageClick(e, '/changelog')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("changelog")}</Link>
-            <Link href="/contact-us" onClick={(e) => handlePageClick(e, '/contact-us')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("contactUs")}</Link>
           </div>
           {/* Column 3: Company */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-[10px] md:items-start md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("company")}</h4>
             <Link href="/about" onClick={(e) => handlePageClick(e, '/about')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("aboutUs")}</Link>
             <Link href="/team" onClick={(e) => handlePageClick(e, '/team')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("ourTeam")}</Link>
@@ -124,12 +100,12 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/terms" onClick={(e) => handlePageClick(e, '/terms')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("termsOfService")}</Link>
           </div>
           {/* Column 4: Use Cases */}
-          <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-[10px] md:items-start md:gap-[14px]">
             <h4 className="font-heading font-bold text-[14px] leading-[100%] text-[#202427] mb-[4px]">{t("useCases")}</h4>
-            <Link href={"/use-case/svg-to-png-for-react" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("reactNext")}</Link>
-            <Link href={"/use-case/svg-to-png-for-email-signatures" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("emailSignatures")}</Link>
-            <Link href={"/use-case/svg-to-png-transparent-background" as any} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-transparent-background')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("transparentBg")}</Link>
-            <Link href={"/use-case/high-resolution-svg-to-png" as any} onClick={(e) => handlePageClick(e, '/use-case/high-resolution-svg-to-png')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("highResolution")}</Link>
+            <Link href={"/use-case/svg-to-png-for-react" as FooterLinkHref} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("reactNext")}</Link>
+            <Link href={"/use-case/svg-to-png-for-email-signatures" as FooterLinkHref} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-for-email-signatures')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("emailSignatures")}</Link>
+            <Link href={"/use-case/svg-to-png-transparent-background" as FooterLinkHref} onClick={(e) => handlePageClick(e, '/use-case/svg-to-png-transparent-background')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("transparentBg")}</Link>
+            <Link href={"/use-case/high-resolution-svg-to-png" as FooterLinkHref} onClick={(e) => handlePageClick(e, '/use-case/high-resolution-svg-to-png')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("highResolution")}</Link>
           </div>
         </div>
 

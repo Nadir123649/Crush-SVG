@@ -244,6 +244,7 @@
     "conversionsUsed": "{used} of {total} free conversions used",
     "lastFreeConversion": "Last Free Conversion",
     "signUpForFree": "Sign Up For Free",
+    "loginRequired": "You've used your 3 free conversions. Log in to continue.",
     "unlimitedConversions": "Unlimited Conversions"
   },
   "features": {
@@ -607,6 +608,7 @@
     "transparentPng": "Transparent PNG",
     "noInstall": "No Install",
     "explore": "Explore",
+    "compareTools": "Compare Tools",
     "svgConverter": "SVG Converter",
     "pngConverter": "PNG to SVG Converter",
     "features": "Features",

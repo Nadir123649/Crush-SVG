@@ -195,6 +195,7 @@
     "conversionsLeft": "残り無料変換: {count} 回",
     "lastFreeConversion": "最後の無料変換枠",
     "signUpForFree": "無料でアカウント登録",
+    "loginRequired": "無料変換を3回使い切りました。続けるにはログインしてください。",
     "unlimitedConversions": "無制限変換",
     "conversionsUsed": "無料変換 {used}/{total} 回使用済み"
   },
@@ -559,6 +560,7 @@
     "transparentPng": "透過PNG対応",
     "noInstall": "インストール不要",
     "explore": "ツール一覧",
+    "compareTools": "ツールを比較",
     "svgConverter": "SVGコンバーター",
     "pngConverter": "PNGからSVGへのコンバーター",
     "features": "特徴",
