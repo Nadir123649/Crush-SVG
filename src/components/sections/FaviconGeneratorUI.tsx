@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
   generateFaviconPack,
+  renderSvgToCanvas,
   renderImageToCanvas,
   canvasToWebP,
   loadSvgImage,
@@ -178,9 +179,8 @@ export function FaviconGeneratorUI() {
   async function handleDownloadWebP() {
     if (!svgCode || !isValid) return;
     try {
-      const img = await loadSvgImage(svgCode);
-      const canvas = await renderImageToCanvas(
-        img,
+      const canvas = await renderSvgToCanvas(
+        svgCode,
         512,
         512,
         paddingPercent,

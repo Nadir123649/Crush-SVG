@@ -73,16 +73,82 @@ export function createIcoFromPngs(pngBuffers: { width: number; height: number; d
 }
 
 /**
- * Loads an SVG or image string/URL onto a canvas at target dimensions and returns PNG/WebP blobs.
+ * Prepares the SVG string for direct high-DPI rasterization at target resolution
+ * by preserving the original viewBox and injecting explicit target dimensions.
  */
-export async function renderImageToCanvas(
-  imgSource: CanvasImageSource,
+export function prepareSvgForResolution(svgContent: string, targetWidth: number, targetHeight: number): string {
+  const svgTagMatch = svgContent.match(/<svg\b([^>]*)>/i);
+  if (!svgTagMatch) return svgContent;
+
+  const originalAttrs = svgTagMatch[1];
+
+  // Extract or synthesize viewBox
+  let viewBox = "";
+  const vbMatch = originalAttrs.match(/\bviewBox=["']([^"']+)["']/i);
+  if (vbMatch) {
+    viewBox = vbMatch[1];
+  } else {
+    const wMatch = originalAttrs.match(/\bwidth=["']([0-9.]+)(?:px)?["']/i);
+    const hMatch = originalAttrs.match(/\bheight=["']([0-9.]+)(?:px)?["']/i);
+    if (wMatch && hMatch) {
+      viewBox = `0 0 ${wMatch[1]} ${hMatch[1]}`;
+    }
+  }
+
+  // Remove existing width, height, and viewBox from root tag
+  const cleanAttrs = originalAttrs
+    .replace(/\bwidth=["'][^"']*["']/gi, "")
+    .replace(/\bheight=["'][^"']*["']/gi, "")
+    .replace(/\bviewBox=["'][^"']*["']/gi, "")
+    .trim();
+
+  const vbAttr = viewBox ? `viewBox="${viewBox}"` : "";
+  const newSvgTag = `<svg ${cleanAttrs} width="${targetWidth}" height="${targetHeight}" ${vbAttr}>`;
+
+  return svgContent.replace(svgTagMatch[0], newSvgTag);
+}
+
+/**
+ * Loads an SVG string into an HTMLImageElement safely.
+ */
+export async function loadSvgImage(svgContent: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to parse SVG into image element"));
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * Renders an SVG directly from vector source onto a canvas with High-DPI supersampling
+ * and aspect ratio preservation (object-fit: contain).
+ */
+export async function renderSvgToCanvas(
+  svgContent: string,
   targetWidth: number,
   targetHeight: number,
   paddingPercent: number = 0,
   borderRadiusPercent: number = 0,
   backgroundColor?: string
 ): Promise<HTMLCanvasElement> {
+  // Use 2x supersampled internal rasterization for small sizes (<= 64px) to ensure crisp anti-aliasing
+  const supersample = targetWidth <= 64 ? 2 : 1;
+  const renderW = targetWidth * supersample;
+  const renderH = targetHeight * supersample;
+
+  const preparedSvg = prepareSvgForResolution(svgContent, renderW, renderH);
+  const img = await loadSvgImage(preparedSvg);
+
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -105,13 +171,82 @@ export async function renderImageToCanvas(
     ctx.fillRect(0, 0, targetWidth, targetHeight);
   }
 
-  // Draw scaled image with padding
+  // Draw scaled image with padding while preserving aspect ratio
   const padX = targetWidth * (paddingPercent / 100);
   const padY = targetHeight * (paddingPercent / 100);
-  const drawW = targetWidth - padX * 2;
-  const drawH = targetHeight - padY * 2;
+  const availW = Math.max(1, targetWidth - padX * 2);
+  const availH = Math.max(1, targetHeight - padY * 2);
 
-  ctx.drawImage(imgSource, padX, padY, drawW, drawH);
+  const naturalW = img.naturalWidth || img.width || renderW;
+  const naturalH = img.naturalHeight || img.height || renderH;
+  const aspect = naturalW > 0 && naturalH > 0 ? naturalW / naturalH : 1;
+
+  let drawW = availW;
+  let drawH = availH;
+  if (drawW / drawH > aspect) {
+    drawW = drawH * aspect;
+  } else {
+    drawH = drawW / aspect;
+  }
+  const drawX = padX + (availW - drawW) / 2;
+  const drawY = padY + (availH - drawH) / 2;
+
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  return canvas;
+}
+
+/**
+ * Backward compatibility helper for rendering any canvas image source.
+ */
+export async function renderImageToCanvas(
+  imgSource: CanvasImageSource,
+  targetWidth: number,
+  targetHeight: number,
+  paddingPercent: number = 0,
+  borderRadiusPercent: number = 0,
+  backgroundColor?: string
+): Promise<HTMLCanvasElement> {
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not create canvas 2D context");
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  if (borderRadiusPercent > 0) {
+    const radius = (Math.min(targetWidth, targetHeight) / 2) * (borderRadiusPercent / 50);
+    ctx.beginPath();
+    ctx.roundRect(0, 0, targetWidth, targetHeight, radius);
+    ctx.clip();
+  }
+
+  if (backgroundColor && backgroundColor !== "transparent") {
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, targetWidth, targetHeight);
+  }
+
+  const padX = targetWidth * (paddingPercent / 100);
+  const padY = targetHeight * (paddingPercent / 100);
+  const availW = Math.max(1, targetWidth - padX * 2);
+  const availH = Math.max(1, targetHeight - padY * 2);
+
+  const naturalW = (imgSource as any).naturalWidth || (imgSource as any).width || availW;
+  const naturalH = (imgSource as any).naturalHeight || (imgSource as any).height || availH;
+  const aspect = naturalW > 0 && naturalH > 0 ? naturalW / naturalH : 1;
+
+  let drawW = availW;
+  let drawH = availH;
+  if (drawW / drawH > aspect) {
+    drawW = drawH * aspect;
+  } else {
+    drawH = drawW / aspect;
+  }
+  const drawX = padX + (availW - drawW) / 2;
+  const drawY = padY + (availH - drawH) / 2;
+
+  ctx.drawImage(imgSource, drawX, drawY, drawW, drawH);
   return canvas;
 }
 
@@ -139,7 +274,7 @@ export async function canvasToPngBuffer(canvas: HTMLCanvasElement): Promise<{ da
 /**
  * Converts a Canvas to a WebP Blob & DataURL.
  */
-export async function canvasToWebP(canvas: HTMLCanvasElement, quality: number = 0.9): Promise<{ blob: Blob; dataUrl: string }> {
+export async function canvasToWebP(canvas: HTMLCanvasElement, quality: number = 0.95): Promise<{ blob: Blob; dataUrl: string }> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -157,28 +292,7 @@ export async function canvasToWebP(canvas: HTMLCanvasElement, quality: number = 
 }
 
 /**
- * Loads an SVG string into an HTMLImageElement safely.
- */
-export async function loadSvgImage(svgContent: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to parse SVG into image element"));
-    };
-    img.src = url;
-  });
-}
-
-/**
- * Main Favicon Generator: Generates full multi-resolution package from SVG source.
+ * Main Favicon Generator: Generates full multi-resolution package directly from vector source.
  */
 export async function generateFaviconPack(
   svgContent: string,
@@ -191,8 +305,6 @@ export async function generateFaviconPack(
     paddingPercent = 0,
     borderRadiusPercent = 0,
   } = options;
-
-  const img = await loadSvgImage(svgContent);
 
   // Standard Target Icon Resolutions
   const sizes = [
@@ -208,8 +320,8 @@ export async function generateFaviconPack(
   const icoBuffers: { width: number; height: number; data: Uint8Array }[] = [];
 
   for (const s of sizes) {
-    const canvas = await renderImageToCanvas(
-      img,
+    const canvas = await renderSvgToCanvas(
+      svgContent,
       s.width,
       s.height,
       paddingPercent,
@@ -264,38 +376,27 @@ export async function generateFaviconPack(
     2
   );
 
-  // HTML Head Tags Snippet
-  const htmlSnippet = `<!-- Favicon & App Icons generated by CrushSVG -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
-<meta name="theme-color" content="${themeColor}">`;
+  // HTML Head Meta Tag Snippet
+  const htmlSnippet = `<!-- Favicon & PWA Icons generated by CrushSVG -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="${themeColor}" />`;
 
-  // Asynchronous ZIP generator
-  const createZip = async (): Promise<Blob> => {
+  // Asynchronous zip archive generation
+  const zipPromise = (async () => {
     const zip = new JSZip();
-
-    // 1. favicon.ico
-    const icoArrayBuffer = await icoBlob.arrayBuffer();
-    zip.file("favicon.ico", icoArrayBuffer);
-
-    // 2. Individual PNG icons
+    zip.file("favicon.ico", icoBlob);
     for (const item of items) {
-      const buf = await item.blob.arrayBuffer();
-      zip.file(item.name, buf);
+      zip.file(item.name, item.blob);
     }
-
-    // 3. Manifest and readme
     zip.file("site.webmanifest", webManifest);
-    zip.file(
-      "README.txt",
-      `CrushSVG Favicon Pack\n===================\n\nPlace all files in your website's root directory (or /public folder in Next.js/Vite).\n\nAdd the following HTML snippet inside your <head> tags:\n\n${htmlSnippet}\n`
-    );
-
+    zip.file("favicon-tags.html", htmlSnippet);
     return zip.generateAsync({ type: "blob" });
-  };
+  })();
 
   return {
     icoBlob,
@@ -303,6 +404,6 @@ export async function generateFaviconPack(
     items,
     webManifest,
     htmlSnippet,
-    zipBlob: createZip(),
+    zipBlob: zipPromise,
   };
 }
