@@ -387,6 +387,16 @@ export default function UsersPage() {
     setPage(1);
   };
 
+  const handleCreatedAtSort = () => {
+    if (sortBy === "createdAt") {
+      setSortOrder((previous) => previous === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy("createdAt");
+      setSortOrder("desc");
+    }
+    setPage(1);
+  };
+
   const nextPage = () => {
     setPage((prev) => prev + 1);
   };
@@ -472,6 +482,9 @@ export default function UsersPage() {
                     <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Role</th>
                     <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Provider</th>
                     <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted">Usage</th>
+                    <th scope="col" className="p-5 font-body font-semibold text-sm text-text-muted cursor-pointer select-none hover:text-brand-primary" onClick={handleCreatedAtSort}>
+                      Date Created{sortBy === "createdAt" ? (sortOrder === "asc" ? " ▲" : " ▼") : ""}
+                    </th>
                      <th
                        scope="col"
                        className="p-5 font-body font-semibold text-sm text-text-muted cursor-pointer select-none hover:text-brand-primary transition-colors"
@@ -555,6 +568,7 @@ export default function UsersPage() {
                             </span>
                           )}
                         </td>
+                        <td className="p-5 font-body text-sm text-text-muted">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
                         <td className="p-5 text-right">
                           <div className="relative inline-block" ref={openMenuUid === u.uid ? menuRef : undefined}>
                             <button
@@ -591,7 +605,7 @@ export default function UsersPage() {
 
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-text-muted font-body">
+                      <td colSpan={7} className="py-12 text-center text-text-muted font-body">
                         No users found matching the selected filters.
                       </td>
                     </tr>

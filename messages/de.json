@@ -195,6 +195,7 @@
     "conversionsLeft": "Noch {count} kostenlose Konvertierungen",
     "lastFreeConversion": "Letzte kostenlose Konvertierung",
     "signUpForFree": "Kostenlos registrieren",
+    "loginRequired": "Du hast deine 3 kostenlosen Konvertierungen genutzt. Melde dich an, um fortzufahren.",
     "unlimitedConversions": "Unbegrenzte Konvertierungen",
     "conversionsUsed": "{used} von {total} kostenlosen Konvertierungen verwendet"
   },
@@ -559,6 +560,7 @@
     "transparentPng": "Transparente PNGs",
     "noInstall": "Keine Installation",
     "explore": "Entdecken",
+    "compareTools": "Tools vergleichen",
     "svgConverter": "SVG-Konverter",
     "pngConverter": "PNG-zu-SVG-Konverter",
     "features": "Funktionen",
@@ -774,7 +776,7 @@
   "blog_page": {
     "metaTitle": "CrushSVG Blog: E-Mail-Marketing & SVG-Guides",
     "metaDesc": "Praxisnahe Anleitungen und Tutorials zur SVG-in-PNG-Konvertierung, E-Mail-Rendering in Outlook und Gmail sowie Vektoroptimierung.",
-    "badge": "CrushSVG Blog & Leitfäden",
+    "badge": "CrushSVG Blog",
     "heroTitlePrefix": "Vom Vektor direkt ins Postfach,",
     "heroTitleHighlight": "Tipps & Best Practices",
     "heroSubtitle": "Praktische Leitfäden und Checklisten für optimale SVG-Nutzung, gestochen scharfe PNGs und fehlerfreie Bilddarstellung in allen E-Mail-Programmen.",
@@ -784,7 +786,7 @@
     "share": "Leitfaden teilen",
     "relatedPosts": "Ähnliche Artikel",
     "tableOfContents": "Auf dieser Seite",
-    "searchPlaceholder": "Artikel durchsuchen..."
+    "searchPlaceholder": "Blogartikel suchen..."
   },
   "auth_pages": {
     "loginTitle": "Anmelden",
@@ -1230,7 +1232,7 @@
     "dualEngineTitle": "Dual-Engine-Konverter",
     "errorConversion": "Konvertierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "errorInvalidFile": "Bitte wählen Sie eine gültige Bilddatei aus",
-    "errorTooLarge": "Die Dateigröße muss kleiner als 10MB sein",
+    "errorTooLarge": "Bild zu gro?. Maximale Dateigr??e: 5 MB.",
     "featureAutoDetect": "Intelligente Auto-Erkennung wählt sofort die optimale Konvertierungsstrategie",
     "featureDownload": "Sofortiger Download und Kopieren in die Zwischenablage für einen reibungslosen Workflow",
     "featurePixelMode": "Erweiterter Pixelmodus für fotorealistische Konvertierungen mit Farbverlaufsunterstützung",
@@ -1280,11 +1282,12 @@
     "toastSampleLoaded": "Beispiel-CrushSVG-Symbol geladen",
     "tracingModeLabel": "Vektorisierungsmodus",
     "unlimitedConversions": "Unbegrenzte Konvertierungen",
-    "uploadHint": "Unterstützt JPG, PNG, WebP — max. 10MB",
+    "uploadHint": "Unterstützt JPG, PNG und WebP — max. 5 MB",
     "uploadLabel": "Bild hier ablegen oder zum Durchsuchen klicken",
     "vectorOutput": "Vektorausgabe",
     "vectorSvgTab": "Vektor-SVG",
-    "vectorizing": "Bildpfade werden vektorisiert..."
+    "vectorizing": "Bildpfade werden vektorisiert...",
+    "errorPngTooLarge": "PNG zu gro?. Maximale Dateigr??e: 5 MB."
   },
   "alert": {
     "defaultError": "Etwas ist schiefgelaufen",

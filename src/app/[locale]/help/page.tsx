@@ -5,6 +5,7 @@ import { Link, routing } from "@/i18n/routing";
 import { FAQ } from "@/components/sections/FAQ";
 import { constructLocalizedMetadata } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
+import { TechnicalComparisonTable } from "@/components/sections/TechnicalComparisonTable";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -44,6 +45,8 @@ export default async function HelpPage({
         subtitle={<>{t("subtitle")} <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">technical guides</Link>, or contact <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.</>}
         className="mb-[24px] md:mb-[40px]"
       />
+
+      <TechnicalComparisonTable />
 
       {/* Quick Resource Cards */}
       <div className="w-full max-w-[890px] grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

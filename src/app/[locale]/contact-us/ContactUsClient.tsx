@@ -16,6 +16,7 @@ export function ContactUsClient() {
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,6 +27,7 @@ export function ContactUsClient() {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
     if (!message.trim() || message.trim().length < 10) return;
 
+    setSubmitError(null);
     setLoading(true);
     try {
       await apiFetch<{ message: string }>("/api/v1/contact", {
@@ -40,9 +42,10 @@ export function ContactUsClient() {
       setMessageSent(true);
     } catch (err: unknown) {
       // Keep the form contents so the visitor can retry without retyping.
-      const msg = err instanceof ApiError && err.status === 429
+      const msg = err instanceof ApiError && err.status >= 400 && err.status < 500
         ? err.message
         : tContact("errorMessage");
+      setSubmitError(msg);
       showToast("error", msg);
     } finally {
       setLoading(false);
@@ -103,7 +106,8 @@ export function ContactUsClient() {
       <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px]">
+        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px]" aria-describedby={submitError ? "contact-submit-error" : undefined}>
+          {submitError && <p id="contact-submit-error" role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>}
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="contact-name" className="font-afacad text-[14px] font-semibold text-brand-primary">{t("nameLabel")}</label>
             <input 

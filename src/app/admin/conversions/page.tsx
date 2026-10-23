@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { LocalTime } from "@/components/utils/LocalTime";
-import { apiFetch, apiBlob } from "@/lib/client/http";
+import { apiFetch, apiBlob, ApiError } from "@/lib/client/http";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -58,6 +58,10 @@ export default function ConversionsPage() {
   };
 
   const loadConversions = async (targetPage = page, isCancelled?: () => boolean) => {
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      showToast("warning", "Start date must be before end date.");
+      return;
+    }
     const requestId = requestSequence.current.begin();
     const queryParams = buildQueryParams(targetPage);
     const cacheKey = `admin_conversions_${queryParams}`;
@@ -112,6 +116,9 @@ export default function ConversionsPage() {
       }
     } catch (err) {
       if (isCancelled?.() || !requestSequence.current.isCurrent(requestId)) return;
+      if (err instanceof ApiError && err.status === 400) {
+        showToast("error", "Invalid date range.");
+      }
       if (!cached && !error) setError("Failed to load conversions");
     } finally {
       if (!isCancelled?.() && requestSequence.current.isCurrent(requestId)) {
@@ -139,7 +146,10 @@ export default function ConversionsPage() {
   };
 
   const handleStartDateChange = (value: string) => {
-    if (value && endDate && value > endDate) return;
+    if (value && endDate && value > endDate) {
+      showToast("warning", "Start date must be on or before the end date.");
+      return;
+    }
     if (value !== startDate) requestSequence.current.invalidate();
     setStartDate(value);
     setActiveDatePreset("custom");
@@ -147,7 +157,10 @@ export default function ConversionsPage() {
   };
 
   const handleEndDateChange = (value: string) => {
-    if (value && startDate && value < startDate) return;
+    if (value && startDate && value < startDate) {
+      showToast("warning", "End date must be on or after the start date.");
+      return;
+    }
     if (value !== endDate) requestSequence.current.invalidate();
     setEndDate(value);
     setActiveDatePreset("custom");

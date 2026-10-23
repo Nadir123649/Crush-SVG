@@ -101,32 +101,121 @@ interface DateRangePresetsProps {
 }
 
 export function DateRangePresets({ activePreset, onSelect, onCustomRange }: DateRangePresetsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const listboxId = useId();
+
+  const closeMenu = useCallback((restoreFocus = false) => {
+    setIsOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) closeMenu();
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMenu(true);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeMenu, isOpen]);
+
+  const openMenu = useCallback((focusLast = false) => {
+    setIsOpen(true);
+    requestAnimationFrame(() => {
+      const activeIndex = DATE_RANGE_PRESETS.findIndex(({ id }) => id === activePreset);
+      const index = activeIndex >= 0 ? activeIndex : focusLast ? DATE_RANGE_PRESETS.length - 1 : 0;
+      optionRefs.current[index]?.focus();
+    });
+  }, [activePreset]);
+
+  const selectPreset = (preset: DateRangePresetId) => {
+    closeMenu(true);
+    if (preset === "custom") onCustomRange();
+    else onSelect(preset);
+  };
+
+  const handleOptionKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowDown") nextIndex = (index + 1) % DATE_RANGE_PRESETS.length;
+    else if (event.key === "ArrowUp") nextIndex = (index - 1 + DATE_RANGE_PRESETS.length) % DATE_RANGE_PRESETS.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = DATE_RANGE_PRESETS.length - 1;
+    else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      selectPreset(DATE_RANGE_PRESETS[index].id);
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      optionRefs.current[nextIndex]?.focus();
+    }
+  };
+
   return (
-    <div className="min-w-0 flex-1 sm:flex-none">
+    <div ref={dropdownRef} className="relative min-w-0 flex-1 sm:flex-none">
       <label className="sr-only" htmlFor="date-range-preset">
         Date Filter
       </label>
-      <select
+      <button
+        ref={triggerRef}
+        type="button"
         id="date-range-preset"
         aria-label="Date Filter"
-        value={activePreset ?? ""}
-        onChange={(event) => {
-          const selectedPreset = DATE_RANGE_PRESETS.find(({ id }) => id === event.target.value)?.id;
-          if (selectedPreset === "custom") {
-            onCustomRange();
-          } else if (selectedPreset) {
-            onSelect(selectedPreset);
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        onClick={() => (isOpen ? closeMenu() : openMenu())}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            openMenu(event.key === "ArrowUp");
           }
         }}
-        className="min-h-9 w-full rounded-lg border border-[#F2EDE8] bg-[#FFFCFA] px-3 font-body text-sm font-semibold text-text-dark transition-colors hover:border-brand-primary/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/10 sm:w-[220px]"
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[8px] border border-[#F2EDE8] bg-[#FFFCFA] px-3 text-left font-body text-sm font-semibold text-text-dark transition-colors hover:border-brand-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 sm:w-[220px]"
       >
-        <option value="">Date Filter</option>
-        {DATE_RANGE_PRESETS.map(({ id, label }) => (
-          <option key={id} value={id}>
-            {label}
-          </option>
-        ))}
-      </select>
+        <span>{DATE_RANGE_PRESETS.find(({ id }) => id === activePreset)?.label ?? "Date Filter"}</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className={`h-4 w-4 shrink-0 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}>
+          <path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Date filter presets"
+          className="absolute left-0 top-full z-50 mt-2 max-h-[min(20rem,calc(100dvh-2rem))] w-[min(220px,calc(100vw-2rem))] overflow-y-auto rounded-[12px] border border-[#F2EDE8] bg-white p-1.5 shadow-[0px_12px_32px_0px_rgba(32,36,39,0.14)] animate-[date-picker-popover_150ms_ease-out] motion-reduce:animate-none"
+        >
+          {DATE_RANGE_PRESETS.map(({ id, label }, index) => (
+            <button
+              key={id}
+              ref={(element) => { optionRefs.current[index] = element; }}
+              type="button"
+              role="option"
+              aria-selected={activePreset === id}
+              tabIndex={-1}
+              onClick={() => selectPreset(id)}
+              onKeyDown={(event) => handleOptionKeyDown(event, index)}
+              className={`flex min-h-10 w-full items-center rounded-[8px] px-3 text-left font-body text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-primary ${activePreset === id ? "bg-[#FFF5F2] font-semibold text-brand-primary" : "text-text-dark hover:bg-[#FAF6F3]"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -229,6 +318,7 @@ export function DatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dayButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const [internalOpen, setInternalOpen] = useState(false);
+  const [openAbove, setOpenAbove] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
   const [visibleMonth, setVisibleMonth] = useState(() => monthStart(new Date()));
   const [focusedDate, setFocusedDate] = useState(() => new Date());
@@ -280,6 +370,11 @@ export function DatePicker({
   }, [isOpen, setOpen]);
 
   const openPicker = () => {
+    const triggerBounds = triggerRef.current?.getBoundingClientRect();
+    if (triggerBounds) {
+      const roomBelow = window.innerHeight - triggerBounds.bottom;
+      setOpenAbove(roomBelow < 430 && triggerBounds.top > roomBelow);
+    }
     const initialDate = clampToBounds(selectedDate ?? new Date(), minDate, maxDate);
     setFocusedDate(initialDate);
     setVisibleMonth(monthStart(initialDate));
@@ -394,7 +489,7 @@ export function DatePicker({
           id={`${pickerId}-calendar`}
           role="dialog"
           aria-label={`${label} calendar`}
-          className={`absolute ${align === "end" ? "right-0" : "left-0"} top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-[14px] border border-[#F2EDE8] bg-white p-4 shadow-[0px_12px_32px_0px_rgba(32,36,39,0.14)]`}
+          className={`absolute ${align === "end" ? "right-0" : "left-0"} ${openAbove ? "bottom-full mb-2" : "top-full mt-2"} z-50 max-h-[calc(100dvh-1rem)] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-[14px] border border-[#F2EDE8] bg-white p-4 shadow-[0px_12px_32px_0px_rgba(32,36,39,0.14)] animate-[date-picker-popover_150ms_ease-out] motion-reduce:animate-none`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <button

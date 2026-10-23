@@ -7,6 +7,7 @@ const localizedAppRoot = path.join(projectRoot, "src", "app", "[locale]");
 const outputFile = path.join(projectRoot, "src", "app", "sitemap-routes.generated.ts");
 const excludedRoutes = new Set([
   "forgot-password",
+  "convert-svg-to-png",
   "login",
   "profile",
   "reset-password",

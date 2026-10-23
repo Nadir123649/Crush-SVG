@@ -199,16 +199,6 @@ const BG_OPTIONS: DropdownOption[] = [
   { value: "Transparent", label: "Transparent", desc: "Remove background, alpha PNG" },
   { value: "White", label: "White", desc: "Solid white background" },
   { value: "Black", label: "Black", desc: "Solid black background" },
-  { value: "Custom", label: "Custom Color", desc: "Fill with chosen background color" },
-];
-
-const COLOR_PRESETS = [
-  { name: "White", hex: "#FFFFFF" },
-  { name: "Black", hex: "#000000" },
-  { name: "Slate", hex: "#1E293B" },
-  { name: "Orange", hex: "#D94A1E" },
-  { name: "Blue", hex: "#2563EB" },
-  { name: "Emerald", hex: "#059669" },
 ];
 
 type AddedBackground =
@@ -284,16 +274,6 @@ async function compositeBackground(
   });
 }
 
-function normalizeHex(input: string): string {
-  let hex = input.trim();
-  if (!hex.startsWith("#")) hex = "#" + hex;
-  if (hex.length === 4) {
-    hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
-  }
-  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex.toUpperCase();
-  return "#FFFFFF";
-}
-
 function formatFileSize(bytes?: number | null): string {
   if (!bytes || bytes <= 0) return "";
   if (bytes < 1024) return `${bytes} B`;
@@ -310,8 +290,6 @@ interface BgRemoverDropdownProps {
   onToggle: () => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   disabled?: boolean;
-  customColor?: string;
-  onCustomColorChange?: (color: string) => void;
   renderSelected?: (selected: DropdownOption) => React.ReactNode;
   showDescriptions?: boolean;
   panelMaxHeight?: number;
@@ -327,8 +305,6 @@ function BgRemoverDropdown({
   onToggle,
   dropdownRef,
 disabled,
-   customColor,
-   onCustomColorChange,
    renderSelected,
    showDescriptions = true,
    panelMaxHeight = 240,
@@ -402,7 +378,7 @@ disabled,
           <div
             role="listbox"
             className="w-full overflow-y-auto py-[4px] brand-scrollbar"
-            style={{ maxHeight: `${panelMaxHeight - (onCustomColorChange && customColor && value === "Custom" ? 44 : 0)}px` }}
+            style={{ maxHeight: `${panelMaxHeight}px` }}
           >
             {options.map((opt) => {
               const isSelected = opt.value === value;
@@ -427,15 +403,6 @@ disabled,
                           backgroundSize: "6px 6px",
                           backgroundPosition: "0 0, 0 3px, 3px -3px, -3px 0px",
                           backgroundColor: "#fff",
-                        }}
-                      />
-                    ) : swatch === "custom" ? (
-                      <span
-                        className="w-[14px] h-[14px] rounded-[4px] border border-gray-300 shrink-0"
-                        style={{
-                          backgroundImage:
-                            "linear-gradient(135deg, #FF0080 0%, #FF8C00 20%, #FFD700 40%, #00C853 60%, #00B0FF 80%, #7C4DFF 100%)",
-                          backgroundColor: customColor || "#FFFFFF",
                         }}
                       />
                     ) : swatch ? (
@@ -477,44 +444,6 @@ disabled,
               );
             })}
           </div>
-          {onCustomColorChange && customColor && value === "Custom" && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="border-t border-gray-200/80 px-[10px] py-[6px] flex items-center gap-[5px] bg-[#FAF9F6] flex-wrap shrink-0"
-            >
-              {COLOR_PRESETS.map((c) => (
-                <button
-                  key={c.hex}
-                  type="button"
-                  title={c.name}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCustomColorChange(c.hex);
-                  }}
-                  className={`w-[14px] h-[14px] rounded-full border border-gray-300 transition-transform shrink-0 ${
-                    customColor.toLowerCase() === c.hex.toLowerCase()
-                      ? "scale-115 ring-2 ring-brand-primary"
-                      : "hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-              <input
-                type="color"
-                value={customColor}
-                onChange={(e) => onCustomColorChange(e.target.value)}
-                className="w-[16px] h-[16px] p-0 border-none rounded cursor-pointer shrink-0"
-                aria-label="Pick custom color"
-              />
-              <input
-                type="text"
-                value={customColor}
-                onChange={(e) => onCustomColorChange(normalizeHex(e.target.value))}
-                maxLength={7}
-                className="w-[50px] h-[20px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center ml-auto"
-              />
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -528,7 +457,6 @@ export function BackgroundRemover() {
     { ...BG_OPTIONS[0], label: t("ui.bgOptions.transparent.label"), desc: t("ui.bgOptions.transparent.desc") },
     { ...BG_OPTIONS[1], label: t("ui.bgOptions.white.label"), desc: t("ui.bgOptions.white.desc") },
     { ...BG_OPTIONS[2], label: t("ui.bgOptions.black.label"), desc: t("ui.bgOptions.black.desc") },
-    { ...BG_OPTIONS[3], label: t("ui.bgOptions.custom.label"), desc: t("ui.bgOptions.custom.desc") },
   ];
   const localizedGradientNames = [
     t("ui.gradientNames.pink"), t("ui.gradientNames.blue"), t("ui.gradientNames.violet"),
@@ -549,7 +477,6 @@ export function BackgroundRemover() {
 
   // Settings
   const [bgOption, setBgOption] = useState("Transparent");
-  const [customColor, setCustomColor] = useState("#FFFFFF");
   const [scale, setScale] = useState("100");
 
   // File & State
@@ -707,7 +634,6 @@ export function BackgroundRemover() {
       setShowSignupPrompt(false);
       setPreviewMode("before");
       setBgOption("Transparent");
-      setCustomColor("#FFFFFF");
       setScale("100");
       try {
         sessionStorage.removeItem(STORAGE_KEY);
@@ -718,7 +644,7 @@ export function BackgroundRemover() {
   // ── Mark result stale when settings change ─────────────────────────────────
   useEffect(() => {
     if (hasResult && !processing) setStaleResult(true);
-  }, [bgOption, scale, customColor]);
+  }, [bgOption, scale]);
 
   // ── Click outside dropdowns ────────────────────────────────────────────────
   useEffect(() => {
@@ -778,8 +704,7 @@ export function BackgroundRemover() {
           if (saved.result && typeof saved.result.dataUrl === "string") {
             setResult(saved.result);
           }
-          if (typeof saved.bgOption === "string") setBgOption(saved.bgOption);
-          if (typeof saved.customColor === "string") setCustomColor(saved.customColor);
+          if (typeof saved.bgOption === "string") setBgOption(["Transparent", "White", "Black"].includes(saved.bgOption) ? saved.bgOption : "Transparent");
           if (typeof saved.scale === "string") setScale(saved.scale);
         }
       } catch {}
@@ -810,12 +735,11 @@ export function BackgroundRemover() {
           imageDims,
           result: persistableResult,
           bgOption,
-          customColor,
           scale,
         })
       );
     } catch {}
-  }, [dataUrl, imageName, imageSize, imageDims, result, bgOption, customColor, scale]);
+  }, [dataUrl, imageName, imageSize, imageDims, result, bgOption, scale]);
 
   // ── Cleanup Object URLs on unmount ────────────────────────────────────────
   useEffect(() => {
@@ -917,7 +841,6 @@ export function BackgroundRemover() {
     setError(null);
     setPreviewMode("before");
     setBgOption("Transparent");
-    setCustomColor("#FFFFFF");
     setScale("100");
     setOpenDropdown(null);
     try {
@@ -961,7 +884,6 @@ export function BackgroundRemover() {
 
       formData.append("scale", scale);
       formData.append("bgOption", bgOption);
-      if (bgOption === "Custom") formData.append("bgColor", normalizeHex(customColor));
 
       const apiRes = await authFetch("/api/v1/background-remove", {
         method: "POST",
@@ -1066,8 +988,7 @@ export function BackgroundRemover() {
   const hasResult = !!result?.dataUrl;
   const fileExt = imageName ? imageName.split(".").pop()?.toUpperCase() : "IMAGE";
 
-  const bgSwatchColor =
-    bgOption === "Custom" ? customColor : bgOption === "Transparent" ? "transparent" : bgOption;
+  const bgSwatchColor = bgOption === "Transparent" ? "transparent" : bgOption;
 
   return (
     <>
@@ -1259,10 +1180,10 @@ export function BackgroundRemover() {
 
                 {/* Source Metadata or Feature Guide Box */}
                 {dataUrl ? (
-                  <div className="w-full min-w-0 max-w-full rounded-[16px] border border-[#E2E8F0] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-col justify-between mt-[12px] transition-all">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-[6px]">
+                  <div data-testid="source-meta" className="source-metadata w-full min-w-0 max-w-full rounded-[16px] bg-[#FAF9F6] p-[12px] md:p-[14px] flex flex-wrap items-center gap-2 mt-[12px] transition-all">
+                    <div className="flex min-w-0 flex-wrap items-center gap-[6px]">
                       <div className="flex items-center gap-[8px] min-w-0">
-                        <div className="px-1.5 min-w-[24px] h-[24px] rounded-md bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                        <div className="px-1.5 min-w-[24px] h-[24px] rounded-full bg-orange-50 flex items-center justify-center shrink-0">
                           <span className="font-heading font-bold text-[9px] text-brand-primary">
                             {fileExt}
                           </span>
@@ -1271,27 +1192,23 @@ export function BackgroundRemover() {
                           {imageName || "image.png"}
                         </span>
                       </div>
-                      <span className="font-body text-[10px] md:text-[11px] text-[#64748B] font-mono shrink-0">
+                      <span className="rounded-full bg-[#F8F4F1] px-3 py-1 font-body text-xs font-medium text-text-dark shrink-0">
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
-                    <div className="flex min-w-0 items-stretch gap-[6px]">
-                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Dimensions</span>
-                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
-                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}
-                        </strong>
-                      </div>
-                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Aspect</span>
-                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
-                          {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
-                        </strong>
-                      </div>
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-[#F8F4F1] px-3 py-1 text-xs font-medium text-text-dark">
+                        <span className="text-[#64748B]">Dimensions</span>
+                        <strong className="font-medium">{imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}</strong>
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#F8F4F1] px-3 py-1 text-xs font-medium text-text-dark">
+                        <span className="text-[#64748B]">Aspect</span>
+                        <strong className="font-medium">{imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}</strong>
+                      </span>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[8px] text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
+                    <div className="ml-auto flex min-w-0 flex-wrap items-center gap-x-[8px] text-[10px] md:text-[11px] text-[#64748B]">
                       <span className="truncate">
-                        {bgOption === "Custom" ? customColor : bgOption} &middot; {scale}%
+                        {bgOption} &middot; {scale}%
                       </span>
                       <span className="text-brand-primary font-medium shrink-0 ml-2">Ready</span>
                     </div>
@@ -1533,17 +1450,24 @@ export function BackgroundRemover() {
                             />
                           ))}
                         </div>
-                        <div className="mt-3 flex items-center gap-2">
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
                           <input
                             type="color"
                             value={addedBackgroundColor}
-                            onChange={(event) => setAddedBackgroundColor(event.target.value.toUpperCase())}
+                            onChange={(event) => {
+                              const color = event.target.value.toUpperCase();
+                              setAddedBackgroundColor(color);
+                              chooseAddedBackground({ kind: "color", color });
+                            }}
                             aria-label={t("ui.chooseBackgroundColor")}
                             className="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
                           />
                           <button type="button" onClick={() => chooseAddedBackground({ kind: "color", color: addedBackgroundColor })} className="rounded-[8px] bg-[#F1F5F9] px-3 py-2 text-[11px] font-medium text-[#334155] hover:bg-slate-200">
                             {t("ui.chooseCustomColor")}
                           </button>
+                          </div>
+                          {addedBackground && <button type="button" onClick={resetAddedBackground} className="rounded-[8px] border border-[#E8DED7] px-3 py-1.5 font-body text-sm font-medium text-text-dark transition-colors hover:border-brand-primary hover:text-brand-primary">{t("ui.removeAddedBackground")}</button>}
                         </div>
                       </div>
                     )}
@@ -1551,8 +1475,10 @@ export function BackgroundRemover() {
                     {staleResult && addedBackground && (
                       <p className="mt-3 rounded-[8px] bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{t("ui.staleBackgroundWarning")}</p>
                     )}
-                    {addedBackground && bgOption === "Transparent" && !staleResult && (
-                      <button type="button" onClick={resetAddedBackground} className="mt-3 text-[11px] font-medium text-[#64748B] underline underline-offset-2 hover:text-[#334155]">{t("ui.removeAddedBackground")}</button>
+                    {addedBackground && bgOption === "Transparent" && !staleResult && backgroundTab !== "Color" && (
+                      <div className="mt-3 flex justify-center">
+                        <button type="button" onClick={resetAddedBackground} className="rounded-[8px] border border-slate-200 bg-white px-3 py-2 text-[11px] font-medium text-[#475569] shadow-sm transition hover:bg-slate-50">{t("ui.removeAddedBackground")}</button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -1573,40 +1499,19 @@ export function BackgroundRemover() {
                       options={localizedBgOptions}
                       onChange={(val) => {
                         setBgOption(val);
-                        if (val !== "Custom") {
-                          setOpenDropdown(null);
-                        }
+                        setOpenDropdown(null);
                       }}
                       isOpen={openDropdown === "bg"}
                       onToggle={() => setOpenDropdown(openDropdown === "bg" ? null : "bg")}
                       dropdownRef={bgRef}
                       disabled={processing}
-                      customColor={customColor}
-                      onCustomColorChange={(c) => {
-                        setCustomColor(c);
-                        setBgOption("Custom");
-                      }}
                       showDescriptions={false}
                       optionSwatchColors={{
                         Transparent: "transparent",
                         White: "#FFFFFF",
                         Black: "#000000",
-                        Custom: "custom",
                       }}
                       renderSelected={(selected) => {
-                        if (selected.value === "Custom") {
-                          return (
-                            <div className="flex items-center gap-[6px] min-w-0">
-                              <span
-                                className="w-[16px] h-[16px] rounded-full border border-gray-300 shrink-0 inline-block shadow-2xs"
-                                style={{ backgroundColor: customColor }}
-                              />
-                              <span className="font-mono text-[12px] md:text-[13px] text-[#353A3E] font-medium uppercase truncate">
-                                {customColor}
-                              </span>
-                            </div>
-                          );
-                        }
                         return (
                           <div className="flex items-center gap-[8px] min-w-0">
                             <span
@@ -1727,7 +1632,7 @@ export function BackgroundRemover() {
                     {/* Result Details */}
                     {result && result.size > 0 && !staleResult && (
                       <p className="w-full min-w-0 max-w-full break-words text-center font-body font-normal text-[12px] md:text-[14px] text-[#64748B] mt-1">
-                        {addedBackground ? t("ui.backgroundAddedPng") : bgOption === "Transparent" ? t("ui.transparentPng") : `${bgOption === "Custom" ? customColor : localizedBgOptions.find((option) => option.value === bgOption)?.label ?? bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
+                        {addedBackground ? t("ui.backgroundAddedPng") : bgOption === "Transparent" ? t("ui.transparentPng") : `${localizedBgOptions.find((option) => option.value === bgOption)?.label ?? bgOption} PNG`} &middot; {formatFileSize(compositedResultSize ?? result.size)}
                         {imageDims ? ` · ${imageDims.width}×${imageDims.height} px` : ""}
                       </p>
                     )}

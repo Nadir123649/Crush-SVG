@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/client/auth-context";
 import Image from "next/image";
-import { IMAGES } from "@/lib/shared/images";
 import { AdminLoader } from "@/components/admin/AdminLoader";
 import { showToast, dismissStaleToastsOnRoute } from "@/lib/client/toast-bridge";
 
@@ -140,10 +139,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className={`absolute inset-0 pl-6 pr-12 flex items-center transition-opacity duration-200 ${isDesktopSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:pointer-events-none'}`}>
               <div className="flex items-center gap-2">
                 <Image
-                  src={IMAGES.logo}
+                  src="/icon-512.png"
                   alt="CrushSVG Logo"
-                  width={26}
-                  height={26}
+                  width={512}
+                  height={512}
+                  unoptimized
                   className="w-[26px] h-[26px] object-contain flex-shrink-0"
                 />
                 <span className="font-heading font-bold text-2xl text-text-dark whitespace-nowrap">
@@ -177,10 +177,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
               ) : (
                 <Image
-                  src={IMAGES.logo}
+                  src="/icon-512.png"
                   alt=""
-                  width={24}
-                  height={24}
+                  width={512}
+                  height={512}
+                  unoptimized
                   className="h-6 w-6 object-contain"
                 />
               )}

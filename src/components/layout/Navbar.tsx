@@ -156,8 +156,10 @@ export function Navbar({ logoUrl }: { logoUrl?: string }) {
             <Image
               src={logoUrl || IMAGES.logo}
               alt="CrushSVG Logo"
-              width={26}
-              height={26}
+              width={52}
+              height={52}
+              quality={100}
+              priority
               className="w-[20px] h-[20px] md:w-[26px] md:h-[26px] object-contain"
             />
 

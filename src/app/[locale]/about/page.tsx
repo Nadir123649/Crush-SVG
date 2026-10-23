@@ -6,6 +6,7 @@ import { Link, routing } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
 import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { Hero } from "@/components/sections/Hero";
+import { TechnicalComparisonTable } from "@/components/sections/TechnicalComparisonTable";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -43,11 +44,7 @@ export default async function AboutUsPage({
     name: t("metaTitle"),
     url: `${SITE_URL}${locale === "en" ? "/about" : `/${locale}/about`}`,
     description: t("metaDesc"),
-    publisher: {
-      "@type": "Organization",
-      name: "The Nevon",
-      url: "https://www.thenevon.com",
-    },
+    parentOrganization: { "@id": "https://thenevon.com/#organization" },
     isPartOf: {
       "@type": "WebSite",
       name: "CrushSVG",
@@ -86,6 +83,14 @@ export default async function AboutUsPage({
         subtitle={t("subtitle")}
         className="mb-[24px] md:mb-[60px]"
       />
+
+      <TechnicalComparisonTable />
+      <aside className="w-full max-w-[800px] mx-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-text-dark md:mx-8" aria-label="SVG phishing security statistic">
+        <p className="font-heading text-xl font-semibold">1,800% increase in SVG-based phishing attacks</p>
+        <p className="mt-2 font-body text-sm text-text-muted">LevelBlue SpiderLabs reported this increase in SVG-borne phishing activity in early 2025, comparing its observations with data collected since April 2024. SVGs can contain active content, so only convert files you trust.</p>
+        <a className="mt-2 inline-block text-sm text-brand-primary underline" href="https://www.levelblue.com/blogs/spiderlabs-blog/pixel-perfect-trap-the-surge-of-svg-borne-phishing-attacks" target="_blank" rel="noreferrer">Source: LevelBlue SpiderLabs</a>
+      </aside>
+
 
       {/* Content Sections */}
       <div className="w-full max-w-[800px] flex flex-col gap-[32px] md:gap-[48px]">

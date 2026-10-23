@@ -244,6 +244,7 @@
     "conversionsUsed": "{used} of {total} free conversions used",
     "lastFreeConversion": "Last Free Conversion",
     "signUpForFree": "Sign Up For Free",
+    "loginRequired": "You've used your 3 free conversions. Log in to continue.",
     "unlimitedConversions": "Unlimited Conversions"
   },
   "features": {
@@ -607,6 +608,7 @@
     "transparentPng": "Transparent PNG",
     "noInstall": "No Install",
     "explore": "Explore",
+    "compareTools": "Compare Tools",
     "svgConverter": "SVG Converter",
     "pngConverter": "PNG to SVG Converter",
     "features": "Features",
@@ -844,7 +846,7 @@
   "blog_page": {
     "metaTitle": "CrushSVG Blog: Email Marketing & SVG Conversion Guides",
     "metaDesc": "Explore actionable guides, checklists, and tutorials on converting SVG to PNG, fixing broken email images in Outlook and Gmail, and vector optimization.",
-    "badge": "CrushSVG Blog & Guides",
+    "badge": "CrushSVG Blog",
     "heroTitlePrefix": "From Vector to Inbox,",
     "heroTitleHighlight": "Tips & Best Practices",
     "heroSubtitle": "Practical guides, checklists, and deep dives on SVG optimization, high-res PNG conversion, and bulletproof image rendering across Outlook and Gmail.",
@@ -854,7 +856,7 @@
     "share": "Share this guide",
     "relatedPosts": "Related Articles",
     "tableOfContents": "On this page",
-    "searchPlaceholder": "Search guides and articles..."
+    "searchPlaceholder": "Search blog articles..."
   },
   "blog": {
     "shareLabel": "Share this article",
@@ -1185,7 +1187,7 @@
     "unlimitedConversions": "Unlimited conversions",
     "conversionsUsed": "{used} of {total} free conversions used",
     "uploadLabel": "Drop your image here or click to browse",
-    "uploadHint": "Supports JPG, PNG, WebP — Max 10MB",
+    "uploadHint": "Supports JPG, PNG, WebP — Max 5MB",
     "selectImage": "Select Image",
     "pasteHint": "paste clipboard image",
     "replaceImage": "Replace Image",
@@ -1232,7 +1234,7 @@
     "sourceResolution": "Raster Resolution",
     "svgOutput": "SVG Output",
     "errorInvalidFile": "Please select a valid image file",
-    "errorTooLarge": "File size must be less than 10MB",
+    "errorTooLarge": "Image too large. Maximum file size is 5 MB.",
     "errorConversion": "Conversion failed. Please try again.",
     "toastPasted": "Image pasted from clipboard",
     "toastSampleLoaded": "Loaded sample CrushSVG icon",
@@ -1262,7 +1264,8 @@
     "none": "None",
     "low": "Low",
     "medium": "Medium",
-    "high": "High"
+    "high": "High",
+    "errorPngTooLarge": "PNG too large. Maximum file size is 5 MB."
   },
   "image_resizer": {
     "title": "Image Resizer",

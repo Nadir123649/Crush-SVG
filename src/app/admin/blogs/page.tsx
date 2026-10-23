@@ -173,7 +173,7 @@ export default function BlogsPage() {
             }
 
             if (!data || data.length === 0) {
-                setError("No blogs to export");
+                showToast("warning", "No blogs available to export for the selected filter.");
                 return;
             }
 
@@ -200,7 +200,7 @@ export default function BlogsPage() {
             URL.revokeObjectURL(url);
             showToast("success", "Blogs exported successfully!", { id: "export-blogs" });
         } catch (err) {
-            setError("Failed to export blogs");
+            showToast("error", err instanceof Error ? err.message : "Failed to export blogs.");
         }
     };
 
@@ -280,10 +280,10 @@ export default function BlogsPage() {
                     )}
 
                     {error && (
-                        <div className="p-8 text-center">
+                        <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
                             <SvgError className="w-12 h-12 mb-3 mx-auto text-red-500" />
                             <span className="font-body text-text-dark">{error}</span>
-                            <Button variant="outline" onClick={() => setError(null)} className="mt-4">Retry</Button>
+                            <Button variant="outline" onClick={() => setError(null)}>Retry</Button>
                         </div>
                     )}
 

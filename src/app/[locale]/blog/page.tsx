@@ -9,6 +9,7 @@ import { Hero } from "@/components/sections/Hero";
 import { BlogListing } from "@/components/blog/BlogListing";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { BLOG_SAMPLE_DATA_ENABLED, SAMPLE_BLOG_POSTS } from "@/lib/blog-sample-data";
+import { calculateReadTime } from "@/lib/shared/read-time";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +40,6 @@ export async function generateMetadata({
       "retina email graphics",
     ],
   });
-}
-
-function calculateReadTime(text: string): string {
-  const wordsPerMinute = 200;
-  const words = text.trim().split(/\s+/).length;
-  const minutes = Math.ceil(words / wordsPerMinute);
-  return `${minutes} min read`;
 }
 
 function formatDate(date: Date): string {
@@ -90,7 +84,6 @@ async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] 
     const docs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
       .populate("authorId", "displayName")
-      .select("-content")
       .lean();
 
     const categorySet = new Set<string>();
@@ -109,11 +102,11 @@ async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] 
         date: date.toISOString(),
         formattedDate: formatDate(date),
         category: cat,
-        readTime: calculateReadTime(doc.content || ""),
+        readTime: `${calculateReadTime(doc.content || "")} min read`,
         author: authorName,
         cover_image: doc.coverImage || "/blog.png",
         accent_color: "#FF6B00",
-        content: "",
+        content: doc.content || "",
       };
     });
 
@@ -199,7 +192,7 @@ export default async function BlogListingPage({
       />
 
       {/* Interactive Blog Listing Component */}
-      <BlogListing posts={posts} categories={categories} />
+      <BlogListing posts={posts} categories={categories} searchPlaceholder={t("searchPlaceholder")} />
 
       {/* AdSense Unit */}
       <AdBanner />

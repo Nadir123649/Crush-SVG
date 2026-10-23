@@ -2,10 +2,10 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
-import { v4 as uuidv4 } from 'uuid'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { connectToDatabase } from '@/lib/database/db'
+import { GridFSBucket } from 'mongodb'
+import { once } from 'node:events'
+import { randomUUID } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -18,15 +18,32 @@ export async function POST(request: NextRequest) {
     const adminCheck = await requireAdmin(request)
     if ('error' in adminCheck) return adminCheck.error
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File | null
+    let file: FormDataEntryValue | null
+    try {
+        const formData = await request.formData()
+        file = formData.get('file')
+    } catch {
+        return errorResponse(400, 'invalid_form_data', 'Could not read the uploaded image', undefined, request)
+    }
 
-    if (!file) {
+    if (!(file instanceof File)) {
         return errorResponse(400, 'no_file', 'No file provided', undefined, request)
     }
 
-    if (!file.type.startsWith('image/')) {
+    const extensionByType: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'image/avif': 'avif',
+    }
+    const extension = extensionByType[file.type]
+    if (!extension) {
         return errorResponse(400, 'invalid_type', 'File must be an image', undefined, request)
+    }
+
+    if (file.size === 0) {
+        return errorResponse(400, 'empty_file', 'The selected image is empty', undefined, request)
     }
 
     if (file.size > 5 * 1024 * 1024) {
@@ -34,25 +51,21 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
+        const buffer = Buffer.from(await file.arrayBuffer())
+        const connection = await connectToDatabase()
+        if (!connection.db) throw new Error('MongoDB database connection is unavailable')
 
-        const uploadDir = join(process.cwd(), 'public', 'uploads', 'blog')
-        if (!existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true })
-        }
+        const bucket = new GridFSBucket(connection.db, { bucketName: 'blogImages' })
+        const upload = bucket.openUploadStream(`blog-${randomUUID()}.${extension}`, {
+            metadata: { contentType: file.type, uploadedBy: adminCheck.user.id },
+        })
+        const stored = once(upload, 'finish')
+        upload.end(buffer)
+        await stored
 
-        const extension = file.name.split('.').pop()?.toLowerCase() || 'png'
-        const filename = `blog-${uuidv4()}.${extension}`
-        const filepath = join(uploadDir, filename)
-
-        await writeFile(filepath, buffer)
-
-        const url = `/uploads/blog/${filename}`
-
-        return successResponse({ url }, 200, rateLimitHeaders(rl), request)
+        return successResponse({ url: `/api/v1/blog/image?id=${upload.id.toString()}` }, 200, rateLimitHeaders(rl), request)
     } catch (error) {
-        console.error('Image upload failed:', error)
-        return errorResponse(500, 'upload_failed', 'Failed to upload image', undefined, request)
+        console.error('Blog image upload failed:', error)
+        return errorResponse(500, 'upload_failed', 'Image upload failed. Check the server logs for the upload request.', undefined, request)
     }
 }

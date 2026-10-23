@@ -54,6 +54,7 @@ export async function refreshUsage(
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("crush_usage_info", JSON.stringify(usage));
+        if (typeof usage.limit === "number") localStorage.setItem("crush_guest_conversion_usage", JSON.stringify({ used: usage.conversionsUsed, limit: usage.limit, savedAt: Date.now() }));
       } catch {}
       window.dispatchEvent(new CustomEvent("crushUsageUpdated", { detail: usage }));
     }

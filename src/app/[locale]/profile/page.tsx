@@ -22,6 +22,7 @@ export async function generateMetadata({
     routeKey: "/profile",
     title: t("profileTitle"),
     description: t("profileDescription"),
+    noindex: true,
     keywords: [
       "developer api",
       "api keys",

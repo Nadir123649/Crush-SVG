@@ -494,17 +494,20 @@ export default function SettingsPage() {
           onClick={() => { if (!clearingCache) setClearCacheModalOpen(false); }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-cache-title"
             className="bg-white rounded-[12px] shadow-xl w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
-                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
                 </svg>
               </div>
               <div>
-                <h3 className="font-heading font-bold text-lg text-text-dark">Clear Global Cache</h3>
+                <h3 id="clear-cache-title" className="font-heading font-bold text-lg text-text-dark">Clear Global Cache</h3>
                 <p className="font-body text-sm text-text-muted">This will invalidate all cached data.</p>
               </div>
             </div>
@@ -523,7 +526,7 @@ export default function SettingsPage() {
                 variant="solid"
                 onClick={handleClearCache}
                 disabled={clearingCache}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-brand-primary hover:opacity-90"
               >
                 {clearingCache ? (
                   <>

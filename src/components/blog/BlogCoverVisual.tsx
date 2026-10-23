@@ -35,6 +35,9 @@ export function BlogCoverVisual({
           src={coverImage}
           alt={title}
           fill
+          // GridFS images are already served as optimized WebP by the API.
+          // Next's image optimizer rejects this local API URL with a query ID.
+          unoptimized={coverImage.startsWith("/api/v1/blog/image?")}
           priority={isLarge}
           sizes={isLarge ? "(max-width: 1024px) 100vw, 840px" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
           className="object-contain transition-transform duration-500 group-hover:scale-105"

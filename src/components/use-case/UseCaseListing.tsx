@@ -15,7 +15,6 @@ interface UseCaseListingProps {
 export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
   const t = useTranslations("use_case");
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const labelFor = (cat: string) => {
     if (cat === ALL_CATEGORIES) return t("all");
@@ -24,15 +23,15 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
   };
 
   const filtered = useMemo(
-    () => filterUseCases(useCases, selectedCategory, searchQuery),
-    [useCases, selectedCategory, searchQuery]
+    () => filterUseCases(useCases, selectedCategory, ""),
+    [useCases, selectedCategory]
   );
 
   return (
-    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[32px] md:py-[56px] flex flex-col gap-[40px] md:gap-[60px]">
-      {/* Search & Category Filter Controls */}
-      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-[16px] bg-white rounded-[16px] md:rounded-[20px] p-[16px] md:p-[20px] border border-[#EAEAEA] shadow-[0px_4px_30px_rgba(0,0,0,0.03)]">
-        <div className="flex items-center gap-[8px] overflow-x-auto w-full md:w-auto pb-[4px] md:pb-0 scrollbar-none">
+    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] pt-[32px] pb-[32px] md:pt-[56px] md:pb-[40px] flex flex-col gap-[40px] md:gap-[60px]">
+      {/* Category Filters */}
+      <div className="w-full flex items-center justify-center">
+        <div className="flex flex-wrap items-center justify-center gap-[8px] w-full">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
             return (
@@ -42,7 +41,7 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-[16px] py-[8px] rounded-[30px] text-[13px] md:text-[14px] font-heading font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white shadow-[0px_4px_16px_rgba(217,74,30,0.25)]"
+                    ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white"
                     : "bg-white border border-[#EAEAEA] text-[#4B5563] hover:border-brand-primary hover:text-brand-primary"
                 }`}
               >
@@ -50,40 +49,6 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
               </button>
             );
           })}
-        </div>
-
-        <div className="relative w-full md:w-[300px] shrink-0">
-          <svg
-            className="absolute left-[14px] top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            aria-label={t("searchAria")}
-            className="w-full pl-[38px] pr-[32px] py-[9px] bg-[#FAF6F3] rounded-[10px] text-[14px] text-text-dark placeholder:text-text-muted border border-[#EAEAEA] focus:border-brand-primary focus:bg-white focus:outline-none transition-all font-body"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              aria-label={t("clearSearchAria")}
-              className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[12px] text-text-muted hover:text-text-dark font-body"
-            >
-              ✕
-            </button>
-          )}
         </div>
       </div>
 
@@ -116,7 +81,6 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
               type="button"
               onClick={() => {
                 setSelectedCategory(ALL_CATEGORIES);
-                setSearchQuery("");
               }}
               className="px-[20px] py-[10px] rounded-[8px] bg-[#D94A1E] text-white font-heading font-medium text-[14px] hover:bg-[#c4411a] transition-colors"
             >

@@ -31,7 +31,14 @@ export function AdSenseConsentGate() {
     script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
     script.async = true;
     script.crossOrigin = "anonymous";
+    const handleLoadError = () => {
+      script.dataset.loadFailed = "true";
+      // Ad blockers commonly block this optional script; the page remains usable.
+      console.info("AdSense script did not load; ads are unavailable for this session.");
+    };
+    script.addEventListener("error", handleLoadError, { once: true });
     document.head.appendChild(script);
+    return () => script.removeEventListener("error", handleLoadError);
   }, [granted]);
 
   return null;

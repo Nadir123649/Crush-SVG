@@ -19,7 +19,7 @@ import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
 const STORAGE_KEY_IMAGE = "crush_vectorizer_image";
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 interface DropdownOption {
@@ -538,8 +538,7 @@ export function RasterToSvgConverter() {
             const file = item.getAsFile();
             if (file) {
               e.preventDefault();
-              void handleFile(file);
-              showToast("success", t("toastPasted"));
+              void handleFile(file, true);
               return;
             }
           }
@@ -550,7 +549,7 @@ export function RasterToSvgConverter() {
     return () => window.removeEventListener("paste", handleGlobalPaste);
   }, []);
 
-  function handleFile(file: File | undefined | null) {
+  function handleFile(file: File | undefined | null, pasted = false) {
     if (!file) return;
     setError(null);
 
@@ -566,12 +565,17 @@ export function RasterToSvgConverter() {
       showToast("error", t("errorInvalidFile"));
       return;
     }
-
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        setError(t("errorTooLarge"));
-        showToast("error", t("errorTooLarge"));
-        return;
-      }
+    if (file.size <= 0) {
+      setError(t("errorInvalidFile"));
+      showToast("error", t("errorInvalidFile"));
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const message = isPng ? t("errorPngTooLarge") : t("errorTooLarge");
+      setError(message);
+      showToast("error", message);
+      return;
+    }
 
     setRasterFile(file);
     setImageName(file.name);
@@ -585,9 +589,38 @@ export function RasterToSvgConverter() {
 
       const img = new window.Image();
       img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) {
+          const msg = t("errorInvalidFile");
+          setError(msg);
+          setRasterFile(null);
+          setRasterDataUrl(null);
+          setImageName(null);
+          setImageSize(null);
+          showToast("error", msg);
+          return;
+        }
         setImageDims({ width: img.naturalWidth, height: img.naturalHeight });
+        if (pasted) showToast("success", t("toastPasted"));
+      };
+      img.onerror = () => {
+        const msg = t("errorInvalidFile");
+        setError(msg);
+        setRasterFile(null);
+        setRasterDataUrl(null);
+        setImageName(null);
+        setImageSize(null);
+        setImageDims(null);
+        showToast("error", msg);
       };
       img.src = dataUrl;
+    };
+    reader.onerror = () => {
+      const msg = t("errorInvalidFile");
+      setError(msg);
+      setRasterFile(null);
+      setRasterDataUrl(null);
+      setImageDims(null);
+      showToast("error", msg);
     };
     reader.readAsDataURL(file);
   }
@@ -600,6 +633,7 @@ export function RasterToSvgConverter() {
 
   function handleClear() {
     convertAbortRef.current?.abort();
+    setConverting(false);
     setRasterFile(null);
     setRasterDataUrl(null);
     setImageName(null);
@@ -634,6 +668,18 @@ export function RasterToSvgConverter() {
   }
 
   async function handleConvert() {
+    if ((rasterFile?.size ?? imageSize ?? 0) > MAX_FILE_SIZE_BYTES) {
+      const isPng = imageName?.toLowerCase().endsWith(".png");
+      const message = isPng ? t("errorPngTooLarge") : t("errorTooLarge");
+      setError(message);
+      showToast("error", message);
+      return;
+    }
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", "You've used your 3 free conversions. Log in to continue.");
+      return;
+    }
     if (!rasterFile && !rasterDataUrl) {
       showToast("error", t("errorInvalidFile"));
       return;
@@ -722,8 +768,11 @@ export function RasterToSvgConverter() {
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
-      setError(msg);
-      showToast("error", msg);
+      const visibleError = err instanceof ApiError && err.code === "file_too_large"
+        ? msg
+        : `Conversion failed: ${msg || "Please try again."}`;
+      setError(visibleError);
+      showToast("error", visibleError);
       
       try {
         await trackConversionUsage({
@@ -734,7 +783,10 @@ export function RasterToSvgConverter() {
         });
       } catch (e) {}
     } finally {
-      if (!controller.signal.aborted) setConverting(false);
+      if (convertAbortRef.current === controller) {
+        convertAbortRef.current = null;
+        setConverting(false);
+      }
       if (conversionSucceeded && !controller.signal.aborted) {
         showToast("success", t("toastVectorizationComplete"));
       }
@@ -743,6 +795,11 @@ export function RasterToSvgConverter() {
 
   function handleDownload() {
     if (!result?.svg) return;
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", "You've used your 3 free conversions. Log in to continue.");
+      return;
+    }
     const blob = new Blob([result.svg], { type: "image/svg+xml;charset=utf-8" });
     const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -987,6 +1044,10 @@ export function RasterToSvgConverter() {
                     </div>
                   </div> 
                 )} 
+
+                {error && (
+                  <p role="alert" className="mt-2 text-sm text-red-500">{error}</p>
+                )}
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
@@ -1330,16 +1391,6 @@ export function RasterToSvgConverter() {
                   </div>
 
                 </div>
-
-                {/* Error Banner */}
-                {error && (
-                  <div
-                    role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
-                  >
-                    {error}
-                  </div>
-                )}
 
                 {/* Advisory Banner (e.g. photo limitations) */}
                 {result && result.advisory && (

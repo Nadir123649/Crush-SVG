@@ -259,6 +259,20 @@ export async function proxy(
   const url = request.nextUrl
   const pathname = url.pathname
 
+  const legacyPageRedirects: Record<string, string> = {
+    '/terms-of-service': '/terms',
+    '/about-us': '/about',
+    '/our-team': '/team',
+  }
+  const legacyRoute = pathname.match(/^\/([a-z]{2})\/(terms-of-service|about-us|our-team)$/)
+  const redirectSource = legacyRoute ? `/${legacyRoute[2]}` : pathname
+  const redirectDestination = legacyPageRedirects[redirectSource]
+  if (redirectDestination) {
+    const destination = url.clone()
+    destination.pathname = legacyRoute ? `/${legacyRoute[1]}${redirectDestination}` : redirectDestination
+    return addRequestId(NextResponse.redirect(destination, 301), request)
+  }
+
   // ───────────────────────────────────────────────────────────────────
   // API SUBDOMAIN
   // ───────────────────────────────────────────────────────────────────

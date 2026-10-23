@@ -104,7 +104,34 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
         return { buffer, width: info.width, height: info.height, format: "png", warnings };
     }
 
-    // Transparent, Custom, or Black background: render with alpha and run canonical bg-remove engine
+    // Transparent background for SVG: Sharp renders SVGs natively with alpha — skip the
+    // background-removal engine. The bg-remove engine is for raster photos (solid-bg JPEGs/PNGs).
+    // Running it on vector SVGs fails locally with MIN_DIMENSION errors and can corrupt
+    // transparency by trying to detect/remove a "background" that doesn't exist in a vector file.
+    if (resolvedBgOption === "Transparent") {
+        const trPipeline = sharp(Buffer.from(sanitizedSvg, "utf-8"), {
+            density: computeSvgDensity(dims, target),
+            limitInputPixels: INPUT_PIXEL_BUDGET,
+        });
+        if (target.width) {
+            trPipeline.resize({
+                width: target.width,
+                height: target.height,
+                fit: target.fit,
+                withoutEnlargement: false,
+                background: { r: 0, g: 0, b: 0, alpha: 0 },
+            });
+        }
+        trPipeline.ensureAlpha();
+        trPipeline.png({ compressionLevel: 3, adaptiveFiltering: true });
+        const { data: trBuffer, info: trInfo } = await withTimeout(
+            trPipeline.toBuffer({ resolveWithObject: true }),
+            CONVERSION_TIMEOUT_MS,
+        );
+        return { buffer: trBuffer, width: trInfo.width, height: trInfo.height, format: "png", warnings };
+    }
+
+    // Custom or Black background: render with alpha then run canonical bg-remove engine.
     const pipeline = sharp(Buffer.from(sanitizedSvg, "utf-8"), {
         density: computeSvgDensity(dims, target),
         limitInputPixels: INPUT_PIXEL_BUDGET,
@@ -115,12 +142,7 @@ export async function convertSvg(svg: string, options: SvgConvertOptions = {}): 
             height: target.height,
             fit: target.fit,
             withoutEnlargement: false,
-            background: {
-                r: 255,
-                g: 255,
-                b: 255,
-                alpha: 0,
-            },
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
         });
     }
     pipeline.ensureAlpha();

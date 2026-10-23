@@ -195,6 +195,7 @@
     "conversionsLeft": "残り無料変換: {count} 回",
     "lastFreeConversion": "最後の無料変換枠",
     "signUpForFree": "無料でアカウント登録",
+    "loginRequired": "無料変換を3回使い切りました。続けるにはログインしてください。",
     "unlimitedConversions": "無制限変換",
     "conversionsUsed": "無料変換 {used}/{total} 回使用済み"
   },
@@ -559,6 +560,7 @@
     "transparentPng": "透過PNG対応",
     "noInstall": "インストール不要",
     "explore": "ツール一覧",
+    "compareTools": "ツールを比較",
     "svgConverter": "SVGコンバーター",
     "pngConverter": "PNGからSVGへのコンバーター",
     "features": "特徴",
@@ -774,7 +776,7 @@
   "blog_page": {
     "metaTitle": "CrushSVG公式ブログ：メール配信・ベクター変換ナレッジ",
     "metaDesc": "SVGからPNGへの高画質変換、OutlookやGmailでの画像表示崩れ対策、ベクター最適化の技術情報を発信しています。",
-    "badge": "CrushSVG ブログ＆技術ガイド",
+    "badge": "CrushSVG ブログ",
     "heroTitlePrefix": "ベクターからメール受信箱まで、",
     "heroTitleHighlight": "実践のノウハウとヒント",
     "heroSubtitle": "SVGの最適化、高精細PNG変換、OutlookやGmailで崩れない確実な画像表示手法を解説する実践的ブログです。",
@@ -784,7 +786,7 @@
     "share": "この記事を共有",
     "relatedPosts": "関連記事",
     "tableOfContents": "目次",
-    "searchPlaceholder": "記事を検索..."
+    "searchPlaceholder": "ブログ記事を検索..."
   },
   "auth_pages": {
     "loginTitle": "ログイン",
@@ -1230,7 +1232,7 @@
     "dualEngineTitle": "デュアルエンジンコンバーター",
     "errorConversion": "変換に失敗しました。もう一度お試しください。",
     "errorInvalidFile": "有効な画像ファイルを選択してください",
-    "errorTooLarge": "ファイルサイズは10MB未満にしてください",
+    "errorTooLarge": "????????????????????5 MB???",
     "featureAutoDetect": "スマートな自動検出で最適な変換戦略を即座に選択",
     "featureDownload": "ワンクリックでのダウンロード＆クリップボードコピーでスムーズな作業を実現",
     "featurePixelMode": "グラデーション対応のフォトリアルな変換を実現する高度なピクセルモード",
@@ -1280,11 +1282,12 @@
     "toastSampleLoaded": "サンプルのCrushSVGアイコンを読み込みました",
     "tracingModeLabel": "トレースモード",
     "unlimitedConversions": "無制限変換",
-    "uploadHint": "JPG, PNG, WebP対応 — 最大10MB",
+    "uploadHint": "JPG、PNG、WebP対応 — 最大5 MB",
     "uploadLabel": "画像をここにドロップするかクリックして選択",
     "vectorOutput": "ベクター出力",
     "vectorSvgTab": "ベクターSVG",
-    "vectorizing": "画像のパスをベクター化中..."
+    "vectorizing": "画像のパスをベクター化中...",
+    "errorPngTooLarge": "PNG??????????????????????5 MB???"
   },
   "alert": {
     "defaultError": "エラーが発生しました",

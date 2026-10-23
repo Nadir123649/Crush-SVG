@@ -72,6 +72,7 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
       if (isLogin) {
         await login(email, password, rememberMe);
         loginSucceeded = true;
+        try { sessionStorage.setItem("crush_welcome_back", "1"); } catch { }
         const destination = redirectTo();
         clearAuthRedirectUrl();
         window.location.assign(destination);
@@ -100,6 +101,7 @@ async function handleOAuth(provider: OAuthProvider) {
     // loading state (unlike the inline email form).
     try {
       await loginWithOAuth(provider, true);
+      try { sessionStorage.setItem("crush_welcome_back", "1"); } catch { }
       const destination = redirectTo();
       clearAuthRedirectUrl();
       window.location.assign(destination);

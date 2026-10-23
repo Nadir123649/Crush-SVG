@@ -1,10 +1,11 @@
-import React from "react";
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { constructLocalizedMetadata } from "@/lib/seo";
 import { routing } from "@/i18n/routing";
+import { AuthStaticForm } from "@/components/auth/AuthStaticForm";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -35,10 +36,13 @@ export default async function SignupPage({
   setRequestLocale(locale);
 
   return (
-    <GuestOnly>
-      <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-        <AuthCard type="signup" />
-      </div>
-    </GuestOnly>
+    <Suspense fallback={<div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center"><AuthStaticForm type="signup" /></div>}>
+      <GuestOnly>
+        <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+          <h1 className="sr-only">Create Your CrushSVG Account</h1>
+          <AuthCard type="signup" />
+        </div>
+      </GuestOnly>
+    </Suspense>
   );
 }

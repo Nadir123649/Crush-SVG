@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import React, { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
@@ -129,10 +129,12 @@ function SvgToPngConverter() {
   const [isCustomWidth, setIsCustomWidth] = useState(false);
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
+  const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
   const [bgOption, setBgOption] = useState<"Transparent" | "White" | "Black" | "Custom">("White");
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
   const [svgCode, setSvgCode] = useState(SAMPLE_SVG);
+  const [securityWarning, setSecurityWarning] = useState(false);
   const [converting, setConverting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
@@ -208,6 +210,17 @@ function SvgToPngConverter() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
 
+  useLayoutEffect(() => {
+    if (status === "authed") return;
+    try {
+      const raw = localStorage.getItem("crush_guest_conversion_usage");
+      if (!raw) return;
+      const cached = JSON.parse(raw) as { used?: number; limit?: number; savedAt?: number };
+      if (typeof cached.used !== "number" || typeof cached.limit !== "number" || Date.now() - (cached.savedAt ?? 0) >= 24 * 60 * 60 * 1000) return;
+      setUsage({ conversionsUsed: cached.used, limit: cached.limit, remaining: Math.max(0, cached.limit - cached.used), isUnlimited: false, limitReached: cached.used >= cached.limit } as UsageInfo);
+    } catch {}
+  }, [status]);
+
   useEffect(() => {
     if (status === "loading") return;
     if (status === "authed" && !getAccessToken()) return;
@@ -218,9 +231,11 @@ function SvgToPngConverter() {
         const cached = localStorage.getItem("crush_usage_info");
         if (cached) {
           const parsed = JSON.parse(cached) as UsageInfo;
-          if (parsed && typeof parsed.conversionsUsed === "number") {
-            setUsage(parsed);
-          }
+          const guestCache = localStorage.getItem("crush_guest_conversion_usage");
+          const guest = guestCache ? JSON.parse(guestCache) as { used?: number; limit?: number; savedAt?: number } : null;
+          if (status !== "authed" && guest && typeof guest.used === "number" && Date.now() - (guest.savedAt ?? 0) < 24 * 60 * 60 * 1000) {
+            setUsage({ ...parsed, conversionsUsed: guest.used, limit: guest.limit ?? parsed.limit, remaining: Math.max(0, (guest.limit ?? parsed.limit ?? 3) - guest.used) });
+          } else if (parsed && typeof parsed.conversionsUsed === "number") setUsage(parsed);
         }
       } catch {}
     }
@@ -233,6 +248,7 @@ function SvgToPngConverter() {
           // Persist to localStorage so it survives page reloads
           try {
             localStorage.setItem("crush_usage_info", JSON.stringify(u));
+            if (status !== "authed" && typeof u.limit === "number") localStorage.setItem("crush_guest_conversion_usage", JSON.stringify({ used: u.conversionsUsed, limit: u.limit, savedAt: Date.now() }));
           } catch {}
         }
       })
@@ -383,6 +399,8 @@ function SvgToPngConverter() {
   const activePreviewUrl = resultImageUrl || previewUrl;
 
   function handleSvgChange(value: string) {
+    const hasUnsafeSvg = /<\s*script\b|\bon[a-z]+\s*=|javascript\s*:/i.test(value);
+    setSecurityWarning(hasUnsafeSvg);
     let clean = value;
     if (clean !== SAMPLE_SVG && clean !== DUMMY_CODE && clean.toLowerCase().includes('<svg')) {
       if (!clean.toLowerCase().includes('xmlns=')) {
@@ -408,6 +426,7 @@ function SvgToPngConverter() {
     setIsCustomWidth(false);
     setIsCustomHeight(false);
     setIsCustomScale(false);
+    setScaleValidationAttempted(false);
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
@@ -492,6 +511,7 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    setScaleValidationAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
     // (Convert / Re-convert) that lands before the button disables.
     if (convertInFlightRef.current) return;
@@ -517,9 +537,9 @@ function SvgToPngConverter() {
       bgColor: !transparent && bgOption === "Custom" ? normalizeHex(customBgColor) : undefined,
     };
 
-    if (selectedWidth !== "Original" && selectedWidth.trim() !== "") {
-      let wNum = parseFloat(selectedWidth);
-      if (Number.isNaN(wNum)) {
+    if (selectedWidth !== "Original") {
+      let wNum = Number(selectedWidth.trim());
+      if (!Number.isFinite(wNum) || wNum <= 0) {
         setError(tToast("invalidWidth", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
@@ -531,9 +551,9 @@ function SvgToPngConverter() {
       }
     }
 
-    if (selectedHeight !== "Auto" && selectedHeight.trim() !== "") {
-      let hNum = parseFloat(selectedHeight);
-      if (Number.isNaN(hNum)) {
+    if (selectedHeight !== "Auto") {
+      let hNum = Number(selectedHeight.trim());
+      if (!Number.isFinite(hNum) || hNum <= 0) {
         setError(tToast("invalidHeight", { max: MAX_CUSTOM_PX, maxCm: (MAX_CUSTOM_PX / PX_PER_CM).toFixed(1) }));
         return;
       }
@@ -551,7 +571,6 @@ function SvgToPngConverter() {
       if (!Number.isNaN(sNum) && sNum > 0) {
         options.scale = sNum;
       } else if (isCustomScale) {
-        setError(tToast("invalidScale"));
         return;
       }
     }
@@ -562,14 +581,14 @@ function SvgToPngConverter() {
       setError(tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE }));
       return;
     }
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", tUsage("loginRequired"));
+      return;
+    }
 
     // Too big for the server's 4.5 MB request/response ceiling: render locally.
     const convertInBrowser = shouldConvertInBrowser(svgCode, options);
-    if (convertInBrowser && limitReached && status !== "authed") {
-      // The server path enforces the guest cap with a 429; do the same here.
-      setShowSignupPrompt(true);
-      return;
-    }
 
     convertAbortRef.current?.abort();
     convertInFlightRef.current = true;
@@ -636,19 +655,20 @@ function SvgToPngConverter() {
       }
       // Request-rate 429 (not the quota 429 above): tell the user how long to wait.
       if (err instanceof ApiError && err.status === 429 && err.code !== "limit_reached" && err.retryAfter) {
-        showToast("error", tToast("rateLimited", { seconds: err.retryAfter }));
+        showToast("error", `${err.message} (${err.code}) ${tToast("rateLimited", { seconds: err.retryAfter })}`);
         return;
       }
-      if (
-        (err instanceof ApiError && err.code === "timeout") ||
-        (err instanceof DOMException && err.name === "TimeoutError")
-      ) {
+      if (err instanceof ApiError && err.code === "timeout") {
+        showToast("error", `${err.message} (${err.code})`);
+        return;
+      }
+      if (err instanceof DOMException && err.name === "TimeoutError") {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
       let msg = err instanceof Error ? err.message : tToast("conversionFailed");
       if (err instanceof ApiError) {
-        msg = err.message;
+        msg = `${err.message} (${err.code})`;
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
       }
@@ -684,6 +704,11 @@ function SvgToPngConverter() {
   }
 
   function handleDownload() {
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", tUsage("loginRequired"));
+      return;
+    }
     triggerDownload(result);
   }
 
@@ -749,7 +774,7 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && !isScaleDisabled && isCustomScale) {
+  if (!validationError && !isScaleDisabled && isCustomScale && scaleValidationAttempted) {
     const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
     if (!Number.isFinite(scale) || scale <= 0) {
       validationError = tToast("invalidScale");
@@ -1339,6 +1364,13 @@ function SvgToPngConverter() {
                                   resetConversion();
                                 }
                               }}
+                              onBlur={(event) => {
+                                // Moving focus into the scale dropdown to choose Custom
+                                // should not count as leaving an empty custom value.
+                                if (!scaleRef.current?.contains(event.relatedTarget as Node | null)) {
+                                  setScaleValidationAttempted(true);
+                                }
+                              }}
                               onFocus={(event) => {
                                 setOpenDropdown("scale");
                                 if (!isCustomScale) {
@@ -1398,9 +1430,11 @@ function SvgToPngConverter() {
                                       if (opt === "Custom") {
                                         setIsCustomScale(true);
                                         setSelectedScale("");
+                                        setScaleValidationAttempted(false);
                                       } else {
                                         setIsCustomScale(false);
                                         setSelectedScale(opt);
+                                        setScaleValidationAttempted(false);
                                       }
                                       setOpenDropdown(null);
                                       resetConversion();
@@ -1527,6 +1561,11 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
+                {securityWarning && (
+                  <div role="alert" className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Security Notice: Potentially unsafe scripts or unverified event handlers were removed from your SVG during sanitization.
+                  </div>
+                )}
                 {validationError && (
                   <div
                     role="alert"

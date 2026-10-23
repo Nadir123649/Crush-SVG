@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { SVGProps } from "react";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ApiError, apiFetch } from "@/lib/client/http";
@@ -139,12 +140,25 @@ export default function EditBlogPage() {
 
     if (loading) {
         return (
-            <AdminLoader message="Loading editor..." className="min-h-[400px]" />
+            <div className="pb-10"><nav aria-label="Breadcrumb" className="mb-2 flex flex-wrap items-center gap-2 font-body text-sm text-text-muted">
+                <Link href="/admin" className="rounded-sm hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">Dashboard</Link>
+                <span aria-hidden="true">&gt;</span>
+                <Link href="/admin/blogs" className="rounded-sm hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">Blogs</Link>
+                <span aria-hidden="true">&gt;</span>
+                <span aria-current="page" className="font-semibold text-text-dark">Edit Blog Post</span>
+            </nav><AdminLoader message="Loading editor..." className="min-h-[400px]" /></div>
         );
     }
 
     return (
         <div className="flex flex-col gap-8 pb-10">
+            <nav aria-label="Breadcrumb" className="mb-2 flex flex-wrap items-center gap-2 font-body text-sm text-text-muted">
+                <Link href="/admin" className="rounded-sm hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">Dashboard</Link>
+                <span aria-hidden="true">&gt;</span>
+                <Link href="/admin/blogs" className="rounded-sm hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary">Blogs</Link>
+                <span aria-hidden="true">&gt;</span>
+                <span aria-current="page" className="font-semibold text-text-dark">Edit Blog Post</span>
+            </nav>
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>

@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
-import { IMAGES } from "@/lib/shared/images";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -201,10 +200,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             className="flex items-center gap-[8px] md:gap-[10px] group shrink-0 z-10 select-none"
           >
             <Image
-              src={logoUrl || IMAGES.logo}
+              src={logoUrl || "/icon-512.png"}
               alt="CrushSVG Logo"
-              width={30}
-              height={30}
+              width={512}
+              height={512}
+              unoptimized
               className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] object-contain transition-transform duration-200 group-hover:scale-105"
             />
 
@@ -522,7 +522,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            <div className={`logged-out-only hidden min-[1024px]:flex items-center gap-[8px] min-[1280px]:gap-[12px] ${status === "authed" ? "!hidden" : ""}`}>
+            <div className={`logged-out-only hidden min-[1024px]:flex items-center gap-[8px] min-[1280px]:gap-[12px] ${(user || status === "authed") ? "!hidden" : ""}`}>
               <Button
                 href="/login"
                 onClick={() => saveAuthRedirectUrl()}
@@ -867,7 +867,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Mobile guest actions */}
-          <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "authed" ? "!hidden" : ""}`}>
+          <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${(user || status === "authed") ? "!hidden" : ""}`}>
             <Button
               href="/login"
               variant="outline"
