@@ -229,6 +229,7 @@ export function DatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dayButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const [internalOpen, setInternalOpen] = useState(false);
+  const [openAbove, setOpenAbove] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
   const [visibleMonth, setVisibleMonth] = useState(() => monthStart(new Date()));
   const [focusedDate, setFocusedDate] = useState(() => new Date());
@@ -280,6 +281,11 @@ export function DatePicker({
   }, [isOpen, setOpen]);
 
   const openPicker = () => {
+    const triggerBounds = triggerRef.current?.getBoundingClientRect();
+    if (triggerBounds) {
+      const roomBelow = window.innerHeight - triggerBounds.bottom;
+      setOpenAbove(roomBelow < 430 && triggerBounds.top > roomBelow);
+    }
     const initialDate = clampToBounds(selectedDate ?? new Date(), minDate, maxDate);
     setFocusedDate(initialDate);
     setVisibleMonth(monthStart(initialDate));
@@ -394,7 +400,7 @@ export function DatePicker({
           id={`${pickerId}-calendar`}
           role="dialog"
           aria-label={`${label} calendar`}
-          className={`absolute ${align === "end" ? "right-0" : "left-0"} top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-[14px] border border-[#F2EDE8] bg-white p-4 shadow-[0px_12px_32px_0px_rgba(32,36,39,0.14)]`}
+          className={`absolute ${align === "end" ? "right-0" : "left-0"} ${openAbove ? "bottom-full mb-2" : "top-full mt-2"} z-50 max-h-[calc(100dvh-1rem)] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-[14px] border border-[#F2EDE8] bg-white p-4 shadow-[0px_12px_32px_0px_rgba(32,36,39,0.14)] animate-[date-picker-popover_150ms_ease-out] motion-reduce:animate-none`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <button

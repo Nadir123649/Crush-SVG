@@ -538,8 +538,7 @@ export function RasterToSvgConverter() {
             const file = item.getAsFile();
             if (file) {
               e.preventDefault();
-              void handleFile(file);
-              showToast("success", t("toastPasted"));
+              void handleFile(file, true);
               return;
             }
           }
@@ -550,7 +549,7 @@ export function RasterToSvgConverter() {
     return () => window.removeEventListener("paste", handleGlobalPaste);
   }, []);
 
-  function handleFile(file: File | undefined | null) {
+  function handleFile(file: File | undefined | null, pasted = false) {
     if (!file) return;
     setError(null);
 
@@ -566,12 +565,16 @@ export function RasterToSvgConverter() {
       showToast("error", t("errorInvalidFile"));
       return;
     }
-
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        setError(t("errorTooLarge"));
-        showToast("error", t("errorTooLarge"));
-        return;
-      }
+    if (file.size <= 0) {
+      setError(t("errorInvalidFile"));
+      showToast("error", t("errorInvalidFile"));
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError(t("errorTooLarge"));
+      showToast("error", t("errorTooLarge"));
+      return;
+    }
 
     setRasterFile(file);
     setImageName(file.name);
@@ -585,9 +588,38 @@ export function RasterToSvgConverter() {
 
       const img = new window.Image();
       img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) {
+          const msg = t("errorInvalidFile");
+          setError(msg);
+          setRasterFile(null);
+          setRasterDataUrl(null);
+          setImageName(null);
+          setImageSize(null);
+          showToast("error", msg);
+          return;
+        }
         setImageDims({ width: img.naturalWidth, height: img.naturalHeight });
+        if (pasted) showToast("success", t("toastPasted"));
+      };
+      img.onerror = () => {
+        const msg = t("errorInvalidFile");
+        setError(msg);
+        setRasterFile(null);
+        setRasterDataUrl(null);
+        setImageName(null);
+        setImageSize(null);
+        setImageDims(null);
+        showToast("error", msg);
       };
       img.src = dataUrl;
+    };
+    reader.onerror = () => {
+      const msg = t("errorInvalidFile");
+      setError(msg);
+      setRasterFile(null);
+      setRasterDataUrl(null);
+      setImageDims(null);
+      showToast("error", msg);
     };
     reader.readAsDataURL(file);
   }
@@ -600,6 +632,7 @@ export function RasterToSvgConverter() {
 
   function handleClear() {
     convertAbortRef.current?.abort();
+    setConverting(false);
     setRasterFile(null);
     setRasterDataUrl(null);
     setImageName(null);
@@ -718,7 +751,7 @@ export function RasterToSvgConverter() {
       if (controller.signal.aborted) return;
       let msg = err instanceof Error ? err.message : t("errorConversion");
       if (err instanceof ApiError) {
-        msg = err.message;
+        msg = `${err.message} (${err.code})`;
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
@@ -734,7 +767,10 @@ export function RasterToSvgConverter() {
         });
       } catch (e) {}
     } finally {
-      if (!controller.signal.aborted) setConverting(false);
+      if (convertAbortRef.current === controller) {
+        convertAbortRef.current = null;
+        setConverting(false);
+      }
       if (conversionSucceeded && !controller.signal.aborted) {
         showToast("success", t("toastVectorizationComplete"));
       }

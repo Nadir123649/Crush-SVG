@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
 import { KpiCard } from "@/components/admin/KpiCard";
-import { AdminLoader } from "@/components/admin/AdminLoader";
 
 import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 
@@ -90,9 +89,13 @@ export default function AdminDashboard() {
       {/* Row 1: KPIs */}
       <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {!data ? (
-          <div className="md:col-span-3 lg:col-span-5">
-            <AdminLoader message="Loading dashboard..." />
-          </div>
+          Array.from({ length: 5 }, (_, index) => (
+            <div key={index} aria-hidden="true" className="h-[142px] animate-pulse rounded-[12px] border border-[#F2EDE8] bg-white p-5">
+              <div className="mb-5 h-3 w-2/3 rounded bg-[#F2EDE8]" />
+              <div className="mb-3 h-8 w-1/2 rounded bg-[#F2EDE8]" />
+              <div className="h-3 w-3/4 rounded bg-[#F2EDE8]" />
+            </div>
+          ))
         ) : (
           <>
         <KpiCard 
@@ -144,7 +147,9 @@ export default function AdminDashboard() {
             {data ? (
               <AnalyticsChart data={chartData} labels={chartLabels} />
             ) : (
-              <AdminLoader message="Loading chart..." />
+              <div aria-label="Loading analytics chart" role="status" className="flex h-full animate-pulse items-end gap-3 rounded-lg bg-[#FFFCFA] p-6">
+                {Array.from({ length: 10 }, (_, index) => <div key={index} className="flex-1 rounded-t bg-[#F2EDE8]" style={{ height: `${25 + ((index * 17) % 55)}%` }} />)}
+              </div>
             )}
           </div>
         </div>
@@ -163,7 +168,9 @@ export default function AdminDashboard() {
           </div>
           <div className="flex-1 overflow-y-auto space-y-5 pr-2 brand-scrollbar">
             {!data ? (
-              <AdminLoader message="Loading activity..." className="min-h-[300px]" />
+              <div aria-label="Loading recent activity" role="status" className="space-y-5 animate-pulse">
+                {Array.from({ length: 5 }, (_, index) => <div key={index} className="flex gap-3"><span className="h-8 w-8 rounded-full bg-[#F2EDE8]" /><span className="flex-1 space-y-2 pt-1"><span className="block h-3 w-4/5 rounded bg-[#F2EDE8]" /><span className="block h-3 w-2/5 rounded bg-[#F2EDE8]" /></span></div>)}
+              </div>
             ) : (
               <>
             {recentAudits?.map((audit: any, index: number) => {
@@ -214,7 +221,9 @@ export default function AdminDashboard() {
               {!data ? (
                 <tr>
                   <td colSpan={5} className="p-5">
-                    <AdminLoader message="Loading conversions..." className="min-h-[200px]" />
+                    <div aria-label="Loading recent conversions" role="status" className="space-y-4 animate-pulse py-2">
+                      {Array.from({ length: 5 }, (_, index) => <div key={index} className="grid grid-cols-5 gap-4">{Array.from({ length: 5 }, (_, cell) => <span key={cell} className="h-4 rounded bg-[#F2EDE8]" />)}</div>)}
+                    </div>
                   </td>
                 </tr>
               ) : (

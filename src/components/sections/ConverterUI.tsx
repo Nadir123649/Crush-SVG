@@ -653,19 +653,20 @@ function SvgToPngConverter() {
       }
       // Request-rate 429 (not the quota 429 above): tell the user how long to wait.
       if (err instanceof ApiError && err.status === 429 && err.code !== "limit_reached" && err.retryAfter) {
-        showToast("error", tToast("rateLimited", { seconds: err.retryAfter }));
+        showToast("error", `${err.message} (${err.code}) ${tToast("rateLimited", { seconds: err.retryAfter })}`);
         return;
       }
-      if (
-        (err instanceof ApiError && err.code === "timeout") ||
-        (err instanceof DOMException && err.name === "TimeoutError")
-      ) {
+      if (err instanceof ApiError && err.code === "timeout") {
+        showToast("error", `${err.message} (${err.code})`);
+        return;
+      }
+      if (err instanceof DOMException && err.name === "TimeoutError") {
         showToast("error", tToast("conversionTimedOut"));
         return;
       }
       let msg = err instanceof Error ? err.message : tToast("conversionFailed");
       if (err instanceof ApiError) {
-        msg = err.message;
+        msg = `${err.message} (${err.code})`;
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The SVG code or image may be too large or the network connection was interrupted.";
       }

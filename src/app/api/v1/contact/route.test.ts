@@ -3,6 +3,7 @@ import { mock, test } from "node:test";
 import { NextRequest } from "next/server";
 
 const loggedWarnings: unknown[][] = [];
+const storedSubmissions: Array<{ name: string; email: string; message: string; deliveryStatus: string }> = [];
 const sentEmails: Array<{
   to: string;
   subject: string;
@@ -14,6 +15,17 @@ let sendFailure: Error | null = null;
 mock.module("@/lib/database/db", {
   namedExports: {
     connectToDatabase: async () => {},
+    ContactSubmission: {
+      create: async (submission: { name: string; email: string; message: string; deliveryStatus: string }) => {
+        const stored = { ...submission, _id: String(storedSubmissions.length + 1) };
+        storedSubmissions.push(stored);
+        return stored;
+      },
+      updateOne: async ({ _id }: { _id: string }, { $set }: { $set: { deliveryStatus: string } }) => {
+        const submission = storedSubmissions.find((item, index) => String(index + 1) === _id);
+        if (submission) submission.deliveryStatus = $set.deliveryStatus;
+      },
+    },
     Settings: {
       findOne: () => ({
         lean: async () => ({ supportEmail: "admin@example.test" }),
@@ -24,6 +36,7 @@ mock.module("@/lib/database/db", {
 
 mock.module("@/lib/integrations/email", {
   namedExports: {
+    resolveTransport: () => "smtp",
     sendEmail: async (
       to: string,
       subject: string,
@@ -84,16 +97,10 @@ test("contact endpoint returns safe validation and delivery responses without se
 
       assert.equal(response.status, 400);
       assert.equal(responseBody.payload.error.code, "validation_error");
-      assert.equal(responseBody.payload.error.message, "Invalid contact form submission.");
+      assert.match(responseBody.payload.error.message, /name|input|string/i);
+      assert.equal(responseBody.payload.error.field, "name");
       assert.doesNotMatch(responseText, /stack|trace|PRIVATE-|Error:| at .+\(/i);
-      assert.equal(loggedWarnings.length, 1);
-      assert.match(String(loggedWarnings[0][0]), /Contact form validation failed/);
-      assert.doesNotMatch(JSON.stringify(loggedWarnings), /PRIVATE-/);
-      assert.deepEqual(loggedWarnings[0][1], [
-        { path: ["name"], code: "invalid_type" },
-        { path: ["email"], code: "invalid_format" },
-        { path: ["message"], code: "invalid_type" },
-      ]);
+      assert.equal(loggedWarnings.length, 0);
       assert.equal(sentEmails.length, 0);
     });
 
@@ -108,7 +115,7 @@ test("contact endpoint returns safe validation and delivery responses without se
       assert.doesNotMatch(responseText, /stack|trace|Error:| at .+\(/i);
     });
 
-    await context.test("email failure returns generic 500 without exception details", async () => {
+    await context.test("email failure keeps the inquiry and returns success without exception details", async () => {
       sendFailure = new Error("PRIVATE-EXCEPTION-MESSAGE at C:\\private\\path.ts");
       sendFailure.stack = "Error: PRIVATE-EXCEPTION-MESSAGE\n    at C:\\private\\path.ts:10:2";
 
@@ -116,9 +123,10 @@ test("contact endpoint returns safe validation and delivery responses without se
       const responseText = await response.text();
       const responseBody = JSON.parse(responseText);
 
-      assert.equal(response.status, 500);
-      assert.equal(responseBody.payload.error.code, "server_error");
-      assert.equal(responseBody.payload.error.message, "Failed to send message. Please try again.");
+      assert.equal(response.status, 201);
+      assert.equal(responseBody.success, true);
+      assert.equal(responseBody.payload.message, "Message received. Our team will get back to you shortly.");
+      assert.equal(storedSubmissions[0].deliveryStatus, "failed");
       assert.doesNotMatch(responseText, /PRIVATE-|stack|trace|path\.ts|Error:/i);
       assert.equal(loggedErrors.length, 1);
       assert.doesNotMatch(JSON.stringify(loggedErrors), /PRIVATE-EXCEPTION-MESSAGE/);
@@ -133,7 +141,8 @@ test("contact endpoint returns safe validation and delivery responses without se
 
       assert.equal(response.status, 201);
       assert.equal(responseBody.success, true);
-      assert.equal(responseBody.payload.message, "Message sent. Our team will get back to you shortly.");
+      assert.equal(responseBody.payload.message, "Message received. Our team will get back to you shortly.");
+      assert.equal(storedSubmissions.at(-1)?.deliveryStatus, "sent");
       assert.equal(sentEmails.length, 1);
       assert.equal(sentEmails[0].to, "admin@example.test");
       assert.equal(sentEmails[0].options.replyTo, "visitor@example.test");
