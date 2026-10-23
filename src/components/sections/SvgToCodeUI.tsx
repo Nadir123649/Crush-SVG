@@ -16,8 +16,9 @@ import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { useAuth } from "@/lib/client/auth-context";
+import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
 import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
-import { refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
+import { hasQuotaLimitReached, refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import { getAccessToken } from "@/lib/client/http";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { IMAGES } from "@/lib/shared/images";
@@ -89,6 +90,7 @@ export function SvgToCodeUI() {
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -234,6 +236,11 @@ export function SvgToCodeUI() {
 
   function handleDownload() {
     if (!generatedCode) return;
+    if (hasQuotaLimitReached(usage) && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", "You've used your 3 free conversions. Log in to continue.");
+      return;
+    }
     const currentTabObj = FRAMEWORK_TABS.find((tab) => tab.id === activeTab);
     const ext = currentTabObj?.ext || "tsx";
     const filename = `${componentName || "Icon"}.${ext}`;
@@ -263,8 +270,9 @@ export function SvgToCodeUI() {
   }
 
   return (
-    <section
-      id="converter"
+    <>
+      <section
+        id="converter"
       className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
     >
       {/* Outer Dashed Border Box */}
@@ -548,5 +556,9 @@ export function SvgToCodeUI() {
         </div>
       </div>
     </section>
+      {showSignupPrompt && status !== "authed" && (
+        <SignupPromptModal onClose={() => setShowSignupPrompt(false)} />
+      )}
+    </>
   );
 }

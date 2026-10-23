@@ -579,14 +579,14 @@ function SvgToPngConverter() {
       setError(tToast("outputTooLarge", { requested: oversizedPx, max: MAX_OUTPUT_SIZE }));
       return;
     }
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", tUsage("loginRequired"));
+      return;
+    }
 
     // Too big for the server's 4.5 MB request/response ceiling: render locally.
     const convertInBrowser = shouldConvertInBrowser(svgCode, options);
-    if (convertInBrowser && limitReached && status !== "authed") {
-      // The server path enforces the guest cap with a 429; do the same here.
-      setShowSignupPrompt(true);
-      return;
-    }
 
     convertAbortRef.current?.abort();
     convertInFlightRef.current = true;
@@ -702,6 +702,11 @@ function SvgToPngConverter() {
   }
 
   function handleDownload() {
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", tUsage("loginRequired"));
+      return;
+    }
     triggerDownload(result);
   }
 

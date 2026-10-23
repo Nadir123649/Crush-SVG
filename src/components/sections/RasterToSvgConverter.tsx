@@ -667,6 +667,11 @@ export function RasterToSvgConverter() {
   }
 
   async function handleConvert() {
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", "You've used your 3 free conversions. Log in to continue.");
+      return;
+    }
     if (!rasterFile && !rasterDataUrl) {
       showToast("error", t("errorInvalidFile"));
       return;
@@ -779,6 +784,11 @@ export function RasterToSvgConverter() {
 
   function handleDownload() {
     if (!result?.svg) return;
+    if (limitReached && status !== "authed") {
+      setShowSignupPrompt(true);
+      showToast("info", "You've used your 3 free conversions. Log in to continue.");
+      return;
+    }
     const blob = new Blob([result.svg], { type: "image/svg+xml;charset=utf-8" });
     const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
