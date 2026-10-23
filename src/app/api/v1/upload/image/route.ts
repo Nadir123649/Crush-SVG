@@ -2,8 +2,10 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/middleware/admin-middleware'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { successResponse, errorResponse } from '@/lib/http/api-response'
-import { uploadImage } from '@/lib/integrations/cloudinary'
-import type { UploadApiResponse } from 'cloudinary'
+import { connectToDatabase } from '@/lib/database/db'
+import { GridFSBucket } from 'mongodb'
+import { once } from 'node:events'
+import { randomUUID } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -28,7 +30,15 @@ export async function POST(request: NextRequest) {
         return errorResponse(400, 'no_file', 'No file provided', undefined, request)
     }
 
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type)) {
+    const extensionByType: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'image/avif': 'avif',
+    }
+    const extension = extensionByType[file.type]
+    if (!extension) {
         return errorResponse(400, 'invalid_type', 'File must be an image', undefined, request)
     }
 
@@ -42,11 +52,20 @@ export async function POST(request: NextRequest) {
 
     try {
         const buffer = Buffer.from(await file.arrayBuffer())
-        const uploaded = (await uploadImage(buffer, 'crushsvg/blog')) as UploadApiResponse
+        const connection = await connectToDatabase()
+        if (!connection.db) throw new Error('MongoDB database connection is unavailable')
 
-        return successResponse({ url: uploaded.secure_url }, 200, rateLimitHeaders(rl), request)
+        const bucket = new GridFSBucket(connection.db, { bucketName: 'blogImages' })
+        const upload = bucket.openUploadStream(`blog-${randomUUID()}.${extension}`, {
+            metadata: { contentType: file.type, uploadedBy: adminCheck.user.id },
+        })
+        const stored = once(upload, 'finish')
+        upload.end(buffer)
+        await stored
+
+        return successResponse({ url: `/api/v1/blog/image?id=${upload.id.toString()}` }, 200, rateLimitHeaders(rl), request)
     } catch (error) {
-        console.error('Image upload failed:', error)
-        return errorResponse(500, 'upload_failed', 'Failed to upload image', undefined, request)
+        console.error('Blog image upload failed:', error)
+        return errorResponse(500, 'upload_failed', 'Image upload failed. Check the server logs for the upload request.', undefined, request)
     }
 }

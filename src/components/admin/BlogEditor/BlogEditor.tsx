@@ -134,8 +134,15 @@ export function BlogEditor({ content, onChange, disabled = false, className = ""
     }, [showColorDropdown]);
 
     const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.currentTarget;
         const file = e.target.files?.[0];
         if (!file || !editor) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            emitToast("error", "Image must be less than 5MB");
+            input.value = "";
+            return;
+        }
 
         setIsUploading(true);
         try {
