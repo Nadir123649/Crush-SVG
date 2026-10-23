@@ -2,7 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { constructLocalizedMetadata } from "@/lib/seo";
+import { constructLocalizedMetadata, SITE_URL } from "@/lib/seo";
 import { ContactUsClient } from "./ContactUsClient";
 
 export function generateStaticParams() {
@@ -32,6 +32,24 @@ export default async function ContactUsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": `${SITE_URL}/${locale === "en" ? "" : `${locale}/`}contact-us#webpage`,
+    url: `${SITE_URL}/${locale === "en" ? "" : `${locale}/`}contact-us`,
+    name: "Contact CrushSVG",
+    mainEntity: {
+      "@type": "Organization",
+      name: "CrushSVG",
+      email: "support@crushsvg.net",
+      parentOrganization: { "@id": "https://thenevon.com/#organization" },
+    },
+  };
 
-  return <ContactUsClient />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }} />
+      <ContactUsClient />
+    </>
+  );
 }

@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/v1/admin/"],
+        disallow: ["/admin", "/admin/", "/profile", "/profile/", "/api/v1/admin/"],
       },
       {
         userAgent: [
@@ -25,7 +25,7 @@ export default function robots(): MetadataRoute.Robots {
           "Bytespider",
         ],
         allow: "/",
-        disallow: ["/admin/", "/api/v1/admin/"],
+        disallow: ["/admin", "/admin/", "/profile", "/profile/", "/api/v1/admin/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

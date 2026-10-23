@@ -43,11 +43,7 @@ export default async function AboutUsPage({
     name: t("metaTitle"),
     url: `${SITE_URL}${locale === "en" ? "/about" : `/${locale}/about`}`,
     description: t("metaDesc"),
-    publisher: {
-      "@type": "Organization",
-      name: "The Nevon",
-      url: "https://www.thenevon.com",
-    },
+    parentOrganization: { "@id": "https://thenevon.com/#organization" },
     isPartOf: {
       "@type": "WebSite",
       name: "CrushSVG",

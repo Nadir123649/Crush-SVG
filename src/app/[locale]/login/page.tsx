@@ -37,6 +37,7 @@ export default async function LoginPage({
   return (
     <GuestOnly>
       <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+        <h1 className="sr-only">Log In to CrushSVG</h1>
         <AuthCard type="login" />
       </div>
     </GuestOnly>

@@ -1,6 +1,6 @@
 import toast from "react-hot-toast"
 
-export type ToastKind = "success" | "error" | "info"
+export type ToastKind = "success" | "error" | "info" | "warning"
 
 type ToastEmitter = (kind: ToastKind, message: string) => void
 
@@ -68,6 +68,8 @@ export function showToast(kind: ToastKind, message: string, opts?: { id?: string
       ? toast.success(message, options)
       : kind === "error"
         ? toast.error(message, options)
+        : kind === "warning"
+        ? toast(message, { icon: "⚠️", ...options })
         : toast(message, { icon: <InfoIcon />, ...options })
 
   activeToastId = id

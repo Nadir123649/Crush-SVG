@@ -139,7 +139,10 @@ export default function ConversionsPage() {
   };
 
   const handleStartDateChange = (value: string) => {
-    if (value && endDate && value > endDate) return;
+    if (value && endDate && value > endDate) {
+      showToast("warning", "Start date must be on or before the end date.");
+      return;
+    }
     if (value !== startDate) requestSequence.current.invalidate();
     setStartDate(value);
     setActiveDatePreset("custom");
@@ -147,7 +150,10 @@ export default function ConversionsPage() {
   };
 
   const handleEndDateChange = (value: string) => {
-    if (value && startDate && value < startDate) return;
+    if (value && startDate && value < startDate) {
+      showToast("warning", "End date must be on or after the start date.");
+      return;
+    }
     if (value !== endDate) requestSequence.current.invalidate();
     setEndDate(value);
     setActiveDatePreset("custom");

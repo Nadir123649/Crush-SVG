@@ -92,6 +92,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToSvgOptimizer")
     : mode === "favicon-generator"
     ? tSection("howToFaviconGenerator")
+    : mode === "svg-to-react"
+    ? "Convert SVG to React Components"
     : mode === "raster-to-svg" 
     ? tSection("howToRasterSvg") 
     : tSection("howToSvgPng");
@@ -104,6 +106,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     ? tSection("howToSvgOptimizerDesc")
     : mode === "favicon-generator"
     ? tSection("howToFaviconGeneratorDesc")
+    : mode === "svg-to-react"
+    ? "Upload SVG markup, configure component options, then copy or download a reusable React component."
     : mode === "raster-to-svg"
     ? tSection("howToRasterSvgDesc")
     : tSection("howToSvgPngDesc");

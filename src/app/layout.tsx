@@ -10,6 +10,7 @@ import {
   getOrganizationSchema,
   getWebApplicationSchema,
   getWebSiteSchema,
+  getMasterGraphSchema,
 } from "@/lib/seo";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ServiceWorkerRegistration } from "@/components/utils/ServiceWorkerRegistration";
@@ -219,6 +220,11 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         {/* Structured Data (JSON-LD) */}
+        <Script
+          id="jsonld-master-graph"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(getMasterGraphSchema()) }}
+        />
         <Script
           id="jsonld-website"
           type="application/ld+json"

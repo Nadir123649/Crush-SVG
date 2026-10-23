@@ -173,7 +173,7 @@ export default function BlogsPage() {
             }
 
             if (!data || data.length === 0) {
-                setError("No blogs to export");
+                showToast("warning", "No blogs to export");
                 return;
             }
 

@@ -83,7 +83,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
 
       {/* Description */}
       <p className="font-body font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[22px] tracking-[0%] text-center text-text-muted w-full max-w-[620px]">
-        {subtitle ? subtitle : t("heroSubtitle")}
+        {subtitle ? subtitle : (title === undefined && !badge ? "CrushSVG is a free online vector processing toolkit developed by The Nevon. It converts SVG to transparent PNG, vectorizes images to SVG, minifies vector code, and generates favicons entirely in the browser using client-side Canvas and WebAssembly with 100% data privacy." : t("heroSubtitle"))}
       </p>
       
     </section>

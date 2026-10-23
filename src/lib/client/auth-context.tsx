@@ -56,6 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // not guaranteed by `status` alone when a session is restored from storage.
   const [sessionVersion, setSessionVersion] = useState(0)
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('crush_welcome_back') === '1') {
+        sessionStorage.removeItem('crush_welcome_back')
+        const timeoutId = window.setTimeout(() => showToast('success', 'Welcome back!'), 0)
+        return () => window.clearTimeout(timeoutId)
+      }
+    } catch { }
+  }, [])
+
   const applySession = useCallback((payload: SessionPayload) => {
     setAccessToken(payload.token.accessToken)
     setSessionRestored(true)
@@ -272,7 +282,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionStorage.setItem('crush_session_only', '1')
         } catch { }
       }
-      showToast('success', 'Welcome back!')
     },
     [applySession]
   )
@@ -318,7 +327,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
         }
       }).catch(() => { /* non-critical */ })
-      showToast('success', 'Welcome back!')
     },
     [applySession]
   )

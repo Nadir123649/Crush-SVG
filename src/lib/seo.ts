@@ -402,6 +402,38 @@ export function getWebApplicationSchema() {
   };
 }
 
+export function getMasterGraphSchema() {
+  const organizationId = "https://thenevon.com/#organization";
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: "The Nevon",
+        url: "https://thenevon.com/",
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${SITE_URL}/#webapp`,
+        name: "CrushSVG",
+        url: SITE_URL,
+        applicationCategory: "DesignApplication",
+        operatingSystem: "All",
+        publisher: { "@id": organizationId },
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        name: "CrushSVG",
+        url: SITE_URL,
+        publisher: { "@id": organizationId },
+      },
+    ],
+  };
+}
+
 export function getBreadcrumbSchema(items: { name: string; item: string }[]) {
   return {
     "@context": "https://schema.org",

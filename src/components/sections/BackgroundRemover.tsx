@@ -199,7 +199,6 @@ const BG_OPTIONS: DropdownOption[] = [
   { value: "Transparent", label: "Transparent", desc: "Remove background, alpha PNG" },
   { value: "White", label: "White", desc: "Solid white background" },
   { value: "Black", label: "Black", desc: "Solid black background" },
-  { value: "Custom", label: "Custom Color", desc: "Fill with chosen background color" },
 ];
 
 const COLOR_PRESETS = [
@@ -528,7 +527,6 @@ export function BackgroundRemover() {
     { ...BG_OPTIONS[0], label: t("ui.bgOptions.transparent.label"), desc: t("ui.bgOptions.transparent.desc") },
     { ...BG_OPTIONS[1], label: t("ui.bgOptions.white.label"), desc: t("ui.bgOptions.white.desc") },
     { ...BG_OPTIONS[2], label: t("ui.bgOptions.black.label"), desc: t("ui.bgOptions.black.desc") },
-    { ...BG_OPTIONS[3], label: t("ui.bgOptions.custom.label"), desc: t("ui.bgOptions.custom.desc") },
   ];
   const localizedGradientNames = [
     t("ui.gradientNames.pink"), t("ui.gradientNames.blue"), t("ui.gradientNames.violet"),
@@ -1275,19 +1273,15 @@ export function BackgroundRemover() {
                         {formatFileSize(imageSize)}
                       </span>
                     </div>
-                    <div className="flex min-w-0 items-stretch gap-[6px]">
-                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Dimensions</span>
-                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
-                          {imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}
-                        </strong>
-                      </div>
-                      <div className="flex-1 bg-white border border-gray-200/80 rounded-md px-[6px] py-[3px] md:py-[4px] flex flex-col min-w-0">
-                        <span className="text-[#64748B] text-[9px] md:text-[10px] font-body leading-[1.2]">Aspect</span>
-                        <strong className="font-medium text-[#202427] text-[11px] md:text-[12px] truncate leading-[1.2]">
-                          {imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}
-                        </strong>
-                      </div>
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] text-[#475569] ring-1 ring-gray-200/70">
+                        <span className="text-[#64748B]">Dimensions</span>
+                        <strong className="font-medium">{imageDims ? `${imageDims.width}×${imageDims.height}` : "—"}</strong>
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] text-[#475569] ring-1 ring-gray-200/70">
+                        <span className="text-[#64748B]">Aspect</span>
+                        <strong className="font-medium">{imageDims ? (imageDims.width / imageDims.height).toFixed(2) : "—"}</strong>
+                      </span>
                     </div>
                     <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[8px] text-[10px] md:text-[11px] text-[#64748B] border-t border-gray-200/80 pt-[4px]">
                       <span className="truncate">
@@ -1537,7 +1531,11 @@ export function BackgroundRemover() {
                           <input
                             type="color"
                             value={addedBackgroundColor}
-                            onChange={(event) => setAddedBackgroundColor(event.target.value.toUpperCase())}
+                            onChange={(event) => {
+                              const color = event.target.value.toUpperCase();
+                              setAddedBackgroundColor(color);
+                              chooseAddedBackground({ kind: "color", color });
+                            }}
                             aria-label={t("ui.chooseBackgroundColor")}
                             className="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
                           />
@@ -1552,7 +1550,9 @@ export function BackgroundRemover() {
                       <p className="mt-3 rounded-[8px] bg-amber-50 px-3 py-2 text-[11px] text-amber-800">{t("ui.staleBackgroundWarning")}</p>
                     )}
                     {addedBackground && bgOption === "Transparent" && !staleResult && (
-                      <button type="button" onClick={resetAddedBackground} className="mt-3 text-[11px] font-medium text-[#64748B] underline underline-offset-2 hover:text-[#334155]">{t("ui.removeAddedBackground")}</button>
+                      <div className="mt-3 flex justify-center">
+                        <button type="button" onClick={resetAddedBackground} className="rounded-[8px] border border-slate-200 bg-white px-3 py-2 text-[11px] font-medium text-[#475569] shadow-sm transition hover:bg-slate-50">{t("ui.removeAddedBackground")}</button>
+                      </div>
                     )}
                   </div>
                 )}

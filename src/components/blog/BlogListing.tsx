@@ -52,7 +52,7 @@ export function BlogListing({ posts, categories }: BlogListingProps) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-[16px] py-[8px] rounded-[30px] text-[13px] md:text-[14px] font-heading font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white shadow-[0px_4px_16px_rgba(217,74,30,0.25)]"
+                    ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white"
                     : "bg-white border border-[#EAEAEA] text-[#4B5563] hover:border-brand-primary hover:text-brand-primary"
                 }`}
               >
@@ -81,7 +81,7 @@ export function BlogListing({ posts, categories }: BlogListingProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search articles & guides..."
+            placeholder="Search blog articles..."
             className="w-full pl-[38px] pr-[32px] py-[9px] bg-[#FAF6F3] rounded-[10px] text-[14px] text-text-dark placeholder:text-text-muted border border-[#EAEAEA] focus:border-brand-primary focus:bg-white focus:outline-none transition-all font-body"
           />
           {searchQuery && (

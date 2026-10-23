@@ -16,8 +16,8 @@ import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { useAuth } from "@/lib/client/auth-context";
-import { getUsage } from "@/lib/client/sessions";
-import { resolveQuotaDisplay } from "@/lib/client/quota";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
+import { refreshUsage, resolveQuotaDisplay } from "@/lib/client/quota";
 import { getAccessToken } from "@/lib/client/http";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { IMAGES } from "@/lib/shared/images";
@@ -252,6 +252,9 @@ export function SvgToCodeUI() {
       framework: activeTab,
       component_name: componentName,
     });
+    void trackConversionUsage({ inputFormat: "svg", outputFormat: activeTab, success: true })
+      .then(() => refreshUsage(setUsage))
+      .catch(() => {});
   }
 
   function handleClearSvg() {

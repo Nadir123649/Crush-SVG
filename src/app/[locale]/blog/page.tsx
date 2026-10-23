@@ -90,7 +90,6 @@ async function getAllPosts(): Promise<{ posts: BlogPost[]; categories: string[] 
     const docs = await Blog.find({ published: true })
       .sort({ createdAt: -1 })
       .populate("authorId", "displayName")
-      .select("-content")
       .lean();
 
     const categorySet = new Set<string>();

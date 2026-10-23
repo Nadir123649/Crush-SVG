@@ -22,7 +22,7 @@ export async function generateMetadata({
   return constructLocalizedMetadata({
     locale,
     routeKey: "/team",
-    title: `${t("metaTitle")} | Team`,
+    title: "Our Team — Engineers & Designers Behind CrushSVG | The Nevon",
     description: t("metaDesc"),
   });
 }
@@ -35,20 +35,6 @@ export default async function TeamPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "team_page" });
-
-  const teamSchema = {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    "@id": `${SITE_URL}/team#webpage`,
-    name: t("metaTitle"),
-    url: `${SITE_URL}${locale === "en" ? "/team" : `/${locale}/team`}`,
-    description: t("metaDesc"),
-    publisher: {
-      "@type": "Organization",
-      name: "The Nevon",
-      url: "https://www.thenevon.com",
-    },
-  };
 
   const team = [
     {
@@ -100,6 +86,24 @@ export default async function TeamPage({
       skills: ["UI/UX Design", "User-Centered Design", "Design Systems", "Responsive Design"],
     },
   ];
+
+  const teamSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": `${SITE_URL}/team#webpage`,
+    name: t("metaTitle"),
+    url: `${SITE_URL}${locale === "en" ? "/team" : `/${locale}/team`}`,
+    description: t("metaDesc"),
+    parentOrganization: { "@id": "https://thenevon.com/#organization" },
+    mainEntity: team.map((member) => ({
+      "@type": "Person",
+      name: member.name,
+      jobTitle: member.role,
+      description: member.bio,
+      url: member.linkedin,
+      worksFor: { "@id": "https://thenevon.com/#organization" },
+    })),
+  };
 
   return (
     <div className="w-full flex flex-col items-center md:pb-[60px] min-h-[60vh]">
