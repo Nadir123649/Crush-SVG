@@ -160,6 +160,11 @@ export function SvgOptimizerUI() {
   function handleClear() {
     setSvgCode(SAMPLE_OPTIMIZE_SVG);
     setFileName("optimized.svg");
+    setPrecision(2);
+    setStripComments(true);
+    setStripMetadata(true);
+    setRemoveEmptyContainers(true);
+    setMinifyColors(true);
   }
 
   return (
@@ -297,9 +302,13 @@ export function SvgOptimizerUI() {
             <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{t("previewTitle")}</h2>
-                {optimization.percentSaved > 0 && (
+                {optimization.bytesSaved > 0 ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {t("savingsBadge", { percent: optimization.percentSaved })}
+                  </span>
+                ) : (
+                  <span className="font-body text-[11px] md:text-[12px] font-medium text-[#64748B] bg-[#F1F5F9] px-2.5 py-0.5 rounded-full border border-[#E2E8F0]">
+                    Already Minified
                   </span>
                 )}
               </div>
@@ -407,12 +416,26 @@ export function SvgOptimizerUI() {
                       {formatBytes(optimization.optimizedBytes)}
                     </span>
                   </div>
-                  <div className="flex flex-col p-[8px] md:p-[10px] bg-emerald-50 rounded-[10px] border border-emerald-200 text-center">
-                    <span className="text-[10px] md:text-[11px] uppercase tracking-wider text-emerald-700 font-heading font-semibold">
+                  <div
+                    className={`flex flex-col p-[8px] md:p-[10px] rounded-[10px] border text-center ${
+                      optimization.bytesSaved > 0
+                        ? "bg-emerald-50 border-emerald-200"
+                        : "bg-[#F8FAFC] border-[#E2E8F0]"
+                    }`}
+                  >
+                    <span
+                      className={`text-[10px] md:text-[11px] uppercase tracking-wider font-heading font-semibold ${
+                        optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
+                      }`}
+                    >
                       {t("statSavings")}
                     </span>
-                    <span className="font-mono text-[13px] md:text-[15px] font-bold text-emerald-700 mt-[2px]">
-                      -{optimization.percentSaved}%
+                    <span
+                      className={`font-mono text-[13px] md:text-[15px] font-bold mt-[2px] ${
+                        optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
+                      }`}
+                    >
+                      {optimization.bytesSaved > 0 ? `-${optimization.percentSaved}%` : "0%"}
                     </span>
                   </div>
                 </div>
@@ -424,8 +447,8 @@ export function SvgOptimizerUI() {
                     onClick={handleDownload}
                     disabled={!optimization.optimizedSvg || !isValid}
                   >
-                    <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full">
-                      {t("downloadMinifiedSvg")}
+                    <span className="flex items-center justify-center gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] w-full font-semibold">
+                      {optimization.bytesSaved > 0 ? t("downloadMinifiedSvg") : "Download Optimized SVG"}
                       <Image
                         src={IMAGES.exportIcon}
                         alt=""

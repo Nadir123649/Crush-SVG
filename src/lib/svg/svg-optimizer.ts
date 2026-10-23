@@ -4,7 +4,7 @@
  */
 
 export interface SvgOptimizerOptions {
-  /** Remove XML declaration and comments (default: true) */
+  /** Remove XML declaration, doctype, and comments (default: true) */
   stripComments?: boolean;
   /** Remove editor metadata (Inkscape, Illustrator, Figma, Sketch) (default: true) */
   stripMetadata?: boolean;
@@ -59,7 +59,13 @@ function minifyColorString(val: string): string {
   });
 
   // Shorten 6-char hex to 3-char if possible (#ffffff -> #fff, #112233 -> #123)
-  val = val.replace(/#([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3\b/gi, "#$1$2$3");
+  val = val.replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g, (match, r, g, b) => {
+    return `#${r}${g}${b}`.toLowerCase();
+  });
+
+  // Standardize common color names if shorter
+  val = val.replace(/#ffffff\b/gi, "#fff");
+  val = val.replace(/#000000\b/gi, "#000");
 
   return val;
 }
@@ -73,6 +79,42 @@ function roundNumbersInString(str: string, precision: number): string {
     const rounded = Number(num.toFixed(precision));
     return String(rounded);
   });
+}
+
+function minifyPathData(svg: string): string {
+  // Find d="..." attributes and collapse spaces around commands
+  return svg.replace(/\bd="([^"]+)"/g, (_, d) => {
+    const minified = d
+      // Remove spaces between commands and coordinates: M 210 -> M210, L 310 -> L310
+      .replace(/([a-df-z])\s+(-?\d)/gi, "$1$2")
+      // Remove space before command letter: 190 L -> 190L
+      .replace(/(-?\d|\.)\s+([a-df-z])/gi, "$1$2")
+      // Normalize commas
+      .replace(/\s*,\s*/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return `d="${minified}"`;
+  });
+}
+
+function convertEmptyTagsToSelfClosing(svg: string): string {
+  const selfClosingElements = [
+    "rect",
+    "circle",
+    "ellipse",
+    "line",
+    "path",
+    "polygon",
+    "polyline",
+    "stop",
+    "use",
+    "image",
+  ];
+  for (const tag of selfClosingElements) {
+    const re = new RegExp(`<(${tag})([^>]*?)><\\/\\1>`, "gi");
+    svg = svg.replace(re, "<$1$2/>");
+  }
+  return svg;
 }
 
 export function optimizeSvg(
@@ -123,9 +165,16 @@ export function optimizeSvg(
     svg = svg.replace(/\sxml:space="preserve"/gi, "");
   }
 
-  // 4. Remove empty id="" or id="null" or id="undefined"
+  // 4. Remove empty attributes and redundant XML namespaces
   if (opts.cleanAttributes) {
     svg = svg.replace(/\sid="(null|undefined|\s*)"/gi, "");
+    svg = svg.replace(/\sclass=""/gi, "");
+    // If xlink is never used, remove the namespace declaration
+    if (!svg.includes("xlink:")) {
+      svg = svg.replace(/\sxmlns:xlink="http:\/\/www\.w3\.org\/1999\/xlink"/gi, "");
+    }
+    // Remove redundant version="1.1" or "1.0"
+    svg = svg.replace(/\sversion="1\.[01]"/gi, "");
   }
 
   // 5. Minify Colors
@@ -138,22 +187,28 @@ export function optimizeSvg(
     svg = roundNumbersInString(svg, opts.precision);
   }
 
-  // 7. Strip empty containers (<g></g>, <defs></defs>)
+  // 7. Minify path data
+  if (opts.collapseWhitespace) {
+    svg = minifyPathData(svg);
+  }
+
+  // 8. Convert empty paired tags to self-closing
+  svg = convertEmptyTagsToSelfClosing(svg);
+
+  // 9. Strip empty containers (<g></g>, <defs></defs>)
   if (opts.removeEmptyContainers) {
-    // Repeatedly clean nested empty groups
     for (let i = 0; i < 3; i++) {
       svg = svg.replace(/<g[^>]*>\s*<\/g>/gi, "");
       svg = svg.replace(/<defs[^>]*>\s*<\/defs>/gi, "");
     }
   }
 
-  // 8. Collapse whitespace and linebreaks
+  // 10. Collapse whitespace and linebreaks
   if (opts.collapseWhitespace) {
-    // Collapse multi spaces inside tags
     svg = svg.replace(/\s+/g, " ");
-    // Remove space between tag brackets: > < -> ><
     svg = svg.replace(/>\s+</g, "><");
     svg = svg.replace(/\s+>/g, ">");
+    svg = svg.replace(/\s+\/>/g, "/>");
     svg = svg.replace(/<(\w+)\s+/g, "<$1 ");
     svg = svg.trim();
   }
@@ -161,7 +216,9 @@ export function optimizeSvg(
   const optimizedBytes = getByteSize(svg);
   const bytesSaved = Math.max(0, originalBytes - optimizedBytes);
   const percentSaved =
-    originalBytes > 0 ? Number(((bytesSaved / originalBytes) * 100).toFixed(1)) : 0;
+    originalBytes > 0 && bytesSaved > 0
+      ? Number(((bytesSaved / originalBytes) * 100).toFixed(1))
+      : 0;
 
   return {
     originalSvg: rawSvg,
