@@ -192,7 +192,7 @@ export default async function BlogListingPage({
       />
 
       {/* Interactive Blog Listing Component */}
-      <BlogListing posts={posts} categories={categories} searchPlaceholder={t("search_articles_guides")} />
+      <BlogListing posts={posts} categories={categories} searchPlaceholder={t("searchPlaceholder")} />
 
       {/* AdSense Unit */}
       <AdBanner />

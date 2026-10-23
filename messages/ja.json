@@ -786,7 +786,7 @@
     "share": "この記事を共有",
     "relatedPosts": "関連記事",
     "tableOfContents": "目次",
-    "searchPlaceholder": "記事を検索..."
+    "searchPlaceholder": "ブログ記事を検索..."
   },
   "auth_pages": {
     "loginTitle": "ログイン",
@@ -1512,7 +1512,7 @@
     "set_new_password": "新しいパスワードを設定",
     "toggle_password_visibility": "パスワード表示を切り替え",
     "toggle_faq": "FAQ を切り替え",
-    "search_articles_guides": "ブログ記事を検索...",
+    "search_articles_guides": "記事とガイドを検索...",
     "main_navigation": "メインナビゲーション",
     "pick_custom_color": "カスタムカラーを選択",
     "clear_uploaded_image": "アップロードした画像をクリア",

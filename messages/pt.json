@@ -786,7 +786,7 @@
     "share": "Compartilhar este guia",
     "relatedPosts": "Artigos Relacionados",
     "tableOfContents": "Nesta página",
-    "searchPlaceholder": "Buscar artigos..."
+    "searchPlaceholder": "Pesquisar artigos do blog..."
   },
   "auth_pages": {
     "loginTitle": "Entrar",
@@ -1512,7 +1512,7 @@
     "set_new_password": "Definir nova senha",
     "toggle_password_visibility": "Alternar visibilidade da senha",
     "toggle_faq": "Alternar FAQ",
-    "search_articles_guides": "Pesquisar artigos do blog...",
+    "search_articles_guides": "Pesquisar artigos e guias...",
     "main_navigation": "Navegação principal",
     "pick_custom_color": "Escolher cor personalizada",
     "clear_uploaded_image": "Limpar imagem carregada",

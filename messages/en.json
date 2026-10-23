@@ -856,7 +856,7 @@
     "share": "Share this guide",
     "relatedPosts": "Related Articles",
     "tableOfContents": "On this page",
-    "searchPlaceholder": "Search guides and articles..."
+    "searchPlaceholder": "Search blog articles..."
   },
   "blog": {
     "shareLabel": "Share this article",
@@ -1512,7 +1512,7 @@
     "set_new_password": "Set new password",
     "toggle_password_visibility": "Toggle password visibility",
     "toggle_faq": "Toggle FAQ",
-    "search_articles_guides": "Search blog articles...",
+    "search_articles_guides": "Search articles & guides...",
     "main_navigation": "Main Navigation",
     "pick_custom_color": "Pick custom color",
     "clear_uploaded_image": "Clear uploaded image",

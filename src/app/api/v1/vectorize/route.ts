@@ -51,10 +51,6 @@ export async function POST(request: NextRequest) {
       return errorResponse(429, "rate_limited", "Too many requests. Slow down and retry.", undefined, request);
     }
 
-    const limitOrResponse = await enforceConversionLimit(request);
-    if (limitOrResponse instanceof NextResponse) return limitOrResponse;
-    const usage = limitOrResponse;
-
     let form: FormData;
     try {
       form = await request.formData();
@@ -62,7 +58,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(
         400,
         "missing_file",
-        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
+        "A valid image file (PNG, JPG, or WebP) is required.",
         undefined,
         request,
       );
@@ -73,7 +69,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(
         400,
         "missing_file",
-        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
+        "A valid image file (PNG, JPG, or WebP) is required.",
         undefined,
         request,
       );
@@ -81,6 +77,10 @@ export async function POST(request: NextRequest) {
     if (file.size > MAX_UPLOAD_BYTES) {
       return errorResponse(400, "file_too_large", "Image exceeds the 12MB upload limit.", undefined, request);
     }
+
+    const limitOrResponse = await enforceConversionLimit(request);
+    if (limitOrResponse instanceof NextResponse) return limitOrResponse;
+    const usage = limitOrResponse;
 
     const options = rasterOptionsSchema.parse({
       mode: form.get("mode") ?? undefined,

@@ -786,7 +786,7 @@
     "share": "Leitfaden teilen",
     "relatedPosts": "Ähnliche Artikel",
     "tableOfContents": "Auf dieser Seite",
-    "searchPlaceholder": "Artikel durchsuchen..."
+    "searchPlaceholder": "Blogartikel suchen..."
   },
   "auth_pages": {
     "loginTitle": "Anmelden",
@@ -1512,7 +1512,7 @@
     "set_new_password": "Neues Passwort festlegen",
     "toggle_password_visibility": "Passwort-Sichtbarkeit umschalten",
     "toggle_faq": "FAQ umschalten",
-    "search_articles_guides": "Blogartikel suchen...",
+    "search_articles_guides": "Artikel & Anleitungen suchen...",
     "main_navigation": "Hauptnavigation",
     "pick_custom_color": "Benutzerdefinierte Farbe wählen",
     "clear_uploaded_image": "Hochgeladenes Bild löschen",

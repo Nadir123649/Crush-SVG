@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { LocalTime } from "@/components/utils/LocalTime";
-import { apiFetch, apiBlob } from "@/lib/client/http";
+import { apiFetch, apiBlob, ApiError } from "@/lib/client/http";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/client/auth-context";
 import { showToast } from "@/lib/client/toast-bridge";
@@ -116,6 +116,9 @@ export default function ConversionsPage() {
       }
     } catch (err) {
       if (isCancelled?.() || !requestSequence.current.isCurrent(requestId)) return;
+      if (err instanceof ApiError && err.status === 400) {
+        showToast("error", "Invalid date range.");
+      }
       if (!cached && !error) setError("Failed to load conversions");
     } finally {
       if (!isCancelled?.() && requestSequence.current.isCurrent(requestId)) {
