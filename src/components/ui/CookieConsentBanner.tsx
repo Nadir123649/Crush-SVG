@@ -11,6 +11,12 @@ const CONSENT_EVENT = "crushConsentChanged";
 
 type ConsentValue = "granted" | "denied" | null;
 
+/** Hide the cookie banner on admin and authenticated-only routes. */
+function isAdminRoute(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname.startsWith("/admin");
+}
+
 export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentValue | "loading">("loading");
   const [mounted, setMounted] = useState(false);
@@ -40,8 +46,8 @@ export function CookieConsentBanner() {
     setConsent("denied");
   }
 
-  // Don't render if user already made a choice
-  if (!mounted || consent !== null) return null;
+  // Don't render if user already made a choice, or if on admin routes
+  if (!mounted || consent !== null || isAdminRoute()) return null;
 
   return createPortal(
     <div

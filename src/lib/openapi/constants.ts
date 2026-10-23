@@ -2,7 +2,7 @@
 // the proxy must use this exact path — never a locale-prefixed variant.
 export const API_DOCS_PATH = "/api-docs";
 
-const API_DOCS_ALIASES = new Set(["/docs", API_DOCS_PATH, "/swagger"]);
+const API_DOCS_ALIASES = new Set(["/docs", "/v1/docs", API_DOCS_PATH, "/swagger"]);
 
 export function getApiFrontendOrigin(apiHostname: string): string {
   return apiHostname.startsWith("staging.")

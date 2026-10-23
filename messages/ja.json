@@ -281,7 +281,7 @@
     "bg": [
       {
         "title": "写真をアップロード",
-        "description": "PNG、JPG、WebP（最大10MB）に対応した画像をアップロードします。"
+        "description": "PNG、JPG、WebP（最大2MB）に対応した画像をアップロードします。"
       },
       {
         "title": "背景を一瞬で削除",
@@ -456,7 +456,7 @@
       },
       {
         "question": "画像サイズの上限は？",
-        "answer": "最大10MBまでの画像をアップロードできます。最良の結果を得るには、被写体が明確で適切な解像度の画像を使用してください。"
+        "answer": "最大2MBまでの画像をアップロードできます。最良の結果を得るには、被写体が明確で適切な解像度の画像を使用してください。"
       }
     ],
     "raster": [
@@ -1001,7 +1001,7 @@
     "downloadButton": "PNGをダウンロード",
     "errorInvalidFile": "有効な画像ファイルを選択してください",
     "errorProcessing": "背景の削除に失敗しました。もう一度お試しください。",
-    "errorTooLarge": "ファイルサイズは10MB未満にしてください",
+    "errorTooLarge": "ファイルサイズは2MB以下にしてください",
     "features": {
       "aiDesc": "高精度なエッジ検出を実現する高度な機械学習",
       "aiPowered": "AI搭載",
@@ -1031,7 +1031,7 @@
     },
     "title": "背景除去ツール",
     "tryAnotherButton": "別の画像を試す",
-    "uploadHint": "JPG, PNG, WebP対応 — 最大10MB",
+    "uploadHint": "JPG, PNG, WebP対応 — 最大2MB",
     "uploadLabel": "画像をここにドロップするかクリックして選択",
     "ui": {
       "sourceImage": "元の画像",
@@ -1071,7 +1071,7 @@
       },
       "usePreset": "{preset}の背景を使う",
       "usePhotoFromDevice": "端末内の写真を使う",
-      "photoFormatsLimit": "PNG、JPG、WebP — 10MBまで",
+      "photoFormatsLimit": "PNG、JPG、WebP — 2MBまで",
       "selectedPhoto": "選択中：{name}",
       "uploadOwnPhoto": "写真をアップロード",
       "chooseBackgroundColor": "背景色を選択",
@@ -1110,11 +1110,11 @@
       },
       "errorAddBackground": "背景を追加できませんでした。",
       "errorPhotoType": "有効な写真を選択してください。",
-      "errorPhotoSize": "背景写真は10MB以下にしてください。",
+      "errorPhotoSize": "背景写真は2MB以下にしてください。",
       "errorReadPhoto": "選択した写真を読み込めませんでした。",
       "successPasted": "クリップボードから画像を貼り付けました",
       "errorFileType": "未対応の形式です。PNG、JPG、WebPをアップロードしてください。",
-      "errorFileSize": "画像が10MBの上限を超えています。",
+      "errorFileSize": "画像が2MBの上限を超えています。",
       "successCleared": "画像と設定をクリアしました",
       "errorNoImage": "画像が選択されていません。画像をアップロードしてください。",
       "successRemoved": "背景を削除しました。画像をダウンロードできます。",

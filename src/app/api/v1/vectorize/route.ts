@@ -55,11 +55,28 @@ export async function POST(request: NextRequest) {
     if (limitOrResponse instanceof NextResponse) return limitOrResponse;
     const usage = limitOrResponse;
 
-    const form = await request.formData();
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
+      return errorResponse(
+        400,
+        "missing_file",
+        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
+        undefined,
+        request,
+      );
+    }
     const file = form.get("file");
 
-    if (!(file instanceof File)) {
-      return errorResponse(400, "missing_file", "No image file provided.", undefined, request);
+    if (!(file instanceof File) || file.size === 0) {
+      return errorResponse(
+        400,
+        "missing_file",
+        "A valid image file (PNG, JPG, or WebP) is required in the multipart payload.",
+        undefined,
+        request,
+      );
     }
     if (file.size > MAX_UPLOAD_BYTES) {
       return errorResponse(400, "file_too_large", "Image exceeds the 12MB upload limit.", undefined, request);

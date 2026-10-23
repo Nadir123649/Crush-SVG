@@ -114,6 +114,10 @@ const PUBLIC_API_PREFIXES = [
 
   // API documentation
   '/api/openapi',
+  '/api/openapi.json',
+  '/api/v1/openapi',
+  '/api/v1/openapi.json',
+  '/api/v1/health',
 ]
 
 // ── Authenticated APIs ────────────────────────────────────────────────

@@ -281,7 +281,7 @@
     "bg": [
       {
         "title": "Bild hochladen",
-        "description": "Foto hochladen oder einfügen. Unterstützt PNG, JPG und WebP bis 10MB."
+        "description": "Foto hochladen oder einfügen. Unterstützt PNG, JPG und WebP bis 2MB."
       },
       {
         "title": "Hintergrund entfernen",
@@ -456,7 +456,7 @@
       },
       {
         "question": "Wie groß darf das Bild maximal sein?",
-        "answer": "Sie können Bilder mit bis zu 10MB hochladen. Für beste Ergebnisse verwenden Sie Bilder mit klarem Motiv und angemessener Auflösung."
+        "answer": "Sie können Bilder mit bis zu 2MB hochladen. Für beste Ergebnisse verwenden Sie Bilder mit klarem Motiv und angemessener Auflösung."
       }
     ],
     "raster": [
@@ -1001,7 +1001,7 @@
     "downloadButton": "PNG herunterladen",
     "errorInvalidFile": "Bitte wählen Sie eine gültige Bilddatei aus",
     "errorProcessing": "Hintergrundentfernung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "errorTooLarge": "Die Dateigröße muss kleiner als 10MB sein",
+    "errorTooLarge": "Die Dateigröße darf höchstens 2 MB betragen",
     "features": {
       "aiDesc": "Fortschrittliches maschinelles Lernen für präzise Kantenerkennung",
       "aiPowered": "KI-gestützt",
@@ -1031,7 +1031,7 @@
     },
     "title": "Hintergrundentferner",
     "tryAnotherButton": "Anderes Bild ausprobieren",
-    "uploadHint": "Unterstützt JPG, PNG, WebP — max. 10MB",
+    "uploadHint": "Unterstützt JPG, PNG, WebP — max. 2 MB",
     "uploadLabel": "Bild hier ablegen oder zum Durchsuchen klicken",
     "ui": {
       "sourceImage": "Quellbild",
@@ -1071,7 +1071,7 @@
       },
       "usePreset": "Hintergrund {preset} verwenden",
       "usePhotoFromDevice": "Foto vom Gerät verwenden",
-      "photoFormatsLimit": "PNG, JPG oder WebP — bis zu 10 MB",
+      "photoFormatsLimit": "PNG, JPG oder WebP — bis zu 2 MB",
       "selectedPhoto": "Ausgewählt: {name}",
       "uploadOwnPhoto": "Eigenes Foto hochladen",
       "chooseBackgroundColor": "Hintergrundfarbe wählen",
@@ -1110,11 +1110,11 @@
       },
       "errorAddBackground": "Hintergrund konnte nicht hinzugefügt werden.",
       "errorPhotoType": "Bitte wähle ein gültiges Foto aus.",
-      "errorPhotoSize": "Das Hintergrundfoto darf höchstens 10 MB groß sein.",
+      "errorPhotoSize": "Das Hintergrundfoto darf höchstens 2 MB groß sein.",
       "errorReadPhoto": "Das ausgewählte Foto konnte nicht gelesen werden.",
       "successPasted": "Bild aus der Zwischenablage eingefügt",
       "errorFileType": "Nicht unterstützter Dateityp. Lade PNG, JPG oder WebP hoch.",
-      "errorFileSize": "Das Bild überschreitet die Grenze von 10 MB.",
+      "errorFileSize": "Das Bild überschreitet die Grenze von 2 MB.",
       "successCleared": "Bild und Einstellungen zurückgesetzt",
       "errorNoImage": "Kein Bild ausgewählt. Lade ein Bild hoch, um zu beginnen.",
       "successRemoved": "Hintergrund entfernt! Dein Bild kann jetzt heruntergeladen werden.",

@@ -329,7 +329,7 @@
     "bg": [
       {
         "title": "Upload Your Image",
-        "description": "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 10MB."
+        "description": "Drop your photo or paste from clipboard. Supports PNG, JPG, and WebP up to 2MB."
       },
       {
         "title": "Remove Background",
@@ -504,7 +504,7 @@
       },
       {
         "question": "What is the maximum image size?",
-        "answer": "You can upload images up to 10MB in size. For best results, use images with a clear subject and reasonable resolution."
+        "answer": "You can upload images up to 2MB in size. For best results, use images with a clear subject and reasonable resolution."
       }
     ],
     "resizer": [
@@ -1050,7 +1050,7 @@
     "title": "Background Remover",
     "subtitle": "Remove image backgrounds instantly with AI-powered precision",
     "uploadLabel": "Drop your image here or click to browse",
-    "uploadHint": "Supports JPG, PNG, WebP — Max 10MB",
+    "uploadHint": "Supports JPG, PNG, WebP — Max 2MB",
     "removeButton": "Remove Background",
     "processing": "Processing...",
     "downloadButton": "Download PNG",
@@ -1061,7 +1061,7 @@
     "restoreButton": "Restore Original",
     "tryAnotherButton": "Try Another Image",
     "errorInvalidFile": "Please select a valid image file",
-    "errorTooLarge": "File size must be less than 10MB",
+    "errorTooLarge": "File size must be 2MB or smaller",
     "errorProcessing": "Background removal failed. Please try again.",
     "fileInfo": "File: {name} ({size})",
     "resetButton": "Reset",
@@ -1120,7 +1120,7 @@
       },
       "usePreset": "Use {preset} background",
       "usePhotoFromDevice": "Use a photo from your device",
-      "photoFormatsLimit": "PNG, JPG, or WebP — up to 10 MB",
+      "photoFormatsLimit": "PNG, JPG, or WebP — up to 2 MB",
       "selectedPhoto": "Selected: {name}",
       "uploadOwnPhoto": "Upload your own photo",
       "chooseBackgroundColor": "Choose background color",
@@ -1159,11 +1159,11 @@
       },
       "errorAddBackground": "Could not add this background.",
       "errorPhotoType": "Choose a valid photo image.",
-      "errorPhotoSize": "Background photo must be 10 MB or smaller.",
+      "errorPhotoSize": "Background photo must be 2 MB or smaller.",
       "errorReadPhoto": "Could not read the selected background photo.",
       "successPasted": "Image pasted from clipboard",
       "errorFileType": "Unsupported file type. Please upload PNG, JPG, or WebP.",
-      "errorFileSize": "Image exceeds 10MB limit.",
+      "errorFileSize": "Image exceeds 2MB limit.",
       "successCleared": "Cleared image and settings",
       "errorNoImage": "No image selected. Upload an image to get started.",
       "successRemoved": "Background removed! Your image is ready to download.",

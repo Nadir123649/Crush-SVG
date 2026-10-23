@@ -281,7 +281,7 @@
     "bg": [
       {
         "title": "Envie sua Foto",
-        "description": "Solte sua imagem. Formatos aceitos: PNG, JPG e WebP até 10MB."
+        "description": "Solte sua imagem. Formatos aceitos: PNG, JPG e WebP até 2MB."
       },
       {
         "title": "Remova o Fundo",
@@ -456,7 +456,7 @@
       },
       {
         "question": "Qual é o tamanho máximo de imagem?",
-        "answer": "Você pode enviar imagens de até 10MB. Para melhores resultados, use imagens com um assunto claro e resolução razoável."
+        "answer": "Você pode enviar imagens de até 2MB. Para melhores resultados, use imagens com um assunto claro e resolução razoável."
       }
     ],
     "raster": [
@@ -1001,7 +1001,7 @@
     "downloadButton": "Baixar PNG",
     "errorInvalidFile": "Selecione um ficheiro de imagem válido",
     "errorProcessing": "Falha na remoção do fundo. Tente novamente.",
-    "errorTooLarge": "O tamanho do ficheiro deve ser inferior a 10MB",
+    "errorTooLarge": "O tamanho do ficheiro deve ter no máximo 2 MB",
     "features": {
       "aiDesc": "Aprendizagem automática avançada para deteção precisa de contornos",
       "aiPowered": "Com IA",
@@ -1031,7 +1031,7 @@
     },
     "title": "Removedor de Fundo",
     "tryAnotherButton": "Experimentar Outra Imagem",
-    "uploadHint": "Suporta JPG, PNG, WebP — Máx 10MB",
+    "uploadHint": "Suporta JPG, PNG, WebP — Máx 2 MB",
     "uploadLabel": "Solte a sua imagem aqui ou clique para procurar",
     "ui": {
       "sourceImage": "Imagem original",
@@ -1071,7 +1071,7 @@
       },
       "usePreset": "Usar fundo {preset}",
       "usePhotoFromDevice": "Usar uma foto do seu dispositivo",
-      "photoFormatsLimit": "PNG, JPG ou WebP — até 10 MB",
+      "photoFormatsLimit": "PNG, JPG ou WebP — até 2 MB",
       "selectedPhoto": "Selecionada: {name}",
       "uploadOwnPhoto": "Enviar sua própria foto",
       "chooseBackgroundColor": "Escolher cor de fundo",
@@ -1110,11 +1110,11 @@
       },
       "errorAddBackground": "Não foi possível adicionar este fundo.",
       "errorPhotoType": "Escolha uma foto válida.",
-      "errorPhotoSize": "A foto de fundo deve ter no máximo 10 MB.",
+      "errorPhotoSize": "A foto de fundo deve ter no máximo 2 MB.",
       "errorReadPhoto": "Não foi possível ler a foto selecionada.",
       "successPasted": "Imagem colada da área de transferência",
       "errorFileType": "Formato não compatível. Envie PNG, JPG ou WebP.",
-      "errorFileSize": "A imagem excede o limite de 10 MB.",
+      "errorFileSize": "A imagem excede o limite de 2 MB.",
       "successCleared": "Imagem e configurações limpas",
       "errorNoImage": "Nenhuma imagem selecionada. Envie uma para começar.",
       "successRemoved": "Fundo removido! Sua imagem está pronta para baixar.",
