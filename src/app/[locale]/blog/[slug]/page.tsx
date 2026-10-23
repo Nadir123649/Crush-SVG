@@ -13,18 +13,12 @@ import { BlogFAQSection } from "@/components/blog/BlogFAQSection";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { Button } from "@/components/ui/Button";
 import { BLOG_SAMPLE_DATA_ENABLED, SAMPLE_BLOG_POSTS } from "@/lib/blog-sample-data";
+import { calculateReadTime } from "@/lib/shared/read-time";
 
 export const dynamic = "force-dynamic";
 
 interface BlogPostProps {
   params: Promise<{ locale: string; slug: string }>;
-}
-
-function calculateReadTime(text: string): string {
-  const wordsPerMinute = 200;
-  const words = text.trim().split(/\s+/).length;
-  const minutes = Math.ceil(words / wordsPerMinute);
-  return `${minutes} min read`;
 }
 
 function formatDate(date: Date): string {
@@ -77,7 +71,7 @@ async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     date: date.toISOString(),
     formattedDate: formatDate(date),
     category: doc.category || "General",
-    readTime: calculateReadTime(doc.content),
+    readTime: `${calculateReadTime(doc.content)} min read`,
     author: authorName,
     cover_image: doc.coverImage || "/blog.png",
     accent_color: "#FF6B00",
@@ -127,7 +121,7 @@ async function getRelatedPosts(currentSlug: string, category?: string, limit = 3
       date: date.toISOString(),
       formattedDate: formatDate(date),
       category: doc.category || "General",
-      readTime: calculateReadTime(doc.content),
+      readTime: `${calculateReadTime(doc.content)} min read`,
       author: authorName,
       cover_image: doc.coverImage || "/blog.png",
       accent_color: "#FF6B00",

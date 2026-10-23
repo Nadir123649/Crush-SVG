@@ -9,9 +9,10 @@ import { BlogCoverVisual } from "@/components/blog/BlogCoverVisual";
 interface BlogListingProps {
   posts: BlogPost[];
   categories: string[];
+  searchPlaceholder: string;
 }
 
-export function BlogListing({ posts, categories }: BlogListingProps) {
+export function BlogListing({ posts, categories, searchPlaceholder }: BlogListingProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -40,7 +41,7 @@ export function BlogListing({ posts, categories }: BlogListingProps) {
   return (
     <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[32px] md:py-[56px] flex flex-col gap-[40px] md:gap-[60px]">
       {/* Search & Category Filter Controls */}
-      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-[16px] bg-white rounded-[16px] md:rounded-[20px] p-[16px] md:p-[20px] border border-[#EAEAEA] shadow-[0px_4px_30px_rgba(0,0,0,0.03)]">
+      <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-[16px]">
         {/* Category Pills */}
         <div className="flex items-center gap-[8px] overflow-x-auto w-full md:w-auto pb-[4px] md:pb-0 scrollbar-none">
           {categories.map((cat) => {
@@ -52,7 +53,7 @@ export function BlogListing({ posts, categories }: BlogListingProps) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-[16px] py-[8px] rounded-[30px] text-[13px] md:text-[14px] font-heading font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white"
+                    ? "bg-brand-primary text-white"
                     : "bg-white border border-[#EAEAEA] text-[#4B5563] hover:border-brand-primary hover:text-brand-primary"
                 }`}
               >
@@ -81,7 +82,7 @@ export function BlogListing({ posts, categories }: BlogListingProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search blog articles..."
+            placeholder={searchPlaceholder}
             className="w-full pl-[38px] pr-[32px] py-[9px] bg-[#FAF6F3] rounded-[10px] text-[14px] text-text-dark placeholder:text-text-muted border border-[#EAEAEA] focus:border-brand-primary focus:bg-white focus:outline-none transition-all font-body"
           />
           {searchQuery && (

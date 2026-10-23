@@ -58,6 +58,10 @@ export default function ConversionsPage() {
   };
 
   const loadConversions = async (targetPage = page, isCancelled?: () => boolean) => {
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      showToast("warning", "Start date must be before end date.");
+      return;
+    }
     const requestId = requestSequence.current.begin();
     const queryParams = buildQueryParams(targetPage);
     const cacheKey = `admin_conversions_${queryParams}`;

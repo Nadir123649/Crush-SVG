@@ -776,7 +776,7 @@
   "blog_page": {
     "metaTitle": "Blog CrushSVG: E-mail Marketing e Guias de Conversão",
     "metaDesc": "Tutoriais e listas de verificação sobre conversão de SVG para PNG, correção de imagens no Outlook e Gmail e otimização de vetores.",
-    "badge": "Blog & Guias CrushSVG",
+    "badge": "Blog CrushSVG",
     "heroTitlePrefix": "Do Vetor para a Caixa de Entrada,",
     "heroTitleHighlight": "Dicas & Boas Práticas",
     "heroSubtitle": "Guias práticos e aprofundados sobre otimização de SVG, conversão para PNG em alta resolução e renderização perfeita em clientes de e-mail.",
@@ -1512,7 +1512,7 @@
     "set_new_password": "Definir nova senha",
     "toggle_password_visibility": "Alternar visibilidade da senha",
     "toggle_faq": "Alternar FAQ",
-    "search_articles_guides": "Pesquisar artigos e guias...",
+    "search_articles_guides": "Pesquisar artigos do blog...",
     "main_navigation": "Navegação principal",
     "pick_custom_color": "Escolher cor personalizada",
     "clear_uploaded_image": "Limpar imagem carregada",

@@ -760,8 +760,9 @@ export function RasterToSvgConverter() {
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
-      setError(msg);
-      showToast("error", msg);
+      const visibleError = `Conversion failed: ${msg || "Please try again."}`;
+      setError(visibleError);
+      showToast("error", visibleError);
       
       try {
         await trackConversionUsage({
@@ -1033,6 +1034,10 @@ export function RasterToSvgConverter() {
                     </div>
                   </div> 
                 )} 
+
+                {error && (
+                  <p role="alert" className="mt-2 text-sm text-red-500">{error}</p>
+                )}
 
                 {/* Source Metadata or Feature Guide Box */}
                 {rasterDataUrl ? (
@@ -1376,16 +1381,6 @@ export function RasterToSvgConverter() {
                   </div>
 
                 </div>
-
-                {/* Error Banner */}
-                {error && (
-                  <div
-                    role="alert"
-                    className="rounded-[8px] border border-red-200 bg-red-50 px-[14px] py-[10px] mt-[12px] font-body text-[14px] leading-[18px] text-red-700"
-                  >
-                    {error}
-                  </div>
-                )}
 
                 {/* Advisory Banner (e.g. photo limitations) */}
                 {result && result.advisory && (

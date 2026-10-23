@@ -776,7 +776,7 @@
   "blog_page": {
     "metaTitle": "CrushSVG公式ブログ：メール配信・ベクター変換ナレッジ",
     "metaDesc": "SVGからPNGへの高画質変換、OutlookやGmailでの画像表示崩れ対策、ベクター最適化の技術情報を発信しています。",
-    "badge": "CrushSVG ブログ＆技術ガイド",
+    "badge": "CrushSVG ブログ",
     "heroTitlePrefix": "ベクターからメール受信箱まで、",
     "heroTitleHighlight": "実践のノウハウとヒント",
     "heroSubtitle": "SVGの最適化、高精細PNG変換、OutlookやGmailで崩れない確実な画像表示手法を解説する実践的ブログです。",
@@ -1512,7 +1512,7 @@
     "set_new_password": "新しいパスワードを設定",
     "toggle_password_visibility": "パスワード表示を切り替え",
     "toggle_faq": "FAQ を切り替え",
-    "search_articles_guides": "記事とガイドを検索...",
+    "search_articles_guides": "ブログ記事を検索...",
     "main_navigation": "メインナビゲーション",
     "pick_custom_color": "カスタムカラーを選択",
     "clear_uploaded_image": "アップロードした画像をクリア",

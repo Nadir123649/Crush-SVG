@@ -28,9 +28,9 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
   );
 
   return (
-    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[32px] md:py-[56px] flex flex-col gap-[40px] md:gap-[60px]">
+    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] pt-[32px] pb-[32px] md:pt-[56px] md:pb-[40px] flex flex-col gap-[40px] md:gap-[60px]">
       {/* Category Filters */}
-      <div className="w-full flex items-center justify-center bg-white rounded-[16px] md:rounded-[20px] p-[16px] md:p-[20px] border border-[#EAEAEA] shadow-[0px_4px_30px_rgba(0,0,0,0.03)]">
+      <div className="w-full flex items-center justify-center">
         <div className="flex flex-wrap items-center justify-center gap-[8px] w-full">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
