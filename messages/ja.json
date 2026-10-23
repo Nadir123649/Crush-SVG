@@ -1232,7 +1232,7 @@
     "dualEngineTitle": "デュアルエンジンコンバーター",
     "errorConversion": "変換に失敗しました。もう一度お試しください。",
     "errorInvalidFile": "有効な画像ファイルを選択してください",
-    "errorTooLarge": "ファイルサイズは10MB未満にしてください",
+    "errorTooLarge": "????????????????????5 MB???",
     "featureAutoDetect": "スマートな自動検出で最適な変換戦略を即座に選択",
     "featureDownload": "ワンクリックでのダウンロード＆クリップボードコピーでスムーズな作業を実現",
     "featurePixelMode": "グラデーション対応のフォトリアルな変換を実現する高度なピクセルモード",
@@ -1282,11 +1282,12 @@
     "toastSampleLoaded": "サンプルのCrushSVGアイコンを読み込みました",
     "tracingModeLabel": "トレースモード",
     "unlimitedConversions": "無制限変換",
-    "uploadHint": "JPG, PNG, WebP対応 — 最大10MB",
+    "uploadHint": "JPG、PNG、WebP対応 — 最大5 MB",
     "uploadLabel": "画像をここにドロップするかクリックして選択",
     "vectorOutput": "ベクター出力",
     "vectorSvgTab": "ベクターSVG",
-    "vectorizing": "画像のパスをベクター化中..."
+    "vectorizing": "画像のパスをベクター化中...",
+    "errorPngTooLarge": "PNG??????????????????????5 MB???"
   },
   "alert": {
     "defaultError": "エラーが発生しました",

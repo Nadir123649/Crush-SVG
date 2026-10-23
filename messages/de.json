@@ -1232,7 +1232,7 @@
     "dualEngineTitle": "Dual-Engine-Konverter",
     "errorConversion": "Konvertierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "errorInvalidFile": "Bitte wählen Sie eine gültige Bilddatei aus",
-    "errorTooLarge": "Die Dateigröße muss kleiner als 10MB sein",
+    "errorTooLarge": "Bild zu gro?. Maximale Dateigr??e: 5 MB.",
     "featureAutoDetect": "Intelligente Auto-Erkennung wählt sofort die optimale Konvertierungsstrategie",
     "featureDownload": "Sofortiger Download und Kopieren in die Zwischenablage für einen reibungslosen Workflow",
     "featurePixelMode": "Erweiterter Pixelmodus für fotorealistische Konvertierungen mit Farbverlaufsunterstützung",
@@ -1282,11 +1282,12 @@
     "toastSampleLoaded": "Beispiel-CrushSVG-Symbol geladen",
     "tracingModeLabel": "Vektorisierungsmodus",
     "unlimitedConversions": "Unbegrenzte Konvertierungen",
-    "uploadHint": "Unterstützt JPG, PNG, WebP — max. 10MB",
+    "uploadHint": "Unterstützt JPG, PNG und WebP — max. 5 MB",
     "uploadLabel": "Bild hier ablegen oder zum Durchsuchen klicken",
     "vectorOutput": "Vektorausgabe",
     "vectorSvgTab": "Vektor-SVG",
-    "vectorizing": "Bildpfade werden vektorisiert..."
+    "vectorizing": "Bildpfade werden vektorisiert...",
+    "errorPngTooLarge": "PNG zu gro?. Maximale Dateigr??e: 5 MB."
   },
   "alert": {
     "defaultError": "Etwas ist schiefgelaufen",

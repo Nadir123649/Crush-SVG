@@ -129,6 +129,7 @@ function SvgToPngConverter() {
   const [isCustomWidth, setIsCustomWidth] = useState(false);
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
+  const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
   const [bgOption, setBgOption] = useState<"Transparent" | "White" | "Black" | "Custom">("White");
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
@@ -425,6 +426,7 @@ function SvgToPngConverter() {
     setIsCustomWidth(false);
     setIsCustomHeight(false);
     setIsCustomScale(false);
+    setScaleValidationAttempted(false);
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
@@ -509,6 +511,7 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    setScaleValidationAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
     // (Convert / Re-convert) that lands before the button disables.
     if (convertInFlightRef.current) return;
@@ -568,7 +571,6 @@ function SvgToPngConverter() {
       if (!Number.isNaN(sNum) && sNum > 0) {
         options.scale = sNum;
       } else if (isCustomScale) {
-        setError(tToast("invalidScale"));
         return;
       }
     }
@@ -772,7 +774,7 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && !isScaleDisabled && isCustomScale) {
+  if (!validationError && !isScaleDisabled && isCustomScale && scaleValidationAttempted) {
     const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
     if (!Number.isFinite(scale) || scale <= 0) {
       validationError = tToast("invalidScale");
@@ -1362,6 +1364,13 @@ function SvgToPngConverter() {
                                   resetConversion();
                                 }
                               }}
+                              onBlur={(event) => {
+                                // Moving focus into the scale dropdown to choose Custom
+                                // should not count as leaving an empty custom value.
+                                if (!scaleRef.current?.contains(event.relatedTarget as Node | null)) {
+                                  setScaleValidationAttempted(true);
+                                }
+                              }}
                               onFocus={(event) => {
                                 setOpenDropdown("scale");
                                 if (!isCustomScale) {
@@ -1421,9 +1430,11 @@ function SvgToPngConverter() {
                                       if (opt === "Custom") {
                                         setIsCustomScale(true);
                                         setSelectedScale("");
+                                        setScaleValidationAttempted(false);
                                       } else {
                                         setIsCustomScale(false);
                                         setSelectedScale(opt);
+                                        setScaleValidationAttempted(false);
                                       }
                                       setOpenDropdown(null);
                                       resetConversion();

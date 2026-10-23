@@ -15,9 +15,25 @@ import { z } from "zod";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_ERROR = "Image too large. Maximum file size is 5 MB.";
+const MAX_PNG_ERROR = "PNG too large. Maximum file size is 5 MB.";
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60_000;
+
+function oversizedFileResponse(request: NextRequest, message: string): NextResponse {
+  const standardResponse = errorResponse(413, "file_too_large", message, undefined, request);
+  return NextResponse.json(
+    {
+      success: false,
+      version: "1.0.0",
+      error: message,
+      payload: { error: { code: "file_too_large", message } },
+      serverTimestamp: new Date().toISOString(),
+    },
+    { status: 413, headers: standardResponse.headers },
+  );
+}
 
 /**
  * Enforces the role-based conversion quota (guest/unverified 3, verified 5,
@@ -74,8 +90,9 @@ export async function POST(request: NextRequest) {
         request,
       );
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      return errorResponse(400, "file_too_large", "Image exceeds the 12MB upload limit.", undefined, request);
+    if (file.size > MAX_IMAGE_BYTES) {
+      const isPng = file.type === "image/png" || file.name.toLowerCase().endsWith(".png");
+      return oversizedFileResponse(request, isPng ? MAX_PNG_ERROR : MAX_IMAGE_ERROR);
     }
 
     const limitOrResponse = await enforceConversionLimit(request);

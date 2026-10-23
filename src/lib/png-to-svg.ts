@@ -33,7 +33,7 @@ export interface ConvertResult {
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const DEFAULT_MAX_DIMENSION = 2000;
 const UPSCALE_THRESHOLD = 1500;
 
@@ -302,8 +302,10 @@ function validateFile(file: File): void {
     throw new Error("Unsupported file type. Please upload a PNG, JPG, or WebP image.");
   }
   if (file.size > MAX_FILE_SIZE) {
-    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-    throw new Error(`Image too large (${sizeMB}MB). Maximum size is 10MB.`);
+    const isPng = file.type === "image/png" || file.name.toLowerCase().endsWith(".png");
+    throw new Error(isPng
+      ? "PNG too large. Maximum file size is 5 MB."
+      : "Image too large. Maximum file size is 5 MB.");
   }
 }
 

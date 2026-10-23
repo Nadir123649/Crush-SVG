@@ -200,10 +200,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             className="flex items-center gap-[8px] md:gap-[10px] group shrink-0 z-10 select-none"
           >
             <Image
-              src={logoUrl || "/icon.svg"}
+              src={logoUrl || "/icon-512.png"}
               alt="CrushSVG Logo"
               width={512}
               height={512}
+              unoptimized
               className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] object-contain transition-transform duration-200 group-hover:scale-105"
             />
 

@@ -19,7 +19,7 @@ import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "crush_vectorizer_state";
 const STORAGE_KEY_IMAGE = "crush_vectorizer_image";
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const MAX_PERSISTED_RESULT_CHARS = 1_500_000;
 
 interface DropdownOption {
@@ -571,8 +571,9 @@ export function RasterToSvgConverter() {
       return;
     }
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setError(t("errorTooLarge"));
-      showToast("error", t("errorTooLarge"));
+      const message = isPng ? t("errorPngTooLarge") : t("errorTooLarge");
+      setError(message);
+      showToast("error", message);
       return;
     }
 
@@ -667,6 +668,13 @@ export function RasterToSvgConverter() {
   }
 
   async function handleConvert() {
+    if ((rasterFile?.size ?? imageSize ?? 0) > MAX_FILE_SIZE_BYTES) {
+      const isPng = imageName?.toLowerCase().endsWith(".png");
+      const message = isPng ? t("errorPngTooLarge") : t("errorTooLarge");
+      setError(message);
+      showToast("error", message);
+      return;
+    }
     if (limitReached && status !== "authed") {
       setShowSignupPrompt(true);
       showToast("info", "You've used your 3 free conversions. Log in to continue.");
@@ -756,11 +764,13 @@ export function RasterToSvgConverter() {
       if (controller.signal.aborted) return;
       let msg = err instanceof Error ? err.message : t("errorConversion");
       if (err instanceof ApiError) {
-        msg = `${err.message} (${err.code})`;
+        msg = err.message;
       } else if (err instanceof DOMException || (err instanceof TypeError && msg.toLowerCase().includes("failed to fetch"))) {
         msg = "Conversion request failed. The image may be too large or the network connection was interrupted.";
       }
-      const visibleError = `Conversion failed: ${msg || "Please try again."}`;
+      const visibleError = err instanceof ApiError && err.code === "file_too_large"
+        ? msg
+        : `Conversion failed: ${msg || "Please try again."}`;
       setError(visibleError);
       showToast("error", visibleError);
       

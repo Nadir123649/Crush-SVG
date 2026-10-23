@@ -1232,7 +1232,7 @@
     "dualEngineTitle": "Conversor com Motor Duplo",
     "errorConversion": "Falha na conversão. Tente novamente.",
     "errorInvalidFile": "Selecione um ficheiro de imagem válido",
-    "errorTooLarge": "O tamanho do ficheiro deve ser inferior a 10MB",
+    "errorTooLarge": "Imagem demasiado grande. Tamanho m?ximo: 5 MB.",
     "featureAutoDetect": "A deteção automática inteligente seleciona instantaneamente a estratégia de conversão ideal",
     "featureDownload": "Download instantâneo e cópia para a área de transferência para um fluxo de trabalho contínuo",
     "featurePixelMode": "Modo de pixel avançado para conversões fotorrealistas com suporte a gradientes",
@@ -1282,11 +1282,12 @@
     "toastSampleLoaded": "Ícone de exemplo do CrushSVG carregado",
     "tracingModeLabel": "Modo de Traçado",
     "unlimitedConversions": "Conversões ilimitadas",
-    "uploadHint": "Suporta JPG, PNG, WebP — Máx 10MB",
+    "uploadHint": "Suporta JPG, PNG e WebP — máximo 5 MB",
     "uploadLabel": "Solte a sua imagem aqui ou clique para procurar",
     "vectorOutput": "Saída Vetorial",
     "vectorSvgTab": "SVG Vetorial",
-    "vectorizing": "A vetorizar os caminhos da imagem..."
+    "vectorizing": "A vetorizar os caminhos da imagem...",
+    "errorPngTooLarge": "PNG demasiado grande. Tamanho m?ximo: 5 MB."
   },
   "alert": {
     "defaultError": "Algo correu mal",

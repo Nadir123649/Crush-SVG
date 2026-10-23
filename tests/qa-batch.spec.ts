@@ -1,7 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
+import path from "node:path";
 
 async function goto(page: Page, path: string) {
   await page.goto(path, { waitUntil: "domcontentloaded" });
+}
+
+async function waitForClientHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const input = document.querySelector('input[type="file"]');
+    return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+  });
 }
 
 test("Blog reading time matches article page", async ({ page }) => {
@@ -131,13 +139,95 @@ test("Admin blogs page renders without layout crash", async ({ page }) => {
 
 test("Header logo is visible", async ({ page }) => {
   await goto(page, "/en");
-  await expect(page.locator("header img, header svg").first()).toBeVisible();
+  const logo = page.locator('header img[alt="CrushSVG Logo"]').first();
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("src", "/icon-512.png");
+});
+
+test("Custom scale validation waits for blur and clears for a valid value", async ({ page }) => {
+  const scaleError = "Enter a valid scale greater than 0.";
+  await goto(page, "/en");
+  const scaleInput = page.locator("#scale-multiplier-input");
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#scale-multiplier-input");
+    return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+  });
+
+  await page.locator('button[aria-label="Toggle scale dropdown"]').click();
+  await page.getByRole("option", { name: "Custom" }).click();
+  await expect(page.getByText(scaleError, { exact: true })).toHaveCount(0);
+
+  await scaleInput.focus();
+  await scaleInput.evaluate((input) => (input as HTMLInputElement).blur());
+  await expect(page.getByText(scaleError, { exact: true })).toBeVisible();
+
+  await scaleInput.fill("3x");
+  await expect(page.getByText(scaleError, { exact: true })).toHaveCount(0);
 });
 
 test("PNG to SVG page has a file upload", async ({ page }) => {
   await goto(page, "/en/png-to-svg");
   await expect(page.locator("main")).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(1);
+});
+
+test("PNG to SVG accepts a normal PNG under the 5 MB limit", async ({ page }) => {
+  await goto(page, "/en/png-to-svg");
+  await waitForClientHydration(page);
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles(path.join(process.cwd(), "public/apple-touch-icon.png"));
+
+  await expect(page.getByRole("button", { name: /Vectorize Image/i })).toBeEnabled();
+});
+
+test("PNG to SVG converts a valid PNG end to end", async ({ page }) => {
+  await goto(page, "/en/png-to-svg");
+  await waitForClientHydration(page);
+  await page.locator('input[type="file"]').setInputFiles(path.join(process.cwd(), "public/apple-touch-icon.png"));
+
+  const convertButton = page.getByRole("button", { name: /Vectorize Image/i });
+  await expect(convertButton).toBeEnabled();
+  await convertButton.click();
+  await expect(page.getByRole("button", { name: /Download SVG/i })).toBeVisible({ timeout: 25_000 });
+});
+
+test("PNG to SVG rejects PNGs over 5 MB before conversion", async ({ page }) => {
+  let vectorizeRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.endsWith("/api/v1/vectorize")) vectorizeRequests++;
+  });
+
+  await goto(page, "/en/png-to-svg");
+  await waitForClientHydration(page);
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "oversized.png",
+    mimeType: "image/png",
+    buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+  });
+
+  await expect(page.getByText("PNG too large. Maximum file size is 5 MB.", { exact: true }).first()).toBeVisible();
+  expect(vectorizeRequests).toBe(0);
+});
+
+test("Vectorize API returns a structured 413 for a PNG over 5 MB", async ({ page }) => {
+  await goto(page, "/en/png-to-svg");
+  const response = await page.request.post("/api/v1/vectorize", {
+    multipart: {
+      file: {
+        name: "oversized.png",
+        mimeType: "image/png",
+        buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+      },
+    },
+  });
+
+  expect(response.status()).toBe(413);
+  const body = await response.json();
+  expect(body.error).toBe("PNG too large. Maximum file size is 5 MB.");
+  expect(body.payload.error).toMatchObject({
+    code: "file_too_large",
+    message: "PNG too large. Maximum file size is 5 MB.",
+  });
 });
 
 test("Admin date filter page does not render blank", async ({ page }) => {
