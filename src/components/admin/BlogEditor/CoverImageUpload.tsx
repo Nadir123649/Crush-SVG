@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import Cropper from "react-easy-crop";
+import { createPortal } from "react-dom";
+import Cropper, { type Area } from "react-easy-crop";
 import { apiFetch } from "@/lib/client/http";
 import { showToast } from "@/lib/client/toast-bridge";
 
@@ -18,6 +19,10 @@ interface PixelArea {
     height: number;
 }
 
+const MAX_COVER_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_COVER_IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+const SUPPORTED_COVER_IMAGE_TYPES = new Set(ACCEPTED_COVER_IMAGE_TYPES.split(","));
+
 async function getCroppedImg(imageSrc: string, pixelCrop: PixelArea): Promise<File> {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
@@ -28,8 +33,9 @@ async function getCroppedImg(imageSrc: string, pixelCrop: PixelArea): Promise<Fi
     });
 
     const canvas = document.createElement("canvas");
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
+    const scale = Math.min(1, 2000 / Math.max(pixelCrop.width, pixelCrop.height));
+    canvas.width = Math.round(pixelCrop.width * scale);
+    canvas.height = Math.round(pixelCrop.height * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get canvas context");
 
@@ -41,18 +47,19 @@ async function getCroppedImg(imageSrc: string, pixelCrop: PixelArea): Promise<Fi
         pixelCrop.height,
         0,
         0,
-        pixelCrop.width,
-        pixelCrop.height
+        canvas.width,
+        canvas.height
     );
 
     return new Promise((resolve, reject) => {
         canvas.toBlob(
             (blob) => {
                 if (!blob) return reject(new Error("Canvas toBlob failed"));
-                resolve(new File([blob], "cover.png", { type: "image/png" }));
+                const extension = blob.type === "image/webp" ? "webp" : "png";
+                resolve(new File([blob], `cover.${extension}`, { type: blob.type || "image/png" }));
             },
-            "image/png",
-            1
+            "image/webp",
+            0.9
         );
     });
 }
@@ -65,15 +72,22 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
     const [isCropping, setIsCropping] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    const onCropComplete = useCallback((_croppedArea: any, croppedPixels: PixelArea) => {
+    const onCropComplete = useCallback((_croppedArea: Area, croppedPixels: PixelArea) => {
         setCroppedAreaPixels(croppedPixels);
     }, []);
 
     const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.currentTarget;
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
+        if (!SUPPORTED_COVER_IMAGE_TYPES.has(file.type)) {
+            showToast("error", "Please select a JPEG, PNG, WebP, GIF, or AVIF image", { id: "cover-image" });
+            input.value = "";
+            return;
+        }
+        if (file.size > MAX_COVER_IMAGE_BYTES) {
             showToast("error", "Image must be less than 5MB", { id: "cover-image" });
+            input.value = "";
             return;
         }
         const reader = new FileReader();
@@ -92,6 +106,9 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
         setUploading(true);
         try {
             const croppedFile = await getCroppedImg(rawImage, croppedAreaPixels);
+            if (croppedFile.size > MAX_COVER_IMAGE_BYTES) {
+                throw new Error("The cropped image is over 5MB. Zoom in or choose a smaller image.");
+            }
             const formData = new FormData();
             formData.append("file", croppedFile);
             const result = await apiFetch<{ url: string }>("/api/v1/upload/image", {
@@ -101,15 +118,15 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
             if (result?.url) {
                 onChange(result.url);
                 onDirty?.();
+                setIsCropping(false);
+                setRawImage(null);
             } else {
-                showToast("error", "Failed to upload image", { id: "cover-image" });
+                throw new Error("The image service did not return an image URL. Please try again.");
             }
-        } catch (err: any) {
-            showToast("error", err?.message || "Failed to upload cropped image", { id: "cover-image" });
+        } catch (err: unknown) {
+            showToast("error", err instanceof Error ? err.message : "Failed to upload cropped image", { id: "cover-image" });
         } finally {
             setUploading(false);
-            setIsCropping(false);
-            setRawImage(null);
         }
     }, [rawImage, croppedAreaPixels, onChange, onDirty]);
 
@@ -163,7 +180,7 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                             <span className="font-body text-sm">Drop cover image or click to upload</span>
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept={ACCEPTED_COVER_IMAGE_TYPES}
                                 onChange={handleFileSelect}
                                 className="hidden"
                             />
@@ -174,12 +191,12 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
             </div>
 
             {/* Cropping Modal */}
-            {isCropping && rawImage && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancelCrop}>
-                    <div className="bg-white rounded-[16px] shadow-2xl w-[90vw] max-w-[600px] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {isCropping && rawImage && typeof document !== "undefined" && createPortal((
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancelCrop}>
+                    <div role="dialog" aria-modal="true" aria-labelledby="cover-image-crop-title" className="bg-white rounded-[16px] shadow-2xl w-[90vw] max-w-[600px] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
                         <div className="px-6 py-4 border-b border-[#F2EDE8] flex items-start justify-between">
                             <div>
-                                <h3 className="font-heading font-semibold text-lg text-text-dark">Crop Cover Image</h3>
+                                <h3 id="cover-image-crop-title" className="font-heading font-semibold text-lg text-text-dark">Crop Cover Image</h3>
                                 <p className="font-body text-sm text-text-muted mt-1">Adjust the crop area to fit 16:9</p>
                             </div>
                             <button
@@ -243,12 +260,18 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                                 Replace
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept={ACCEPTED_COVER_IMAGE_TYPES}
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
-                                        if (file.size > 5 * 1024 * 1024) {
+                                        if (!SUPPORTED_COVER_IMAGE_TYPES.has(file.type)) {
+                                            showToast("error", "Please select a JPEG, PNG, WebP, GIF, or AVIF image", { id: "cover-image" });
+                                            e.currentTarget.value = "";
+                                            return;
+                                        }
+                                        if (file.size > MAX_COVER_IMAGE_BYTES) {
                                             showToast("error", "Image must be less than 5MB", { id: "cover-image" });
+                                            e.currentTarget.value = "";
                                             return;
                                         }
                                         const reader = new FileReader();
@@ -290,7 +313,7 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
         </>
     );
 }
