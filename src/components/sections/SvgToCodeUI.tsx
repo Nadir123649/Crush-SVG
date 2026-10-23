@@ -1211,4 +1211,3 @@ export function SvgToCodeUI() {
   );
 
 }
-
