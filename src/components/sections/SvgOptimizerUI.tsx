@@ -66,22 +66,25 @@ export function SvgOptimizerUI() {
     [precision, stripComments, stripMetadata, removeEmptyContainers, minifyColors]
   );
 
+  const isValid = useMemo(() => {
+    if (!svgCode || svgCode.trim() === "") return false;
+    return isValidSvgContent(svgCode);
+  }, [svgCode]);
+
   const optimization: SvgOptimizerResult = useMemo(() => {
-    if (!svgCode || svgCode.trim() === "") {
+    if (!svgCode || svgCode.trim() === "" || !isValid) {
       return {
-        originalSvg: "",
+        originalSvg: svgCode,
         optimizedSvg: "",
-        originalBytes: 0,
+        originalBytes: svgCode ? new TextEncoder().encode(svgCode).length : 0,
         optimizedBytes: 0,
         bytesSaved: 0,
         percentSaved: 0,
-        warnings: [],
+        warnings: !isValid && svgCode ? ["Invalid SVG markup"] : [],
       };
     }
     return optimizeSvg(svgCode, options);
-  }, [svgCode, options]);
-
-  const isValid = useMemo(() => isValidSvgContent(svgCode), [svgCode]);
+  }, [svgCode, options, isValid]);
   const previewUrl = useMemo(() => {
     if (!isValid || !optimization.optimizedSvg) return "";
     return svgToDataUrl(optimization.optimizedSvg);
@@ -302,7 +305,11 @@ export function SvgOptimizerUI() {
             <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{t("previewTitle")}</h2>
-                {optimization.bytesSaved > 0 ? (
+                {!isValid && svgCode ? (
+                  <span className="font-body text-[11px] md:text-[12px] font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    Invalid SVG
+                  </span>
+                ) : optimization.bytesSaved > 0 ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {t("savingsBadge", { percent: optimization.percentSaved })}
                   </span>
@@ -413,7 +420,7 @@ export function SvgOptimizerUI() {
                       {t("statOptimized")}
                     </span>
                     <span className="font-mono text-[13px] md:text-[15px] font-bold text-brand-primary mt-[2px]">
-                      {formatBytes(optimization.optimizedBytes)}
+                      {isValid && optimization.optimizedSvg ? formatBytes(optimization.optimizedBytes) : "—"}
                     </span>
                   </div>
                   <div
