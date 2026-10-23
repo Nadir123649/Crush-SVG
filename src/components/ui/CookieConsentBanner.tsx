@@ -20,16 +20,22 @@ function isAdminRoute(): boolean {
 export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentValue | "loading">("loading");
   const [mounted, setMounted] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const t = useTranslations("cookie_consent");
 
   useEffect(() => {
     setMounted(true);
+    const syncModalState = () => setModalOpen(Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')));
+    syncModalState();
+    const observer = new MutationObserver(syncModalState);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-modal", "role"] });
     const stored = localStorage.getItem(CONSENT_KEY) as ConsentValue | null;
     // If previously granted, immediately fire consent update for this session
     if (stored === "granted") {
       updateConsentGranted();
     }
     queueMicrotask(() => setConsent(stored));
+    return () => observer.disconnect();
   }, []);
 
   function handleAccept() {
@@ -47,7 +53,7 @@ export function CookieConsentBanner() {
   }
 
   // Don't render if user already made a choice, or if on admin routes
-  if (!mounted || consent !== null || isAdminRoute()) return null;
+  if (!mounted || consent !== null || isAdminRoute() || modalOpen) return null;
 
   return createPortal(
     <div

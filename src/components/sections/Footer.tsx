@@ -104,8 +104,6 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             <Link href="/background-remover" onClick={(e) => handlePageClick(e, '/background-remover')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("bgRemoverFull")}</Link>
             <Link href="/image-resizer" onClick={(e) => handlePageClick(e, '/image-resizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("imageResizerFull")}</Link>
             <Link href="/svg-optimizer" onClick={(e) => handlePageClick(e, '/svg-optimizer')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgOptimizerFull")}</Link>
-            <Link href="/favicon-generator" onClick={(e) => handlePageClick(e, '/favicon-generator')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("faviconGeneratorFull")}</Link>
-            <Link href="/svg-to-react" onClick={(e) => handlePageClick(e, '/svg-to-react')} className="font-body font-normal text-[14px] md:text-[12px] leading-[100%] text-[#374151] hover:text-brand-primary transition-colors">{t("svgToReact")}</Link>
           </div>
           {/* Column 2: Resources */}
           <div className="flex flex-col items-center md:items-start w-auto md:w-[135px] xl:w-[110px] gap-[10px] md:gap-[14px]">
@@ -256,7 +254,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
           <Link
             href="/svg-to-react"
             onClick={(e) => handlePageClick(e, '/svg-to-react')}
-            className="col-span-2 md:col-span-1 w-1/2 min-w-0 md:w-auto justify-self-center md:justify-self-stretch grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
+            className="col-span-2 md:col-span-1 min-w-0 grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 gap-y-2 p-[12px] md:p-[16px] bg-white rounded-[8px] border border-[#EAEAEA] hover:border-brand-primary/30 hover:shadow-[0px_2px_12px_0px_rgba(217,74,30,0.08)] transition-all group"
           >
             <span className="w-[28px] h-[28px] rounded-[6px] bg-[#FFF5F2] text-brand-primary flex items-center justify-center border border-brand-primary/20 font-heading font-bold text-[10px] group-hover:bg-brand-primary group-hover:text-white transition-colors">RCT</span>
             <span className="min-w-0 break-words [overflow-wrap:anywhere] font-heading font-semibold text-[13px] md:text-[14px] text-text-dark group-hover:text-brand-primary transition-colors">{t("svgToReactFull")}</span>

@@ -109,12 +109,6 @@ export default async function RootLayout({
           name="google-adsense-account"
           content={ADSENSE_CLIENT}
         />
-        <Script
-          id="google-adsense"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-        />
 
         {/* Font Connections */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
