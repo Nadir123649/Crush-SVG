@@ -7,6 +7,9 @@ const icons = [
   ["favicon-16x16.png", 16],
   ["favicon-32x32.png", 32],
   ["favicon-48x48.png", 48],
+  ["favicon-64x64.png", 64],
+  ["favicon-128x128.png", 128],
+  ["favicon-256x256.png", 256],
   ["apple-touch-icon.png", 180],
   ["android-chrome-192x192.png", 192],
   ["android-chrome-512x512.png", 512],
@@ -105,13 +108,13 @@ async function downloadAndValidatePack(
   const ico = await zip.file("favicon.ico")!.async("nodebuffer");
   expect(ico.readUInt16LE(0)).toBe(0);
   expect(ico.readUInt16LE(2)).toBe(1);
-  expect(ico.readUInt16LE(4)).toBe(3);
-  for (let i = 0; i < 3; i++) {
+  expect(ico.readUInt16LE(4)).toBe(6);
+  for (let i = 0; i < 6; i++) {
     const entry = 6 + i * 16;
     const size = ico[entry] || 256;
     const byteLength = ico.readUInt32LE(entry + 8);
     const offset = ico.readUInt32LE(entry + 12);
-    expect(size).toBe([16, 32, 48][i]);
+    expect(size).toBe([16, 32, 48, 64, 128, 256][i]);
     expect(ico.subarray(offset, offset + 8).toString("hex")).toBe("89504e470d0a1a0a");
     const embeddedMetadata = await sharp(ico.subarray(offset, offset + byteLength)).metadata();
     expect(embeddedMetadata.width).toBe(size);
@@ -136,7 +139,7 @@ async function downloadAndValidatePack(
   for (const [, href] of snippet.matchAll(/href="\/([^\"]+)"/g)) {
     expect(zip.file(href), `${href} referenced by the HTML snippet should exist in the package`).toBeTruthy();
   }
-  for (const [, size] of icons.slice(0, 3)) {
+  for (const [, size] of icons.slice(0, 6)) {
     expect(snippet).toContain(`sizes="${size}x${size}"`);
     expect(snippet).toContain(`href="/favicon-${size}x${size}.png"`);
   }
@@ -150,6 +153,21 @@ test.describe("favicon output fidelity and package validation", () => {
     await page.goto("/favicon-generator");
     const input = page.getByLabel("SVG input code");
     await expect(page.getByText("Pack Ready", { exact: true })).toBeVisible({ timeout: 30_000 });
+    for (const size of [16, 32, 48]) {
+      const preview = page.getByAltText(`${size}×${size} favicon preview`);
+      await expect(preview).toBeVisible();
+      await expect(preview).toHaveCSS("width", `${size}px`);
+      await expect(preview).toHaveCSS("height", `${size}px`);
+    }
+    const webpDownloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download 512px WebP" }).click();
+    const webpDownload = await webpDownloadPromise;
+    const webpPath = await webpDownload.path();
+    expect(webpPath).toBeTruthy();
+    const webpMetadata = await sharp(await fs.readFile(webpPath!)).metadata();
+    expect(webpMetadata.format).toBe("webp");
+    expect(webpMetadata.width).toBe(512);
+    expect(webpMetadata.height).toBe(512);
 
     for (const sample of samples) {
       await input.fill(sample.svg);
@@ -173,7 +191,7 @@ test.describe("favicon output fidelity and package validation", () => {
     await waitForGeneration(page);
     await downloadAndValidatePack(page, "opaque");
 
-    await page.getByLabel("Extra supersampling for small icons").check();
+    await page.getByLabel("Boost thin strokes at 16–48px (may change artwork)").check();
     await waitForGeneration(page);
     await downloadAndValidatePack(page, "opaque", "small-size supersampling");
   });

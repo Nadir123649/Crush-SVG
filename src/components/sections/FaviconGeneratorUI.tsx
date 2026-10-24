@@ -46,7 +46,7 @@ export function FaviconGeneratorUI() {
   const [borderRadiusPercent, setBorderRadiusPercent] = useState<number>(0);
   const [fit, setFit] = useState<"contain" | "cover">("contain");
   const [smallSizeOptimization, setSmallSizeOptimization] = useState(false);
-  const webpQuality = 0.9;
+  const webpQuality = 1;
   const [activePreviewTab, setActivePreviewTab] = useState<"tab" | "ios" | "android">("tab");
 
   const [packResult, setPackResult] = useState<FaviconPackResult | null>(null);
@@ -256,6 +256,10 @@ export function FaviconGeneratorUI() {
     setSmallSizeOptimization(false);
   }
 
+  const faviconPreviews = [16, 32, 48].map((size) => ({
+    size,
+    src: packResult?.items.find((item) => item.name === `favicon-${size}x${size}.png`)?.dataUrl,
+  }));
   const preview32 = packResult?.items.find((i) => i.name === "favicon-32x32.png")?.dataUrl;
   const preview180 = packResult?.items.find((i) => i.name === "apple-touch-icon.png")?.dataUrl;
   const preview192 = packResult?.items.find((i) => i.name === "android-chrome-192x192.png")?.dataUrl;
@@ -490,6 +494,21 @@ export function FaviconGeneratorUI() {
                     <span className="text-[11px] text-white/50 mt-4 font-mono">android-chrome-192x192.png</span>
                   </div>
                 )}
+              </div>
+
+              <div aria-label={t("faviconSizesPreview")} className="mt-3 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2">
+                <p className="mb-2 font-body text-[11px] font-medium text-[#475569]">{t("faviconSizesPreview")}</p>
+                <div className="flex items-end gap-5">
+                  {faviconPreviews.map(({ size, src }) => (
+                    <div key={size} className="flex min-w-[48px] flex-col items-center gap-1">
+                      <div className="flex h-[56px] w-[56px] items-center justify-center rounded-md border border-dashed border-[#CBD5E1] bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%,transparent_75%,#f1f5f9_75%),linear-gradient(45deg,#f1f5f9_25%,white_25%,white_75%,#f1f5f9_75%)] bg-[length:12px_12px] bg-[position:0_0,6px_6px]">
+                        {src && <Image src={src} alt={`${size}×${size} favicon preview`} width={size} height={size} unoptimized style={{ width: size, height: size, imageRendering: "pixelated" }} />}
+                      </div>
+                      <span className="font-mono text-[10px] text-[#64748B]">{size}×{size}px</span>
+                    </div>
+                  ))}
+                  <span className="ml-auto self-center font-body text-[10px] text-[#64748B]">{t("faviconSizesPreviewNote")}</span>
+                </div>
               </div>
 
               {/* Favicon Customization Controls */}

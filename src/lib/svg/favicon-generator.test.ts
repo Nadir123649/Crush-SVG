@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   createIcoFromPngs,
+  boostThinStrokesForFavicon,
   prepareSvgForResolution,
   validateIcoBytes,
   validatePngAsset,
@@ -45,6 +46,13 @@ describe("prepareSvgForResolution", () => {
   });
 });
 
+describe("small favicon stroke optimization", () => {
+  it("leaves input untouched when the browser XML parser is unavailable", () => {
+    const svg = '<svg viewBox="0 0 100 100"><path stroke="#000" stroke-width="1" d="M0 0h1"/></svg>';
+    assert.equal(boostThinStrokesForFavicon(svg, 16), svg);
+  });
+});
+
 describe("PNG and ICO asset validation", () => {
   it("accepts PNG headers only when signature and dimensions match", () => {
     validatePngAsset(pngHeader(32, 32), 32, 32);
@@ -53,11 +61,11 @@ describe("PNG and ICO asset validation", () => {
   });
 
   it("creates and validates a multi-resolution ICO containing its PNG entries", async () => {
-    const pngs = [16, 32, 48].map((size) => ({ width: size, height: size, data: pngHeader(size, size) }));
+    const pngs = [16, 32, 48, 64, 128, 256].map((size) => ({ width: size, height: size, data: pngHeader(size, size) }));
     const ico = createIcoFromPngs(pngs);
-    validateIcoBytes(new Uint8Array(await ico.arrayBuffer()), [16, 32, 48]);
+    validateIcoBytes(new Uint8Array(await ico.arrayBuffer()), [16, 32, 48, 64, 128, 256]);
 
-    assert.throws(() => validateIcoBytes(new Uint8Array([0, 0, 0, 0, 0, 0]), [16, 32, 48]), /header/);
+    assert.throws(() => validateIcoBytes(new Uint8Array([0, 0, 0, 0, 0, 0]), [16, 32, 48, 64, 128, 256]), /header/);
     assert.throws(() => createIcoFromPngs([]), /At least one PNG/);
     assert.throws(() => createIcoFromPngs([{ width: 16, height: 16, data: new Uint8Array(24) }]), /signature/);
   });
