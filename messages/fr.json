@@ -1375,6 +1375,11 @@
     "dataUriCopied": "Data URI copié dans le presse-papier !"
   },
   "favicon_generator_ui": {
+    "generationFailed": "Impossible de générer ce SVG. Vérifiez le contenu collé puis réessayez.",
+    "fitLabel": "Ajustement du visuel",
+    "containOption": "Contenir (tout afficher)",
+    "coverOption": "Couvrir (remplir, rogner les bords)",
+    "smallSizeOptimization": "Suréchantillonnage supplémentaire des petites icônes",
     "tabPreview": "Onglet de Navigateur",
     "iosPreview": "Écran d'accueil iOS",
     "androidPreview": "Écran d'accueil Android",

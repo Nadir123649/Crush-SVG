@@ -1375,6 +1375,11 @@
     "dataUriCopied": "Data URI copiado para a área de transferência!"
   },
   "favicon_generator_ui": {
+    "generationFailed": "Não foi possível renderizar este SVG. Verifique o conteúdo e tente novamente.",
+    "fitLabel": "Ajuste da imagem",
+    "containOption": "Conter (mostrar tudo)",
+    "coverOption": "Cobrir (preencher e cortar bordas)",
+    "smallSizeOptimization": "Supersampling extra para ícones pequenos",
     "tabPreview": "Aba do Navegador",
     "iosPreview": "Tela Inicial do iOS",
     "androidPreview": "Tela Inicial do Android",

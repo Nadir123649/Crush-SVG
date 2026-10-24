@@ -1415,6 +1415,11 @@
     "backOnline": "Back online"
   },
   "favicon_generator_ui": {
+    "generationFailed": "Could not render this SVG. Check the pasted SVG and try again.",
+    "fitLabel": "Artwork fit",
+    "containOption": "Contain (show all)",
+    "coverOption": "Cover (fill, crop edges)",
+    "smallSizeOptimization": "Extra supersampling for small icons",
     "tabPreview": "Browser Tab",
     "iosPreview": "iOS Home Screen",
     "androidPreview": "Android Home Screen",

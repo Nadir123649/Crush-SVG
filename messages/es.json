@@ -1375,6 +1375,11 @@
     "dataUriCopied": "¡Data URI copiado al portapapeles!"
   },
   "favicon_generator_ui": {
+    "generationFailed": "No se pudo procesar este SVG. Revisa el contenido y vuelve a intentarlo.",
+    "fitLabel": "Ajuste de la imagen",
+    "containOption": "Contener (mostrar todo)",
+    "coverOption": "Cubrir (rellenar y recortar bordes)",
+    "smallSizeOptimization": "Supersampling adicional para iconos pequeños",
     "tabPreview": "Pestaña de Navegador",
     "iosPreview": "Pantalla de Inicio iOS",
     "androidPreview": "Pantalla de Inicio Android",

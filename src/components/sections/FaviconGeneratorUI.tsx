@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/Button";
 import {
   generateFaviconPack,
   renderSvgToCanvas,
-  renderImageToCanvas,
   canvasToWebP,
-  loadSvgImage,
   type FaviconPackResult,
 } from "@/lib/svg/favicon-generator";
 import { isValidSvgContent } from "@/lib/client/converter";
@@ -39,7 +37,6 @@ export function FaviconGeneratorUI() {
   const t = useTranslations("favicon_generator_ui");
   const tUpload = useTranslations("upload_interface");
   const tUsage = useTranslations("usage");
-  const tA11y = useTranslations("accessibility");
 
   const [svgCode, setSvgCode] = useState<string>(SAMPLE_FAVICON_SVG);
   const [appName, setAppName] = useState<string>("My Awesome App");
@@ -47,7 +44,9 @@ export function FaviconGeneratorUI() {
   const [backgroundColor, setBackgroundColor] = useState<string>("transparent");
   const [paddingPercent, setPaddingPercent] = useState<number>(0);
   const [borderRadiusPercent, setBorderRadiusPercent] = useState<number>(0);
-  const [webpQuality, setWebpQuality] = useState<number>(0.9);
+  const [fit, setFit] = useState<"contain" | "cover">("contain");
+  const [smallSizeOptimization, setSmallSizeOptimization] = useState(false);
+  const webpQuality = 0.9;
   const [activePreviewTab, setActivePreviewTab] = useState<"tab" | "ios" | "android">("tab");
 
   const [packResult, setPackResult] = useState<FaviconPackResult | null>(null);
@@ -56,6 +55,8 @@ export function FaviconGeneratorUI() {
   const { status, sessionVersion } = useAuth();
 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [inputError, setInputError] = useState(false);
+  const [generationError, setGenerationError] = useState<boolean>(false);
   const [isZipping, setIsZipping] = useState<boolean>(false);
   const [copiedSnippet, setCopiedSnippet] = useState<boolean>(false);
   const [dragOver, setDragOver] = useState<boolean>(false);
@@ -82,6 +83,7 @@ export function FaviconGeneratorUI() {
   const quotaDisplay = resolveQuotaDisplay(usage);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const icoObjectUrlRef = useRef<string | null>(null);
 
   const dims = useMemo(() => parseSvgDimensions(svgCode), [svgCode]);
   const aspectLabel = dims.width && dims.height ? ` (aspect ratio ${(dims.width / dims.height).toFixed(3)})` : "";
@@ -90,34 +92,61 @@ export function FaviconGeneratorUI() {
   // Generate favicon pack when inputs or options change
   useEffect(() => {
     let active = true;
-    if (!isValid || !svgCode.trim()) {
-      setPackResult(null);
-      return;
-    }
+    let generationTimeout: number | undefined;
+    const startTimeout = window.setTimeout(() => {
+      if (!isValid || !svgCode.trim()) {
+        setPackResult(null);
+        setInputError(Boolean(svgCode.trim()));
+        setGenerationError(false);
+        setIsGenerating(false);
+        return;
+      }
 
-    setIsGenerating(true);
-    generateFaviconPack(svgCode, {
-      appName,
-      themeColor,
-      backgroundColor,
-      paddingPercent,
-      borderRadiusPercent,
-    })
-      .then((res) => {
-        if (active) {
-          setPackResult(res);
-          setIsGenerating(false);
-        }
-      })
-      .catch((err) => {
-        console.error("Favicon generation error:", err);
-        if (active) setIsGenerating(false);
-      });
+      // A result belongs to the exact SVG/options that produced it. Do not let
+      // downloads use the previous icon while a newly pasted SVG is rendering.
+      setPackResult(null);
+      setInputError(false);
+      setGenerationError(false);
+      setIsGenerating(true);
+      generationTimeout = window.setTimeout(() => {
+        generateFaviconPack(svgCode, {
+          appName,
+          themeColor,
+          backgroundColor,
+          paddingPercent,
+          borderRadiusPercent,
+          fit,
+          smallSizeOptimization,
+        })
+          .then((res) => {
+            if (active) {
+              icoObjectUrlRef.current = res.icoDataUrl;
+              setPackResult(res);
+              setIsGenerating(false);
+            } else {
+              URL.revokeObjectURL(res.icoDataUrl);
+            }
+          })
+          .catch((err) => {
+            console.error("Favicon generation error:", err);
+            if (active) {
+              setGenerationError(true);
+              setIsGenerating(false);
+            }
+          });
+      }, 200);
+    }, 0);
 
     return () => {
       active = false;
+      window.clearTimeout(startTimeout);
+      if (generationTimeout !== undefined) window.clearTimeout(generationTimeout);
+      if (icoObjectUrlRef.current) {
+        URL.revokeObjectURL(icoObjectUrlRef.current);
+        icoObjectUrlRef.current = null;
+      }
     };
-  }, [svgCode, isValid, appName, themeColor, backgroundColor, paddingPercent, borderRadiusPercent]);
+  }, [svgCode, isValid, appName, themeColor, backgroundColor, paddingPercent, borderRadiusPercent, fit, smallSizeOptimization]);
 
   async function handleFile(file: File | undefined | null) {
     if (!file) return;
@@ -185,7 +214,9 @@ export function FaviconGeneratorUI() {
         512,
         paddingPercent,
         borderRadiusPercent,
-        backgroundColor
+        backgroundColor,
+        fit,
+        smallSizeOptimization
       );
       const { blob } = await canvasToWebP(canvas, webpQuality);
       const url = URL.createObjectURL(blob);
@@ -221,6 +252,8 @@ export function FaviconGeneratorUI() {
     setBackgroundColor("transparent");
     setPaddingPercent(0);
     setBorderRadiusPercent(0);
+    setFit("contain");
+    setSmallSizeOptimization(false);
   }
 
   const preview32 = packResult?.items.find((i) => i.name === "favicon-32x32.png")?.dataUrl;
@@ -388,6 +421,11 @@ export function FaviconGeneratorUI() {
                   {packResult ? t("packReadyBadge") : isGenerating ? t("generatingBadge") : ""}
                 </span>
               </div>
+              {(inputError || generationError) && (
+                <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {inputError ? t("invalidSvgStructure") : t("generationFailed")}
+                </p>
+              )}
 
               {/* Realistic Preview Window */}
               <div className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] flex flex-col overflow-hidden shadow-inner">
@@ -402,7 +440,7 @@ export function FaviconGeneratorUI() {
                       </div>
                       <div className="flex items-center gap-2 bg-white rounded-t-lg px-3 py-1.5 h-full max-w-[200px] border-t border-x border-[#CBD5E1] shadow-xs">
                         {preview32 ? (
-                          <img src={preview32} alt="Favicon" className="w-4 h-4 shrink-0" />
+                          <Image src={preview32} alt="Favicon" width={32} height={32} unoptimized className="w-4 h-4 shrink-0" />
                         ) : (
                           <span className="w-4 h-4 rounded-full bg-[#D94A1E]" />
                         )}
@@ -414,7 +452,7 @@ export function FaviconGeneratorUI() {
                     <div className="grow flex items-center justify-center p-6 bg-white">
                       <div className="flex flex-col items-center gap-3 text-center">
                         <div className="w-16 h-16 rounded-2xl border border-[#E2E8F0] p-2 bg-[#FAF6F3] shadow-xs flex items-center justify-center">
-                          {preview180 && <img src={preview180} alt="Icon" className="w-full h-full object-contain" />}
+                          {preview180 && <Image src={preview180} alt="Icon" width={180} height={180} unoptimized className="w-full h-full object-contain" />}
                         </div>
                         <p className="font-heading font-semibold text-[15px] text-text-dark">{appName}</p>
                         <p className="font-body text-[12px] text-text-muted">{t("tabPreviewNote")}</p>
@@ -428,7 +466,7 @@ export function FaviconGeneratorUI() {
                   <div className="w-full h-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] flex flex-col items-center justify-center p-4">
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-20 h-20 rounded-[20px] overflow-hidden shadow-2xl border border-white/20 flex items-center justify-center bg-white">
-                        {preview180 && <img src={preview180} alt="Apple Touch Icon" className="w-full h-full object-contain" />}
+                        {preview180 && <Image src={preview180} alt="Apple Touch Icon" width={180} height={180} unoptimized className="w-full h-full object-contain" />}
                       </div>
                       <span className="font-body text-[13px] text-white/90 font-medium tracking-wide">
                         {appName || "App"}
@@ -443,7 +481,7 @@ export function FaviconGeneratorUI() {
                   <div className="w-full h-full bg-gradient-to-b from-[#0F766E] to-[#115E59] flex flex-col items-center justify-center p-4">
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-20 h-20 rounded-full overflow-hidden shadow-2xl border border-white/20 flex items-center justify-center bg-white">
-                        {preview192 && <img src={preview192} alt="Android Chrome Icon" className="w-full h-full object-contain" />}
+                        {preview192 && <Image src={preview192} alt="Android Chrome Icon" width={192} height={192} unoptimized className="w-full h-full object-contain" />}
                       </div>
                       <span className="font-body text-[13px] text-white/90 font-medium tracking-wide">
                         {appName || "App"}
@@ -489,6 +527,30 @@ export function FaviconGeneratorUI() {
                           className="w-full min-w-0 flex-1 px-2 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[12px] font-mono outline-none focus:border-brand-primary"
                         />
                       </div>
+                    </label>
+                  </div>
+
+                  <div className="grid min-w-0 grid-cols-2 gap-[10px]">
+                    <label className="flex min-w-0 flex-col gap-1 font-body text-[12px] text-[#475569]">
+                      <span className="font-medium">{t("fitLabel")}</span>
+                      <select
+                        aria-label={t("fitLabel")}
+                        value={fit}
+                        onChange={(e) => setFit(e.target.value as "contain" | "cover")}
+                        className="w-full min-w-0 px-3 py-1.5 border border-[#CBD5E1] rounded-[8px] text-[13px] outline-none focus:border-brand-primary"
+                      >
+                        <option value="contain">{t("containOption")}</option>
+                        <option value="cover">{t("coverOption")}</option>
+                      </select>
+                    </label>
+                    <label className="flex items-center gap-2 font-body text-[12px] text-[#475569]">
+                      <input
+                        type="checkbox"
+                        checked={smallSizeOptimization}
+                        onChange={(e) => setSmallSizeOptimization(e.target.checked)}
+                        className="accent-brand-primary"
+                      />
+                      <span>{t("smallSizeOptimization")}</span>
                     </label>
                   </div>
 

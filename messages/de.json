@@ -1375,6 +1375,11 @@
     "dataUriCopied": "Data-URI in die Zwischenablage kopiert!"
   },
   "favicon_generator_ui": {
+    "generationFailed": "Dieses SVG konnte nicht gerendert werden. Bitte prüfen Sie das eingefügte SVG.",
+    "fitLabel": "Passform des Motivs",
+    "containOption": "Einpassen (alles anzeigen)",
+    "coverOption": "Ausfüllen (Ränder beschneiden)",
+    "smallSizeOptimization": "Zusätzliches Supersampling für kleine Icons",
     "tabPreview": "Browser-Tab",
     "iosPreview": "iOS Startbildschirm",
     "androidPreview": "Android Startbildschirm",
