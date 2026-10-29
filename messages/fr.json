@@ -58,7 +58,9 @@
     "bgRemoverCtaTitle": "Besoin de supprimer",
     "bgRemoverCtaHighlight": "l'arrière-plan d'une image ?",
     "bgRemoverCtaDesc": "Importez n'importe quelle photo et obtenez un PNG transparent et net en quelques secondes. Gratuit, privé, sans installation.",
-    "bgRemoverCtaButton": "Essayer le Suppresseur d'Arrière-plan"
+    "bgRemoverCtaButton": "Essayer le Suppresseur d'Arrière-plan",
+    "privacyNotice": "Prévisualisez votre SVG avant la conversion. Pour en savoir plus sur le traitement de vos fichiers, consultez notre",
+    "privacyPolicyLink": "Politique de confidentialité"
   },
   "tool_pages": {
     "svgToReact": {
@@ -121,7 +123,8 @@
     "sourceSizeUnknown": "Taille de la source : inconnue — définissez la largeur, la hauteur ou le viewBox de votre SVG",
     "dragDrop": "Glissez-déposez votre fichier ici, ou",
     "browse": "parcourir",
-    "supportedFormats": "Prend en charge SVG, PNG, JPG, WebP — Max 10 Mo"
+    "supportedFormats": "Prend en charge SVG, PNG, JPG, WebP — Max 10 Mo",
+    "sizeControlsHelper": "Choisissez la largeur et la hauteur de sortie ou ajustez l’échelle. La taille maximale est de 8192 pixels par côté."
   },
   "conversion_states": {
     "converting": "Conversion en cours...",
@@ -234,7 +237,15 @@
     "faviconDesc": "Générez automatiquement toutes les résolutions d'icônes modernes pour Chrome, Safari, iOS et Android à partir d'un seul fichier vectoriel SVG.",
     "badgeMultiRes": ".ICO Multirésolution",
     "badgeAppleAndroid": "Apple Touch & Manifest Android",
-    "badgeZipExport": "Exportation ZIP en 1 Clic"
+    "badgeZipExport": "Exportation ZIP en 1 Clic",
+    "svgBenefit1Title": "Importez un fichier ou collez le code",
+    "svgBenefit1Desc": "Utilisez un fichier SVG enregistré sur votre appareil ou collez directement le code SVG dans le convertisseur.",
+    "svgBenefit2Title": "Choisissez la taille de sortie",
+    "svgBenefit2Desc": "Ajustez la largeur, la hauteur ou l’échelle selon l’usage prévu, jusqu’à 8192 pixels par côté.",
+    "svgBenefit3Title": "Choisissez l’arrière-plan",
+    "svgBenefit3Desc": "Conservez les zones transparentes prises en charge ou choisissez une couleur d’arrière-plan pour l’image exportée.",
+    "svgBenefit4Title": "Vérifiez avant le téléchargement",
+    "svgBenefit4Desc": "Contrôlez l’illustration et son arrière-plan dans l’aperçu avant de créer le PNG."
   },
   "steps": {
     "react": [
@@ -364,7 +375,16 @@
     "resizerDesignersDesc": "Exportez des images aux dimensions exactes en pixels pour le web, le mobile et l’impression, avec verrouillage des proportions pour éviter les déformations.",
     "resizerDesignersLink": "Redimensionner les Visuels de Design",
     "resizerMarketersDesc": "Redimensionnez rapidement les visuels de campagne pour chaque emplacement publicitaire et format de réseau social, sans outil de design.",
-    "resizerMarketersLink": "Redimensionner pour les Campagnes"
+    "resizerMarketersLink": "Redimensionner pour les Campagnes",
+    "rasterTitle": "Pour les créateurs qui réalisent et publient des projets",
+    "websiteAssetsTitle": "Ressources pour sites web et applications",
+    "websiteAssetsDesc": "Exportez une illustration SVG en PNG lorsqu’un site web, une application ou un formulaire d’import exige une image matricielle. Choisissez des dimensions adaptées à son emplacement.",
+    "emailAssetsTitle": "Signatures e-mail et newsletters",
+    "emailAssetsDesc": "Créez une version PNG d’un logo ou d’une icône SVG pour les outils de messagerie qui ne prennent pas en charge le SVG. Vérifiez l’image finale dans votre application de messagerie.",
+    "transparentAssetsTitle": "Logos et icônes transparents",
+    "transparentAssetsDesc": "Conservez les zones transparentes autour de l’illustration pour l’utiliser sur différents fonds. Vérifiez le résultat sur des fonds clairs et foncés.",
+    "largeExportsTitle": "Images exportées en grand format",
+    "largeExportsDesc": "Choisissez une taille de sortie supérieure pour les présentations et les usages nécessitant davantage de pixels, dans la limite de 8192 pixels par côté."
   },
   "FAQ": {
     "react": [
@@ -1375,6 +1395,13 @@
     "dataUriCopied": "Data URI copié dans le presse-papier !"
   },
   "favicon_generator_ui": {
+    "generationFailed": "Impossible de générer ce SVG. Vérifiez le contenu collé puis réessayez.",
+    "fitLabel": "Ajustement du visuel",
+    "containOption": "Contenir (tout afficher)",
+    "coverOption": "Couvrir (remplir, rogner les bords)",
+    "smallSizeOptimization": "Renforcer les traits fins à 16–48 px (peut modifier le dessin)",
+    "faviconSizesPreview": "Aperçu des favicons en taille réelle",
+    "faviconSizesPreviewNote": "Affiché en pixels 1:1",
     "tabPreview": "Onglet de Navigateur",
     "iosPreview": "Écran d'accueil iOS",
     "androidPreview": "Écran d'accueil Android",

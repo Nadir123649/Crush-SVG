@@ -83,7 +83,7 @@ export function Hero({ badge, title, subtitle, showAuthBadge, className = "" }: 
 
       {/* Description */}
       <p className="font-body font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[22px] tracking-[0%] text-center text-text-muted w-full max-w-[620px]">
-        {subtitle ? subtitle : (title === undefined && !badge ? "SVG not showing in Outlook or Gmail? Convert it to PNG in seconds. Paste, upload, or drag and drop your SVG." : t("heroSubtitle"))}
+        {subtitle ? subtitle : t("heroSubtitle")}
       </p>
       
     </section>

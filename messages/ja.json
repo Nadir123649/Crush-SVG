@@ -58,7 +58,9 @@
     "bgRemoverCtaTitle": "画像の",
     "bgRemoverCtaHighlight": "背景透過・削除",
     "bgRemoverCtaDesc": "写真をアップロードするだけで、きれいに切り抜かれた透過PNGを数秒で取得できます。無料・安全・インストール不要。",
-    "bgRemoverCtaButton": "背景透過ツールを試す"
+    "bgRemoverCtaButton": "背景透過ツールを試す",
+    "privacyNotice": "変換前にSVGをプレビューできます。ファイルの処理方法については、",
+    "privacyPolicyLink": "プライバシーポリシー"
   },
   "tool_pages": {
     "svgToReact": {
@@ -121,7 +123,8 @@
     "sourceSizeUnknown": "元のサイズ: 不明 — SVGにwidth/heightまたはviewBoxを設定してください",
     "dragDrop": "ファイルをドラッグ＆ドロップまたは",
     "browse": "ファイルを選択",
-    "supportedFormats": "SVG, PNG, JPG, WebP 対応 — 最大 10MB"
+    "supportedFormats": "SVG, PNG, JPG, WebP 対応 — 最大 10MB",
+    "sizeControlsHelper": "出力の幅と高さを選ぶか、倍率を調整してください。最大サイズは各辺8192ピクセルです。"
   },
   "conversion_states": {
     "converting": "変換中...",
@@ -234,7 +237,15 @@
     "faviconDesc": "単一のSVGベクターから、Chrome、Safari、iOS、Android用の全標準解像度アイコンを自動生成します。",
     "badgeMultiRes": "マルチ解像度 .ICO",
     "badgeAppleAndroid": "Apple Touch ＆ Android マニフェスト",
-    "badgeZipExport": "ワンクリック ZIP 一括出力"
+    "badgeZipExport": "ワンクリック ZIP 一括出力",
+    "svgBenefit1Title": "ファイルをアップロードまたはコードを貼り付け",
+    "svgBenefit1Desc": "端末に保存したSVGファイルを使うか、SVGマークアップをコンバーターに直接貼り付けます。",
+    "svgBenefit2Title": "出力サイズを選択",
+    "svgBenefit2Desc": "用途に合わせて幅、高さ、倍率を調整できます。各辺最大8192ピクセルまで対応します。",
+    "svgBenefit3Title": "背景を設定",
+    "svgBenefit3Desc": "対応する透明部分を維持するか、書き出す画像の背景色を選択できます。",
+    "svgBenefit4Title": "ダウンロード前にプレビュー",
+    "svgBenefit4Desc": "PNGを作成する前に、プレビューでイラストと背景を確認できます。"
   },
   "steps": {
     "react": [
@@ -364,7 +375,16 @@
     "resizerDesignersDesc": "縦横比ロックで歪みを防止し、Web、モバイル、印刷用に正確なピクセル寸法で画像を書き出し。",
     "resizerDesignersLink": "デザインアセットをリサイズ",
     "resizerMarketersDesc": "デザインツールなしで、キャンペーン用ビジュアルをあらゆる広告枠やSNS形式にすばやくリサイズ。",
-    "resizerMarketersLink": "キャンペーン用にリサイズ"
+    "resizerMarketersLink": "キャンペーン用にリサイズ",
+    "rasterTitle": "デジタルコンテンツを作成して公開する方に",
+    "websiteAssetsTitle": "ウェブサイト・アプリ用素材",
+    "websiteAssetsDesc": "ウェブサイト、アプリ、アップロードフォームでラスター画像が必要な場合に、SVG作品をPNGとして書き出せます。配置場所に合ったサイズを指定できます。",
+    "emailAssetsTitle": "メール署名・ニュースレター",
+    "emailAssetsDesc": "SVGに対応していないメール環境向けに、SVGロゴやアイコンをPNGにできます。完成した画像をメールアプリで確認してください。",
+    "transparentAssetsTitle": "背景が透明なロゴ・アイコン",
+    "transparentAssetsDesc": "作品の周囲の透明部分を保ち、さまざまな背景で使えます。明るい背景と暗い背景の両方で結果を確認してください。",
+    "largeExportsTitle": "大きなサイズで書き出し",
+    "largeExportsDesc": "プレゼンテーションなど、より多くのピクセルが必要な用途には大きな出力サイズを選べます。各辺8192ピクセルまで対応します。"
   },
   "FAQ": {
     "react": [
@@ -1375,6 +1395,13 @@
     "dataUriCopied": "Data URIをクリップボードにコピーしました！"
   },
   "favicon_generator_ui": {
+    "generationFailed": "このSVGを生成できませんでした。内容を確認して、もう一度お試しください。",
+    "fitLabel": "画像の配置",
+    "containOption": "全体を表示",
+    "coverOption": "枠を埋める（端を切り抜く）",
+    "smallSizeOptimization": "16～48pxの細い線を強調（デザインが変わる場合があります）",
+    "faviconSizesPreview": "実際のサイズで表示したファビコン",
+    "faviconSizesPreviewNote": "1:1ピクセルで表示",
     "tabPreview": "ブラウザタブ",
     "iosPreview": "iOSホーム画面",
     "androidPreview": "Androidホーム画面",
