@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 function renderFeaturesTitle(title: string) {
   const match = title.match(/(juggling design tools|überladener Software|programas complejos|logiciels complexes|softwares pesados|重いデザインソフト)/i);
@@ -21,6 +21,7 @@ function renderFeaturesTitle(title: string) {
 
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("features");
+  const locale = useLocale();
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
@@ -69,7 +70,17 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         </p>
       </div>
 
-      {/* Badges Row */}
+      {mode === "svg-to-png" && locale === "en" ? (
+        <div className="mt-[24px] md:mt-[48px] grid w-full max-w-[1100px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((index) => (
+            <article key={index} className="rounded-[16px] border border-[#EAEAEA] bg-white p-5 shadow-[0px_4px_24px_rgba(0,0,0,0.04)]">
+              <h3 className="mb-2 font-heading text-[16px] font-semibold leading-5 text-text-dark">{t(`svgBenefit${index}Title`)}</h3>
+              <p className="font-body text-[13px] leading-5 text-text-muted">{t(`svgBenefit${index}Desc`)}</p>
+            </article>
+          ))}
+        </div>
+      ) : (
+      /* Badges Row */
       <div className="flex min-w-0 max-w-full flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[24px] md:mt-[62px] w-full max-w-[1000px]">
         <Badge text={t("badgeFree")} />
         <Badge
@@ -112,6 +123,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         {mode === "svg-to-react" && <Badge text={t("badgeLucideStyle")} />}
         {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
       </div>
+      )}
 
     </section>
   );
