@@ -58,7 +58,9 @@
     "bgRemoverCtaTitle": "¿Necesitas eliminar el",
     "bgRemoverCtaHighlight": "fondo de una imagen",
     "bgRemoverCtaDesc": "Sube cualquier foto y obtén un PNG transparente y limpio en segundos. Gratis, privado y sin instalación.",
-    "bgRemoverCtaButton": "Probar Eliminador de Fondo"
+    "bgRemoverCtaButton": "Probar Eliminador de Fondo",
+    "privacyNotice": "Previsualiza tu SVG antes de convertirlo. Consulta nuestra",
+    "privacyPolicyLink": "Política de privacidad"
   },
   "tool_pages": {
     "svgToReact": {
@@ -121,7 +123,8 @@
     "sourceSizeUnknown": "Tamaño original: desconocido — define width/height o viewBox en tu SVG",
     "dragDrop": "Arrastra y suelta tu archivo aquí, o",
     "browse": "explora",
-    "supportedFormats": "Admite SVG, PNG, JPG, WebP — Máx 10MB"
+    "supportedFormats": "Admite SVG, PNG, JPG, WebP — Máx 10MB",
+    "sizeControlsHelper": "Elige el ancho y alto de salida o ajusta la escala. El tamaño máximo es de 8192 píxeles por lado."
   },
   "conversion_states": {
     "converting": "Convirtiendo...",
@@ -234,7 +237,15 @@
     "faviconDesc": "Genera automáticamente todas las resoluciones modernas para Chrome, Safari, iOS y Android desde un único archivo SVG.",
     "badgeMultiRes": ".ICO Multirresolución",
     "badgeAppleAndroid": "Apple Touch y Android Manifest",
-    "badgeZipExport": "Exportación ZIP en 1 Clic"
+    "badgeZipExport": "Exportación ZIP en 1 Clic",
+    "svgBenefit1Title": "Sube un archivo o pega el código",
+    "svgBenefit1Desc": "Empieza con un SVG guardado en tu dispositivo o pega el marcado SVG directamente en el convertidor.",
+    "svgBenefit2Title": "Elige el tamaño de salida",
+    "svgBenefit2Desc": "Ajusta el ancho, el alto o la escala para crear un PNG adecuado para tu uso, hasta 8192 píxeles por lado.",
+    "svgBenefit3Title": "Controla el fondo",
+    "svgBenefit3Desc": "Conserva las áreas transparentes compatibles o elige un color de fondo para la imagen exportada.",
+    "svgBenefit4Title": "Previsualiza antes de descargar",
+    "svgBenefit4Desc": "Comprueba la ilustración y el fondo en la vista previa antes de crear el PNG."
   },
   "steps": {
     "react": [
@@ -364,7 +375,16 @@
     "resizerDesignersDesc": "Exporta imágenes con dimensiones exactas en píxeles para web, móvil e impresión con bloqueo de la relación de aspecto para evitar distorsiones.",
     "resizerDesignersLink": "Redimensionar recursos de diseño",
     "resizerMarketersDesc": "Redimensiona rápidamente los visuales de campaña para adaptarlos a cada ubicación publicitaria y formato de redes sociales sin herramientas de diseño.",
-    "resizerMarketersLink": "Redimensionar para campañas"
+    "resizerMarketersLink": "Redimensionar para campañas",
+    "rasterTitle": "Diseñado para quienes crean y publican",
+    "websiteAssetsTitle": "Recursos para sitios web y aplicaciones",
+    "websiteAssetsDesc": "Exporta ilustraciones SVG como PNG cuando un sitio web, una aplicación o un formulario de carga requiere una imagen rasterizada. Elige las dimensiones adecuadas para su ubicación.",
+    "emailAssetsTitle": "Firmas de correo y boletines",
+    "emailAssetsDesc": "Crea una versión PNG de un logotipo o icono SVG para flujos de correo que no admiten SVG. Comprueba la imagen final en tu aplicación de correo.",
+    "transparentAssetsTitle": "Logotipos e iconos transparentes",
+    "transparentAssetsDesc": "Conserva las áreas transparentes alrededor de la ilustración para usarla sobre distintos fondos. Revisa el resultado sobre fondos claros y oscuros.",
+    "largeExportsTitle": "Exportaciones de mayor tamaño",
+    "largeExportsDesc": "Elige un tamaño de salida mayor para presentaciones y otros usos que necesiten más píxeles, dentro del límite de 8192 píxeles por lado."
   },
   "FAQ": {
     "react": [
