@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/client/auth-context";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 function renderFeaturesTitle(title: string) {
   const match = title.match(/(juggling design tools|überladener Software|programas complejos|logiciels complexes|softwares pesados|重いデザインソフト)/i);
@@ -21,8 +21,18 @@ function renderFeaturesTitle(title: string) {
 
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("features");
+  const locale = useLocale();
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const svgPngDescription = mode === "svg-to-png" && locale === "en"
+    ? [
+        t("svgDesc"),
+        `${t("svgBenefit1Title")}: ${t("svgBenefit1Desc")}`,
+        `${t("svgBenefit2Title")}: ${t("svgBenefit2Desc")}`,
+        `${t("svgBenefit3Title")}: ${t("svgBenefit3Desc")}`,
+        `${t("svgBenefit4Title")}: ${t("svgBenefit4Desc")}`,
+      ].join(" ")
+    : t("svgDesc");
 
   useEffect(() => {
     setMounted(true);
@@ -62,7 +72,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
           ) : mode === "svg-to-react" ? (
             t("reactDesc")
           ) : mode === "svg-to-png" ? (
-            t("svgDesc")
+            svgPngDescription
           ) : (
             t("rasterDesc")
           )}
@@ -71,7 +81,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
 
       {/* Badges Row */}
       <div className="flex min-w-0 max-w-full flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[24px] md:mt-[62px] w-full max-w-[1000px]">
-        <Badge text={t("badgeFree")} />
+        <Badge text={mode === "svg-to-png" && locale === "en" ? t("svgBenefit1Title") : t("badgeFree")} />
         <Badge
           text={
             mode === "background-remover"
@@ -86,6 +96,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeMultiRes")
               : mode === "svg-to-react"
               ? t("badgeTypeScriptReady")
+              : mode === "svg-to-png" && locale === "en"
+              ? t("svgBenefit2Title")
               : t("badgeMultipleSizes")
           }
         />
@@ -101,6 +113,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeAppleAndroid")
               : mode === "svg-to-react"
               ? t("badgeFrameworkSupport")
+              : mode === "svg-to-png" && locale === "en"
+              ? t("svgBenefit3Title")
               : t("badgeTransparentBg")
           }
         />
@@ -110,7 +124,11 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         {mode === "svg-optimizer" && <Badge text={t("badgeZeroLag")} />}
         {mode === "favicon-generator" && <Badge text={t("badgeZipExport")} />}
         {mode === "svg-to-react" && <Badge text={t("badgeLucideStyle")} />}
-        {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
+        {mode === "svg-to-png" && locale === "en" ? (
+          <Badge text={t("svgBenefit4Title")} />
+        ) : (
+          (!mounted || !user) && <Badge text={t("badgeThreeFree")} />
+        )}
       </div>
 
     </section>

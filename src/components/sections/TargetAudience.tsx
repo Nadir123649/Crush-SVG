@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { IMAGES } from "@/lib/shared/images";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 function renderTargetAudienceTitle(title: string) {
   const match = title.match(/(Who Ships?\.?|die liefern\.?|personas que lanzan\.?|ceux qui déploient\.?|quem constrói e entrega\.?|創り届ける人のために。?)/i);
@@ -23,6 +23,7 @@ function renderTargetAudienceTitle(title: string) {
 
 export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "image-resizer" }) {
   const t = useTranslations("target_audience");
+  const locale = useLocale();
 
   const cards = mode === "raster-to-svg" ? [
     {
@@ -81,6 +82,35 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
       description: t("resizerDesignersDesc"),
       href: "/image-resizer#converter",
       linkText: t("resizerDesignersLink"),
+    },
+  ] : locale === "en" ? [
+    {
+      icon: IMAGES.message,
+      title: t("websiteAssetsTitle"),
+      description: t("websiteAssetsDesc"),
+      href: "/use-case/svg-to-png-for-react",
+      linkText: t("websiteAssetsTitle"),
+    },
+    {
+      icon: IMAGES.marketing,
+      title: t("emailAssetsTitle"),
+      description: t("emailAssetsDesc"),
+      href: "/use-case/svg-to-png-for-email-signatures",
+      linkText: t("emailAssetsTitle"),
+    },
+    {
+      icon: IMAGES.agencies,
+      title: t("transparentAssetsTitle"),
+      description: t("transparentAssetsDesc"),
+      href: "/use-case/svg-to-png-transparent-background",
+      linkText: t("transparentAssetsTitle"),
+    },
+    {
+      icon: IMAGES.designers,
+      title: t("largeExportsTitle"),
+      description: t("largeExportsDesc"),
+      href: "/use-case/high-resolution-svg-to-png",
+      linkText: t("largeExportsTitle"),
     },
   ] : [
     {
@@ -144,7 +174,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[20px] md:mt-[30px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        {renderTargetAudienceTitle(t("svgTitle"))}
+        {mode === "svg-to-png" && locale === "en" ? t("homepageSvgTitle") : renderTargetAudienceTitle(t("svgTitle"))}
       </h2>
 
       {/* Cards Container */}

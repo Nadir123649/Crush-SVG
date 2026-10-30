@@ -58,7 +58,9 @@
     "bgRemoverCtaTitle": "Möchten Sie einen Bild-",
     "bgRemoverCtaHighlight": "Hintergrund entfernen?",
     "bgRemoverCtaDesc": "Laden Sie ein Foto hoch und erhalten Sie in Sekunden ein sauberes, transparentes PNG. Kostenlos, privat und ohne Installation.",
-    "bgRemoverCtaButton": "Hintergrund-Entferner testen"
+    "bgRemoverCtaButton": "Hintergrund-Entferner testen",
+    "privacyNotice": "Sieh dir dein SVG vor der Konvertierung in der Vorschau an. Weitere Informationen zur Verarbeitung deiner Dateien findest du in unserer",
+    "privacyPolicyLink": "Datenschutzerklärung"
   },
   "tool_pages": {
     "svgToReact": {
@@ -234,7 +236,15 @@
     "faviconDesc": "Erstellen Sie automatisch alle modernen Icon-Auflösungen für Chrome, Safari, iOS und Android aus einer einzigen SVG-Vektordatei.",
     "badgeMultiRes": "Multi-Auflösungs .ICO",
     "badgeAppleAndroid": "Apple Touch & Android Manifest",
-    "badgeZipExport": "1-Klick ZIP-Export"
+    "badgeZipExport": "1-Klick ZIP-Export",
+    "svgBenefit1Title": "Datei hochladen oder Code einfügen",
+    "svgBenefit1Desc": "Verwende eine SVG-Datei von deinem Gerät oder füge SVG-Markup direkt in den Konverter ein.",
+    "svgBenefit2Title": "Ausgabegröße festlegen",
+    "svgBenefit2Desc": "Passe Breite, Höhe oder Skalierung an den gewünschten Einsatz an, bis zu 8192 Pixeln pro Seite.",
+    "svgBenefit3Title": "Hintergrund bestimmen",
+    "svgBenefit3Desc": "Behalte unterstützte transparente Bereiche bei oder wähle eine Hintergrundfarbe für dein exportiertes Bild.",
+    "svgBenefit4Title": "Vor dem Download prüfen",
+    "svgBenefit4Desc": "Prüfe Motiv und Hintergrund in der Vorschau, bevor du das PNG erstellst."
   },
   "steps": {
     "react": [
@@ -364,7 +374,16 @@
     "resizerDesignersDesc": "Bilder in exakten Pixelmaßen für Web, Mobile und Druck exportieren, mit gesperrtem Seitenverhältnis gegen Verzerrung.",
     "resizerDesignersLink": "Design-Assets skalieren",
     "resizerMarketersDesc": "Kampagnen-Visuals schnell an jedes Anzeigenformat und Social-Media-Format anpassen – ohne Design-Tools.",
-    "resizerMarketersLink": "Für Kampagnen skalieren"
+    "resizerMarketersLink": "Für Kampagnen skalieren",
+    "websiteAssetsTitle": "Website- und App-Grafiken",
+    "websiteAssetsDesc": "Exportiere SVG-Grafiken als PNG, wenn eine Website, App oder ein Upload-Formular ein Rasterbild benötigt. Wähle passende Abmessungen für den vorgesehenen Platz.",
+    "emailAssetsTitle": "E-Mail-Signaturen und Newsletter",
+    "emailAssetsDesc": "Erstelle eine PNG-Version eines SVG-Logos oder -Symbols für E-Mail-Workflows ohne SVG-Unterstützung. Prüfe das fertige Bild in deinem E-Mail-Programm.",
+    "transparentAssetsTitle": "Transparente Logos und Symbole",
+    "transparentAssetsDesc": "Erhalte transparente Bereiche rund um dein Motiv, damit du es auf verschiedenen Hintergründen verwenden kannst. Prüfe das Ergebnis auf hellen und dunklen Flächen.",
+    "largeExportsTitle": "Größere Bildexporte",
+    "largeExportsDesc": "Wähle für Präsentationen und andere Anwendungen mit höherem Pixelbedarf eine größere Ausgabegröße, bis maximal 8192 Pixel pro Seite.",
+    "homepageSvgTitle": "Gemacht für Leute, die liefern."
   },
   "FAQ": {
     "react": [
@@ -941,7 +960,12 @@
     "titleLine1": "Starten Sie heute kostenlos.",
     "titleLine2": "Keine Kreditkarte",
     "titleRequired": "erforderlich.",
-    "usedAllTitle": "Sie haben alle {total} kostenlosen Konvertierungen aufgebraucht"
+    "usedAllTitle": "Sie haben alle {total} kostenlosen Konvertierungen aufgebraucht",
+    "homeTitleLine1": "Starte mit 3 kostenlosen",
+    "homeTitleLine2": "SVG-Konvertierungen",
+    "homeSubtitle": "Konvertiere bis zu {count} SVG-Dateien ohne Konto. Wenn du mehr brauchst, erstelle ein kostenloses CrushSVG-Konto und fahre mit deiner nächsten Datei fort.",
+    "homeCtaSubtitle": "Erstelle ein kostenloses Konto, um weiterzukonvertieren.",
+    "homeSignUp": "Kostenloses Konto erstellen"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "Drei einfache Schritte.",

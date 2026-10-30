@@ -58,7 +58,9 @@
     "bgRemoverCtaTitle": "Precisa remover o",
     "bgRemoverCtaHighlight": "fundo de uma imagem?",
     "bgRemoverCtaDesc": "Envie qualquer foto e obtenha um PNG com fundo transparente limpo em segundos. Grátis, privado e sem instalação.",
-    "bgRemoverCtaButton": "Testar Removedor de Fundo"
+    "bgRemoverCtaButton": "Testar Removedor de Fundo",
+    "privacyNotice": "Visualize seu SVG antes de converter. Para saber como seus arquivos são processados, consulte nossa",
+    "privacyPolicyLink": "Política de Privacidade"
   },
   "tool_pages": {
     "svgToReact": {
@@ -234,7 +236,15 @@
     "faviconDesc": "Gere automaticamente todas as resoluções modernas de ícones para Chrome, Safari, iOS e Android a partir de um único vetor SVG.",
     "badgeMultiRes": ".ICO Multirresolução",
     "badgeAppleAndroid": "Apple Touch & Manifesto Android",
-    "badgeZipExport": "Exportação ZIP em 1 Clique"
+    "badgeZipExport": "Exportação ZIP em 1 Clique",
+    "svgBenefit1Title": "Envie um arquivo ou cole o código",
+    "svgBenefit1Desc": "Use um arquivo SVG salvo no seu dispositivo ou cole a marcação SVG diretamente no conversor.",
+    "svgBenefit2Title": "Escolha o tamanho de saída",
+    "svgBenefit2Desc": "Ajuste a largura, a altura ou a escala para o uso desejado, até 8192 pixels por lado.",
+    "svgBenefit3Title": "Defina o plano de fundo",
+    "svgBenefit3Desc": "Mantenha as áreas transparentes compatíveis ou escolha uma cor de fundo para a imagem exportada.",
+    "svgBenefit4Title": "Confira antes de baixar",
+    "svgBenefit4Desc": "Confira a arte e o plano de fundo na prévia antes de criar o PNG."
   },
   "steps": {
     "react": [
@@ -364,7 +374,16 @@
     "resizerDesignersDesc": "Exporte imagens com dimensões exatas em pixels para web, telemóvel e impressão, com bloqueio de proporção para evitar distorções.",
     "resizerDesignersLink": "Redimensionar Ativos de Design",
     "resizerMarketersDesc": "Redimensione rapidamente visuais de campanha para todos os espaços publicitários e formatos de redes sociais, sem ferramentas de design.",
-    "resizerMarketersLink": "Redimensionar para Campanhas"
+    "resizerMarketersLink": "Redimensionar para Campanhas",
+    "websiteAssetsTitle": "Recursos para sites e aplicativos",
+    "websiteAssetsDesc": "Exporte uma arte SVG como PNG quando um site, aplicativo ou formulário de envio exigir uma imagem rasterizada. Escolha dimensões adequadas ao espaço de uso.",
+    "emailAssetsTitle": "Assinaturas de e-mail e newsletters",
+    "emailAssetsDesc": "Crie uma versão PNG de um logotipo ou ícone SVG para fluxos de e-mail sem suporte a SVG. Confira a imagem final no seu aplicativo de e-mail.",
+    "transparentAssetsTitle": "Logotipos e ícones transparentes",
+    "transparentAssetsDesc": "Preserve as áreas transparentes ao redor da arte para usá-la em diferentes fundos. Confira o resultado em fundos claros e escuros.",
+    "largeExportsTitle": "Exportações de imagens maiores",
+    "largeExportsDesc": "Escolha um tamanho de saída maior para apresentações e outros usos que precisem de mais pixels, até o limite de 8192 pixels por lado.",
+    "homepageSvgTitle": "Feito para quem constrói e entrega."
   },
   "FAQ": {
     "react": [
@@ -941,7 +960,12 @@
     "titleLine1": "Comece grátis hoje.",
     "titleLine2": "Sem cartão de crédito",
     "titleRequired": "necessário.",
-    "usedAllTitle": "Utilizou as suas {total} conversões gratuitas"
+    "usedAllTitle": "Utilizou as suas {total} conversões gratuitas",
+    "homeTitleLine1": "Comece com 3 conversões",
+    "homeTitleLine2": "SVG grátis",
+    "homeSubtitle": "Converta até {count} arquivos SVG sem criar uma conta. Se precisar de mais conversões, crie uma conta gratuita no CrushSVG e continue com o próximo arquivo.",
+    "homeCtaSubtitle": "Crie uma conta gratuita para continuar convertendo.",
+    "homeSignUp": "Criar uma conta grátis"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "Três Passos Simples.",

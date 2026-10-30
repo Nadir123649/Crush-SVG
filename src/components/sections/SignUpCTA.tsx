@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { getUsage } from "@/lib/client/sessions";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 
-export function SignUpCTA() {
+export function SignUpCTA({ homepage = false }: { homepage?: boolean }) {
   const { status } = useAuth();
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const t = useTranslations("signup_cta");
@@ -56,11 +56,11 @@ export function SignUpCTA() {
         {/* Left Column */}
         <div className="w-full max-w-[600px] flex flex-col gap-[16px] lg:gap-[24px]">
           <h2 className="font-heading font-semibold text-[24px] leading-[30px] lg:text-[48px] lg:leading-[58px] tracking-[0.04em] text-text-dark text-center lg:text-left">
-            {t("titleLine1")}<br className="hidden lg:inline" />{" "}
-            <span className="text-[#DA582D]">{t("titleLine2")}</span> {t("titleRequired")}
+            {t(homepage ? "homeTitleLine1" : "titleLine1")}<br className="hidden lg:inline" />{" "}
+            <span className="text-[#DA582D]">{t(homepage ? "homeTitleLine2" : "titleLine2")}</span> {homepage ? "" : t("titleRequired")}
           </h2>
           <p className="font-body font-normal text-[14px] lg:text-[16px] leading-[18.67px] text-text-muted text-center lg:text-left">
-            {t("subtitle", { count: totalFree })}
+            {t(homepage ? "homeSubtitle" : "subtitle", { count: totalFree })}
           </p>
 
           {/* Timeline / Points */}
@@ -110,11 +110,11 @@ export function SignUpCTA() {
             </h3>
 
             <p className="font-body font-normal text-[14px] lg:text-[14px] leading-[18.67px] text-center text-text-muted mb-[16px] lg:mb-[26px]">
-              {t("ctaSubtitle")}
+              {t(homepage ? "homeCtaSubtitle" : "ctaSubtitle")}
             </p>
 
             <div className="flex flex-col w-full gap-[10px]">
-              <Button href="/signup" className="w-full h-[32px] rounded-[8px] px-[10px]">{t("signUp")}</Button>
+              <Button href="/signup" className="w-full h-[32px] rounded-[8px] px-[10px]">{t(homepage ? "homeSignUp" : "signUp")}</Button>
               <Button href="/login" variant="outline" className="w-full h-[32px] rounded-[8px] px-[10px]">{t("logIn")}</Button>
             </div>
 

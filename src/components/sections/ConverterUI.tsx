@@ -2,7 +2,7 @@
 
 import React, { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
@@ -31,6 +31,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter";
+import { Link } from "@/i18n/routing";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -114,6 +115,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 }
 
 function SvgToPngConverter() {
+  const locale = useLocale();
   const tUpload = useTranslations("upload_interface");
   const tDownload = useTranslations("download_interface");
   const tStates = useTranslations("conversion_states");
@@ -1006,7 +1008,13 @@ function SvgToPngConverter() {
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                    <span>{tUpload("privateNotice")}</span>
+                    <span>
+                      {locale === "en" ? (
+                        <>
+                          {tUpload("privacyNotice")} <Link href="/privacy-policy" className="underline">{tUpload("privacyPolicyLink")}</Link>.
+                        </>
+                      ) : tUpload("privateNotice")}
+                    </span>
                   </p>
                 </div>
               </div>
