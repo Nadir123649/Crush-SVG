@@ -2,8 +2,7 @@
 
 import React, { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
@@ -116,8 +115,6 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 
 function SvgToPngConverter() {
   const tUpload = useTranslations("upload_interface");
-  const tHome = useTranslations("homepage");
-  const locale = useLocale();
   const tDownload = useTranslations("download_interface");
   const tStates = useTranslations("conversion_states");
   const tUsage = useTranslations("usage");
@@ -1009,9 +1006,7 @@ function SvgToPngConverter() {
 
                   <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                    <span>{locale === "en" ? <>
-                      {tHome("privacyNotice")} <Link href="/privacy-policy" className="text-brand-primary underline underline-offset-2">{tHome("privacyPolicyLink")}</Link>.
-                    </> : tUpload("privateNotice")}</span>
+                    <span>{tUpload("privateNotice")}</span>
                   </p>
                 </div>
               </div>
@@ -1456,12 +1451,6 @@ function SvgToPngConverter() {
                         </div>
                       )}
                     </div>
-
-                    {locale === "en" && (
-                      <p className="mt-2 font-body text-[12px] leading-5 text-[#64748B]">
-                        {tUpload("sizeControlsHelper")}
-                      </p>
-                    )}
 
                     {/* Transparent Background Box */}
                     <label
