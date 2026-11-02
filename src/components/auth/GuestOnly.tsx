@@ -32,9 +32,9 @@ export function GuestOnly({ children }: GuestOnlyProps) {
     }
   }, [status, searchParams]);
 
-  // If user navigated directly while already authed, or is redirecting after login,
-  // show a stable loader with full min-height so header and footer never collapse.
-  if (initiallyAuthedRef.current || redirecting) {
+  // While session state is resolving, or if user is authed and redirecting,
+  // show a stable loader so protected guest content never flashes on screen.
+  if (status === "loading" || initiallyAuthedRef.current || redirecting) {
     return (
       <div className="w-full min-h-[75vh] flex items-center justify-center py-[60px]">
         <AppLoader />
