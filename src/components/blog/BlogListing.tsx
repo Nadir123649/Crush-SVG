@@ -41,9 +41,9 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
   return (
     <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[16px] md:py-[28px] flex flex-col gap-[28px] md:gap-[40px]">
       {/* Search & Category Filter Controls */}
-      <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-start gap-[16px] flex-wrap">
+      <div className="w-full flex flex-col md:flex-row items-center justify-center gap-[16px] flex-wrap">
         {/* Category Pills */}
-        <div className="flex items-center gap-[8px] overflow-x-auto w-full md:w-auto pb-[4px] md:pb-0 scrollbar-none">
+        <div className="flex items-center gap-[8px] overflow-x-auto w-full md:w-auto pb-[4px] md:pb-0 scrollbar-none justify-center">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
             return (
@@ -64,7 +64,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full md:w-[300px] shrink-0">
+        <div className="relative w-full md:w-[360px] shrink-0">
           <svg
             className="absolute left-[14px] top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
             fill="none"

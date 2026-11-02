@@ -120,6 +120,9 @@ export default function AuditsPage() {
   }, [authStatus, search]);
 
   const handlePageChange = (targetPage: number) => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setPage(targetPage);
     loadAudits(targetPage);
   };

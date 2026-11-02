@@ -141,6 +141,8 @@ export default function ConversionsPage() {
   }, [authStatus, status, startDate, endDate]);
 
   const handlePageChange = (targetPage: number) => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
     window.scrollTo({ top: 0, behavior: "smooth" });
     requestSequence.current.invalidate();
     setPage(targetPage);

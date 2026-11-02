@@ -1001,7 +1001,7 @@ function SvgToPngConverter() {
                     </div>
                   )}
 
-                  <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal lg:whitespace-nowrap">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>
                       {locale === "en" ? (

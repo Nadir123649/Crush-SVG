@@ -155,7 +155,7 @@ export default async function ChangelogPage({
         <div className="flex gap-3">
           <Link
             href="/contact-us"
-            className="px-5 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="px-5 py-2.5 rounded-xl border border-[#E8DED7] bg-white text-text-dark text-sm font-semibold hover:border-brand-primary hover:text-brand-primary transition-all shadow-xs"
           >
             Submit Idea
           </Link>

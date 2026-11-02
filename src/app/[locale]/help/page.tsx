@@ -99,7 +99,7 @@ export default async function HelpPage({
       </div>
 
       {/* Contact Section */}
-      <div className="w-full max-w-[890px] mt-[48px] md:mt-[64px] mb-[64px] md:mb-[80px] flex flex-col items-center bg-white rounded-[20px] p-[36px] md:p-[52px] border border-[#F2EDE8] shadow-[0_8px_30px_rgba(217,74,30,0.06)] relative overflow-hidden text-center"
+      <div className="w-full max-w-[890px] my-[40px] md:my-[48px] flex flex-col items-center bg-white rounded-[20px] p-[36px] md:p-[52px] border border-[#F2EDE8] shadow-[0_8px_30px_rgba(217,74,30,0.06)] relative overflow-hidden text-center"
       >
         <div className="w-12 h-12 rounded-full bg-[#FAF4EF] border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-4 shadow-xs">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,10 +124,10 @@ export default async function HelpPage({
           <span className="font-afacad font-medium text-text-muted text-sm">
             or email{" "}
             <a
-              href="mailto:support@crushsvg.net"
+              href="mailto:team@thenevon.com"
               className="text-brand-primary hover:underline font-semibold"
             >
-              support@crushsvg.net
+              team@thenevon.com
             </a>
           </span>
         </div>

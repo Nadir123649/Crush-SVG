@@ -84,7 +84,7 @@ export default function AdminDashboard() {
     chartData.push(match ? match.count : 0);
   }
 
-  const mrr = "$0 / 0";
+  // MRR formatting removed to prevent broken $0 / 0 display
 
   return (
     <div className="space-y-8">

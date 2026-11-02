@@ -401,11 +401,15 @@ export default function UsersPage() {
   };
 
   const nextPage = () => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
     window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => prev + 1);
   };
 
   const prevPage = () => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
     window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => Math.max(1, prev - 1));
   };
