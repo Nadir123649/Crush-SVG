@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 
 interface PwaInstallModalProps {
@@ -17,6 +18,11 @@ export function PwaInstallModal({
   isIOS,
 }: PwaInstallModalProps) {
   const t = useTranslations("pwa");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -28,14 +34,14 @@ export function PwaInstallModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="pwa-modal-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
       <div
@@ -156,6 +162,7 @@ export function PwaInstallModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

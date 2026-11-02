@@ -1081,7 +1081,7 @@ function SvgToPngConverter() {
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                             openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                         >
                           <input
                             id="converter-width-input"
@@ -1161,7 +1161,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1179,7 +1179,7 @@ function SvgToPngConverter() {
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                             openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                         >
                           <input
                             id="converter-height-input"
@@ -1259,7 +1259,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1278,7 +1278,7 @@ function SvgToPngConverter() {
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                               openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                           >
                             <div
                               onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
@@ -1333,7 +1333,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                   >
                                     {opt}
                                   </button>
@@ -1353,7 +1353,7 @@ function SvgToPngConverter() {
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                               openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                           >
                             <input
                               id="scale-multiplier-input"
@@ -1461,7 +1461,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     {opt}
                                   </button>
@@ -1477,7 +1477,7 @@ function SvgToPngConverter() {
                     {/* Transparent Background Box */}
                     <label
                       htmlFor="transparent-bg-toggle"
-                      className="w-full min-w-0 min-h-[48px] md:min-h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex flex-wrap items-center justify-between gap-[8px] cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
+                      className="w-full min-w-0 min-h-[48px] md:min-h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex flex-wrap items-center justify-between gap-[8px] cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors"
                     >
                       <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
                         {tDownload("transparent")} {tDownload("background")}

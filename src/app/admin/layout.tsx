@@ -78,12 +78,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     showToast("success", "You've been logged out.", { id: "logout" });
   };
 
-  // Show a lightweight skeleton while auth is resolving to avoid a full-page
-  // loader flash on internal admin route changes.
+  // Seamless loader within admin shell so sidebar and header stay fixed without double-loading flash
   if (status === "loading") {
     return (
-      <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
-        <AdminLoader message="Loading admin panel..." />
+      <div className="w-full min-h-screen bg-[#FFFCFA] font-body text-text-body antialiased flex overflow-hidden">
+        <nav className="hidden md:flex flex-col shrink-0 md:w-[260px] h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between overflow-hidden">
+          <div className="px-6 py-2">
+            <div className="h-[32px] w-[140px] bg-gray-100 rounded-md animate-pulse" />
+          </div>
+        </nav>
+        <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+          <header className="flex justify-between items-center w-full px-6 md:pl-4 md:pr-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
+            <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
+          </header>
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-6">
+            <AdminLoader message="Loading admin panel..." />
+          </div>
+        </main>
       </div>
     );
   }
