@@ -58,10 +58,10 @@ export function VerificationModal({
               style={{ width: "auto", height: "auto" }}
             />
           ) : (
-            <div className="w-[80px] h-[80px] rounded-full bg-[#FFE3DA] flex items-center justify-center shadow-inner">
-              <svg width="36" height="44" viewBox="0 0 7 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M6 4H1C0.447715 4 0 4.44772 0 5V9C0 9.55228 0.447715 10 1 10H6C6.55228 10 7 9.55228 7 9V5C7 4.44772 6.55228 4 6 4Z" fill="#D94A1E"/>
-                <path d="M1 5V3C1 2.33696 1.26339 1.70107 1.73223 1.23223C2.20107 0.763392 2.83696 0.5 3.5 0.5C4.16304 0.5 4.79893 0.763392 5.26777 1.23223C5.73661 1.70107 6 2.33696 6 3V5" stroke="#D94A1E" strokeWidth="0.8"/>
+            <div className="w-[88px] h-[88px] rounded-full bg-[#FFE3DA] flex items-center justify-center shadow-inner">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D94A1E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#D94A1E" fillOpacity="0.15"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </div>
           )}

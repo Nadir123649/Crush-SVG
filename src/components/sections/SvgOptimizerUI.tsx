@@ -11,7 +11,8 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 import { useAuth } from "@/lib/client/auth-context";
-import { getUsage } from "@/lib/client/sessions";
+import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
+import { hasQuotaLimitReached } from "@/lib/client/quota";
 import { resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 
@@ -144,8 +145,30 @@ export function SvgOptimizerUI() {
     void handleFile(e.dataTransfer.files?.[0]);
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!optimization.optimizedSvg) return;
+
+    if (status !== "authed") {
+      try {
+        const updatedUsage = await trackConversionUsage({
+          inputFormat: "svg",
+          outputFormat: "svg",
+          success: true,
+        });
+        if (updatedUsage?.limitReached) {
+          showToast("info", tUsage("loginRequired"));
+          setUsage(updatedUsage);
+          return;
+        }
+        if (updatedUsage) setUsage(updatedUsage);
+      } catch {
+        if (hasQuotaLimitReached(usage)) {
+          showToast("info", tUsage("loginRequired"));
+          return;
+        }
+      }
+    }
+
     const blob = new Blob([optimization.optimizedSvg], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -223,6 +246,7 @@ export function SvgOptimizerUI() {
                       ? tUsage("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
                       : " "}
                   </span>
+                  {svgCode && svgCode.trim().length > 0 && (
                   <button
                     type="button"
                     onClick={handleClear}
@@ -243,6 +267,7 @@ export function SvgOptimizerUI() {
                       {tUpload("clear")}
                     </span>
                   </button>
+                  )}
                   <span className="font-mono text-[12px] text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded">
                     {formatBytes(optimization.originalBytes)}
                   </span>

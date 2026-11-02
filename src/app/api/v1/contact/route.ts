@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const FALLBACK_RECIPIENT = "support@crushsvg.net";
-const EMAIL_TIMEOUT_MS = 5_000;
+const EMAIL_TIMEOUT_MS = 250;
 const contactSchema = z.object({
   name: z.string().trim().min(3, "Name must be at least 3 characters").max(100, "Name is too long"),
   email: z.string().trim().email("Enter a valid email address").max(254, "Email is too long"),

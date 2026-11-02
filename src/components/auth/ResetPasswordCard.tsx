@@ -122,7 +122,7 @@ export function ResetPasswordCard() {
           </div>
         
         {/* CTA Button */}
-        <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[16px] mb-[12px]">
+        <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[24px] mb-[20px]">
           {t("submitButton")}
         </button>
         </form>

@@ -54,6 +54,7 @@ export default function ConversionsPage() {
     if (status !== "all") params.set("status", status);
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
+    params.set("tzOffset", new Date().getTimezoneOffset().toString());
     return params.toString();
   };
 
@@ -202,6 +203,7 @@ export default function ConversionsPage() {
       if (status !== "all") queryParams.set("status", status);
       if (startDate) queryParams.set("startDate", startDate);
       if (endDate) queryParams.set("endDate", endDate);
+      queryParams.set("tzOffset", new Date().getTimezoneOffset().toString());
 
       const blob = await apiBlob(`/api/v1/admin/conversions/export?${queryParams.toString()}`);
       const filename = `conversions-export-${new Date().toISOString().split('T')[0]}.csv`;
@@ -240,21 +242,6 @@ export default function ConversionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-20">
         {/* Date Range Filter */}
         <div className="md:col-span-8 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <DateRangePresets
-              activePreset={activeDatePreset}
-              onSelect={handleDatePresetSelect}
-              onCustomRange={openCustomDateRange}
-            />
-            <button
-              type="button"
-              onClick={handleClearDateFilter}
-              disabled={!startDate && !endDate}
-              className="min-h-9 shrink-0 whitespace-nowrap rounded-lg border border-[#F2EDE8] bg-[#FFFCFA] px-3 font-body text-xs font-semibold text-text-muted transition-colors hover:border-brand-primary/40 hover:bg-[#FFF5F2] hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[#F2EDE8] disabled:hover:bg-[#FFFCFA] disabled:hover:text-text-muted"
-            >
-              Clear
-            </button>
-          </div>
           <div className="flex w-full flex-col items-start gap-4 sm:flex-row">
             <div className="w-full sm:w-1/2">
               <DatePicker
@@ -276,10 +263,25 @@ export default function ConversionsPage() {
               />
             </div>
           </div>
+          <div className="flex items-center gap-2 pt-1 border-t border-[#F2EDE8]/60">
+            <DateRangePresets
+              activePreset={activeDatePreset}
+              onSelect={handleDatePresetSelect}
+              onCustomRange={openCustomDateRange}
+            />
+            <button
+              type="button"
+              onClick={handleClearDateFilter}
+              disabled={!startDate && !endDate}
+              className="min-h-9 shrink-0 whitespace-nowrap rounded-lg border border-[#F2EDE8] bg-[#FFFCFA] px-3 font-body text-xs font-semibold text-text-muted transition-colors hover:border-brand-primary/40 hover:bg-[#FFF5F2] hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[#F2EDE8] disabled:hover:bg-[#FFFCFA] disabled:hover:text-text-muted"
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         {/* Status Filter */}
-        <div className="md:col-span-4 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-end gap-2">
+        <div className="md:col-span-4 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-start gap-2">
           <label className="font-body font-semibold text-sm text-text-muted">Status</label>
           <div className="flex gap-3">
             <select 

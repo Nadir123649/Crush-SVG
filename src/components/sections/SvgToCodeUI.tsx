@@ -179,7 +179,7 @@ export function SvgToCodeUI() {
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false);
-  const [previewTab, setPreviewTab] = useState<"visual" | "code">("visual");
+  const [previewTab, setPreviewTab] = useState<"visual" | "code">("code");
 
   const [usage, setUsage] = useState<UsageInfo | null>(null);
 
@@ -291,6 +291,8 @@ export function SvgToCodeUI() {
 
     if (!svgInput.trim()) return "";
 
+    if (!isValid) return "";
+
     try {
 
       return generateSvgCode(svgInput, activeTab, options);
@@ -301,7 +303,7 @@ export function SvgToCodeUI() {
 
     }
 
-  }, [svgInput, activeTab, options]);
+  }, [svgInput, activeTab, options, isValid]);
 
 
 
@@ -681,6 +683,7 @@ export function SvgToCodeUI() {
 
                 <div className="flex items-center gap-[10px]">
 
+                  {svgInput && svgInput.trim().length > 0 && (
                   <button
 
                     type="button"
@@ -720,6 +723,7 @@ export function SvgToCodeUI() {
                     </span>
 
                   </button>
+                  )}
 
                   <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
 
@@ -745,6 +749,13 @@ export function SvgToCodeUI() {
 
 
 
+              {/* Invalid SVG warning */}
+              {svgInput && svgInput.trim().length > 0 && !isValid && (
+                <p className="text-amber-600 text-[12px] font-body mt-[-8px] mb-[4px] flex items-center gap-1" role="alert">
+                  <span>⚠</span> Invalid SVG code identified
+                </p>
+              )}
+
               {/* SVG Code Textarea Box */}
 
               <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
@@ -763,7 +774,7 @@ export function SvgToCodeUI() {
 
                   aria-label="SVG input code"
 
-                  className="w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto overscroll-contain brand-scrollbar"
+                  className={`w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overscroll-contain ${svgInput && svgInput.trim() ? "overflow-auto brand-scrollbar" : "overflow-hidden"}`}
 
                 />
 
@@ -1007,7 +1018,7 @@ export function SvgToCodeUI() {
                   )
                 ) : (
                   <div className="relative w-full h-full">
-                    <pre className="w-full h-full overflow-auto text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre select-all brand-scrollbar z-10">
+                    <pre className={`w-full h-full text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre-wrap break-all select-all z-10 ${generatedCode ? "overflow-auto brand-scrollbar" : "overflow-hidden"}`}>
                       <code>{generatedCode || "// No component code generated yet."}</code>
                     </pre>
                     <button
