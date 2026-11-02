@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
 
-const DEFAULT_SITE_URL = "https://www.crushsvg.net";
+const DEFAULT_SITE_URL = "https://crushsvg.net";
 function getSiteUrl(): string {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (!configuredSiteUrl) return DEFAULT_SITE_URL;
@@ -182,11 +182,11 @@ export function constructLocalizedMetadata({
     robots: noindex
       ? {
           index: false,
-          follow: false,
+          follow: true,
           nocache: true,
           googleBot: {
             index: false,
-            follow: false,
+            follow: true,
             noimageindex: true,
           },
         }
@@ -293,11 +293,11 @@ export function constructMetadata({
     robots: noindex
       ? {
           index: false,
-          follow: false,
+          follow: true,
           nocache: true,
           googleBot: {
             index: false,
-            follow: false,
+            follow: true,
             noimageindex: true,
           },
         }

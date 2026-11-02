@@ -6,12 +6,38 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const localizedAppRoot = path.join(projectRoot, "src", "app", "[locale]");
 const outputFile = path.join(projectRoot, "src", "app", "sitemap-routes.generated.ts");
 const excludedRoutes = new Set([
-  "forgot-password",
-  "convert-svg-to-png",
+  // Authentication & account entry points
   "login",
-  "profile",
-  "reset-password",
+  "signin",
   "signup",
+  "register",
+  "forgot-password",
+  "reset-password",
+  "verify-email",
+  "email-verification",
+  "verify",
+  "dashboard",
+  "account",
+  "profile",
+  "settings",
+  "billing",
+  "subscription",
+  "history",
+  "my-files",
+  // System & transactional callback states
+  "404",
+  "500",
+  "checkout",
+  "cancel",
+  "thank-you",
+  "offline",
+  // Administrative & API
+  "admin",
+  "api",
+  "webhooks",
+  // Redirect aliases
+  "convert-svg-to-png",
+  "svg-to-png",
 ]);
 
 async function findPages(directory, segments = []) {
