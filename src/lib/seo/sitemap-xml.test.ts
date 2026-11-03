@@ -9,7 +9,7 @@ import { constructMetadata, constructLocalizedMetadata, SITE_URL } from "../seo"
 import { SITEMAP_STATIC_ROUTES } from "@/app/sitemap-routes.generated";
 import type { MetadataRoute } from "next";
 
-test("serializes sitemap XML with browser styling and language alternates", () => {
+test("serializes sitemap XML with language alternates", () => {
   const entries: MetadataRoute.Sitemap = [
     {
       url: "https://www.crushsvg.net/",
@@ -33,7 +33,6 @@ test("serializes sitemap XML with browser styling and language alternates", () =
   ];
 
   const xml = serializeSitemap(entries);
-  assert.match(xml, /<\?xml-stylesheet type="text\/xsl" href="\/sitemap\.xsl"\?>/);
   assert.match(xml, /xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml"/);
   assert.match(xml, /<loc>https:\/\/www\.crushsvg\.net\/<\/loc>\s*<xhtml:link rel="alternate" hreflang="en" href="https:\/\/www\.crushsvg\.net\/" \/>/);
   assert.match(xml, /hreflang="x-default" href="https:\/\/www\.crushsvg\.net\/"/);

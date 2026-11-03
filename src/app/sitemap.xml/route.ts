@@ -133,7 +133,7 @@ export async function GET(): Promise<Response> {
   const xml = serializeSitemap(await getSitemapEntries());
   return new Response(xml, {
     headers: {
-      "Content-Type": "application/xml; charset=utf-8",
+      "Content-Type": "text/xml; charset=utf-8",
     },
   });
 }
