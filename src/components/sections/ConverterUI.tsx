@@ -1147,7 +1147,7 @@ function SvgToPngConverter() {
 
                         {openDropdown === "width" && (
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                               {widthOptions.map((opt: string) => (
                                 <button
                                   type="button"
@@ -1165,7 +1165,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1245,7 +1245,7 @@ function SvgToPngConverter() {
 
                         {openDropdown === "height" && (
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                               {heightOptions.map((opt: string) => (
                                 <button
                                   type="button"
@@ -1263,7 +1263,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1321,7 +1321,7 @@ function SvgToPngConverter() {
 
                           {openDropdown === "unit" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                              <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                              <div role="listbox" className="w-full py-[8px] brand-scrollbar flex flex-col">
                                 {["px", "cm"].map((opt) => (
                                   <button
                                     type="button"
@@ -1337,7 +1337,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                    className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
                                   >
                                     {opt}
                                   </button>
@@ -1419,7 +1419,7 @@ function SvgToPngConverter() {
 
                           {openDropdown === "scale" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                              <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                              <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                                 {SCALE_OPTIONS.map((opt: string) => {
                                   // e.g. 16x on a 300px SVG would render 4800px: not selectable.
                                   const exceedsCap =
@@ -1448,7 +1448,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className="w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     {opt}
                                   </button>

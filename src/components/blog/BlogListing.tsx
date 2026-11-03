@@ -214,7 +214,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
             href="/#converter"
             className="inline-flex items-center justify-center h-[42px] md:h-[46px] px-[20px] md:px-[26px] rounded-[8px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] font-heading font-medium text-[14px] md:text-[16px] text-white tracking-[0.04em] hover:opacity-90 transition-opacity"
           >
-            Launch Converter
+            Try Our Converter
           </Link>
         </div>
       </section>

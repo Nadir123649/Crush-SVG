@@ -106,6 +106,7 @@ export default function EditBlogPage() {
             return;
         }
 
+        const targetPublished = publish !== undefined ? publish : published;
         setSaving(true);
         try {
             const response = await apiFetch<{ updated: boolean; blog: EditableBlog }>(`/api/v1/admin/blogs/${blogId}`, {
@@ -115,7 +116,7 @@ export default function EditBlogPage() {
                     content: content.trim(),
                     excerpt: excerpt.trim() || content.replace(/<[^>]*>/g, '').trim().substring(0, 200) + '...',
                     coverImage: coverImage.trim() || null,
-                    published,
+                    published: targetPublished,
                 }),
             });
 
@@ -269,14 +270,16 @@ export default function EditBlogPage() {
                                     <span className="font-body font-semibold text-sm text-text-dark">Publish Status</span>
                                     <p className="font-body text-xs text-text-muted mt-0.5">Published posts are visible on the public blog page</p>
                                 </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
+                                <label className="relative inline-flex items-center cursor-pointer select-none">
                                     <input
                                         type="checkbox"
                                         checked={published}
                                         onChange={(e) => { setPublished(e.target.checked); setIsDirty(true); }}
-                                        className="sr-only peer"
+                                        className="sr-only"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                                    <div className={`w-11 h-6 rounded-full transition-colors relative ${published ? "bg-brand-primary" : "bg-gray-300"}`}>
+                                        <div className={`absolute top-0.5 left-0.5 bg-white border border-gray-200 rounded-full h-5 w-5 transition-transform duration-200 shadow-sm ${published ? "translate-x-5" : "translate-x-0"}`} />
+                                    </div>
                                 </label>
                             </div>
                         </div>

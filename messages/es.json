@@ -196,7 +196,7 @@
   "usage": {
     "conversionsLeft": "{count} Conversiones Gratuitas Restantes",
     "lastFreeConversion": "Última Conversión Gratuita",
-    "signUpForFree": "Regístrate Gratis",
+    "signUpForFree": "Regístrate para conversiones ilimitadas",
     "loginRequired": "Has usado tus 3 conversiones gratuitas. Inicia sesi?n para continuar.",
     "unlimitedConversions": "Conversiones Ilimitadas",
     "conversionsUsed": "Se han usado {used} de {total} conversiones gratis"

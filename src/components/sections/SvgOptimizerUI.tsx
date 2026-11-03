@@ -37,7 +37,7 @@ export function SvgOptimizerUI() {
   const tUpload = useTranslations("upload_interface");
   const tA11y = useTranslations("accessibility");
 
-  const [svgCode, setSvgCode] = useState(SAMPLE_OPTIMIZE_SVG);
+  const [svgCode, setSvgCode] = useState("");
   const [precision, setPrecision] = useState<number>(2);
   const [stripComments, setStripComments] = useState(true);
   const [stripMetadata, setStripMetadata] = useState(true);

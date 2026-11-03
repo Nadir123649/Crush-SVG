@@ -164,9 +164,9 @@ export function SvgToCodeUI() {
 
 
 
-  const [svgInput, setSvgInput] = useState<string>(SAMPLE_SVGS.rocket.svg);
+  const [svgInput, setSvgInput] = useState<string>("");
 
-  const [componentName, setComponentName] = useState<string>("RocketIcon");
+  const [componentName, setComponentName] = useState<string>("");
 
   const [activeTab, setActiveTab] = useState<TargetFramework>("react-tsx");
 

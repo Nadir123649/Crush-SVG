@@ -191,7 +191,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         ref={navContainerRef}
       >
         <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[24px] min-[1536px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
-        <div className="w-full relative flex items-center justify-between min-[1024px]:grid min-[1024px]:grid-cols-[1fr_auto_1fr] h-[40px] md:h-[46px]">
+        <div className="w-full relative flex items-center justify-between min-[1024px]:grid min-[1024px]:grid-cols-[auto_1fr_auto] h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -507,7 +507,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1024px]:gap-[8px] min-[1280px]:gap-[12px] min-[1024px]:border-l min-[1024px]:border-[#E8DED7] min-[1024px]:pl-[8px] min-[1280px]:pl-[14px] min-[1024px]:justify-self-end justify-end">
+          <div className="relative z-20 flex items-center shrink-0 gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1024px]:gap-[8px] min-[1280px]:gap-[12px] min-[1024px]:border-l min-[1024px]:border-[#E8DED7] min-[1024px]:pl-[8px] min-[1280px]:pl-[14px] min-[1024px]:justify-self-end justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden min-[1024px]:inline-flex" />
 

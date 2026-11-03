@@ -122,13 +122,13 @@ export function ResetPasswordCard() {
           </div>
         
         {/* CTA Button */}
-        <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[20px]">
+        <button type="submit" aria-label="Set new password" className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[16px] mb-[12px]">
           {t("submitButton")}
         </button>
         </form>
 
         {/* Footer Text */}
-        <div className="text-center mt-[12px]">
+        <div className="text-center mt-[4px]">
           <p className="font-afacad font-normal text-[14px] text-[#475569]">
             {t("backToLogin").split(" Log In")[0]} <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
           </p>

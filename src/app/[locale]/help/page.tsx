@@ -99,9 +99,15 @@ export default async function HelpPage({
       </div>
 
       {/* Contact Section */}
-      <div className="w-full max-w-[890px] mt-[20px] mb-[40px] flex flex-col items-center bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]"
-        style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
+      <div className="w-full max-w-[890px] mt-[48px] md:mt-[64px] mb-[64px] md:mb-[80px] flex flex-col items-center bg-white rounded-[20px] p-[36px] md:p-[52px] border border-[#F2EDE8] shadow-[0_8px_30px_rgba(217,74,30,0.06)] relative overflow-hidden text-center"
       >
+        <div className="w-12 h-12 rounded-full bg-[#FAF4EF] border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-4 shadow-xs">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
         <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[12px]">
           Still have questions?
         </h2>
@@ -111,7 +117,7 @@ export default async function HelpPage({
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Link 
             href="/contact-us"
-            className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity"
+            className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity shadow-sm"
           >
             Contact Support Team
           </Link>
@@ -119,7 +125,7 @@ export default async function HelpPage({
             or email{" "}
             <a
               href="mailto:support@crushsvg.net"
-              className="text-brand-primary hover:underline"
+              className="text-brand-primary hover:underline font-semibold"
             >
               support@crushsvg.net
             </a>
