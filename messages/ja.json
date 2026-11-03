@@ -1021,7 +1021,9 @@
     "accountCreatedSuccess": "アカウントが作成されました。メールを確認して認証を完了してください。",
     "somethingWentWrong": "問題が発生しました。もう一度お試しください。",
     "resendLinkSuccess": "認証メールを再送しました。",
-    "couldNotResend": "認証メールを再送できませんでした。"
+    "couldNotResend": "認証メールを再送できませんでした。",
+    "fileLoaded": "SVGが正常にアップロードされました",
+    "imageCopied": "画像がクリップボードにコピーされました"
   },
   "bg_remover": {
     "downloadButton": "PNGをダウンロード",

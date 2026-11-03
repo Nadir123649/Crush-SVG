@@ -1021,7 +1021,9 @@
     "accountCreatedSuccess": "Konto erstellt! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.",
     "somethingWentWrong": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
     "resendLinkSuccess": "Bestätigungs-E-Mail erfolgreich erneut gesendet.",
-    "couldNotResend": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden."
+    "couldNotResend": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden.",
+    "fileLoaded": "SVG erfolgreich hochgeladen",
+    "imageCopied": "Bild in die Zwischenablage kopiert"
   },
   "bg_remover": {
     "downloadButton": "PNG herunterladen",

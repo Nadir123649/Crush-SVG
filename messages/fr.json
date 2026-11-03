@@ -1021,7 +1021,9 @@
     "accountCreatedSuccess": "Compte créé ! Veuillez vérifier vos e-mails pour valider votre compte.",
     "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
     "resendLinkSuccess": "E-mail de vérification renvoyé avec succès.",
-    "couldNotResend": "Impossible de renvoyer l'e-mail de vérification."
+    "couldNotResend": "Impossible de renvoyer l'e-mail de vérification.",
+    "fileLoaded": "SVG téléchargé avec succès",
+    "imageCopied": "Image copiée dans le presse-papiers"
   },
   "bg_remover": {
     "downloadButton": "Télécharger le PNG",
