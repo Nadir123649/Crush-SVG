@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       userId: userMap.get(c.userId) || c.userId || 'Guest',
     }));
 
-    return successResponse({
+    const resp = successResponse({
       totalUsers,
       totalConversions,
       rasterConversions,
@@ -106,6 +106,10 @@ export async function GET(request: NextRequest) {
       recentConversions,
       conversionsLast10Days
     });
+    // Cache at CDN/edge for 60 s, serve stale for 30 s while revalidating.
+    // This makes repeated admin dashboard loads instant without stale data risk.
+    resp.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=30");
+    return resp;
   } catch (error: any) {
     console.error("Dashboard overview error:", error);
     return errorResponse(500, "internal_error", "Failed to load dashboard data");

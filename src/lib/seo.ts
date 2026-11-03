@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
 
-const DEFAULT_SITE_URL = "https://crushsvg.net";
+const DEFAULT_SITE_URL = "https://www.crushsvg.net";
 function getSiteUrl(): string {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (!configuredSiteUrl) return DEFAULT_SITE_URL;
@@ -9,6 +9,10 @@ function getSiteUrl(): string {
   try {
     const parsedUrl = new URL(configuredSiteUrl);
     const hostname = parsedUrl.hostname.toLowerCase();
+    if (hostname === "crushsvg.net") {
+      return DEFAULT_SITE_URL;
+    }
+
     const isLocalhost = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(hostname);
     if (!/^https?:$/.test(parsedUrl.protocol)) return DEFAULT_SITE_URL;
     if (process.env.NODE_ENV === "production" && isLocalhost) return DEFAULT_SITE_URL;
@@ -97,14 +101,14 @@ export function constructLocalizedMetadata({
   const cleanRoute = routeKey.startsWith("/") ? routeKey : `/${routeKey}`;
   const routeMapping = buildLocalizedPaths(cleanRoute);
   const currentPath = routeMapping[locale] || (locale === "en" ? cleanRoute : `/${locale}${cleanRoute === "/" ? "" : cleanRoute}`);
-  const canonicalUrl = `${SITE_URL}${currentPath === "/" ? "" : currentPath}`;
+  const canonicalUrl = `${SITE_URL}${currentPath === "/" ? "/" : currentPath}`;
 
   const languages: Record<string, string> = {};
   for (const [loc, path] of Object.entries(routeMapping)) {
-    languages[loc] = `${SITE_URL}${path === "/" ? "" : path}`;
+    languages[loc] = `${SITE_URL}${path === "/" ? "/" : path}`;
   }
   if (routeMapping.en) {
-    languages["x-default"] = `${SITE_URL}${routeMapping.en === "/" ? "" : routeMapping.en}`;
+    languages["x-default"] = `${SITE_URL}${routeMapping.en === "/" ? "/" : routeMapping.en}`;
   }
 
   const ogLocale = OG_LOCALES[locale] || "en_US";
@@ -529,4 +533,3 @@ export function getArticleSchema(article: { title: string; description: string; 
     image: article.image || `${SITE_URL}/opengraph-image`,
   };
 }
-

@@ -1,9 +1,6 @@
-import { AdminLoader } from "@/components/admin/AdminLoader";
-
+// Next.js route segment loading file.
+// The admin layout already renders AdminLoader while auth status is loading;
+// returning null here prevents a duplicate loader on initial navigation.
 export default function AdminLoading() {
-  return (
-    <div className="w-full flex items-center justify-center min-h-[400px]">
-      <AdminLoader message="Loading admin panel..." />
-    </div>
-  );
+  return null;
 }

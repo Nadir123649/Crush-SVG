@@ -38,6 +38,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   trailingSlash: false,
+  skipTrailingSlashRedirect: true,
   serverExternalPackages: [
     "@visioncortex/vtracer",
     "sharp",
@@ -98,6 +99,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, s-maxage=0, must-revalidate",
+          },
+        ],
+      },
+      {
         source: "/(CrushSVG-logo\\.svg|icon\\.svg|icon-192\\.png|icon-512\\.png|favicon-48x48\\.png|favicon-32x32\\.png|favicon\\.ico|manifest\\.webmanifest|site\\.webmanifest|.*\\.(?:webp|png|jpg|jpeg|gif|ico|svg|woff2|woff|ttf))",
         headers: [
           {
@@ -115,61 +125,10 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: 'host',
-            value: 'www.crushsvg.net',
+            value: 'crushsvg.net',
           },
         ],
-        destination: 'https://crushsvg.net/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.crushsvg.com',
-          },
-        ],
-        destination: 'https://crushsvg.com/:path*',
-        permanent: true,
-      },
-      {
-        source: '/svg-to-png',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/convert-svg-to-png',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convert-svg-to-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convertir-svg-a-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/svg-in-png-umwandeln',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convertir-svg-en-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/converter-svg-para-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/svg-png-henkan',
-        destination: '/:locale',
+        destination: 'https://www.crushsvg.net/:path*',
         permanent: true,
       },
     ];
