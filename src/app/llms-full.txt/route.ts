@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.crushsvg.net";
+const BASE_URL = SITE_URL;
 
 const content = `# CrushSVG — Full Site & Platform Reference
 
@@ -70,7 +71,7 @@ const content = `# CrushSVG — Full Site & Platform Reference
 | Image Resizer | ${BASE_URL}/image-resizer | Dimensional scaling and image compressor |
 | SVG Optimizer | ${BASE_URL}/svg-optimizer | SVG minifier and vector code cleaner |
 | Favicon Generator | ${BASE_URL}/favicon-generator | Multi-resolution Favicon ICO & WebP pack generator |
-| Profile & Developer API | ${BASE_URL}/profile | API key generation, quotas, and account settings |
+| Developer API documentation | ${BASE_URL}/api-docs | API reference and integration guide |
 | Blog | ${BASE_URL}/blog | Technical articles and design workflows |
 | SVG Guides | ${BASE_URL}/svg-guides | In-depth tutorials on working with vector graphics |
 | About | ${BASE_URL}/about | About CrushSVG and parent engineering company The Nevon |
@@ -79,8 +80,6 @@ const content = `# CrushSVG — Full Site & Platform Reference
 | Help & FAQ | ${BASE_URL}/help | Frequently asked questions and help documentation |
 | Support Hub | ${BASE_URL}/support | Technical support and vector troubleshooting |
 | Contact Us | ${BASE_URL}/contact-us | Direct feedback and support inquiries |
-| Sign Up | ${BASE_URL}/signup | Free account creation |
-| Log In | ${BASE_URL}/login | User sign-in |
 | Privacy Policy | ${BASE_URL}/privacy-policy | User data protection and security |
 | Terms of Service | ${BASE_URL}/terms | Terms of service and usage conditions |
 | Cookies Policy | ${BASE_URL}/cookies | Cookie usage and consent management |

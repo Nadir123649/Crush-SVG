@@ -259,6 +259,38 @@ export async function proxy(
   const url = request.nextUrl
   const pathname = url.pathname
 
+  if (
+    ['GET', 'HEAD'].includes(request.method) &&
+    pathname.length > 1 &&
+    pathname.endsWith('/') &&
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/v1/') &&
+    !pathname.startsWith('/_next/')
+  ) {
+    const destination = new URL(request.url)
+    destination.pathname = destination.pathname.replace(/\/+$/, '')
+    return addRequestId(NextResponse.redirect(destination, 301), request)
+  }
+
+  const legacyToolRoute = pathname.match(
+    /^\/([a-z]{2})\/(convert-svg-to-png|convertir-svg-a-png|svg-in-png-umwandeln|convertir-svg-en-png|converter-svg-para-png|svg-png-henkan)$/
+  )
+  const legacyToolRedirects: Record<string, string> = {
+    '/svg-to-png': '/',
+    '/convert-svg-to-png': '/',
+  }
+  const legacyToolPath = legacyToolRoute
+    ? `/${legacyToolRoute[2]}`
+    : pathname
+  const legacyToolDestination = legacyToolRedirects[legacyToolPath]
+  if (legacyToolDestination !== undefined || legacyToolRoute) {
+    const destination = url.clone()
+    destination.pathname = legacyToolRoute
+      ? `/${legacyToolRoute[1]}`
+      : legacyToolDestination
+    return addRequestId(NextResponse.redirect(destination, 301), request)
+  }
+
   const legacyPageRedirects: Record<string, string> = {
     '/terms-of-service': '/terms',
     '/about-us': '/about',
@@ -652,6 +684,24 @@ export async function proxy(
     )
   }
 
+  const localeMatch = pathname.match(
+    new RegExp(`^\\/(${routing.locales.join('|')})(?=\\/|$)`)
+  )
+  const localePath = localeMatch
+    ? pathname.slice(localeMatch[0].length) || '/'
+    : null
+  const isInternalLocalePath =
+    localeMatch?.[1] === routing.defaultLocale ||
+    (localePath !== null &&
+      Object.prototype.hasOwnProperty.call(routing.pathnames, localePath))
+
+  if (isInternalLocalePath) {
+    return addRequestId(
+      NextResponse.next(),
+      request
+    )
+  }
+
   // ───────────────────────────────────────────────────────────────────
   // PUBLIC / NORMAL PAGES
   // ───────────────────────────────────────────────────────────────────
@@ -707,6 +757,6 @@ export async function proxy(
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

@@ -38,6 +38,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   trailingSlash: false,
+  skipTrailingSlashRedirect: true,
   serverExternalPackages: [
     "@visioncortex/vtracer",
     "sharp",
@@ -115,61 +116,10 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: 'host',
-            value: 'www.crushsvg.net',
+            value: 'crushsvg.net',
           },
         ],
-        destination: 'https://crushsvg.net/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.crushsvg.com',
-          },
-        ],
-        destination: 'https://crushsvg.com/:path*',
-        permanent: true,
-      },
-      {
-        source: '/svg-to-png',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/convert-svg-to-png',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convert-svg-to-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convertir-svg-a-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/svg-in-png-umwandeln',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/convertir-svg-en-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/converter-svg-para-png',
-        destination: '/:locale',
-        permanent: true,
-      },
-      {
-        source: '/:locale/svg-png-henkan',
-        destination: '/:locale',
+        destination: 'https://www.crushsvg.net/:path*',
         permanent: true,
       },
     ];

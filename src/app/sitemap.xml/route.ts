@@ -4,12 +4,16 @@ import { getLocalizedHref, routing, type Locale } from "@/i18n/routing";
 import { Blog, connectToDatabase } from "@/lib/database/db";
 import { SITEMAP_GENERATED_AT, SITEMAP_STATIC_ROUTES } from "../sitemap-routes.generated";
 import { serializeSitemap } from "@/lib/seo/sitemap-xml";
+import {
+  getSitemapLanguageAlternates,
+  SITEMAP_INDEXABLE_STATIC_ROUTES,
+} from "@/lib/seo/sitemap-routes";
 import type { MetadataRoute } from "next";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const BASE_URL = (SITE_URL || "https://crushsvg.net").replace(/\/$/, "");
+const BASE_URL = (SITE_URL || "https://www.crushsvg.net").replace(/\/$/, "");
 
 interface RouteConfig {
   priority: number;
@@ -26,18 +30,10 @@ const ROUTE_CONFIG: Record<string, RouteConfig> = {
   "/svg-to-react": { priority: 0.8, changeFrequency: "monthly" },
   "/use-case": { priority: 0.8, changeFrequency: "monthly" },
   "/compare/crushsvg-vs-vectorizer-ai": { priority: 0.8, changeFrequency: "monthly" },
-  "/pricing": { priority: 0.8, changeFrequency: "monthly" },
   "/blog": { priority: 0.7, changeFrequency: "daily" },
   "/svg-guides": { priority: 0.7, changeFrequency: "weekly" },
   "/about": { priority: 0.5, changeFrequency: "monthly" },
-  "/contact-us": { priority: 0.5, changeFrequency: "monthly" },
   "/help": { priority: 0.5, changeFrequency: "monthly" },
-  "/support": { priority: 0.5, changeFrequency: "monthly" },
-  "/team": { priority: 0.5, changeFrequency: "monthly" },
-  "/changelog": { priority: 0.5, changeFrequency: "monthly" },
-  "/terms": { priority: 0.3, changeFrequency: "monthly" },
-  "/privacy-policy": { priority: 0.3, changeFrequency: "monthly" },
-  "/cookies": { priority: 0.3, changeFrequency: "monthly" },
 };
 
 const EXCLUDED_PATTERNS = [
@@ -67,9 +63,11 @@ function localizedEntries(
   const config = ROUTE_CONFIG[path] || { priority: 0.7, changeFrequency: "monthly" };
   const basePriority = overridePriority ?? config.priority;
   const changeFreq = overrideFreq ?? config.changeFrequency;
+  const languages = getSitemapLanguageAlternates(path, BASE_URL);
 
   return routing.locales.map((locale) => ({
     url: `${BASE_URL}${getLocalizedHref(path, locale as Locale)}`,
+    alternates: { languages },
     lastModified,
     changeFrequency: changeFreq,
     priority: locale === routing.defaultLocale
@@ -82,7 +80,7 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const route of SITEMAP_STATIC_ROUTES) {
-    if (isExcludedPath(route)) continue;
+    if (!SITEMAP_INDEXABLE_STATIC_ROUTES.has(route) || isExcludedPath(route)) continue;
     entries.push(...localizedEntries(route, SITEMAP_GENERATED_AT));
   }
 
@@ -102,8 +100,8 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
         ),
       );
     }
-  } catch {
-    // Graceful fallback if database connection is unavailable
+  } catch (error) {
+    console.error("Could not load published blog posts for sitemap:", error);
   }
 
   for (const useCase of useCases) {
@@ -115,7 +113,20 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     ));
   }
 
-  return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
+  const uniqueEntries = new Map<string, MetadataRoute.Sitemap[number]>();
+  for (const entry of entries) {
+    const url = new URL(entry.url);
+    url.search = "";
+    url.hash = "";
+    if (url.pathname.length > 1) {
+      url.pathname = url.pathname.replace(/\/+$/, "");
+    }
+
+    const normalizedUrl = url.toString();
+    uniqueEntries.set(normalizedUrl, { ...entry, url: normalizedUrl });
+  }
+
+  return [...uniqueEntries.values()];
 }
 
 export async function GET(): Promise<Response> {

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = (SITE_URL || "https://crushsvg.net").replace(/\/$/, "");
+  const baseUrl = (SITE_URL || "https://www.crushsvg.net").replace(/\/$/, "");
 
   const disallowList = [
     // Disallow private user states and dashboards
