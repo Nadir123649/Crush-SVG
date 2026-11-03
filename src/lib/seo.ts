@@ -411,24 +411,47 @@ export function getMasterGraphSchema() {
         "@type": "Organization",
         "@id": organizationId,
         name: "The Nevon",
-        url: "https://thenevon.com/",
+        url: "https://thenevon.com",
+        logo: "https://thenevon.com/logo.png",
+        founder: {
+          "@type": "Person",
+          name: "Muhammad Nadir",
+        },
+        sameAs: [
+          "https://www.linkedin.com/company/thenevon",
+          "https://www.facebook.com/profile.php?id=61593405728605",
+        ],
       },
       {
         "@type": "WebApplication",
-        "@id": `${SITE_URL}/#webapp`,
+        "@id": `${SITE_URL}/#software`,
         name: "CrushSVG",
-        url: SITE_URL,
-        applicationCategory: "DesignApplication",
-        operatingSystem: "All",
-        publisher: { "@id": organizationId },
-        isPartOf: { "@id": `${SITE_URL}/#website` },
+        url: `${SITE_URL}/`,
+        applicationCategory: "MultimediaApplication",
+        operatingSystem: "All (Web Browser)",
+        browserRequirements: "Requires JavaScript and HTML5 Canvas support",
+        description:
+          "Free online SVG to PNG converter, raster to vector image vectorizer, and SVG optimizer with 100% in-browser client-side processing.",
+        creator: {
+          "@id": organizationId,
+        },
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+        sameAs: [
+          "https://www.facebook.com/profile.php?id=61593405728605",
+        ],
       },
       {
         "@type": "WebSite",
         "@id": `${SITE_URL}/#website`,
+        url: `${SITE_URL}/`,
         name: "CrushSVG",
-        url: SITE_URL,
-        publisher: { "@id": organizationId },
+        publisher: {
+          "@id": organizationId,
+        },
       },
     ],
   };

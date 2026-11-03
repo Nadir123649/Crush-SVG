@@ -132,6 +132,7 @@ function SvgToPngConverter() {
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
   const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
+  const [scaleSubmitAttempted, setScaleSubmitAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
   const [bgOption, setBgOption] = useState<"Transparent" | "White" | "Black" | "Custom">("White");
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
@@ -403,7 +404,7 @@ function SvgToPngConverter() {
   function handleSvgChange(value: string) {
     const hasUnsafeSvg = /<\s*script\b|\bon[a-z]+\s*=|javascript\s*:/i.test(value);
     setSecurityWarning(hasUnsafeSvg);
-    let clean = value;
+    let clean = typeof value === "string" ? value.trim() : value;
     if (clean !== SAMPLE_SVG && clean !== DUMMY_CODE && clean.toLowerCase().includes('<svg')) {
       if (!clean.toLowerCase().includes('xmlns=')) {
         clean = clean.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -429,6 +430,7 @@ function SvgToPngConverter() {
     setIsCustomHeight(false);
     setIsCustomScale(false);
     setScaleValidationAttempted(false);
+    setScaleSubmitAttempted(false);
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
@@ -514,6 +516,7 @@ function SvgToPngConverter() {
 
   async function handleConvert() {
     setScaleValidationAttempted(true);
+    setScaleSubmitAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
     // (Convert / Re-convert) that lands before the button disables.
     if (convertInFlightRef.current) return;
@@ -776,9 +779,16 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && !isScaleDisabled && isCustomScale && scaleValidationAttempted) {
-    const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
-    if (!Number.isFinite(scale) || scale <= 0) {
+  if (!validationError && !isScaleDisabled && isCustomScale) {
+    const trimmed = selectedScale.trim();
+    if (trimmed !== "") {
+      if (scaleValidationAttempted) {
+        const scale = parseFloat(trimmed.toLowerCase().replace("x", ""));
+        if (!Number.isFinite(scale) || scale <= 0) {
+          validationError = tToast("invalidScale");
+        }
+      }
+    } else if (scaleSubmitAttempted) {
       validationError = tToast("invalidScale");
     }
   }
@@ -817,7 +827,7 @@ function SvgToPngConverter() {
             <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* Left Column (SVG Code) */}
               <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
+                <div className="flex min-w-0 items-center justify-between gap-[10px] mb-[12px] h-[36px]">
                   <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
                     <button
@@ -870,14 +880,15 @@ function SvgToPngConverter() {
                     placeholder={DUMMY_CODE}
                     readOnly={isLargeSvg}
                     onPaste={(e) => {
-                      // Let normal-sized pastes behave natively. For huge ones (or when a
-                      // large SVG is loaded and the editor is read-only), take the text
-                      // straight from the clipboard so the browser never has to lay out a
-                      // multi-MB string inside the textarea.
                       const pasted = e.clipboardData.getData("text/plain");
+                      if (pasted && !isValidSvgContent(pasted)) {
+                        e.preventDefault();
+                        showToast("error", "Invalid SVG code identified");
+                        return;
+                      }
                       if (pasted && (isLargeSvg || pasted.length > LARGE_SVG_CHARS)) {
                         e.preventDefault();
-                        handleSvgChange(pasted.trimEnd());
+                        handleSvgChange(pasted.trim());
                         resetDropdowns();
                       }
                     }}
@@ -895,18 +906,6 @@ function SvgToPngConverter() {
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5 z-30">
-                    <button
-                      type="button"
-                      onClick={handlePasteClipboard}
-                      title="Paste from clipboard (Ctrl+V)"
-                      className="bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] px-2 py-1 text-xs font-medium flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      </svg>
-                      <span>Paste</span>
-                    </button>
                     <button
                       type="button"
                       onClick={handleCopySvgCode}
@@ -1439,10 +1438,12 @@ function SvgToPngConverter() {
                                         setIsCustomScale(true);
                                         setSelectedScale("");
                                         setScaleValidationAttempted(false);
+                                        setScaleSubmitAttempted(false);
                                       } else {
                                         setIsCustomScale(false);
                                         setSelectedScale(opt);
                                         setScaleValidationAttempted(false);
+                                        setScaleSubmitAttempted(false);
                                       }
                                       setOpenDropdown(null);
                                       resetConversion();

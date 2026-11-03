@@ -1168,18 +1168,6 @@ export function ImageResizer() {
                         </span>
                       </Button>
 
-                      <div className="flex items-center gap-[16px] mt-[2px]">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setResult(null);
-                            setPreviewMode("before");
-                          }}
-                          className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer"
-                        >
-                          {t("newImageButton")}
-                        </button>
-                      </div>
                     </>
                   ) : (
                     <Button

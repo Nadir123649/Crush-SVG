@@ -41,7 +41,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
   return (
     <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[32px] md:py-[56px] flex flex-col gap-[40px] md:gap-[60px]">
       {/* Search & Category Filter Controls */}
-      <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-[16px]">
+      <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-start gap-[16px] flex-wrap">
         {/* Category Pills */}
         <div className="flex items-center gap-[8px] overflow-x-auto w-full md:w-auto pb-[4px] md:pb-0 scrollbar-none">
           {categories.map((cat) => {

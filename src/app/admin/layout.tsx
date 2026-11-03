@@ -126,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           touchStartXRef.current = null;
         }}
         className={`
-        fixed inset-y-0 left-0 z-50 md:z-30
+        fixed inset-y-0 left-0 z-50 md:relative md:inset-auto md:z-0
         flex flex-col shrink-0 ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between overflow-hidden
         transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
         ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
@@ -139,11 +139,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className={`absolute inset-0 pl-6 pr-12 flex items-center transition-opacity duration-200 ${isDesktopSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:pointer-events-none'}`}>
               <div className="flex items-center gap-2">
                 <Image
-                  src="/icon-512.png"
+                  src="/icon.svg"
                   alt="CrushSVG Logo"
-                  width={512}
-                  height={512}
-                  unoptimized
+                  width={26}
+                  height={26}
                   className="w-[26px] h-[26px] object-contain flex-shrink-0"
                 />
                 <span className="font-heading font-bold text-2xl text-text-dark whitespace-nowrap">
@@ -177,11 +176,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
               ) : (
                 <Image
-                  src="/icon-512.png"
+                  src="/icon.svg"
                   alt=""
-                  width={512}
-                  height={512}
-                  unoptimized
+                  width={24}
+                  height={24}
                   className="h-6 w-6 object-contain"
                 />
               )}
@@ -254,7 +252,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </nav>
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-[margin] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${isDesktopSidebarOpen ? 'md:ml-[260px]' : 'md:ml-[72px]'}`}>
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TopAppBar (Header) */}
         <header className="flex justify-between items-center w-full px-6 md:pl-4 md:pr-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
           <div className="flex items-center space-x-4">

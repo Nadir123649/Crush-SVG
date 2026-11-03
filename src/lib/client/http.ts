@@ -7,13 +7,15 @@ export class ApiError extends Error {
   readonly code: string
   /** Seconds the server asked us to wait (429), when it said so. */
   readonly retryAfter?: number
+  readonly details?: unknown
 
-  constructor(status: number, code: string, message: string, retryAfter?: number) {
+  constructor(status: number, code: string, message: string, retryAfter?: number, details?: unknown) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.retryAfter = retryAfter
+    this.details = details
   }
 }
 
@@ -379,7 +381,8 @@ export function toApiError(status: number, body: ErrorBody | null, headers?: Hea
   const err = body?.payload?.error ?? body?.error
   if (typeof err === 'object' && err !== null && typeof err.code === 'string') {
     const retryAfter = status === 429 ? parseRetryAfter(body, headers) : undefined
-    return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status), retryAfter)
+    const details = (err as any).errors || (err as any).details || (body?.payload as any)?.errors
+    return new ApiError(status, err.code, err.message ?? humanizeErrorCode(err.code, status), retryAfter, details)
   }
   if (typeof err === 'string') {
     return new ApiError(status, 'error', err)

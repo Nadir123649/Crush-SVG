@@ -26,9 +26,10 @@ export async function POST(request: NextRequest) {
         return errorResponse(400, 'invalid_form_data', 'Could not read the uploaded image', undefined, request)
     }
 
-    if (!(file instanceof File)) {
+    if (!file || typeof file === 'string' || !(file instanceof Blob)) {
         return errorResponse(400, 'no_file', 'No file provided', undefined, request)
     }
+    const fileBlob = file as Blob
 
     const extensionByType: Record<string, string> = {
         'image/jpeg': 'jpg',
@@ -37,21 +38,21 @@ export async function POST(request: NextRequest) {
         'image/gif': 'gif',
         'image/avif': 'avif',
     }
-    const extension = extensionByType[file.type]
+    const extension = extensionByType[fileBlob.type]
     if (!extension) {
         return errorResponse(400, 'invalid_type', 'File must be an image', undefined, request)
     }
 
-    if (file.size === 0) {
+    if (fileBlob.size === 0) {
         return errorResponse(400, 'empty_file', 'The selected image is empty', undefined, request)
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (fileBlob.size > 5 * 1024 * 1024) {
         return errorResponse(400, 'file_too_large', 'Image must be less than 5MB', undefined, request)
     }
 
     try {
-        const buffer = Buffer.from(await file.arrayBuffer())
+        const buffer = Buffer.from(await fileBlob.arrayBuffer())
         const connection = await connectToDatabase()
         if (!connection.db) throw new Error('MongoDB database connection is unavailable')
 

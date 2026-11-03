@@ -156,11 +156,16 @@ export function ContactUsClient() {
               placeholder={t("messagePlaceholder")}
               required
               minLength={10}
-              maxLength={2000}
+              maxLength={5000}
               aria-required="true"
               rows={5}
               className={`w-full rounded-[8px] border-[1px] ${isMessageInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent p-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors resize-none overflow-y-auto`}
             ></textarea>
+            <div className="flex justify-end">
+              <span className={`text-[11px] font-afacad ${message.length > 4800 ? "text-[#EF4444]" : "text-[#94A3B8]"}`}>
+                {message.length} / 5,000
+              </span>
+            </div>
             {isMessageInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
                 {tContact("messageMinError")}

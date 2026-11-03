@@ -179,6 +179,7 @@ export function SvgToCodeUI() {
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false);
+  const [previewTab, setPreviewTab] = useState<"visual" | "code">("visual");
 
   const [usage, setUsage] = useState<UsageInfo | null>(null);
 
@@ -472,6 +473,18 @@ export function SvgToCodeUI() {
 
 
 
+  async function handleCopyCode() {
+    if (!generatedCode) return;
+    try {
+      await navigator.clipboard.writeText(generatedCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", tDownload("copied"));
+    } catch {
+      showToast("error", t("copyFailed"));
+    }
+  }
+
   async function handleDownload() {
 
     if (!generatedCode || isDownloading) return;
@@ -618,9 +631,9 @@ export function SvgToCodeUI() {
 
   function handleClearSvg() {
 
-    setSvgInput(SAMPLE_SVGS.rocket.svg);
+    setSvgInput("");
 
-    setComponentName(SAMPLE_SVGS.rocket.name);
+    setComponentName("");
 
   }
 
@@ -916,11 +929,30 @@ export function SvgToCodeUI() {
 
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
 
-                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-
-                  {t("livePreview")}
-
-                </h2>
+                <div className="flex items-center gap-[6px]">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("visual")}
+                    className={`font-heading font-semibold text-[13px] md:text-[14px] px-2.5 py-1 rounded-[6px] transition-colors cursor-pointer ${
+                      previewTab === "visual"
+                        ? "bg-brand-primary text-white shadow-xs"
+                        : "text-[#475569] hover:text-brand-primary bg-[#FAF6F3] border border-[#E8DED7]"
+                    }`}
+                  >
+                    {t("livePreview")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("code")}
+                    className={`font-heading font-semibold text-[13px] md:text-[14px] px-2.5 py-1 rounded-[6px] transition-colors cursor-pointer ${
+                      previewTab === "code"
+                        ? "bg-brand-primary text-white shadow-xs"
+                        : "text-[#475569] hover:text-brand-primary bg-[#FAF6F3] border border-[#E8DED7]"
+                    }`}
+                  >
+                    Code Preview
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-[6px]">
 
@@ -936,40 +968,47 @@ export function SvgToCodeUI() {
 
 
 
-              {/* Live Vector Visual Preview Box */}
+              {/* Live Vector Visual / Code Preview Box */}
 
               <div
 
-                className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
+                className={`w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden ${
+                  previewTab === "visual" ? "bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]" : "bg-[#FAF8F6] p-3 md:p-4"
+                }`}
 
-                style={{
-
-                  backgroundImage:
-
-                    "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
-
-                  backgroundSize: "16px 16px",
-
-                  backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
-
-                }}
+                style={
+                  previewTab === "visual"
+                    ? {
+                        backgroundImage:
+                          "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
+                        backgroundSize: "16px 16px",
+                        backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                      }
+                    : undefined
+                }
 
               >
 
-                {cleanSvgMarkup ? (
+                {previewTab === "visual" ? (
+                  cleanSvgMarkup ? (
 
-                  <div
+                    <div
 
-                    className="w-full h-full flex items-center justify-center p-2 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto drop-shadow-sm z-10"
+                      className="w-full h-full flex items-center justify-center p-2 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto drop-shadow-sm z-10"
 
-                    dangerouslySetInnerHTML={{ __html: cleanSvgMarkup }}
+                      dangerouslySetInnerHTML={{ __html: cleanSvgMarkup }}
 
-                  />
+                    />
 
+                  ) : (
+
+                    <div className="text-text-muted text-[14px] text-center">No preview available</div>
+
+                  )
                 ) : (
-
-                  <div className="text-text-muted text-[14px] text-center">No preview available</div>
-
+                  <pre className="w-full h-full overflow-auto text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre select-all brand-scrollbar z-10">
+                    <code>{generatedCode || "// No component code generated yet."}</code>
+                  </pre>
                 )}
 
               </div>
@@ -1158,9 +1197,9 @@ export function SvgToCodeUI() {
 
                       type="button"
 
-                      onClick={handleCopyImage}
+                      onClick={handleCopyCode}
 
-                      disabled={!cleanSvgMarkup || !dims.width || !dims.height}
+                      disabled={!generatedCode}
 
                       className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1.5"
 
@@ -1174,7 +1213,7 @@ export function SvgToCodeUI() {
 
                       </svg>
 
-                      {copiedCode ? t("copied") : tDownload("copyImage")}
+                      {copiedCode ? t("copied") : "Copy Code"}
 
                     </button>
 

@@ -161,7 +161,7 @@ export function SvgOptimizerUI() {
   }
 
   function handleClear() {
-    setSvgCode(SAMPLE_OPTIMIZE_SVG);
+    setSvgCode("");
     setFileName("optimized.svg");
     setPrecision(2);
     setStripComments(true);
@@ -213,7 +213,7 @@ export function SvgOptimizerUI() {
               </div>
 
               {/* SVG Code Box */}
-              <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
+              <div className={`relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border ${!isValid && svgCode ? "border-amber-500 focus-within:border-amber-500" : "border-[#8F8F8F] focus-within:border-brand-primary"} bg-[#FFFFFF] overflow-hidden transition-colors`}>
                 <textarea
                   id="optimizer-svg-textarea"
                   value={svgCode}
@@ -227,7 +227,7 @@ export function SvgOptimizerUI() {
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  disabled={!svgCode}
+                  disabled={!isValid || !svgCode}
                   aria-label={copiedCode ? t("copied") : t("copyCode")}
                   title={copiedCode ? t("copied") : t("copyCode")}
                   className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
@@ -238,6 +238,11 @@ export function SvgOptimizerUI() {
                   </svg>
                 </button>
               </div>
+              {!isValid && svgCode && (
+                <p className="font-body text-xs text-amber-600 mt-1.5 font-medium flex items-center gap-1">
+                  <span>Invalid SVG code. Please provide valid SVG markup starting with &lt;svg&gt;.</span>
+                </p>
+              )}
 
               <input
                 ref={fileInputRef}
@@ -309,15 +314,15 @@ export function SvgOptimizerUI() {
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                     Invalid SVG
                   </span>
-                ) : optimization.bytesSaved > 0 ? (
+                ) : isValid && optimization.bytesSaved > 0 ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {t("savingsBadge", { percent: optimization.percentSaved })}
                   </span>
-                ) : (
+                ) : isValid ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-[#64748B] bg-[#F1F5F9] px-2.5 py-0.5 rounded-full border border-[#E2E8F0]">
                     Already Minified
                   </span>
-                )}
+                ) : null}
               </div>
 
               {/* Live Preview Box */}
@@ -412,7 +417,7 @@ export function SvgOptimizerUI() {
                       {t("statOriginal")}
                     </span>
                     <span className="font-mono text-[13px] md:text-[15px] font-bold text-text-dark mt-[2px]">
-                      {formatBytes(optimization.originalBytes)}
+                      {isValid ? formatBytes(optimization.originalBytes) : "—"}
                     </span>
                   </div>
                   <div className="flex flex-col p-[8px] md:p-[10px] bg-white rounded-[10px] border border-[#8F8F8F] text-center">
@@ -425,24 +430,24 @@ export function SvgOptimizerUI() {
                   </div>
                   <div
                     className={`flex flex-col p-[8px] md:p-[10px] rounded-[10px] border text-center ${
-                      optimization.bytesSaved > 0
+                      isValid && optimization.bytesSaved > 0
                         ? "bg-emerald-50 border-emerald-200"
                         : "bg-[#F8FAFC] border-[#E2E8F0]"
                     }`}
                   >
                     <span
                       className={`text-[10px] md:text-[11px] uppercase tracking-wider font-heading font-semibold ${
-                        optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
+                        isValid && optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
                       }`}
                     >
                       {t("statSavings")}
                     </span>
                     <span
                       className={`font-mono text-[13px] md:text-[15px] font-bold mt-[2px] ${
-                        optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
+                        isValid && optimization.bytesSaved > 0 ? "text-emerald-700" : "text-[#64748B]"
                       }`}
                     >
-                      {optimization.bytesSaved > 0 ? `-${optimization.percentSaved}%` : "0%"}
+                      {isValid && optimization.bytesSaved > 0 ? `-${optimization.percentSaved}%` : "—"}
                     </span>
                   </div>
                 </div>
