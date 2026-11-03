@@ -123,8 +123,7 @@
     "sourceSizeUnknown": "Tamaño original: desconocido — define width/height o viewBox en tu SVG",
     "dragDrop": "Arrastra y suelta tu archivo aquí, o",
     "browse": "explora",
-    "supportedFormats": "Admite SVG, PNG, JPG, WebP — Máx 10MB",
-    "sizeControlsHelper": "Elige el ancho y alto de salida o ajusta la escala. El tamaño máximo es de 8192 píxeles por lado."
+    "supportedFormats": "Admite SVG, PNG, JPG, WebP — Máx 10MB"
   },
   "conversion_states": {
     "converting": "Convirtiendo...",
@@ -197,7 +196,7 @@
   "usage": {
     "conversionsLeft": "{count} Conversiones Gratuitas Restantes",
     "lastFreeConversion": "Última Conversión Gratuita",
-    "signUpForFree": "Regístrate Gratis",
+    "signUpForFree": "Regístrate para conversiones ilimitadas",
     "loginRequired": "Has usado tus 3 conversiones gratuitas. Inicia sesi?n para continuar.",
     "unlimitedConversions": "Conversiones Ilimitadas",
     "conversionsUsed": "Se han usado {used} de {total} conversiones gratis"
@@ -376,7 +375,6 @@
     "resizerDesignersLink": "Redimensionar recursos de diseño",
     "resizerMarketersDesc": "Redimensiona rápidamente los visuales de campaña para adaptarlos a cada ubicación publicitaria y formato de redes sociales sin herramientas de diseño.",
     "resizerMarketersLink": "Redimensionar para campañas",
-    "rasterTitle": "Diseñado para quienes crean y publican",
     "websiteAssetsTitle": "Recursos para sitios web y aplicaciones",
     "websiteAssetsDesc": "Exporta ilustraciones SVG como PNG cuando un sitio web, una aplicación o un formulario de carga requiere una imagen rasterizada. Elige las dimensiones adecuadas para su ubicación.",
     "emailAssetsTitle": "Firmas de correo y boletines",
@@ -384,7 +382,8 @@
     "transparentAssetsTitle": "Logotipos e iconos transparentes",
     "transparentAssetsDesc": "Conserva las áreas transparentes alrededor de la ilustración para usarla sobre distintos fondos. Revisa el resultado sobre fondos claros y oscuros.",
     "largeExportsTitle": "Exportaciones de mayor tamaño",
-    "largeExportsDesc": "Elige un tamaño de salida mayor para presentaciones y otros usos que necesiten más píxeles, dentro del límite de 8192 píxeles por lado."
+    "largeExportsDesc": "Elige un tamaño de salida mayor para presentaciones y otros usos que necesiten más píxeles, dentro del límite de 8192 píxeles por lado.",
+    "homepageSvgTitle": "Diseñado para personas que lanzan."
   },
   "FAQ": {
     "react": [
@@ -961,7 +960,12 @@
     "titleLine1": "Empieza gratis hoy.",
     "titleLine2": "Sin tarjeta de crédito",
     "titleRequired": "necesaria.",
-    "usedAllTitle": "Has usado tus {total} conversiones gratis"
+    "usedAllTitle": "Has usado tus {total} conversiones gratis",
+    "homeTitleLine1": "Empieza con 3 conversiones",
+    "homeTitleLine2": "SVG gratis",
+    "homeSubtitle": "Convierte hasta {count} archivos SVG sin crear una cuenta. Si necesitas más conversiones, regístrate gratis en CrushSVG y continúa con tu siguiente archivo.",
+    "homeCtaSubtitle": "Crea una cuenta gratuita para seguir convirtiendo.",
+    "homeSignUp": "Crear una cuenta gratis"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "Tres sencillos pasos.",
@@ -1017,7 +1021,9 @@
     "accountCreatedSuccess": "¡Cuenta creada! Revisa tu correo para verificar tu cuenta.",
     "somethingWentWrong": "Algo salió mal. Por favor inténtalo de nuevo.",
     "resendLinkSuccess": "Correo de verificación reenviado con éxito.",
-    "couldNotResend": "No se pudo reenviar el correo de verificación."
+    "couldNotResend": "No se pudo reenviar el correo de verificación.",
+    "fileLoaded": "SVG subido con éxito",
+    "imageCopied": "Imagen copiada al portapapeles"
   },
   "bg_remover": {
     "downloadButton": "Descargar PNG",

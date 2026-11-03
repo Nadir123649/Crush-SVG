@@ -123,8 +123,7 @@
     "sourceSizeUnknown": "Quellgröße: unbekannt — Breite/Höhe oder viewBox im SVG festlegen",
     "dragDrop": "Datei hierher ziehen oder",
     "browse": "durchsuchen",
-    "supportedFormats": "Unterstützt SVG, PNG, JPG, WebP — Max 10MB",
-    "sizeControlsHelper": "Lege die Ausgabehöhe und -breite fest oder passe die Skalierung an. Die maximale Größe beträgt 8192 Pixel pro Seite."
+    "supportedFormats": "Unterstützt SVG, PNG, JPG, WebP — Max 10MB"
   },
   "conversion_states": {
     "converting": "Konvertierung läuft...",
@@ -197,7 +196,7 @@
   "usage": {
     "conversionsLeft": "Noch {count} kostenlose Konvertierungen",
     "lastFreeConversion": "Letzte kostenlose Konvertierung",
-    "signUpForFree": "Kostenlos registrieren",
+    "signUpForFree": "Registrieren für unbegrenzte Konvertierungen",
     "loginRequired": "Du hast deine 3 kostenlosen Konvertierungen genutzt. Melde dich an, um fortzufahren.",
     "unlimitedConversions": "Unbegrenzte Konvertierungen",
     "conversionsUsed": "{used} von {total} kostenlosen Konvertierungen verwendet"
@@ -376,7 +375,6 @@
     "resizerDesignersLink": "Design-Assets skalieren",
     "resizerMarketersDesc": "Kampagnen-Visuals schnell an jedes Anzeigenformat und Social-Media-Format anpassen – ohne Design-Tools.",
     "resizerMarketersLink": "Für Kampagnen skalieren",
-    "rasterTitle": "Für alle, die digitale Inhalte erstellen und veröffentlichen",
     "websiteAssetsTitle": "Website- und App-Grafiken",
     "websiteAssetsDesc": "Exportiere SVG-Grafiken als PNG, wenn eine Website, App oder ein Upload-Formular ein Rasterbild benötigt. Wähle passende Abmessungen für den vorgesehenen Platz.",
     "emailAssetsTitle": "E-Mail-Signaturen und Newsletter",
@@ -384,7 +382,8 @@
     "transparentAssetsTitle": "Transparente Logos und Symbole",
     "transparentAssetsDesc": "Erhalte transparente Bereiche rund um dein Motiv, damit du es auf verschiedenen Hintergründen verwenden kannst. Prüfe das Ergebnis auf hellen und dunklen Flächen.",
     "largeExportsTitle": "Größere Bildexporte",
-    "largeExportsDesc": "Wähle für Präsentationen und andere Anwendungen mit höherem Pixelbedarf eine größere Ausgabegröße, bis maximal 8192 Pixel pro Seite."
+    "largeExportsDesc": "Wähle für Präsentationen und andere Anwendungen mit höherem Pixelbedarf eine größere Ausgabegröße, bis maximal 8192 Pixel pro Seite.",
+    "homepageSvgTitle": "Gemacht für Leute, die liefern."
   },
   "FAQ": {
     "react": [
@@ -961,7 +960,12 @@
     "titleLine1": "Starten Sie heute kostenlos.",
     "titleLine2": "Keine Kreditkarte",
     "titleRequired": "erforderlich.",
-    "usedAllTitle": "Sie haben alle {total} kostenlosen Konvertierungen aufgebraucht"
+    "usedAllTitle": "Sie haben alle {total} kostenlosen Konvertierungen aufgebraucht",
+    "homeTitleLine1": "Starte mit 3 kostenlosen",
+    "homeTitleLine2": "SVG-Konvertierungen",
+    "homeSubtitle": "Konvertiere bis zu {count} SVG-Dateien ohne Konto. Wenn du mehr brauchst, erstelle ein kostenloses CrushSVG-Konto und fahre mit deiner nächsten Datei fort.",
+    "homeCtaSubtitle": "Erstelle ein kostenloses Konto, um weiterzukonvertieren.",
+    "homeSignUp": "Kostenloses Konto erstellen"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "Drei einfache Schritte.",
@@ -1017,7 +1021,9 @@
     "accountCreatedSuccess": "Konto erstellt! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.",
     "somethingWentWrong": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
     "resendLinkSuccess": "Bestätigungs-E-Mail erfolgreich erneut gesendet.",
-    "couldNotResend": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden."
+    "couldNotResend": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden.",
+    "fileLoaded": "SVG erfolgreich hochgeladen",
+    "imageCopied": "Bild in die Zwischenablage kopiert"
   },
   "bg_remover": {
     "downloadButton": "PNG herunterladen",

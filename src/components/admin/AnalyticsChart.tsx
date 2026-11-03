@@ -122,7 +122,7 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
                 </div>
 
                 {/* X-Axis Label */}
-                <span className="absolute -bottom-1 translate-y-full text-[#9ca3af] text-[10px] sm:text-xs whitespace-nowrap">
+                <span className={`absolute -bottom-1 translate-y-full text-[#9ca3af] text-[10px] sm:text-xs whitespace-nowrap ${i % 2 !== 0 ? 'hidden sm:inline-block' : 'inline-block'}`}>
                   {chartLabels[i]}
                 </span>
               </div>

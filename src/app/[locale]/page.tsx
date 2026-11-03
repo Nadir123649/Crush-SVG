@@ -44,10 +44,10 @@ export default async function Home({
 
   return (
     <div className="w-full min-w-0 max-w-full flex flex-col items-center">
-      <Hero />
+      <Hero subtitle={locale === "en" ? tHome("heroSubtitle") : undefined} />
       <ConverterUI />
       <Features />
-      <SignUpCTA />
+      <SignUpCTA homepage={locale === "en"} />
 
       {/* Background Remover CTA */}
       <section className="w-full flex justify-center mb-[60px] md:mb-[100px]">

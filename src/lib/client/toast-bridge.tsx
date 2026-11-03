@@ -58,10 +58,12 @@ export function showToast(kind: ToastKind, message: string, opts?: { id?: string
     toast.dismiss(activeToastId)
   }
 
-  const options =
-    opts?.id !== undefined || opts?.duration !== undefined
-      ? { id: opts?.id, duration: opts?.duration }
-      : undefined
+  const duration = opts?.duration ?? (kind === "error" ? 5000 : 3500)
+
+  const options = {
+    id: opts?.id,
+    duration,
+  }
 
   const id =
     kind === "success"
@@ -75,6 +77,10 @@ export function showToast(kind: ToastKind, message: string, opts?: { id?: string
   activeToastId = id
   lastMessage = message
   lastShownAt = now
+
+  setTimeout(() => {
+    toast.dismiss(id)
+  }, duration + 100)
 }
 
 export function defaultToastEmitter(kind: ToastKind, message: string) {

@@ -47,15 +47,24 @@ export function VerificationModal({
           {t("title")}
         </h2>
 
-        <div className="flex items-center justify-center">
-          <Image
-            src={isSuccess ? IMAGES.verification : IMAGES.lock}
-            alt=""
-            width={isSuccess ? 206 : 96}
-            height={isSuccess ? 98 : 96}
-            className="object-contain"
-            style={{ width: "auto", height: "auto" }}
-          />
+        <div className="flex items-center justify-center my-2">
+          {isSuccess ? (
+            <Image
+              src={IMAGES.verification}
+              alt=""
+              width={206}
+              height={98}
+              className="object-contain"
+              style={{ width: "auto", height: "auto" }}
+            />
+          ) : (
+            <div className="w-[88px] h-[88px] rounded-full bg-[#FFE3DA] flex items-center justify-center shadow-inner">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D94A1E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#D94A1E" fillOpacity="0.15"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+          )}
         </div>
 
         {/* Text Body */}

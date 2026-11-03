@@ -5,7 +5,7 @@ import { Link } from "@/i18n/routing";
 export const metadata: Metadata = {
   title: "Offline | CrushSVG",
   description: "You are currently browsing CrushSVG in offline mode.",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: true },
 };
 
 export default function OfflinePage() {

@@ -106,7 +106,7 @@ export function ContactUsClient() {
       <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px]" aria-describedby={submitError ? "contact-submit-error" : undefined}>
+        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]" aria-describedby={submitError ? "contact-submit-error" : undefined}>
           {submitError && <p id="contact-submit-error" role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>}
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="contact-name" className="font-afacad text-[14px] font-semibold text-brand-primary">{t("nameLabel")}</label>
@@ -156,11 +156,16 @@ export function ContactUsClient() {
               placeholder={t("messagePlaceholder")}
               required
               minLength={10}
-              maxLength={2000}
+              maxLength={5000}
               aria-required="true"
               rows={5}
               className={`w-full rounded-[8px] border-[1px] ${isMessageInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent p-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors resize-none overflow-y-auto`}
             ></textarea>
+            <div className="flex justify-end">
+              <span className={`text-[11px] font-afacad ${message.length > 4800 ? "text-[#EF4444]" : "text-[#94A3B8]"}`}>
+                {message.length} / 5,000
+              </span>
+            </div>
             {isMessageInvalid && (
               <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
                 {tContact("messageMinError")}
@@ -179,7 +184,7 @@ export function ContactUsClient() {
 
         <div className="w-full flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
           <span className="font-afacad text-[16px] text-text-muted">{tContact("orEmailUs")}</span>
-          <a href="mailto:support@crushsvg.net" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
+          <a href="mailto:team@thenevon.com" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
             support@crushsvg.net
           </a>
         </div>

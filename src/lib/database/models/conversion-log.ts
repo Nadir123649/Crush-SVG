@@ -24,6 +24,9 @@ const conversionLogSchema = new Schema({
     createdAt: { type: Date, default: Date.now, index: true },
 });
 
+conversionLogSchema.index({ success: 1, createdAt: -1 });
+conversionLogSchema.index({ success: 1, inputFormat: 1 });
+
 declare global {
     var __crushSvgConversionLogModel: Model<ConversionLogDoc> | undefined;
 }

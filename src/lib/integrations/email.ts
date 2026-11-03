@@ -60,9 +60,9 @@ export async function sendEmail(to: string, subject: string, html: string, optio
     return;
   }
 
-  if (transport === "none") {
+  if (transport === "none" && !env.RESEND_API_KEY && !env.SMTP_HOST) {
     if (env.NODE_ENV === "development") {
-      console.log(`[email:dev] to=${to} subject="${subject}" — no SMTP/Resend configured, skipping`);
+      console.log(`[email:dev] to=${to} subject="${subject}" - no SMTP/Resend configured, skipping`);
       return;
     }
     throw new Error(
@@ -70,36 +70,75 @@ export async function sendEmail(to: string, subject: string, html: string, optio
     );
   }
 
-  if (transport === "resend") {
-    if (from.includes("@resend.dev") && process.env.NODE_ENV === "production") {
-      console.warn(
-        `[email] WARNING: sending from the unverified Resend shared domain "${from}" — delivery will be slow/unreliable. Verify a custom domain in Resend and set RESEND_FROM (e.g. "CrushSVG <no-reply@yourdomain.com>").`
-      );
+  let resendError: Error | null = null;
+  if (transport === "resend" || env.RESEND_API_KEY) {
+    try {
+      let resendFrom = from;
+      if (resendFrom.includes("@gmail.com") || resendFrom.includes("@yahoo.com")) {
+        resendFrom = env.RESEND_FROM || DEFAULT_FROM;
+      }
+      const resend = new Resend(env.RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: resendFrom,
+        to,
+        subject,
+        html,
+        ...(options.replyTo ? { replyTo: options.replyTo } : {}),
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      logSend("resend_send", `id=${data?.id}`);
+      return;
+    } catch (err: any) {
+      resendError = err instanceof Error ? err : new Error(String(err));
+      logSend("resend_failed", `error=${resendError.message}`);
+      if (!env.SMTP_HOST) {
+        throw new Error(`Resend send failed: ${resendError.message}`);
+      }
+      console.warn(`[email] Resend failed, automatically falling back to SMTP: ${resendError.message}`);
     }
-    const resend = new Resend(env.RESEND_API_KEY);
-    const { error } = await resend.emails.send({ from, to, subject, html, ...(options.replyTo ? { replyTo: options.replyTo } : {}) });
-    logSend("resend_send", error ? `error=${error.message}` : "");
-    if (error) throw new Error(`Resend send failed: ${error.message}`);
-    return;
   }
-  if (transport === "smtp") {
+
+  if (transport === "smtp" || env.SMTP_HOST) {
+    let smtpFrom = from;
+    if (env.SMTP_USER && (smtpFrom.includes("onboarding@resend.dev") || !smtpFrom.includes("@"))) {
+      smtpFrom = `CrushSVG <${env.SMTP_USER}>`;
+    }
     const transporter = nodemailer.createTransport(smtpTransportOptions(env));
-    const mail = { from, to, subject, html, ...(options.replyTo ? { replyTo: options.replyTo } : {}) };
+    const mail = { from: smtpFrom, to, subject, html, ...(options.replyTo ? { replyTo: options.replyTo } : {}) };
     try {
       await transporter.sendMail(mail);
       logSend("smtp_send");
+      return;
     } catch (firstErr) {
+      const port = Number(env.SMTP_PORT ?? 587);
+      if (port === 587) {
+        try {
+          const secureTransporter = nodemailer.createTransport({
+            ...smtpTransportOptions(env),
+            port: 465,
+            secure: true,
+          });
+          await secureTransporter.sendMail(mail);
+          logSend("smtp_send_fallback_port_465");
+          return;
+        } catch {
+          // ignore port 465 fallback error, continue to retry
+        }
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
         await transporter.sendMail(mail);
         logSend("smtp_send_after_retry");
+        return;
       } catch {
         logSend("smtp_send_failed");
-        throw firstErr;
+        throw resendError || firstErr;
       }
     }
-    return;
   }
+
   throw new Error(
     "Email is not configured: set RESEND_API_KEY (preferred) or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS"
   );

@@ -29,13 +29,28 @@ export async function GET(request: NextRequest) {
   if (status === 'success') filter.success = true
   else if (status === 'failed') filter.success = false
 
+  const tzOffset = parseInt(searchParams.get('tzOffset') ?? '0', 10)
+  const tzMs = Number.isFinite(tzOffset) ? tzOffset * 60_000 : 0
+
   if (startDate || endDate) {
     filter.createdAt = {}
-    if (startDate) filter.createdAt.$gte = new Date(startDate)
+    if (startDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+        const [y, m, d] = startDate.split('-').map(Number)
+        filter.createdAt.$gte = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0) + tzMs)
+      } else {
+        filter.createdAt.$gte = new Date(startDate)
+      }
+    }
     if (endDate) {
-      const end = new Date(endDate)
-      end.setHours(23, 59, 59, 999)
-      filter.createdAt.$lte = end
+      if (/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+        const [y, m, d] = endDate.split('-').map(Number)
+        filter.createdAt.$lte = new Date(Date.UTC(y, m - 1, d, 23, 59, 59, 999) + tzMs)
+      } else {
+        const end = new Date(endDate)
+        end.setHours(23, 59, 59, 999)
+        filter.createdAt.$lte = end
+      }
     }
   }
 

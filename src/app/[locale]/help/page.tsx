@@ -41,7 +41,7 @@ export default async function HelpPage({
       {/* Header Section */}
       <Hero
         badge={t("badge")}
-        title={<>{t("title").split(" ")[0]} <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">{t("title").split(" ").slice(1).join(" ") || "FAQ"}</span></>}
+        title={<>{t("title").split(" ")[0]} <span className="text-brand-primary">{t("title").split(" ").slice(1).join(" ") || "FAQ"}</span></>}
         subtitle={<>{t("subtitle")} <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">technical guides</Link>, or contact <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.</>}
         className="mb-[24px] md:mb-[40px]"
       />
@@ -99,9 +99,15 @@ export default async function HelpPage({
       </div>
 
       {/* Contact Section */}
-      <div className="w-full max-w-[890px] mt-[20px] mb-[40px] flex flex-col items-center bg-white rounded-[16px] p-[32px] md:p-[48px] border border-[#F2EDE8]"
-        style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
+      <div className="w-full max-w-[890px] my-[40px] md:my-[48px] flex flex-col items-center bg-white rounded-[20px] p-[36px] md:p-[52px] border border-[#F2EDE8] shadow-[0_8px_30px_rgba(217,74,30,0.06)] relative overflow-hidden text-center"
       >
+        <div className="w-12 h-12 rounded-full bg-[#FAF4EF] border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-4 shadow-xs">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
         <h2 className="font-heading font-semibold text-[24px] md:text-[32px] text-text-dark mb-[12px]">
           Still have questions?
         </h2>
@@ -111,17 +117,17 @@ export default async function HelpPage({
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Link 
             href="/contact-us"
-            className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity"
+            className="bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity shadow-sm"
           >
             Contact Support Team
           </Link>
           <span className="font-afacad font-medium text-text-muted text-sm">
             or email{" "}
             <a
-              href="mailto:support@crushsvg.net"
-              className="text-brand-primary hover:underline"
+              href="mailto:team@thenevon.com"
+              className="text-brand-primary hover:underline font-semibold"
             >
-              support@crushsvg.net
+              team@thenevon.com
             </a>
           </span>
         </div>

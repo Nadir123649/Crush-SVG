@@ -241,42 +241,69 @@ function VectorDropdown({
                     {opt.desc}
                   </span>
 
-                  {opt.value === "Custom" && onCustomColorChange && customColor && (
+                  {opt.value === "Custom" && onCustomColorChange && customColor && isSelected && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1.5 pt-1.5 border-t border-gray-200/80 px-[10px] py-[6px] flex items-center gap-[5px] bg-[#FAF9F6] flex-wrap shrink-0"
+                      className="mt-[8px] pt-[8px] border-t border-gray-100 flex flex-col gap-[8px]"
+                      style={{ cursor: "default" }}
                     >
-                      {COLOR_PRESETS.map((c) => (
-                        <button
-                          key={c.hex}
-                          type="button"
-                          title={c.name}
-                          onClick={(e) => {
+                      {/* Color presets row */}
+                      <div className="flex items-center gap-[6px] flex-wrap">
+                        {COLOR_PRESETS.map((c) => (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            title={c.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCustomColorChange(c.hex);
+                            }}
+                            className={`w-[20px] h-[20px] rounded-full border-2 transition-transform shrink-0 ${
+                              customColor.toLowerCase() === c.hex.toLowerCase()
+                                ? "border-brand-primary scale-110 ring-2 ring-brand-primary/30"
+                                : "border-gray-200 hover:scale-110 hover:border-gray-400"
+                            }`}
+                            style={{ backgroundColor: c.hex }}
+                          />
+                        ))}
+                      </div>
+                      {/* Color picker + hex input row */}
+                      <div className="flex items-center gap-[8px]">
+                        <label
+                          title="Open color picker"
+                          className="w-[32px] h-[32px] rounded-[6px] border border-gray-300 cursor-pointer overflow-hidden flex items-center justify-center shrink-0 hover:border-brand-primary transition-colors"
+                          style={{ backgroundColor: customColor }}
+                        >
+                          <input
+                            type="color"
+                            value={customColor}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              onCustomColorChange(e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="opacity-0 w-0 h-0 absolute"
+                            aria-label="Pick custom background color"
+                          />
+                        </label>
+                        <input
+                          type="text"
+                          value={customColor}
+                          onChange={(e) => {
                             e.stopPropagation();
-                            onCustomColorChange(c.hex);
+                            onCustomColorChange(e.target.value);
                           }}
-                          className={`w-[14px] h-[14px] rounded-full border border-gray-300 transition-transform shrink-0 ${
-                            customColor.toLowerCase() === c.hex.toLowerCase()
-                              ? "scale-115 ring-2 ring-brand-primary"
-                              : "hover:scale-105"
-                          }`}
-                          style={{ backgroundColor: c.hex }}
+                          onClick={(e) => e.stopPropagation()}
+                          maxLength={7}
+                          placeholder="#FFFFFF"
+                          className="flex-1 h-[32px] px-2 font-mono text-[12px] border border-gray-300 rounded-[6px] outline-none focus:border-brand-primary uppercase"
                         />
-                      ))}
-                      <input
-                        type="color"
-                        value={customColor}
-                        onChange={(e) => onCustomColorChange(e.target.value)}
-                        className="w-[16px] h-[16px] p-0 border-none rounded cursor-pointer shrink-0"
-                        aria-label="Pick custom color"
-                      />
-                      <input
-                        type="text"
-                        value={customColor}
-                        onChange={(e) => onCustomColorChange(e.target.value)}
-                        maxLength={7}
-                        className="w-[50px] h-[20px] px-1 font-mono text-[10px] border border-gray-300 rounded outline-none focus:border-brand-primary uppercase text-center ml-auto"
-                      />
+                        <span
+                          className="w-[32px] h-[32px] rounded-[6px] border border-gray-200 shrink-0"
+                          style={{ backgroundColor: customColor }}
+                          title={`Preview: ${customColor}`}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -845,6 +872,7 @@ export function RasterToSvgConverter() {
       <section
         id="converter"
         className="w-full min-w-0 max-w-full md:max-w-[720px] lg:max-w-[1280px] mx-auto mt-[24px] md:mt-[48px] mb-[60px] md:mb-[100px] scroll-mt-[70px] md:scroll-mt-[96px]"
+        style={{ cursor: "default" }}
       >
         {/* Outer Dashed Border Box */}
         <div className="w-full min-w-0 max-w-full h-auto border-none md:border md:border-dashed md:border-[#8F8F8F] rounded-none md:rounded-[32px] p-0 md:p-[12px] transition-all duration-300">
@@ -981,7 +1009,7 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover/btn:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover/btn:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]`} />
                       <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover/btn:text-white'} transition-colors duration-300 ease-in-out`}>
                         Replace Image
                       </span>
@@ -1243,7 +1271,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text [scrollbar-gutter:stable]">
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-x-hidden overflow-y-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text">
                         {result.svg}
                       </pre>
                     </div>
@@ -1459,7 +1487,7 @@ export function RasterToSvgConverter() {
                               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
-                            {copiedCode ? t("copied") : t("copySvgCode")}
+                            {t("copySvgCode")}
                           </button>
                           <span className="text-[#CBD5E1]">&bull;</span>
                           <button

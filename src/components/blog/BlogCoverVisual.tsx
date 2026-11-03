@@ -42,11 +42,13 @@ export function BlogCoverVisual({
           sizes={isLarge ? "(max-width: 1024px) 100vw, 840px" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
           className="object-contain transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-[12px] left-[12px] bg-white/95 backdrop-blur-sm px-[10px] py-[3px] rounded-full shadow-sm border border-[#EAEAEA] z-10">
-          <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary">
-            {category}
-          </span>
-        </div>
+        {category && category.trim().toLowerCase() !== "general" && (
+          <div className="absolute top-[12px] left-[12px] bg-white/95 backdrop-blur-sm px-[10px] py-[3px] rounded-full shadow-sm border border-[#EAEAEA] z-10">
+            <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary">
+              {category}
+            </span>
+          </div>
+        )}
       </div>
     );
   }
@@ -63,19 +65,25 @@ export function BlogCoverVisual({
       {/* Top Row: Logo Badge + Category Tag */}
       <div className="flex items-center justify-between gap-2 z-10">
         <div className="flex items-center gap-2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full border border-[#EAEAEA] shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-          <div className="w-5 h-5 rounded-[5px] bg-[#D94A1E] flex items-center justify-center text-white text-[10px] font-heading font-black tracking-tight">
-            SVG
-          </div>
+          <Image
+            src="/icon.svg"
+            alt="CrushSVG Logo"
+            width={20}
+            height={20}
+            className="w-5 h-5 object-contain"
+          />
           <span className="font-heading font-bold text-[13px] text-text-dark tracking-tight">
             Crush<span className="text-brand-primary">SVG</span>
           </span>
         </div>
 
-        <div className="bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full border border-[#EAEAEA] shadow-sm">
-          <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary">
-            {category}
-          </span>
-        </div>
+        {category && category.trim().toLowerCase() !== "general" && (
+          <div className="bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full border border-[#EAEAEA] shadow-sm">
+            <span className="font-body text-[11px] md:text-[12px] font-semibold text-brand-primary">
+              {category}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Center Motif: Vector to PNG Graphic */}

@@ -78,12 +78,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     showToast("success", "You've been logged out.", { id: "logout" });
   };
 
-  // Show a lightweight skeleton while auth is resolving to avoid a full-page
-  // loader flash on internal admin route changes.
+  // Seamless loader within admin shell so sidebar and header stay fixed without double-loading flash
   if (status === "loading") {
     return (
-      <div className="w-full min-h-screen bg-[#FFFCFA] flex items-center justify-center">
-        <AdminLoader message="Loading admin panel..." />
+      <div className="w-full min-h-screen bg-[#FFFCFA] font-body text-text-body antialiased flex overflow-hidden">
+        <nav className="hidden md:flex flex-col shrink-0 md:w-[260px] h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between overflow-hidden">
+          <div className="px-6 py-2">
+            <div className="h-[32px] w-[140px] bg-gray-100 rounded-md animate-pulse" />
+          </div>
+        </nav>
+        <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+          <header className="flex justify-between items-center w-full px-6 md:pl-4 md:pr-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
+            <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
+          </header>
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-6">
+            <AdminLoader message="Loading admin panel..." />
+          </div>
+        </main>
       </div>
     );
   }
@@ -126,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           touchStartXRef.current = null;
         }}
         className={`
-        fixed inset-y-0 left-0 z-50 md:z-30
+        fixed inset-y-0 left-0 z-50 md:relative md:inset-auto md:z-0
         flex flex-col shrink-0 ${isDesktopSidebarOpen ? 'w-[260px]' : 'md:w-[72px] w-[260px]'} h-screen pt-3 pb-6 bg-white border-r border-[#F2EDE8] justify-between overflow-hidden
         transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
         ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
@@ -134,16 +145,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       `}>
         <div>
           {/* Header - Fixed height container to prevent any layout shift */}
-          <div className="mb-6 h-[40px] relative">
+          <div 
+            className={`mb-6 h-[40px] relative ${!isDesktopSidebarOpen ? 'cursor-pointer w-full' : ''}`}
+            onClick={!isDesktopSidebarOpen ? () => setIsDesktopSidebarOpen(true) : undefined}
+            title={!isDesktopSidebarOpen ? "Expand sidebar" : undefined}
+          >
             {/* Logo - Always in same position, just fade in/out */}
             <div className={`absolute inset-0 pl-6 pr-12 flex items-center transition-opacity duration-200 ${isDesktopSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:pointer-events-none'}`}>
               <div className="flex items-center gap-2">
                 <Image
-                  src="/icon-512.png"
+                  src="/icon.svg"
                   alt="CrushSVG Logo"
-                  width={512}
-                  height={512}
-                  unoptimized
+                  width={26}
+                  height={26}
                   className="w-[26px] h-[26px] object-contain flex-shrink-0"
                 />
                 <span className="font-heading font-bold text-2xl text-text-dark whitespace-nowrap">
@@ -154,8 +168,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <button
               type="button"
-              className={`group hidden md:flex absolute top-1/2 z-10 h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border-0 bg-[#FFFFFF] shadow-none transition-[background-color,transform] duration-150 ease-out hover:bg-[#FFFFFF] active:scale-95 active:bg-[#FFFFFF] focus-visible:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${isDesktopSidebarOpen ? "right-2" : "left-1/2 -translate-x-1/2"}`}
-              onClick={() => setIsDesktopSidebarOpen(isDesktopSidebarOpen ? false : true)}
+              className={`group flex absolute top-1/2 z-10 h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border-0 bg-[#FFFFFF] shadow-none transition-[background-color,transform] duration-150 ease-out hover:bg-[#FFFFFF] active:scale-95 active:bg-[#FFFFFF] focus-visible:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${isDesktopSidebarOpen ? "right-2" : "left-1/2 -translate-x-1/2"}`}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.innerWidth < 768) {
+                  setIsMobileMenuOpen(false);
+                } else {
+                  setIsDesktopSidebarOpen(!isDesktopSidebarOpen);
+                }
+              }}
               aria-label={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
               aria-expanded={isDesktopSidebarOpen}
               aria-controls="admin-sidebar"
@@ -177,11 +197,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
               ) : (
                 <Image
-                  src="/icon-512.png"
+                  src="/icon.svg"
                   alt=""
-                  width={512}
-                  height={512}
-                  unoptimized
+                  width={24}
+                  height={24}
                   className="h-6 w-6 object-contain"
                 />
               )}
@@ -254,7 +273,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </nav>
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-[margin] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${isDesktopSidebarOpen ? 'md:ml-[260px]' : 'md:ml-[72px]'}`}>
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TopAppBar (Header) */}
         <header className="flex justify-between items-center w-full px-6 md:pl-4 md:pr-10 h-[70px] flex-shrink-0 bg-white border-b border-[#F2EDE8]">
           <div className="flex items-center space-x-4">

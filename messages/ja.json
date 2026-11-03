@@ -123,8 +123,7 @@
     "sourceSizeUnknown": "元のサイズ: 不明 — SVGにwidth/heightまたはviewBoxを設定してください",
     "dragDrop": "ファイルをドラッグ＆ドロップまたは",
     "browse": "ファイルを選択",
-    "supportedFormats": "SVG, PNG, JPG, WebP 対応 — 最大 10MB",
-    "sizeControlsHelper": "出力の幅と高さを選ぶか、倍率を調整してください。最大サイズは各辺8192ピクセルです。"
+    "supportedFormats": "SVG, PNG, JPG, WebP 対応 — 最大 10MB"
   },
   "conversion_states": {
     "converting": "変換中...",
@@ -197,7 +196,7 @@
   "usage": {
     "conversionsLeft": "残り無料変換: {count} 回",
     "lastFreeConversion": "最後の無料変換枠",
-    "signUpForFree": "無料でアカウント登録",
+    "signUpForFree": "無制限の変換にサインアップ",
     "loginRequired": "無料変換を3回使い切りました。続けるにはログインしてください。",
     "unlimitedConversions": "無制限変換",
     "conversionsUsed": "無料変換 {used}/{total} 回使用済み"
@@ -376,7 +375,6 @@
     "resizerDesignersLink": "デザインアセットをリサイズ",
     "resizerMarketersDesc": "デザインツールなしで、キャンペーン用ビジュアルをあらゆる広告枠やSNS形式にすばやくリサイズ。",
     "resizerMarketersLink": "キャンペーン用にリサイズ",
-    "rasterTitle": "デジタルコンテンツを作成して公開する方に",
     "websiteAssetsTitle": "ウェブサイト・アプリ用素材",
     "websiteAssetsDesc": "ウェブサイト、アプリ、アップロードフォームでラスター画像が必要な場合に、SVG作品をPNGとして書き出せます。配置場所に合ったサイズを指定できます。",
     "emailAssetsTitle": "メール署名・ニュースレター",
@@ -384,7 +382,8 @@
     "transparentAssetsTitle": "背景が透明なロゴ・アイコン",
     "transparentAssetsDesc": "作品の周囲の透明部分を保ち、さまざまな背景で使えます。明るい背景と暗い背景の両方で結果を確認してください。",
     "largeExportsTitle": "大きなサイズで書き出し",
-    "largeExportsDesc": "プレゼンテーションなど、より多くのピクセルが必要な用途には大きな出力サイズを選べます。各辺8192ピクセルまで対応します。"
+    "largeExportsDesc": "プレゼンテーションなど、より多くのピクセルが必要な用途には大きな出力サイズを選べます。各辺8192ピクセルまで対応します。",
+    "homepageSvgTitle": "プロダクトを創り届ける人のために。"
   },
   "FAQ": {
     "react": [
@@ -961,7 +960,12 @@
     "titleLine1": "今すぐ無料で始めましょう。",
     "titleLine2": "クレジットカード",
     "titleRequired": "不要。",
-    "usedAllTitle": "{total}回の無料変換をすべて使い切りました"
+    "usedAllTitle": "{total}回の無料変換をすべて使い切りました",
+    "homeTitleLine1": "SVG変換を",
+    "homeTitleLine2": "3回無料でお試し",
+    "homeSubtitle": "アカウントを作成せずにSVGファイルを最大{count}個変換できます。さらに利用する場合は、CrushSVGの無料アカウントを作成して次のファイルを変換できます。",
+    "homeCtaSubtitle": "無料アカウントを作成して変換を続けましょう。",
+    "homeSignUp": "無料アカウントを作成"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "3つの簡単なステップ。",
@@ -1017,7 +1021,9 @@
     "accountCreatedSuccess": "アカウントが作成されました。メールを確認して認証を完了してください。",
     "somethingWentWrong": "問題が発生しました。もう一度お試しください。",
     "resendLinkSuccess": "認証メールを再送しました。",
-    "couldNotResend": "認証メールを再送できませんでした。"
+    "couldNotResend": "認証メールを再送できませんでした。",
+    "fileLoaded": "SVGが正常にアップロードされました",
+    "imageCopied": "画像がクリップボードにコピーされました"
   },
   "bg_remover": {
     "downloadButton": "PNGをダウンロード",

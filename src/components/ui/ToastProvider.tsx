@@ -2,7 +2,7 @@
  
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { Toaster } from "react-hot-toast";
+import { Toaster, ToastBar, toast } from "react-hot-toast";
 import { dismissStaleToastsOnRoute } from "@/lib/client/toast-bridge";
 
 export function ToastProvider() {
@@ -47,6 +47,30 @@ export function ToastProvider() {
           duration: 5000,
         },
       }}
-    />
+    >
+      {(t) => (
+        <ToastBar toast={t}>
+          {({ icon, message }) => (
+            <>
+              {icon}
+              <div className="flex-1">{message}</div>
+              {t.type !== "loading" && (
+                <button
+                  type="button"
+                  onClick={() => toast.dismiss(t.id)}
+                  aria-label="Close"
+                  className="ml-2 inline-flex items-center justify-center rounded p-1 text-gray-400 hover:text-gray-700 transition-colors focus:outline-none"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </>
+          )}
+        </ToastBar>
+      )}
+    </Toaster>
   );
 }

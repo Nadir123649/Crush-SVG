@@ -123,8 +123,7 @@
     "sourceSizeUnknown": "Taille de la source : inconnue — définissez la largeur, la hauteur ou le viewBox de votre SVG",
     "dragDrop": "Glissez-déposez votre fichier ici, ou",
     "browse": "parcourir",
-    "supportedFormats": "Prend en charge SVG, PNG, JPG, WebP — Max 10 Mo",
-    "sizeControlsHelper": "Choisissez la largeur et la hauteur de sortie ou ajustez l’échelle. La taille maximale est de 8192 pixels par côté."
+    "supportedFormats": "Prend en charge SVG, PNG, JPG, WebP — Max 10 Mo"
   },
   "conversion_states": {
     "converting": "Conversion en cours...",
@@ -197,7 +196,7 @@
   "usage": {
     "conversionsLeft": "{count} Conversions Gratuites Restantes",
     "lastFreeConversion": "Dernière Conversion Gratuite",
-    "signUpForFree": "S'inscrire Gratuitement",
+    "signUpForFree": "Inscrivez-vous pour des conversions illimitées",
     "loginRequired": "Vous avez utilis? vos 3 conversions gratuites. Connectez-vous pour continuer.",
     "unlimitedConversions": "Conversions Illimitées",
     "conversionsUsed": "{used} sur {total} conversions gratuites utilisées"
@@ -376,7 +375,6 @@
     "resizerDesignersLink": "Redimensionner les Visuels de Design",
     "resizerMarketersDesc": "Redimensionnez rapidement les visuels de campagne pour chaque emplacement publicitaire et format de réseau social, sans outil de design.",
     "resizerMarketersLink": "Redimensionner pour les Campagnes",
-    "rasterTitle": "Pour les créateurs qui réalisent et publient des projets",
     "websiteAssetsTitle": "Ressources pour sites web et applications",
     "websiteAssetsDesc": "Exportez une illustration SVG en PNG lorsqu’un site web, une application ou un formulaire d’import exige une image matricielle. Choisissez des dimensions adaptées à son emplacement.",
     "emailAssetsTitle": "Signatures e-mail et newsletters",
@@ -384,7 +382,8 @@
     "transparentAssetsTitle": "Logos et icônes transparents",
     "transparentAssetsDesc": "Conservez les zones transparentes autour de l’illustration pour l’utiliser sur différents fonds. Vérifiez le résultat sur des fonds clairs et foncés.",
     "largeExportsTitle": "Images exportées en grand format",
-    "largeExportsDesc": "Choisissez une taille de sortie supérieure pour les présentations et les usages nécessitant davantage de pixels, dans la limite de 8192 pixels par côté."
+    "largeExportsDesc": "Choisissez une taille de sortie supérieure pour les présentations et les usages nécessitant davantage de pixels, dans la limite de 8192 pixels par côté.",
+    "homepageSvgTitle": "Conçu pour ceux qui déploient."
   },
   "FAQ": {
     "react": [
@@ -961,7 +960,12 @@
     "titleLine1": "Commencez gratuitement aujourd’hui.",
     "titleLine2": "Aucune carte bancaire",
     "titleRequired": "nécessaire.",
-    "usedAllTitle": "Vous avez utilisé vos {total} conversions gratuites"
+    "usedAllTitle": "Vous avez utilisé vos {total} conversions gratuites",
+    "homeTitleLine1": "Commencez avec 3",
+    "homeTitleLine2": "conversions SVG gratuites",
+    "homeSubtitle": "Convertissez jusqu’à {count} fichiers SVG sans créer de compte. Pour continuer, créez un compte CrushSVG gratuit et passez au fichier suivant.",
+    "homeCtaSubtitle": "Créez un compte gratuit pour continuer les conversions.",
+    "homeSignUp": "Créer un compte gratuit"
   },
   "steps_section": {
     "headingBgRemoverHighlight": "Trois Étapes Simples.",
@@ -1017,7 +1021,9 @@
     "accountCreatedSuccess": "Compte créé ! Veuillez vérifier vos e-mails pour valider votre compte.",
     "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
     "resendLinkSuccess": "E-mail de vérification renvoyé avec succès.",
-    "couldNotResend": "Impossible de renvoyer l'e-mail de vérification."
+    "couldNotResend": "Impossible de renvoyer l'e-mail de vérification.",
+    "fileLoaded": "SVG téléchargé avec succès",
+    "imageCopied": "Image copiée dans le presse-papiers"
   },
   "bg_remover": {
     "downloadButton": "Télécharger le PNG",

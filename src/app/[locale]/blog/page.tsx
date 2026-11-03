@@ -11,7 +11,7 @@ import { AdBanner } from "@/components/ui/AdBanner";
 import { BLOG_SAMPLE_DATA_ENABLED, SAMPLE_BLOG_POSTS } from "@/lib/blog-sample-data";
 import { calculateReadTime } from "@/lib/shared/read-time";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

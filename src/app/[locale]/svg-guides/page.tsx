@@ -102,7 +102,7 @@ export default async function SvgGuidesPage({
           title={
             <>
               {t("title").split(" ")[0]}{" "}
-              <span className="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+              <span className="text-brand-primary">
                 {t("title").split(" ").slice(1).join(" ") || "Guides"}
               </span>
             </>

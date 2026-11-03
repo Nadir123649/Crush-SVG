@@ -3,7 +3,6 @@
 import React, { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 
 import { Button } from "@/components/ui/Button";
 import { SignupPromptModal } from "@/components/modals/SignupPromptModal";
@@ -32,6 +31,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter";
+import { Link } from "@/i18n/routing";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -52,16 +52,10 @@ function formatMegabytes(chars: number): string {
   return `${(chars / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const SAMPLE_SVG = `<svg width="104" height="104" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="103.276" height="103.257" fill="url(#pattern0_4824_15804)"/>
-<rect x="66.6987" y="47.3262" width="36.5768" height="36.5702" rx="17" fill="#DA582D"/>
-<path d="M90.9871 63.9144L84.9871 57.6113L78.9871 63.9144M84.9871 57.6113L84.4871 73.6113" stroke="white" stroke-width="2" stroke-linecap="round"/>
-<defs>
-<pattern id="pattern0_4824_15804" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_4824_15804" transform="scale(0.0104167 0.0104186)"/>
-</pattern>
-<image id="image0_4824_15804" width="96" height="96" preserveAspectRatio="none" xlink:href="data:image/png;base64,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"/>
-</defs>
+const SAMPLE_SVG = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="80" height="80" rx="15" fill="#DA582D"/>
+  <circle cx="50" cy="50" r="20" fill="#FFFFFF"/>
+  <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
 const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -115,9 +109,9 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 }
 
 function SvgToPngConverter() {
-  const tUpload = useTranslations("upload_interface");
-  const tHome = useTranslations("homepage");
   const locale = useLocale();
+  const tUpload = useTranslations("upload_interface");
+  const tHomepage = useTranslations("homepage");
   const tDownload = useTranslations("download_interface");
   const tStates = useTranslations("conversion_states");
   const tUsage = useTranslations("usage");
@@ -133,6 +127,7 @@ function SvgToPngConverter() {
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
   const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
+  const [scaleSubmitAttempted, setScaleSubmitAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
   const [bgOption, setBgOption] = useState<"Transparent" | "White" | "Black" | "Custom">("White");
   const [customBgColor, setCustomBgColor] = useState("#FFFFFF");
@@ -404,7 +399,7 @@ function SvgToPngConverter() {
   function handleSvgChange(value: string) {
     const hasUnsafeSvg = /<\s*script\b|\bon[a-z]+\s*=|javascript\s*:/i.test(value);
     setSecurityWarning(hasUnsafeSvg);
-    let clean = value;
+    let clean = typeof value === "string" ? value.trim() : value;
     if (clean !== SAMPLE_SVG && clean !== DUMMY_CODE && clean.toLowerCase().includes('<svg')) {
       if (!clean.toLowerCase().includes('xmlns=')) {
         clean = clean.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -430,6 +425,7 @@ function SvgToPngConverter() {
     setIsCustomHeight(false);
     setIsCustomScale(false);
     setScaleValidationAttempted(false);
+    setScaleSubmitAttempted(false);
     setTransparent(false);
     setBgOption("White");
     setCustomBgColor("#FFFFFF");
@@ -437,7 +433,7 @@ function SvgToPngConverter() {
   }
 
   function handleClearSvg() {
-    setSvgCode(SAMPLE_SVG);
+    setSvgCode("");
     setResult(null);
     setError(null);
     setPreviewError(false);
@@ -500,6 +496,7 @@ function SvgToPngConverter() {
     try {
       const text = await file.text();
       handleSvgChange(text.trimEnd());
+      showToast("success", tToast("svgPasted"));
     } catch {
       setError(tToast("fileReadError"));
     }
@@ -515,6 +512,7 @@ function SvgToPngConverter() {
 
   async function handleConvert() {
     setScaleValidationAttempted(true);
+    setScaleSubmitAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
     // (Convert / Re-convert) that lands before the button disables.
     if (convertInFlightRef.current) return;
@@ -731,7 +729,7 @@ function SvgToPngConverter() {
       ]);
       setCopiedImage(true);
       setTimeout(() => setCopiedImage(false), 2000);
-      showToast("success", tToast("svgCopied"));
+      showToast("success", tToast("imageCopied"));
     } catch {
       showToast("error", tToast("copyFailed"));
     }
@@ -777,9 +775,16 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && !isScaleDisabled && isCustomScale && scaleValidationAttempted) {
-    const scale = parseFloat(selectedScale.trim().toLowerCase().replace("x", ""));
-    if (!Number.isFinite(scale) || scale <= 0) {
+  if (!validationError && !isScaleDisabled && isCustomScale) {
+    const trimmed = selectedScale.trim();
+    if (trimmed !== "") {
+      if (scaleValidationAttempted) {
+        const scale = parseFloat(trimmed.toLowerCase().replace("x", ""));
+        if (!Number.isFinite(scale) || scale <= 0) {
+          validationError = tToast("invalidScale");
+        }
+      }
+    } else if (scaleSubmitAttempted) {
       validationError = tToast("invalidScale");
     }
   }
@@ -818,7 +823,7 @@ function SvgToPngConverter() {
             <div className="flex min-w-0 flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
               {/* Left Column (SVG Code) */}
               <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
+                <div className="flex min-w-0 items-center justify-between gap-[10px] mb-[12px] h-[36px]">
                   <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
                     <button
@@ -827,7 +832,7 @@ function SvgToPngConverter() {
                       disabled={converting}
                       aria-label="Clear SVG editor"
                       className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
-                        svgCode !== SAMPLE_SVG
+                        svgCode && svgCode.trim().length > 0 && svgCode !== SAMPLE_SVG
                           ? converting
                             ? "opacity-50 cursor-not-allowed pointer-events-none"
                             : "opacity-100"
@@ -871,14 +876,15 @@ function SvgToPngConverter() {
                     placeholder={DUMMY_CODE}
                     readOnly={isLargeSvg}
                     onPaste={(e) => {
-                      // Let normal-sized pastes behave natively. For huge ones (or when a
-                      // large SVG is loaded and the editor is read-only), take the text
-                      // straight from the clipboard so the browser never has to lay out a
-                      // multi-MB string inside the textarea.
                       const pasted = e.clipboardData.getData("text/plain");
+                      if (pasted && !isValidSvgContent(pasted)) {
+                        e.preventDefault();
+                        showToast("error", "Invalid SVG code identified");
+                        return;
+                      }
                       if (pasted && (isLargeSvg || pasted.length > LARGE_SVG_CHARS)) {
                         e.preventDefault();
-                        handleSvgChange(pasted.trimEnd());
+                        handleSvgChange(pasted.trim());
                         resetDropdowns();
                       }
                     }}
@@ -896,18 +902,6 @@ function SvgToPngConverter() {
                   />
                   <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
                   <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5 z-30">
-                    <button
-                      type="button"
-                      onClick={handlePasteClipboard}
-                      title="Paste from clipboard (Ctrl+V)"
-                      className="bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] px-2 py-1 text-xs font-medium flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      </svg>
-                      <span>Paste</span>
-                    </button>
                     <button
                       type="button"
                       onClick={handleCopySvgCode}
@@ -1007,11 +1001,15 @@ function SvgToPngConverter() {
                     </div>
                   )}
 
-                  <p className="font-body text-[12px] md:text-[14px] text-[#475569] flex items-center justify-start gap-[6px]">
+                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal lg:whitespace-nowrap">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
-                    <span>{locale === "en" ? <>
-                      {tHome("privacyNotice")} <Link href="/privacy-policy" className="text-brand-primary underline underline-offset-2">{tHome("privacyPolicyLink")}</Link>.
-                    </> : tUpload("privateNotice")}</span>
+                    <span>
+                      {locale === "en" ? (
+                        <>
+                          {tHomepage("privacyNotice")} <Link href="/privacy-policy" className="underline">{tHomepage("privacyPolicyLink")}</Link>.
+                        </>
+                      ) : tUpload("privateNotice")}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -1083,7 +1081,7 @@ function SvgToPngConverter() {
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                             openDropdown === "width" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                         >
                           <input
                             id="converter-width-input"
@@ -1145,7 +1143,7 @@ function SvgToPngConverter() {
 
                         {openDropdown === "width" && (
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                               {widthOptions.map((opt: string) => (
                                 <button
                                   type="button"
@@ -1163,7 +1161,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1181,7 +1179,7 @@ function SvgToPngConverter() {
                         <div
                           className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                             openDropdown === "height" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                          } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                         >
                           <input
                             id="converter-height-input"
@@ -1243,7 +1241,7 @@ function SvgToPngConverter() {
 
                         {openDropdown === "height" && (
                           <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                            <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                               {heightOptions.map((opt: string) => (
                                 <button
                                   type="button"
@@ -1261,7 +1259,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1280,7 +1278,7 @@ function SvgToPngConverter() {
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                               openDropdown === "unit" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                           >
                             <div
                               onClick={() => setOpenDropdown(openDropdown === "unit" ? null : "unit")}
@@ -1319,7 +1317,7 @@ function SvgToPngConverter() {
 
                           {openDropdown === "unit" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                              <div role="listbox" className="w-full py-[8px] brand-scrollbar">
+                              <div role="listbox" className="w-full py-[8px] brand-scrollbar flex flex-col">
                                 {["px", "cm"].map((opt) => (
                                   <button
                                     type="button"
@@ -1335,7 +1333,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors"
+                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
                                   >
                                     {opt}
                                   </button>
@@ -1355,7 +1353,7 @@ function SvgToPngConverter() {
                           <div
                             className={`relative w-full h-[48px] md:h-[60px] rounded-[12px] border ${
                               openDropdown === "scale" ? "border-[#D94A1E]" : "border-[#8F8F8F]"
-                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors overflow-hidden`}
+                            } flex items-center justify-between bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors overflow-hidden`}
                           >
                             <input
                               id="scale-multiplier-input"
@@ -1364,7 +1362,14 @@ function SvgToPngConverter() {
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (/^\d*\.?\d*x?$/i.test(value)) {
-                                  setSelectedScale(value);
+                                  // Clamp to max 16x while typing
+                                  const numStr = value.toLowerCase().replace('x', '');
+                                  const num = parseFloat(numStr);
+                                  if (!isNaN(num) && num > 16) {
+                                    setSelectedScale('16x');
+                                  } else {
+                                    setSelectedScale(value);
+                                  }
                                   setIsCustomScale(true);
                                   resetConversion();
                                 }
@@ -1374,6 +1379,15 @@ function SvgToPngConverter() {
                                 // should not count as leaving an empty custom value.
                                 if (!scaleRef.current?.contains(event.relatedTarget as Node | null)) {
                                   setScaleValidationAttempted(true);
+                                  // Auto-append 'x' suffix when leaving the field
+                                  if (isCustomScale && selectedScale) {
+                                    const trimmed = selectedScale.trim().toLowerCase().replace('x', '');
+                                    const num = parseFloat(trimmed);
+                                    if (!isNaN(num) && num > 0) {
+                                      const clamped = Math.min(num, 16);
+                                      setSelectedScale(`${clamped}x`);
+                                    }
+                                  }
                                 }
                               }}
                               onFocus={(event) => {
@@ -1384,7 +1398,8 @@ function SvgToPngConverter() {
                               }}
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
-                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                              title="Enter a custom scale factor (e.g. 3x) or select from dropdown"
+                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis cursor-text"
                             />
                             <button
                               type="button"
@@ -1417,7 +1432,7 @@ function SvgToPngConverter() {
 
                           {openDropdown === "scale" && (
                             <div className="absolute top-[80px] md:top-[90px] left-0 w-full max-h-[200px] bg-white border border-[#8F8F8F] rounded-[12px] shadow-lg z-10 overflow-hidden flex flex-col">
-                              <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar">
+                              <div role="listbox" className="w-full max-h-[198px] overflow-y-auto py-[8px] brand-scrollbar flex flex-col">
                                 {SCALE_OPTIONS.map((opt: string) => {
                                   // e.g. 16x on a 300px SVG would render 4800px: not selectable.
                                   const exceedsCap =
@@ -1436,15 +1451,17 @@ function SvgToPngConverter() {
                                         setIsCustomScale(true);
                                         setSelectedScale("");
                                         setScaleValidationAttempted(false);
+                                        setScaleSubmitAttempted(false);
                                       } else {
                                         setIsCustomScale(false);
                                         setSelectedScale(opt);
                                         setScaleValidationAttempted(false);
+                                        setScaleSubmitAttempted(false);
                                       }
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-gray-100 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                   >
                                     {opt}
                                   </button>
@@ -1457,16 +1474,10 @@ function SvgToPngConverter() {
                       )}
                     </div>
 
-                    {locale === "en" && (
-                      <p className="mt-2 font-body text-[12px] leading-5 text-[#64748B]">
-                        {tUpload("sizeControlsHelper")}
-                      </p>
-                    )}
-
                     {/* Transparent Background Box */}
                     <label
                       htmlFor="transparent-bg-toggle"
-                      className="w-full min-w-0 min-h-[48px] md:min-h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex flex-wrap items-center justify-between gap-[8px] cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] transition-colors"
+                      className="w-full min-w-0 min-h-[48px] md:min-h-[60px] rounded-[12px] border border-[#8F8F8F] mt-[12px] md:mt-[16px] px-[12px] md:px-[16px] flex flex-wrap items-center justify-between gap-[8px] cursor-pointer hover:bg-gray-50 bg-transparent md:bg-white focus-within:border-[#D94A1E] focus-within:ring-0 focus:outline-none outline-none select-none transition-colors"
                     >
                       <span className="font-body font-normal text-[14px] md:text-[20px] leading-[18.67px] text-[#353A3E]">
                         {tDownload("transparent")} {tDownload("background")}

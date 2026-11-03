@@ -164,9 +164,9 @@ export function SvgToCodeUI() {
 
 
 
-  const [svgInput, setSvgInput] = useState<string>(SAMPLE_SVGS.rocket.svg);
+  const [svgInput, setSvgInput] = useState<string>("");
 
-  const [componentName, setComponentName] = useState<string>("RocketIcon");
+  const [componentName, setComponentName] = useState<string>("");
 
   const [activeTab, setActiveTab] = useState<TargetFramework>("react-tsx");
 
@@ -179,6 +179,7 @@ export function SvgToCodeUI() {
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
   const [copiedDataUri, setCopiedDataUri] = useState<boolean>(false);
+  const [previewTab, setPreviewTab] = useState<"visual" | "code">("code");
 
   const [usage, setUsage] = useState<UsageInfo | null>(null);
 
@@ -290,6 +291,8 @@ export function SvgToCodeUI() {
 
     if (!svgInput.trim()) return "";
 
+    if (!isValid) return "";
+
     try {
 
       return generateSvgCode(svgInput, activeTab, options);
@@ -300,7 +303,7 @@ export function SvgToCodeUI() {
 
     }
 
-  }, [svgInput, activeTab, options]);
+  }, [svgInput, activeTab, options, isValid]);
 
 
 
@@ -472,6 +475,18 @@ export function SvgToCodeUI() {
 
 
 
+  async function handleCopyCode() {
+    if (!generatedCode) return;
+    try {
+      await navigator.clipboard.writeText(generatedCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", tDownload("copied"));
+    } catch {
+      showToast("error", t("copyFailed"));
+    }
+  }
+
   async function handleDownload() {
 
     if (!generatedCode || isDownloading) return;
@@ -618,9 +633,9 @@ export function SvgToCodeUI() {
 
   function handleClearSvg() {
 
-    setSvgInput(SAMPLE_SVGS.rocket.svg);
+    setSvgInput("");
 
-    setComponentName(SAMPLE_SVGS.rocket.name);
+    setComponentName("");
 
   }
 
@@ -668,6 +683,7 @@ export function SvgToCodeUI() {
 
                 <div className="flex items-center gap-[10px]">
 
+                  {svgInput && svgInput.trim().length > 0 && (
                   <button
 
                     type="button"
@@ -707,6 +723,7 @@ export function SvgToCodeUI() {
                     </span>
 
                   </button>
+                  )}
 
                   <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
 
@@ -732,6 +749,13 @@ export function SvgToCodeUI() {
 
 
 
+              {/* Invalid SVG warning */}
+              {svgInput && svgInput.trim().length > 0 && !isValid && (
+                <p className="text-amber-600 text-[12px] font-body mt-[-8px] mb-[4px] flex items-center gap-1" role="alert">
+                  <span>⚠</span> Invalid SVG code identified
+                </p>
+              )}
+
               {/* SVG Code Textarea Box */}
 
               <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
@@ -750,7 +774,7 @@ export function SvgToCodeUI() {
 
                   aria-label="SVG input code"
 
-                  className="w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto overscroll-contain brand-scrollbar"
+                  className={`w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overscroll-contain ${svgInput && svgInput.trim() ? "overflow-auto brand-scrollbar" : "overflow-hidden"}`}
 
                 />
 
@@ -916,11 +940,30 @@ export function SvgToCodeUI() {
 
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
 
-                <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
-
-                  {t("livePreview")}
-
-                </h2>
+                <div className="flex items-center gap-[6px]">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("visual")}
+                    className={`font-heading font-semibold text-[13px] md:text-[14px] px-2.5 py-1 rounded-[6px] transition-colors cursor-pointer ${
+                      previewTab === "visual"
+                        ? "bg-brand-primary text-white shadow-xs"
+                        : "text-[#475569] hover:text-brand-primary bg-[#FAF6F3] border border-[#E8DED7]"
+                    }`}
+                  >
+                    {t("livePreview")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("code")}
+                    className={`font-heading font-semibold text-[13px] md:text-[14px] px-2.5 py-1 rounded-[6px] transition-colors cursor-pointer ${
+                      previewTab === "code"
+                        ? "bg-brand-primary text-white shadow-xs"
+                        : "text-[#475569] hover:text-brand-primary bg-[#FAF6F3] border border-[#E8DED7]"
+                    }`}
+                  >
+                    Code Preview
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-[6px]">
 
@@ -936,40 +979,62 @@ export function SvgToCodeUI() {
 
 
 
-              {/* Live Vector Visual Preview Box */}
+              {/* Live Vector Visual / Code Preview Box */}
 
               <div
 
-                className="w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]"
+                className={`w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden ${
+                  previewTab === "visual" ? "bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]" : "bg-[#FAF8F6] p-3 md:p-4"
+                }`}
 
-                style={{
-
-                  backgroundImage:
-
-                    "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
-
-                  backgroundSize: "16px 16px",
-
-                  backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
-
-                }}
+                style={
+                  previewTab === "visual"
+                    ? {
+                        backgroundImage:
+                          "linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%)",
+                        backgroundSize: "16px 16px",
+                        backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                      }
+                    : undefined
+                }
 
               >
 
-                {cleanSvgMarkup ? (
+                {previewTab === "visual" ? (
+                  cleanSvgMarkup ? (
 
-                  <div
+                    <div
 
-                    className="w-full h-full flex items-center justify-center p-2 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto drop-shadow-sm z-10"
+                      className="w-full h-full flex items-center justify-center p-2 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto drop-shadow-sm z-10"
 
-                    dangerouslySetInnerHTML={{ __html: cleanSvgMarkup }}
+                      dangerouslySetInnerHTML={{ __html: cleanSvgMarkup }}
 
-                  />
+                    />
 
+                  ) : (
+
+                    <div className="text-text-muted text-[14px] text-center">No preview available</div>
+
+                  )
                 ) : (
-
-                  <div className="text-text-muted text-[14px] text-center">No preview available</div>
-
+                  <div className="relative w-full h-full">
+                    <pre className={`w-full h-full text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre-wrap break-all select-all z-10 ${generatedCode ? "overflow-auto brand-scrollbar" : "overflow-hidden"}`}>
+                      <code>{generatedCode || "// No component code generated yet."}</code>
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={handleCopyCode}
+                      disabled={!generatedCode}
+                      aria-label="Copy Code"
+                      title="Copy Code"
+                      className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 )}
 
               </div>
@@ -986,7 +1051,7 @@ export function SvgToCodeUI() {
 
                   {/* Framework Pill Tabs */}
 
-                  <div role="group" aria-label="Conversion formats" className="flex w-full min-w-0 max-w-full items-center gap-[6px] overflow-x-auto overflow-y-hidden overscroll-x-contain pb-[2px] brand-scrollbar">
+                  <div role="group" aria-label="Conversion formats" className="flex w-full min-w-0 max-w-full items-center gap-[6px] overflow-x-auto overflow-y-hidden overscroll-x-contain pb-[2px] scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                     {FRAMEWORK_TABS.map((tab) => (
 
@@ -1150,35 +1215,7 @@ export function SvgToCodeUI() {
 
 
 
-                  {/* Secondary Copy Image Button */}
 
-                  <div className="flex items-center gap-[16px] mt-[2px]">
-
-                    <button
-
-                      type="button"
-
-                      onClick={handleCopyImage}
-
-                      disabled={!cleanSvgMarkup || !dims.width || !dims.height}
-
-                      className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1.5"
-
-                    >
-
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-
-                      </svg>
-
-                      {copiedCode ? t("copied") : tDownload("copyImage")}
-
-                    </button>
-
-                  </div>
 
                 </div>
 

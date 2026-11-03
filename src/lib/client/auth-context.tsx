@@ -88,8 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     setStatus((prevStatus) => {
       if (prevStatus === 'guest' && typeof window !== 'undefined') {
+        // Clear all guest converter state so uploaded images from a guest
+        // session are never transferred into the newly-logged-in account.
         sessionStorage.removeItem('crush_converter_state')
         sessionStorage.removeItem('crush_vectorizer_state')
+        sessionStorage.removeItem('crush_vectorizer_image')
       }
       return 'authed'
     })

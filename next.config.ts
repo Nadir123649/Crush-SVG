@@ -37,6 +37,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  trailingSlash: false,
   serverExternalPackages: [
     "@visioncortex/vtracer",
     "sharp",
@@ -76,6 +77,18 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
+        source: "/api/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, follow" },
+        ],
+      },
+      {
+        source: "/admin/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, follow" },
+        ],
+      },
+      {
         source: "/(sitemap\\.xml|robots\\.txt|llms\\.txt|llms-full\\.txt|68434d213b77fa63ae8ffaa76729dcee\\.txt)",
         headers: [
           {
@@ -97,6 +110,28 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.crushsvg.net',
+          },
+        ],
+        destination: 'https://crushsvg.net/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.crushsvg.com',
+          },
+        ],
+        destination: 'https://crushsvg.com/:path*',
+        permanent: true,
+      },
       {
         source: '/svg-to-png',
         destination: '/',

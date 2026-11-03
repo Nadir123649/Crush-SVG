@@ -1036,7 +1036,7 @@ export function BackgroundRemover() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]`} />
                       <span className={`relative z-10 text-[#D94A1E] ${processing ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
                         {t("ui.clear")}
                       </span>
@@ -1121,7 +1121,7 @@ export function BackgroundRemover() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <div className={`absolute inset-0 z-0 opacity-0 ${processing ? '' : 'group-hover:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]`} />
                       <span className={`relative z-10 text-[#D94A1E] ${processing ? '' : 'group-hover:text-white'} transition-colors duration-300 ease-in-out`}>
                         Replace Image
                       </span>

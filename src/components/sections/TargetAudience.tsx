@@ -174,7 +174,7 @@ export function TargetAudience({ mode = "svg-to-png" }: { mode?: "svg-to-png" | 
     <section className="w-full flex flex-col items-center mb-[60px] md:mb-[100px] mt-[20px] md:mt-[30px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark mb-[30px] md:mb-[60px]">
-        {renderTargetAudienceTitle(mode === "raster-to-svg" ? t("rasterTitle") : t("svgTitle"))}
+        {mode === "svg-to-png" && locale === "en" ? t("homepageSvgTitle") : renderTargetAudienceTitle(t("svgTitle"))}
       </h2>
 
       {/* Cards Container */}

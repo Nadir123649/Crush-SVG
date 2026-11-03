@@ -24,10 +24,7 @@ export async function GET(request: NextRequest) {
       rawRecentConversions,
       conversionsLast10Days
     ] = await Promise.all([
-      User.aggregate([
-        { $match: VALID_USER_FILTER },
-        { $count: "total" }
-      ]).then(r => r[0]?.total ?? 0).catch(() => 0),
+      User.countDocuments(VALID_USER_FILTER).catch(() => 0),
       ConversionLog.aggregate([
         { $match: { success: true } },
         {
@@ -46,9 +43,30 @@ export async function GET(request: NextRequest) {
             }
           }
         }
-      ]).then(r => r[0] ?? { total: 0, raster: 0, svg: 0 }).catch(() => ({ total: 0, raster: 0, svg: 0 })),
-      AuditLog.find().sort({ createdAt: -1 }).limit(10).lean(),
-      ConversionLog.find().sort({ createdAt: -1 }).limit(5).populate('userId', 'uid email displayName photoURL').lean(),
+      ]).hint({ success: 1, inputFormat: 1 }).then(r => r[0] ?? { total: 0, raster: 0, svg: 0 }).catch(async () => {
+        const r = await ConversionLog.aggregate([
+          { $match: { success: true } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              raster: {
+                $sum: {
+                  $cond: [{ $in: ["$inputFormat", ["png", "jpg", "jpeg", "webp"]] }, 1, 0]
+                }
+              },
+              svg: {
+                $sum: {
+                  $cond: [{ $eq: ["$inputFormat", "svg"] }, 1, 0]
+                }
+              }
+            }
+          }
+        ]).catch(() => []);
+        return r[0] ?? { total: 0, raster: 0, svg: 0 };
+      }),
+      AuditLog.find().sort({ createdAt: -1 }).limit(10).lean().catch(() => []),
+      ConversionLog.find().sort({ createdAt: -1 }).limit(5).lean().catch(() => []),
       ConversionLog.aggregate([
         { $match: { success: true, createdAt: { $gte: tenDaysAgo } } },
         { $group: {
@@ -56,20 +74,28 @@ export async function GET(request: NextRequest) {
             count: { $sum: 1 }
         }},
         { $sort: { _id: 1 } }
-      ])
+      ]).catch(() => [])
     ]);
 
     const totalConversions = (conversionTotals as any)?.total ?? 0;
     const rasterConversions = (conversionTotals as any)?.raster ?? 0;
     const svgConversions = (conversionTotals as any)?.svg ?? 0;
 
-    const recentConversions = rawRecentConversions.map((c: any) => {
-      const obj = c.toObject ? c.toObject() : { ...c, _id: c._id?.toString() };
-      return {
-        ...obj,
-        _id: obj._id?.toString() || '',
-      };
-    });
+    // Resolve user details for recent conversions cleanly without unindexed populate
+    const userIds = (rawRecentConversions as any[]).map((c) => c.userId).filter(Boolean);
+    const userMap = new Map<string, any>();
+    if (userIds.length > 0) {
+      try {
+        const users = await User.find({ uid: { $in: userIds } }, { uid: 1, email: 1, displayName: 1, photoURL: 1 }).lean();
+        users.forEach((u: any) => userMap.set(u.uid, u));
+      } catch {}
+    }
+
+    const recentConversions = (rawRecentConversions as any[]).map((c: any) => ({
+      ...c,
+      _id: c._id?.toString() || '',
+      userId: userMap.get(c.userId) || c.userId || 'Guest',
+    }));
 
     return successResponse({
       totalUsers,

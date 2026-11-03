@@ -9,7 +9,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { ApiError, authFetch } from "@/lib/client/http";
 import { IMAGES } from "@/lib/shared/images";
 import { API_DOCS_PATH } from "@/lib/openapi/constants";
-import { getLocalizedHref, type Locale } from "@/i18n/routing";
+import { Link, getLocalizedHref, type Locale } from "@/i18n/routing";
 import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function ProfileDashboardUI() {
@@ -17,7 +17,48 @@ export function ProfileDashboardUI() {
   const tAuth = useTranslations("auth");
   const tUpload = useTranslations("upload_interface");
   const locale = useLocale() as Locale;
-  const { user, status } = useAuth();
+  const { user, status, updateUser } = useAuth();
+
+  const [displayNameInput, setDisplayNameInput] = useState(user?.displayName || "");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [copiedUid, setCopiedUid] = useState(false);
+
+  React.useEffect(() => {
+    if (user?.displayName) {
+      setDisplayNameInput(user.displayName);
+    }
+  }, [user?.displayName]);
+
+  async function handleUpdateDisplayName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayNameInput.trim() || isUpdatingProfile) return;
+    setIsUpdatingProfile(true);
+    try {
+      const res = await authFetch("/api/v1/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: displayNameInput.trim() }),
+      });
+      if (!res.ok) {
+        showToast("error", "Failed to update profile name.");
+        return;
+      }
+      updateUser?.({ displayName: displayNameInput.trim() });
+      showToast("success", "Profile name updated successfully.");
+    } catch {
+      showToast("error", "Failed to update profile name.");
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  }
+
+  function handleCopyUid() {
+    if (!user?.uid) return;
+    navigator.clipboard.writeText(user.uid);
+    setCopiedUid(true);
+    setTimeout(() => setCopiedUid(false), 2000);
+    showToast("success", "User ID copied to clipboard.");
+  }
 
   const [apiKey, setApiKey] = useState<string | null>(user?.apiKey ?? null);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -328,7 +369,9 @@ curl_close($ch);
           <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
             
             {/* Left Column (API Key Vault & Quota Progress) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full lg:w-[537px] flex flex-col gap-[20px]">
+
+              
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   {t("apiKeySectionTitle")}
@@ -371,13 +414,27 @@ curl_close($ch);
                         <span className="font-heading font-semibold text-[13px] text-text-dark">
                           Secret Token
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowApiKey(!showApiKey)}
-                          className="font-body text-[12px] text-brand-primary hover:underline cursor-pointer"
-                        >
-                          {showApiKey ? t("hideKey") : t("showKey")}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowApiKey(!showApiKey)}
+                            className="font-body text-[12px] text-brand-primary hover:underline cursor-pointer"
+                          >
+                            {showApiKey ? t("hideKey") : t("showKey")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCopyApiKey}
+                            aria-label={copiedKey ? t("copied") : t("copyKey")}
+                            title={copiedKey ? t("copied") : t("copyKey")}
+                            className="bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 flex items-center justify-center shadow-xs cursor-pointer transition-colors"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
 
                       <div className="w-full bg-[#FAF6F3] border border-[#E8DED7] rounded-[10px] p-3 font-mono text-[13px] text-text-dark break-all select-all">
@@ -416,20 +473,7 @@ curl_close($ch);
                   </div>
                 )}
 
-                {apiKey && (
-                  <button
-                    type="button"
-                    onClick={handleCopyApiKey}
-                    aria-label={copiedKey ? t("copied") : t("copyKey")}
-                    title={copiedKey ? t("copied") : t("copyKey")}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 shadow-xs cursor-pointer transition-colors"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                )}
+
               </div>
 
               {/* Monthly Quota & Limits Card (Dashed Box matching Dropzone) */}
@@ -518,7 +562,7 @@ curl_close($ch);
                 <pre className="absolute inset-0 p-3 md:p-4 outline-none border-none bg-transparent font-mono text-[12.5px] leading-[1.6] text-black whitespace-pre overflow-auto brand-scrollbar">
                   {codeSnippets[selectedEndpoint][selectedLang]}
                 </pre>
-                <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+
                 <button
                   type="button"
                   onClick={handleCopySnippet}
@@ -611,7 +655,7 @@ curl_close($ch);
           </div>
 
           {/* Bottom Primary Action Button */}
-          <div className="w-full flex justify-center mt-[30px] md:mt-[40px]">
+          <div className="w-full flex justify-end mt-[30px] md:mt-[40px]">
             {/* Plain <a>: Button's i18n Link would add a locale prefix, and
                 the docs page only exists at the unprefixed path. Classes mirror
                 Button variant="solid". */}

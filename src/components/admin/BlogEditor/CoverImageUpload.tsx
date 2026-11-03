@@ -165,14 +165,28 @@ export function CoverImageUpload({ value, onChange, onDirty }: CoverImageUploadP
                                 className="max-h-48 rounded-[6px] object-contain"
                                 referrerPolicy="no-referrer"
                             />
-                            <button
-                                type="button"
-                                onClick={() => onChange("")}
-                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
-                                title="Remove cover image"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                            </button>
+                            <div className="absolute top-2 right-2 flex gap-1">
+                                <label
+                                    title="Replace cover image"
+                                    className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm cursor-pointer"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                    <input
+                                        type="file"
+                                        accept={ACCEPTED_COVER_IMAGE_TYPES}
+                                        onChange={handleFileSelect}
+                                        className="hidden"
+                                    />
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => onChange("")}
+                                    className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                                    title="Remove cover image"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <label className="flex flex-col items-center gap-2 text-text-muted cursor-pointer">

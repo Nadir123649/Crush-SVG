@@ -353,9 +353,12 @@ export default function UsersPage() {
         setTotalItems((prev) => prev + count);
       }
     } catch (err: any) {
-      const msg = err?.message || "Failed to import CSV. Please verify file format.";
+      let msg = err?.message || "Failed to import CSV. Please verify file format.";
+      if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
+        msg = `${err.details.length} error(s): ${err.details.slice(0, 3).map((d: any) => d.message || d).join("; ")}${err.details.length > 3 ? "..." : ""}`;
+      }
       setError(msg);
-      showToast("error", msg, { id: "import-users" });
+      showToast("error", msg, { id: "import-users", duration: 7000 });
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -398,10 +401,16 @@ export default function UsersPage() {
   };
 
   const nextPage = () => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => prev + 1);
   };
 
   const prevPage = () => {
+    const scrollContainer = document.querySelector(".flex-1.overflow-y-auto") || document.querySelector("main") || window;
+    scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => Math.max(1, prev - 1));
   };
 
@@ -555,6 +564,7 @@ export default function UsersPage() {
                             />
                           </div>
                         </td>
+                        <td className="p-5 font-body text-sm text-text-muted">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
                         <td className="p-5">
                           {isVerified ? (
                             <span className="inline-flex items-center gap-1.5 font-body font-semibold text-sm text-[#059669]">
@@ -568,7 +578,6 @@ export default function UsersPage() {
                             </span>
                           )}
                         </td>
-                        <td className="p-5 font-body text-sm text-text-muted">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
                         <td className="p-5 text-right">
                           <div className="relative inline-block" ref={openMenuUid === u.uid ? menuRef : undefined}>
                             <button

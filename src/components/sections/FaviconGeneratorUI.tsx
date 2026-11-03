@@ -246,7 +246,7 @@ export function FaviconGeneratorUI() {
   }
 
   function handleClear() {
-    setSvgCode(SAMPLE_FAVICON_SVG);
+    setSvgCode("");
     setAppName("My Awesome App");
     setThemeColor("#D94A1E");
     setBackgroundColor("transparent");
