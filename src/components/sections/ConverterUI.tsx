@@ -117,6 +117,7 @@ export function ConverterUI({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "ra
 function SvgToPngConverter() {
   const locale = useLocale();
   const tUpload = useTranslations("upload_interface");
+  const tHomepage = useTranslations("homepage");
   const tDownload = useTranslations("download_interface");
   const tStates = useTranslations("conversion_states");
   const tUsage = useTranslations("usage");
@@ -1011,7 +1012,7 @@ function SvgToPngConverter() {
                     <span>
                       {locale === "en" ? (
                         <>
-                          {tUpload("privacyNotice")} <Link href="/privacy-policy" className="underline">{tUpload("privacyPolicyLink")}</Link>.
+                          {tHomepage("privacyNotice")} <Link href="/privacy-policy" className="underline">{tHomepage("privacyPolicyLink")}</Link>.
                         </>
                       ) : tUpload("privateNotice")}
                     </span>
