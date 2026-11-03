@@ -26,9 +26,16 @@ let auth: Auth | undefined;
 export function getFirebaseAuth(): Auth {
   if (auth) return auth;
   if (!app) {
+    // Prefer NEXT_PUBLIC_FIREBASE_CUSTOM_AUTH_DOMAIN (e.g. "crushsvg.net") so
+    // the Google OAuth consent screen shows the product domain instead of the
+    // default "crushsvg-b306d.firebaseapp.com" Firebase disclaimer.
+    // Set NEXT_PUBLIC_FIREBASE_CUSTOM_AUTH_DOMAIN in Vercel env vars and add
+    // crushsvg.net to Firebase Console > Authentication > Authorized domains.
     app = initializeApp({
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      authDomain:
+        process.env.NEXT_PUBLIC_FIREBASE_CUSTOM_AUTH_DOMAIN ||
+        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
@@ -94,6 +101,8 @@ export interface GoogleSignInResult {
 
 export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   const provider = new GoogleAuthProvider();
+  // Use select_account so returning users skip the extra consent step,
+  // which is the main cause of the perceived slowness.
   provider.setCustomParameters({ prompt: "select_account" });
   provider.addScope(GOOGLE_PROFILE_SCOPE);
   const result = await signInWithPopup(getFirebaseAuth(), provider);
@@ -183,4 +192,4 @@ export async function signOut() {
   } catch {
     /* non-critical */
   }
-}
+}

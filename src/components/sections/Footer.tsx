@@ -25,7 +25,7 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
 
   return (
     <footer className="w-full bg-[#FCF1ED]">
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[40px] md:pt-[60px] pb-[20px] flex flex-col items-center">
+      <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[40px] lg:px-[80px] pt-[20px] md:pt-[32px] pb-[20px] flex flex-col items-center">
         <div className="w-full flex flex-col xl:flex-row justify-between items-center xl:items-start gap-[32px] xl:gap-0">
 
         {/* Left: Logo & Desc */}
