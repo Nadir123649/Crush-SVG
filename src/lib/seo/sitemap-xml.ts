@@ -16,32 +16,8 @@ function formatLastModified(value: Date | string): string {
 
 export function serializeSitemap(entries: MetadataRoute.Sitemap): string {
   const urls = entries.map((entry) => {
-    const languageLinks = Object.entries(entry.alternates?.languages ?? {}).flatMap(
-      ([language, alternate]) => {
-        if (!alternate) return [];
-
-        const urls = Array.isArray(alternate)
-          ? alternate.map(({ url }) => url)
-          : [alternate];
-
-        return urls.flatMap((url) => {
-          const href =
-            typeof url === "string"
-              ? url
-              : url instanceof URL
-                ? url.toString()
-                : null;
-          return href
-            ? [
-                `    <xhtml:link rel="alternate" hreflang="${escapeXml(language)}" href="${escapeXml(href)}" />`,
-              ]
-            : [];
-        });
-      },
-    );
     const fields = [
       `    <loc>${escapeXml(entry.url)}</loc>`,
-      ...languageLinks,
       entry.lastModified
         ? `    <lastmod>${escapeXml(formatLastModified(entry.lastModified))}</lastmod>`
         : null,
@@ -58,7 +34,7 @@ export function serializeSitemap(entries: MetadataRoute.Sitemap): string {
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls,
     "</urlset>",
     "",
