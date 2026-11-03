@@ -519,7 +519,7 @@ curl_close($ch);
                 <pre className="absolute inset-0 p-3 md:p-4 outline-none border-none bg-transparent font-mono text-[12.5px] leading-[1.6] text-black whitespace-pre overflow-auto brand-scrollbar">
                   {codeSnippets[selectedEndpoint][selectedLang]}
                 </pre>
-                <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+
                 <button
                   type="button"
                   onClick={handleCopySnippet}
@@ -612,7 +612,7 @@ curl_close($ch);
           </div>
 
           {/* Bottom Primary Action Button */}
-          <div className="w-full flex justify-center mt-[30px] md:mt-[40px]">
+          <div className="w-full flex justify-end mt-[30px] md:mt-[40px]">
             {/* Plain <a>: Button's i18n Link would add a locale prefix, and
                 the docs page only exists at the unprefixed path. Classes mirror
                 Button variant="solid". */}

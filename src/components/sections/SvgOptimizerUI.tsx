@@ -10,6 +10,11 @@ import { parseSvgDimensions } from "@/lib/svg/svg-dims";
 import { showToast } from "@/lib/client/toast-bridge";
 import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
+import { useAuth } from "@/lib/client/auth-context";
+import { getUsage } from "@/lib/client/sessions";
+import { resolveQuotaDisplay } from "@/lib/client/quota";
+import type { UsageInfo } from "@/lib/shared/shared-types";
+
 
 const SAMPLE_OPTIMIZE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" width="500" height="500" data-name="Layer 1">
   <!-- Generator: Adobe Illustrator 28.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0 -->
@@ -36,6 +41,29 @@ export function SvgOptimizerUI() {
   const t = useTranslations("svg_optimizer_ui");
   const tUpload = useTranslations("upload_interface");
   const tA11y = useTranslations("accessibility");
+  const tUsage = useTranslations("usage");
+  const { status } = useAuth();
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    let cancelled = false;
+    getUsage()
+      .then((u) => { if (!cancelled) setUsage(u); })
+      .catch(() => {});
+    const onUsageUpdated = (e: Event) => {
+      const detail = (e as CustomEvent<UsageInfo>).detail;
+      if (detail) setUsage(detail);
+    };
+    window.addEventListener("crushUsageUpdated", onUsageUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("crushUsageUpdated", onUsageUpdated);
+    };
+  }, [status]);
+
+  const quotaDisplay = resolveQuotaDisplay(usage);
+
 
   const [svgCode, setSvgCode] = useState("");
   const [precision, setPrecision] = useState<number>(2);
@@ -186,6 +214,15 @@ export function SvgOptimizerUI() {
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                 <div className="flex items-center gap-[10px]">
+                  <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
+                    {status === "loading"
+                      ? " "
+                      : quotaDisplay.kind === "unlimited"
+                      ? tUsage("unlimitedConversions")
+                      : quotaDisplay.kind === "counted"
+                      ? tUsage("conversionsUsed", { used: quotaDisplay.used, total: quotaDisplay.total })
+                      : " "}
+                  </span>
                   <button
                     type="button"
                     onClick={handleClear}

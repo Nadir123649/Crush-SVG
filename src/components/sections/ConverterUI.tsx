@@ -501,6 +501,7 @@ function SvgToPngConverter() {
     try {
       const text = await file.text();
       handleSvgChange(text.trimEnd());
+      showToast("success", tToast("svgPasted"));
     } catch {
       setError(tToast("fileReadError"));
     }
@@ -1386,7 +1387,8 @@ function SvgToPngConverter() {
                               }}
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
-                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                              title="Enter a custom scale factor (e.g. 3x) or select from dropdown"
+                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis cursor-text"
                             />
                             <button
                               type="button"

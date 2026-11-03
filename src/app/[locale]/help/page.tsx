@@ -41,7 +41,7 @@ export default async function HelpPage({
       {/* Header Section */}
       <Hero
         badge={t("badge")}
-        title={<>{t("title").split(" ")[0]} <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">{t("title").split(" ").slice(1).join(" ") || "FAQ"}</span></>}
+        title={<>{t("title").split(" ")[0]} <span className="text-brand-primary">{t("title").split(" ").slice(1).join(" ") || "FAQ"}</span></>}
         subtitle={<>{t("subtitle")} <Link href="/svg-guides" className="text-brand-primary hover:underline font-medium">technical guides</Link>, or contact <Link href="/team" className="text-brand-primary hover:underline font-medium">our team</Link> directly.</>}
         className="mb-[24px] md:mb-[40px]"
       />
@@ -117,7 +117,7 @@ export default async function HelpPage({
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Link 
             href="/contact-us"
-            className="bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity shadow-sm"
+            className="bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] py-[12px] px-[32px] rounded-[12px] hover:opacity-90 transition-opacity shadow-sm"
           >
             Contact Support Team
           </Link>

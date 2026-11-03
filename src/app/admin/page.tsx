@@ -233,7 +233,7 @@ export default function AdminDashboard() {
               {recentConversions?.map((conv: any) => (
                 <tr key={conv._id?.toString()} className="border-b border-[#F2EDE8] hover:bg-[#FFFCFA] transition-colors">
                   <td className="p-5 text-text-dark font-medium truncate max-w-[200px]">
-                    {conv.userId?.email || conv.userId || 'Guest'}
+                    {conv.userId?.email || 'Guest'}
                   </td>
                   <td className="p-5 text-text-muted uppercase font-semibold">{conv.inputFormat}</td>
                   <td className="p-5 text-text-muted uppercase font-semibold">{conv.outputFormat}</td>

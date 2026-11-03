@@ -401,10 +401,12 @@ export default function UsersPage() {
   };
 
   const nextPage = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => prev + 1);
   };
 
   const prevPage = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setPage((prev) => Math.max(1, prev - 1));
   };
 

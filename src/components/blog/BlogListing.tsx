@@ -39,7 +39,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
   const gridPosts = showFeaturedSection ? filteredPosts.slice(1) : filteredPosts;
 
   return (
-    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[32px] md:py-[56px] flex flex-col gap-[40px] md:gap-[60px]">
+    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[16px] md:py-[28px] flex flex-col gap-[28px] md:gap-[40px]">
       {/* Search & Category Filter Controls */}
       <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-start gap-[16px] flex-wrap">
         {/* Category Pills */}
@@ -167,14 +167,8 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
 
       {/* Grid of Remaining Posts */}
       <section className="w-full">
-        {gridPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px] md:gap-[28px]">
-            {gridPosts.map((post) => (
-              <BlogCard key={post.slug} blog={post} />
-            ))}
-          </div>
-        ) : (
-          <div className="w-full text-center py-[60px] bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA]">
+        {filteredPosts.length === 0 ? (
+          <div className="w-full text-center py-[36px] md:py-[48px] bg-white rounded-[16px] md:rounded-[24px] border border-[#EAEAEA]">
             <p className="font-heading font-semibold text-[20px] text-text-dark mb-[8px]">
               No matching articles found
             </p>
@@ -192,7 +186,13 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
               Reset Filters
             </button>
           </div>
-        )}
+        ) : gridPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px] md:gap-[28px]">
+            {gridPosts.map((post) => (
+              <BlogCard key={post.slug} blog={post} />
+            ))}
+          </div>
+        ) : null}
       </section>
 
       {/* Bottom Conversion CTA Box (Matching Homepage Style) */}

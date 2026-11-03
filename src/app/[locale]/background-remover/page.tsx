@@ -31,6 +31,21 @@ export async function generateMetadata({
   });
 }
 
+function renderHeroTitle(title: string) {
+  const match = title.match(/(Backgrounds?|Hintergründe?|Arrière-plans?|Fondos?|Fundos?|背景)/i);
+  if (!match) return title;
+  const parts = title.split(match[0]);
+  return (
+    <>
+      {parts[0]}
+      <span className="bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] bg-clip-text text-transparent">
+        {match[0]}
+      </span>
+      {parts.slice(1).join(match[0])}
+    </>
+  );
+}
+
 export default async function BackgroundRemoverPage({
   params,
 }: {
@@ -43,7 +58,7 @@ export default async function BackgroundRemoverPage({
   return (
     <div className="w-full min-w-0 max-w-full flex flex-col items-center">
       <Hero
-        title={tTools("h1")}
+        title={renderHeroTitle(tTools("h1"))}
         subtitle={tTools("subtitle")}
       />
       <BackgroundRemover />

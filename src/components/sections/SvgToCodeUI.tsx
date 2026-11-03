@@ -1025,7 +1025,7 @@ export function SvgToCodeUI() {
 
                   {/* Framework Pill Tabs */}
 
-                  <div role="group" aria-label="Conversion formats" className="flex w-full min-w-0 max-w-full items-center gap-[6px] overflow-x-auto overflow-y-hidden overscroll-x-contain pb-[2px] brand-scrollbar">
+                  <div role="group" aria-label="Conversion formats" className="flex w-full min-w-0 max-w-full items-center gap-[6px] overflow-x-auto overflow-y-hidden overscroll-x-contain pb-[2px] scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                     {FRAMEWORK_TABS.map((tab) => (
 

@@ -140,6 +140,7 @@ export default function ConversionsPage() {
   }, [authStatus, status, startDate, endDate]);
 
   const handlePageChange = (targetPage: number) => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     requestSequence.current.invalidate();
     setPage(targetPage);
     loadConversions(targetPage);

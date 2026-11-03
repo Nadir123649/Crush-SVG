@@ -153,8 +153,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <button
               type="button"
-              className={`group hidden md:flex absolute top-1/2 z-10 h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border-0 bg-[#FFFFFF] shadow-none transition-[background-color,transform] duration-150 ease-out hover:bg-[#FFFFFF] active:scale-95 active:bg-[#FFFFFF] focus-visible:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${isDesktopSidebarOpen ? "right-2" : "left-1/2 -translate-x-1/2"}`}
-              onClick={() => setIsDesktopSidebarOpen(isDesktopSidebarOpen ? false : true)}
+              className={`group flex absolute top-1/2 z-10 h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border-0 bg-[#FFFFFF] shadow-none transition-[background-color,transform] duration-150 ease-out hover:bg-[#FFFFFF] active:scale-95 active:bg-[#FFFFFF] focus-visible:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${isDesktopSidebarOpen ? "right-2" : "left-1/2 -translate-x-1/2"}`}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.innerWidth < 768) {
+                  setIsMobileMenuOpen(false);
+                } else {
+                  setIsDesktopSidebarOpen(!isDesktopSidebarOpen);
+                }
+              }}
               aria-label={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
               aria-expanded={isDesktopSidebarOpen}
               aria-controls="admin-sidebar"

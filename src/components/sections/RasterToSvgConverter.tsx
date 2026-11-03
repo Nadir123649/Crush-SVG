@@ -981,7 +981,7 @@ export function RasterToSvgConverter() {
                           borderRadius: "inherit",
                         }}
                       />
-                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover/btn:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]}`} />
+                      <div className={`absolute inset-0 z-0 opacity-0 ${converting ? '' : 'group-hover/btn:opacity-100'} transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]`} />
                       <span className={`relative z-10 text-[#D94A1E] ${converting ? '' : 'group-hover/btn:text-white'} transition-colors duration-300 ease-in-out`}>
                         Replace Image
                       </span>
@@ -1243,7 +1243,7 @@ export function RasterToSvgConverter() {
                           {copiedCode ? t("copied") : t("copyCode")}
                         </button>
                       </div>
-                      <pre className="flex-1 min-w-0 min-h-0 overflow-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text [scrollbar-gutter:stable]">
+                      <pre className="flex-1 min-w-0 min-h-0 overflow-x-hidden overflow-y-auto font-mono text-[12px] md:text-[13px] leading-[1.5] text-[#4B5563] brand-scrollbar whitespace-pre-wrap break-all select-text">
                         {result.svg}
                       </pre>
                     </div>
