@@ -191,7 +191,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         ref={navContainerRef}
       >
         <div className="w-full max-w-[1440px] mx-auto px-[16px] md:px-[24px] min-[1536px]:px-[80px] pt-[14px] md:pt-[20px] pb-[14px]">
-        <div className="w-full relative flex items-center justify-between min-[1024px]:grid min-[1024px]:grid-cols-[auto_1fr_auto] h-[40px] md:h-[46px]">
+        <div className="w-full relative flex items-center justify-between min-[1024px]:grid min-[1024px]:grid-cols-[1fr_auto_1fr] h-[40px] md:h-[46px]">
           {/* Left: Logo */}
           <Link
             href="/"
@@ -200,10 +200,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             className="flex items-center gap-[8px] md:gap-[10px] group shrink-0 z-10 select-none"
           >
             <Image
-              src={logoUrl || "/icon.svg"}
+              src={logoUrl || "/icon-512.png"}
               alt="CrushSVG Logo"
               width={512}
               height={512}
+              unoptimized
               className="w-[24px] h-[24px] md:w-[30px] md:h-[30px] object-contain transition-transform duration-200 group-hover:scale-105"
             />
 
@@ -472,7 +473,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
-              prefetch={true}
               className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"
@@ -508,7 +508,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </nav>
 
           {/* Right Side: Language Switcher + PWA Install + Auth */}
-          <div className="relative z-20 flex items-center shrink-0 gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1024px]:gap-[8px] min-[1280px]:gap-[12px] min-[1024px]:border-l min-[1024px]:border-[#E8DED7] min-[1024px]:pl-[8px] min-[1280px]:pl-[14px] min-[1024px]:justify-self-end justify-end">
+          <div className="relative z-20 flex items-center gap-[8px] sm:gap-[10px] md:gap-[12px] min-[1024px]:gap-[8px] min-[1280px]:gap-[12px] min-[1024px]:border-l min-[1024px]:border-[#E8DED7] min-[1024px]:pl-[8px] min-[1280px]:pl-[14px] min-[1024px]:justify-self-end justify-end">
             {/* Minimal PWA Install Icon Button with Tooltip (Desktop & Tablet) */}
             <PwaInstallButton variant="icon" className="hidden min-[1024px]:inline-flex" />
 
@@ -522,30 +522,27 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             </div>
 
             {/* Guest actions */}
-            {!(user || status === "authed") && (
-              <div className="logged-out-only hidden min-[1024px]:flex items-center gap-[8px] min-[1280px]:gap-[12px]">
-                <Button
-                  href="/login"
-                  onClick={() => saveAuthRedirectUrl()}
-                  variant="outline"
-                  className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[68px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[110px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] bg-[#FFFFFF] px-[0px]"
-                >
-                  {tAuth("login")}
-                </Button>
+            <div className={`logged-out-only hidden min-[1024px]:flex items-center gap-[8px] min-[1280px]:gap-[12px] ${(user || status === "authed") ? "!hidden" : ""}`}>
+              <Button
+                href="/login"
+                onClick={() => saveAuthRedirectUrl()}
+                variant="outline"
+                className="w-[80px] h-[34px] rounded-[10px] text-[14px] md:w-[110px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[68px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[110px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] bg-[#FFFFFF] px-[0px]"
+              >
+                {tAuth("login")}
+              </Button>
 
-                <Button
-                  href="/signup"
-                  variant="solid"
-                  className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[72px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[115px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] px-[0px]"
-                >
-                  {tAuth("signup")}
-                </Button>
-              </div>
-            )}
+              <Button
+                href="/signup"
+                variant="solid"
+                className="w-[84px] h-[34px] rounded-[10px] text-[14px] md:w-[115px] md:h-[40px] md:rounded-[12px] md:text-[15px] min-[1024px]:w-[72px] min-[1024px]:h-[32px] min-[1024px]:rounded-[9px] min-[1024px]:text-[12px] min-[1280px]:w-[115px] min-[1280px]:h-[40px] min-[1280px]:rounded-[12px] min-[1280px]:text-[15px] px-[0px]"
+              >
+                {tAuth("signup")}
+              </Button>
+            </div>
 
             {/* Authenticated profile menu */}
-            {(user || status === "authed") && (
-              <div className="logged-in-only relative hidden min-[1024px]:block">
+            <div className={`logged-in-only relative hidden min-[1024px]:block ${status === "guest" ? "!hidden" : ""}`}>
               {(isAuthenticated || user) && (
                 <>
               <button
@@ -653,7 +650,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                 </>
               )}
             </div>
-            )}
 
             {/* Mobile Hamburger Button */}
             <div className="min-[1024px]:hidden flex items-center">
@@ -871,30 +867,27 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
           </div>
 
           {/* Mobile guest actions */}
-          {!(user || status === "authed") && (
-            <div className="logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
-              <Button
-                href="/login"
-                variant="outline"
-                className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
-                onClick={() => { saveAuthRedirectUrl(); setMobileMenuOpen(false); }}
-              >
-                {tAuth("login")}
-              </Button>
-              <Button
-                href="/signup"
-                variant="solid"
-                className="w-full h-[40px] rounded-[10px] text-[15px]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {tAuth("signup")}
-              </Button>
-            </div>
-          )}
+          <div className={`logged-out-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${(user || status === "authed") ? "!hidden" : ""}`}>
+            <Button
+              href="/login"
+              variant="outline"
+              className="w-full h-[40px] rounded-[10px] bg-[#FFFFFF] text-[15px]"
+              onClick={() => { saveAuthRedirectUrl(); setMobileMenuOpen(false); }}
+            >
+              {tAuth("login")}
+            </Button>
+            <Button
+              href="/signup"
+              variant="solid"
+              className="w-full h-[40px] rounded-[10px] text-[15px]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {tAuth("signup")}
+            </Button>
+          </div>
 
           {/* Mobile authenticated actions */}
-          {(user || status === "authed") && (
-            <div className="logged-in-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8]">
+          <div className={`logged-in-only flex flex-col gap-2 pt-3 border-t border-[#F2EDE8] ${status === "guest" ? "!hidden" : ""}`}>
             {(isAuthenticated || user) && (
               <>
                 <div className="flex items-center gap-3 px-3 py-2 bg-[#FAF6F3] rounded-[10px]">
@@ -939,7 +932,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               </>
             )}
           </div>
-          )}
           </div>
         </div>
       )}
