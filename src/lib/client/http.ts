@@ -304,11 +304,20 @@ async function executeFetch(url: string, init: RequestInit): Promise<Response> {
 export const SESSION_EXPIRED_MESSAGE = 'Session expired, please log in again.'
 export const SERVER_ERROR_MESSAGE = 'Server error, try again later.'
 
+// Debounce: only emit one "session expired" toast per 30 seconds so rapid
+// parallel requests don't spam the user with multiple error toasts.
+let _lastSessionExpiredToast = 0
+const SESSION_EXPIRED_DEBOUNCE_MS = 30_000
+
 // The single place a dead session is reported: clears auth state and shows one
 // toast. Callers must not add their own toast for code 'session_expired'.
 function throwSessionExpired(): never {
   onAuthExpired?.()
-  emitToast('error', SESSION_EXPIRED_MESSAGE)
+  const now = Date.now()
+  if (now - _lastSessionExpiredToast > SESSION_EXPIRED_DEBOUNCE_MS) {
+    _lastSessionExpiredToast = now
+    emitToast('error', SESSION_EXPIRED_MESSAGE)
+  }
   throw new ApiError(401, 'session_expired', SESSION_EXPIRED_MESSAGE)
 }
 

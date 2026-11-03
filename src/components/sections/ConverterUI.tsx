@@ -634,7 +634,6 @@ function SvgToPngConverter() {
       setResult(res);
       const outputExt = (res.format ?? "png").toUpperCase();
       showToast("success", tToast("conversionComplete", { format: outputExt }));
-      triggerDownload(res);
       if (res.warnings && res.warnings.length > 0) {
         res.warnings.forEach(w => showToast("info", w));
       }

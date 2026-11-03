@@ -635,20 +635,19 @@ export function FaviconGeneratorUI() {
                     {copiedSnippet ? t("snippetCopied") : t("copyHeadTags")}
                   </button>
                 </div>
+                {/* Primary ZIP Download — right-aligned below export buttons */}
+                <div className="flex justify-end mt-[16px]">
+                  <Button
+                    variant="solid"
+                    onClick={handleDownloadZip}
+                    disabled={!packResult || isZipping}
+                    className="h-[44px] md:h-[48px] px-[24px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isZipping ? t("zippingPack") : t("downloadFullPackZip")}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Bottom Primary Action Button */}
-          <div className="w-full flex justify-center mt-[30px] md:mt-[40px]">
-            <Button
-              variant="solid"
-              onClick={handleDownloadZip}
-              disabled={!packResult || isZipping}
-              className="w-full max-w-[300px] h-[44px] md:h-[48px] rounded-[14px] text-[15px] md:text-[16px] font-medium tracking-[0.02em] shadow-[0px_4px_14px_0px_rgba(217,74,30,0.3)] hover:shadow-[0px_6px_20px_0px_rgba(217,74,30,0.4)] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isZipping ? t("zippingPack") : t("downloadFullPackZip")}
-            </Button>
           </div>
         </div>
       </div>
