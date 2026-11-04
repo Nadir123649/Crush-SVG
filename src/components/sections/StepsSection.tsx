@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
-import { getHowToSchema } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 
 export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
@@ -84,48 +83,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     },
   ]);
 
-  const howToTitle = mode === "background-remover" 
-    ? tSection("howToBgRemover") 
-    : mode === "image-resizer" 
-    ? tSection("howToImageResizer") 
-    : mode === "svg-optimizer"
-    ? tSection("howToSvgOptimizer")
-    : mode === "favicon-generator"
-    ? tSection("howToFaviconGenerator")
-    : mode === "svg-to-react"
-    ? "Convert SVG to React Components"
-    : mode === "raster-to-svg" 
-    ? tSection("howToRasterSvg") 
-    : tSection("howToSvgPng");
-
-  const howToDescription = mode === "background-remover"
-    ? tSection("howToBgRemoverDesc")
-    : mode === "image-resizer"
-    ? tSection("howToImageResizerDesc")
-    : mode === "svg-optimizer"
-    ? tSection("howToSvgOptimizerDesc")
-    : mode === "favicon-generator"
-    ? tSection("howToFaviconGeneratorDesc")
-    : mode === "svg-to-react"
-    ? "Upload SVG markup, configure component options, then copy or download a reusable React component."
-    : mode === "raster-to-svg"
-    ? tSection("howToRasterSvgDesc")
-    : tSection("howToSvgPngDesc");
-
-  const schemaSteps = steps.map((s) => ({
-    name: s.title,
-    text: s.description,
-  }));
-
   return (
     <section id="how-it-works" className="w-full min-w-0 flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(getHowToSchema(howToTitle, howToDescription, schemaSteps)),
-        }}
-      />
-
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full min-w-0 max-w-[807px] break-words [overflow-wrap:anywhere]">
         {mode === "background-remover" ? (

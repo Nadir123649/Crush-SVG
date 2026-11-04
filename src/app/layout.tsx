@@ -199,14 +199,6 @@ export default async function RootLayout({
           `}}
         />
 
-        {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
-        <link
-          rel="alternate"
-          type="text/plain"
-          href="/llms.txt"
-          title="LLM Context"
-        />
-
       </head>
 
       <body
