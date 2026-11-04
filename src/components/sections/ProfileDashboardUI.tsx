@@ -9,7 +9,7 @@ import { showToast } from "@/lib/client/toast-bridge";
 import { ApiError, authFetch } from "@/lib/client/http";
 import { IMAGES } from "@/lib/shared/images";
 import { API_DOCS_PATH } from "@/lib/openapi/constants";
-import { getLocalizedHref, type Locale } from "@/i18n/routing";
+import { Link, getLocalizedHref, type Locale } from "@/i18n/routing";
 import { saveAuthRedirectUrl } from "@/lib/client/auth-redirect";
 
 export function ProfileDashboardUI() {
@@ -17,7 +17,48 @@ export function ProfileDashboardUI() {
   const tAuth = useTranslations("auth");
   const tUpload = useTranslations("upload_interface");
   const locale = useLocale() as Locale;
-  const { user, status } = useAuth();
+  const { user, status, updateUser } = useAuth();
+
+  const [displayNameInput, setDisplayNameInput] = useState(user?.displayName || "");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [copiedUid, setCopiedUid] = useState(false);
+
+  React.useEffect(() => {
+    if (user?.displayName) {
+      setDisplayNameInput(user.displayName);
+    }
+  }, [user?.displayName]);
+
+  async function handleUpdateDisplayName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!displayNameInput.trim() || isUpdatingProfile) return;
+    setIsUpdatingProfile(true);
+    try {
+      const res = await authFetch("/api/v1/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: displayNameInput.trim() }),
+      });
+      if (!res.ok) {
+        showToast("error", "Failed to update profile name.");
+        return;
+      }
+      updateUser?.({ displayName: displayNameInput.trim() });
+      showToast("success", "Profile name updated successfully.");
+    } catch {
+      showToast("error", "Failed to update profile name.");
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  }
+
+  function handleCopyUid() {
+    if (!user?.uid) return;
+    navigator.clipboard.writeText(user.uid);
+    setCopiedUid(true);
+    setTimeout(() => setCopiedUid(false), 2000);
+    showToast("success", "User ID copied to clipboard.");
+  }
 
   const [apiKey, setApiKey] = useState<string | null>(user?.apiKey ?? null);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -328,7 +369,86 @@ curl_close($ch);
           <div className="flex flex-col lg:flex-row lg:items-start justify-center w-full gap-[24px] md:gap-[30px]">
             
             {/* Left Column (API Key Vault & Quota Progress) */}
-            <div className="w-full lg:w-[537px] flex flex-col">
+            <div className="w-full lg:w-[537px] flex flex-col gap-[20px]">
+
+              {/* Account Profile Card */}
+              <div className="w-full rounded-[16px] border border-[#E8DED7] bg-[#FFFCFA] p-[16px] md:p-[20px] shadow-xs flex flex-col gap-[14px]">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-heading font-semibold text-[16px] text-text-dark">
+                    Account Profile
+                  </h2>
+                  <Link
+                    href="/forgot-password"
+                    className="font-body text-[12px] font-medium text-brand-primary hover:underline"
+                  >
+                    Change / Forgot Password
+                  </Link>
+                </div>
+
+                <div className="flex items-center gap-[14px]">
+                  {user?.photoURL ? (
+                    <Image
+                      src={user.photoURL}
+                      alt="Profile"
+                      width={48}
+                      height={48}
+                      className="w-[48px] h-[48px] rounded-full object-cover border border-[#E8DED7]"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-[48px] h-[48px] rounded-full bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-heading font-bold text-[18px] flex items-center justify-center shadow-xs shrink-0">
+                      {(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="font-heading font-semibold text-[15px] text-text-dark truncate">
+                      {user?.displayName || "CrushSVG User"}
+                    </span>
+                    <span className="font-body text-[12px] text-text-muted truncate">
+                      {user?.email || "No email on file"}
+                    </span>
+                    {user?.uid && (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-mono text-[11px] text-[#94A3B8] truncate">
+                          UID: {user.uid}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleCopyUid}
+                          title="Copy User ID"
+                          className="text-[#94A3B8] hover:text-brand-primary p-0.5 rounded cursor-pointer transition-colors"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Edit Display Name Form */}
+                <form onSubmit={handleUpdateDisplayName} className="flex items-center gap-[8px] pt-[8px] border-t border-[#F2EDE8]">
+                  <input
+                    type="text"
+                    value={displayNameInput}
+                    onChange={(e) => setDisplayNameInput(e.target.value)}
+                    placeholder="Enter display name"
+                    maxLength={50}
+                    className="flex-1 h-[36px] px-[12px] rounded-[8px] border border-[#E8DED7] bg-white font-body text-[13px] text-text-dark focus:outline-none focus:border-brand-primary"
+                  />
+                  <Button
+                    type="submit"
+                    variant="solid"
+                    disabled={isUpdatingProfile || !displayNameInput.trim() || displayNameInput.trim() === user?.displayName}
+                    className="h-[36px] px-[14px] rounded-[8px] text-[13px] font-semibold shrink-0"
+                  >
+                    {isUpdatingProfile ? "Saving..." : "Save Name"}
+                  </Button>
+                </form>
+              </div>
               <div className="flex items-center justify-between mb-[12px] h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">
                   {t("apiKeySectionTitle")}

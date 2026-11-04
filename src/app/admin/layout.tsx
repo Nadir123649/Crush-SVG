@@ -134,7 +134,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       `}>
         <div>
           {/* Header - Fixed height container to prevent any layout shift */}
-          <div className="mb-6 h-[40px] relative">
+          <div 
+            className={`mb-6 h-[40px] relative ${!isDesktopSidebarOpen ? 'cursor-pointer w-full' : ''}`}
+            onClick={!isDesktopSidebarOpen ? () => setIsDesktopSidebarOpen(true) : undefined}
+            title={!isDesktopSidebarOpen ? "Expand sidebar" : undefined}
+          >
             {/* Logo - Always in same position, just fade in/out */}
             <div className={`absolute inset-0 pl-6 pr-12 flex items-center transition-opacity duration-200 ${isDesktopSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:pointer-events-none'}`}>
               <div className="flex items-center gap-2">

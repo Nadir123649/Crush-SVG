@@ -472,6 +472,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             {/* 4. Blog */}
             <Link
               href="/blog"
+              prefetch={true}
               className={`shrink-0 px-[10px] min-[1024px]:px-[6px] min-[1280px]:px-[10px] py-[7px] rounded-[8px] font-body font-semibold text-[14px] min-[1024px]:text-[13px] min-[1280px]:text-[14px] leading-[18.67px] tracking-[0.01em] transition-all select-none whitespace-nowrap text-center ${
                 pathname.startsWith("/blog")
                   ? "bg-white text-brand-primary font-bold shadow-[0_1px_4px_rgba(32,36,39,0.06)]"

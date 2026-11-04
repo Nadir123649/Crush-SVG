@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useEffect, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { AppLoader } from "@/components/ui/AppLoader";
 
 interface LoadingContextValue {
@@ -12,6 +12,14 @@ const LoadingContext = createContext<LoadingContextValue | null>(null);
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
   const [activeLoads, setActiveLoads] = useState(0);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setActiveLoads(0);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   const beginLoading = useCallback(() => {
     setActiveLoads((count) => count + 1);

@@ -48,7 +48,11 @@ interface BlogPost {
 }
 
 async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  const doc = await Blog.findOne({ slug, published: true })
+  const decodedSlug = decodeURIComponent(slug);
+  const doc = await Blog.findOne({
+    $or: [{ slug }, { slug: decodedSlug }, { slug: decodedSlug.toLowerCase() }],
+    published: true,
+  })
     .populate("authorId", "displayName")
     .lean();
 

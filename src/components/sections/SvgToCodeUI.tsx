@@ -1006,9 +1006,24 @@ export function SvgToCodeUI() {
 
                   )
                 ) : (
-                  <pre className="w-full h-full overflow-auto text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre select-all brand-scrollbar z-10">
-                    <code>{generatedCode || "// No component code generated yet."}</code>
-                  </pre>
+                  <div className="relative w-full h-full">
+                    <pre className="w-full h-full overflow-auto text-left font-mono text-[11px] md:text-[13px] text-gray-800 bg-white border border-[#E8DED7] rounded-[10px] p-3 md:p-4 whitespace-pre select-all brand-scrollbar z-10">
+                      <code>{generatedCode || "// No component code generated yet."}</code>
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={handleCopyCode}
+                      disabled={!generatedCode}
+                      aria-label="Copy Code"
+                      title="Copy Code"
+                      className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 )}
 
               </div>
@@ -1189,35 +1204,7 @@ export function SvgToCodeUI() {
 
 
 
-                  {/* Secondary Copy Image Button */}
 
-                  <div className="flex items-center gap-[16px] mt-[2px]">
-
-                    <button
-
-                      type="button"
-
-                      onClick={handleCopyCode}
-
-                      disabled={!generatedCode}
-
-                      className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1.5"
-
-                    >
-
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-
-                      </svg>
-
-                      {copiedCode ? t("copied") : "Copy Code"}
-
-                    </button>
-
-                  </div>
 
                 </div>
 
