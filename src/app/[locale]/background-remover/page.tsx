@@ -38,7 +38,7 @@ function renderHeroTitle(title: string) {
   return (
     <>
       {parts[0]}
-      <span className="text-brand-primary">
+      <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">
         {match[0]}
       </span>
       {parts.slice(1).join(match[0])}
