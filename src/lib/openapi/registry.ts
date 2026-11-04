@@ -828,7 +828,7 @@ registry.registerPath({
 });
 
 registry.registerPath({
-  method: "put",
+  method: "patch",
   path: "/api/v1/admin/settings",
   tags: ["Admin"],
   summary: "Update site settings (admin)",
