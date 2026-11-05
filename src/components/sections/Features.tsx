@@ -24,9 +24,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
   const locale = useLocale();
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const svgPngDescription = mode === "svg-to-png" && locale === "en"
-    ? "SVG is useful for scalable graphics, but some upload forms and publishing workflows require a PNG.SVG is useful for scalable graphics, but some upload forms and publishing workflows require a PNG. CrushSVG lets you turn an SVG logo, icon, or illustration into a raster image with the dimensions and background you need."
-    : t("svgDesc");
+  const svgPngDescription = t("svgDesc");
 
   useEffect(() => {
     setMounted(true);
@@ -40,8 +38,8 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         <h2 className={`w-full min-w-0 max-w-full break-words [overflow-wrap:anywhere] font-heading text-[24px] leading-[30px] tracking-[0.04em] text-center text-text-dark ${mode === "svg-to-png" && locale === "en" ? "font-bold md:text-[42px] md:leading-[56px]" : "font-semibold md:text-[48px] md:leading-[60px]"}`}>
           {mode === "svg-to-png" && locale === "en" ? (
             <>
-              <span className="block">Convert SVG Graphics into PNG</span>
-              <span className="block text-brand-primary">Images You Can Use</span>
+              <span className="block">Why Convert SVG to PNG</span>
+              <span className="block text-brand-primary">with CrushSVG?</span>
             </>
           ) : renderFeaturesTitle(
             mode === "background-remover"
@@ -78,17 +76,16 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         </p>
       </div>
 
-      {mode === "svg-to-png" && locale === "en" ? (
+      {mode === "svg-to-png" || mode === "raster-to-svg" ? (
         <div className="mt-[32px] md:mt-[40px] grid w-full max-w-[1028px] grid-cols-12 gap-x-[16px] gap-y-[28px] md:gap-x-[24px] md:gap-y-[44px]">
           {[
-            { index: 1, title: t("svgBenefit1Title"), description: t("svgBenefit1Desc") },
-            { index: 2, title: t("svgBenefit2Title"), description: t("svgBenefit2Desc") },
-            { index: 3, title: t("svgBenefit3Title"), description: t("svgBenefit3Desc") },
-            { index: 4, title: t("svgBenefit4Title"), description: t("svgBenefit4Desc") },
+            { index: 1, title: t(mode === "svg-to-png" ? "seoSvgBenefit1Title" : "seoRasterBenefit1Title"), description: t(mode === "svg-to-png" ? "seoSvgBenefit1Desc" : "seoRasterBenefit1Desc") },
+            { index: 2, title: t(mode === "svg-to-png" ? "seoSvgBenefit2Title" : "seoRasterBenefit2Title"), description: t(mode === "svg-to-png" ? "seoSvgBenefit2Desc" : "seoRasterBenefit2Desc") },
+            { index: 3, title: t(mode === "svg-to-png" ? "seoSvgBenefit3Title" : "seoRasterBenefit3Title"), description: t(mode === "svg-to-png" ? "seoSvgBenefit3Desc" : "seoRasterBenefit3Desc") },
           ].map(({ index, title, description }) => (
             <article
               key={index}
-              className={`col-span-12 min-w-0 rounded-[20px] border border-[#FFA98F] bg-[#FDEBE4] p-[20px] sm:p-[24px] md:p-[30px] ${index === 1 ? "sm:col-span-7" : index === 2 ? "sm:col-span-5" : index === 3 ? "sm:col-span-5" : "sm:col-span-7"}`}
+              className="col-span-12 min-w-0 rounded-[20px] border border-[#FFA98F] bg-[#FDEBE4] p-[20px] sm:col-span-4 sm:p-[24px] md:p-[30px]"
             >
               <div className="mb-[14px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-white text-brand-primary">
                 <BenefitIcon index={index} />
@@ -105,13 +102,11 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
       ) : (
       /* Badges Row */
       <div className="flex min-w-0 max-w-full flex-wrap justify-center gap-[10px] md:gap-[39px] mt-[24px] md:mt-[62px] w-full max-w-[1000px]">
-        <Badge text={mode === "svg-to-png" && locale === "en" ? t("svgBenefit1Title") : t("badgeFree")} />
+        <Badge text={t("badgeFree")} />
         <Badge
           text={
             mode === "background-remover"
               ? t("badgeTransparentPng")
-              : mode === "raster-to-svg"
-              ? t("badgeScalableVector")
               : mode === "image-resizer"
               ? t("badgeExactPixels")
               : mode === "svg-optimizer"
@@ -120,8 +115,6 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeMultiRes")
               : mode === "svg-to-react"
               ? t("badgeTypeScriptReady")
-              : mode === "svg-to-png" && locale === "en"
-              ? t("svgBenefit2Title")
               : t("badgeMultipleSizes")
           }
         />
@@ -137,22 +130,15 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("badgeAppleAndroid")
               : mode === "svg-to-react"
               ? t("badgeFrameworkSupport")
-              : mode === "svg-to-png" && locale === "en"
-              ? t("svgBenefit3Title")
               : t("badgeTransparentBg")
           }
         />
-        {mode === "raster-to-svg" && <Badge text={t("badgeColorControls")} />}
         {mode === "background-remover" && <Badge text={t("badgeNoInstall")} />}
         {mode === "image-resizer" && <Badge text={t("badgeFormatsOutput")} />}
         {mode === "svg-optimizer" && <Badge text={t("badgeZeroLag")} />}
         {mode === "favicon-generator" && <Badge text={t("badgeZipExport")} />}
         {mode === "svg-to-react" && <Badge text={t("badgeLucideStyle")} />}
-        {mode === "svg-to-png" && locale === "en" ? (
-          <Badge text={t("svgBenefit4Title")} />
-        ) : (
-          (!mounted || !user) && <Badge text={t("badgeThreeFree")} />
-        )}
+        {(!mounted || !user) && <Badge text={t("badgeThreeFree")} />}
       </div>
       )}
 

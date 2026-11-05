@@ -95,6 +95,8 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
           <>{tSection("headingSvgOptimizerLine1")} <span className="text-[#D94A1E]">{tSection("headingSvgOptimizerHighlight")}</span></>
         ) : mode === "svg-to-react" ? (
           <>How to Convert SVG to <span className="text-[#D94A1E]">React & Vue Components</span></>
+        ) : mode === "raster-to-svg" ? (
+          <>{tSection("headingRasterSvgLine1")} <span className="text-[#D94A1E]">{tSection("headingRasterSvgHighlight")}</span></>
         ) : (
           <>{tSection("headingSvgPngLine1")} <span className="text-[#D94A1E]">{tSection("headingSvgPngHighlight")}</span></>
         )}
