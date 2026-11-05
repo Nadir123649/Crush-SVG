@@ -136,6 +136,10 @@ const nextConfig: NextConfig = {
       { source: "/tools", destination: "/#converter", permanent: true },
       { source: "/svg-cleaner", destination: "/svg-optimizer", permanent: true },
       { source: "/svg-converter", destination: "/", permanent: true },
+      { source: "/pricing", destination: "/#converter", permanent: true },
+      { source: "/dashboard", destination: "/profile", permanent: true },
+      { source: "/history", destination: "/profile", permanent: true },
+      { source: "/settings", destination: "/profile", permanent: true },
     ];
   },
 };
