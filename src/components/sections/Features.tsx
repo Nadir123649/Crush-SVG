@@ -19,6 +19,41 @@ function renderFeaturesTitle(title: string) {
   return title;
 }
 
+function renderSvgPngFeaturesTitle(title: string, locale: string) {
+  const highlightByLocale: Record<string, string> = {
+    de: "SVG in PNG",
+    es: "SVG a PNG",
+    fr: "SVG en PNG",
+    pt: "SVG para PNG",
+    ja: "SVGをPNG",
+  };
+  const highlight = highlightByLocale[locale];
+  if (!highlight || !title.includes(highlight)) return title;
+
+  const [before, ...after] = title.split(highlight);
+  return (
+    <>
+      {before}
+      <span className="text-brand-primary">{highlight}</span>
+      {after.join(highlight)}
+    </>
+  );
+}
+
+function renderRasterFeaturesTitle(title: string) {
+  const brand = "CrushSVG";
+  if (!title.includes(brand)) return title;
+
+  const [before, ...after] = title.split(brand);
+  return (
+    <>
+      {before}
+      <span className="text-brand-primary">{brand}</span>
+      {after.join(brand)}
+    </>
+  );
+}
+
 export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("features");
   const locale = useLocale();
@@ -40,10 +75,10 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
         <h2 className={`w-full min-w-0 max-w-full break-words [overflow-wrap:anywhere] font-heading text-[24px] leading-[30px] tracking-[0.04em] text-center text-text-dark ${mode === "svg-to-png" && locale === "en" ? "font-bold md:text-[42px] md:leading-[56px]" : "font-semibold md:text-[48px] md:leading-[60px]"}`}>
           {mode === "svg-to-png" && locale === "en" ? (
             <>
-              <span className="block">Convert SVG Graphics into PNG</span>
-              <span className="block text-brand-primary">Images You Can Use</span>
+              <span className="block">Why Convert SVG to PNG</span>
+              <span className="block text-brand-primary">with CrushSVG?</span>
             </>
-          ) : renderFeaturesTitle(
+          ) : mode === "svg-to-png" ? renderSvgPngFeaturesTitle(t("svgTitle"), locale) : mode === "raster-to-svg" ? renderRasterFeaturesTitle(t("rasterTitle")) : renderFeaturesTitle(
             mode === "background-remover"
               ? t("bgTitle")
               : mode === "image-resizer"
@@ -54,8 +89,6 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               ? t("faviconTitle")
               : mode === "svg-to-react"
               ? t("reactTitle")
-              : mode === "raster-to-svg"
-              ? t("rasterTitle")
               : t("svgTitle")
           )}
         </h2>
@@ -89,6 +122,29 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
             <article
               key={index}
               className={`col-span-12 min-w-0 rounded-[20px] border border-[#FFA98F] bg-[#FDEBE4] p-[20px] sm:p-[24px] md:p-[30px] ${index === 1 ? "sm:col-span-7" : index === 2 ? "sm:col-span-5" : index === 3 ? "sm:col-span-5" : "sm:col-span-7"}`}
+            >
+              <div className="mb-[14px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-white text-brand-primary">
+                <BenefitIcon index={index} />
+              </div>
+              <h3 className="font-heading text-[18px] font-bold leading-[24px] text-[#171A23]">
+                {title}
+              </h3>
+              <p className="mt-[10px] font-body text-[12px] leading-[17px] text-[#716761]">
+                {description}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : mode === "raster-to-svg" ? (
+        <div className="mt-[32px] md:mt-[40px] grid w-full max-w-[1028px] grid-cols-1 gap-[20px] md:grid-cols-3 md:gap-[24px]">
+          {[
+            { index: 1, title: t("rasterBenefit1Title"), description: t("rasterBenefit1Desc") },
+            { index: 2, title: t("rasterBenefit2Title"), description: t("rasterBenefit2Desc") },
+            { index: 3, title: t("rasterBenefit3Title"), description: t("rasterBenefit3Desc") },
+          ].map(({ index, title, description }) => (
+            <article
+              key={index}
+              className="min-w-0 rounded-[20px] border border-[#FFA98F] bg-[#FDEBE4] p-[20px] sm:p-[24px] md:p-[30px]"
             >
               <div className="mb-[14px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-white text-brand-primary">
                 <BenefitIcon index={index} />

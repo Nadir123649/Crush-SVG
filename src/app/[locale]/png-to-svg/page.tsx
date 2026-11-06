@@ -49,7 +49,7 @@ export async function generateMetadata({
 }
 
 function renderHeroTitle(title: string) {
-  const match = title.match(/(PNG (?:to|zu|a|en|para) SVG|PNGからSVGへ)/i);
+  const match = title.match(/(PNG[\s-]*(?:to|zu|a|en|para)[\s-]*SVG|PNGからSVGへ)/i);
   if (!match) return title;
 
   const parts = title.split(match[0]);
