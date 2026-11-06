@@ -29,9 +29,20 @@ export async function checkRateLimit(request: NextRequest, scope: string, limit:
     };
 }
 export function rateLimitHeaders(rl: RateLimitResult): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
         "X-RateLimit-Limit": String(rl.limit),
         "X-RateLimit-Remaining": String(rl.remaining),
         "Retry-After": String(rl.retryAfterSeconds),
     };
+
+    // The current reset time is known only for rejected requests, where the
+    // remaining window TTL is already fetched. Avoid a Redis TTL lookup for
+    // every successful request just to populate an approximate value.
+    if (!rl.allowed && rl.retryAfterSeconds > 0) {
+        headers["X-RateLimit-Reset"] = String(
+            Math.ceil(Date.now() / 1000) + rl.retryAfterSeconds,
+        );
+    }
+
+    return headers;
 }

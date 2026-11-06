@@ -11,6 +11,22 @@ import { FAQ } from "@/components/sections/FAQ";
 import { AdBanner } from "@/components/ui/AdBanner";
 import { routing } from "@/i18n/routing";
 
+const softwareApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "CrushSVG PNG to SVG Vectorizer",
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  publisher: {
+    "@id": "https://thenevon.com/#organization",
+  },
+};
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -33,7 +49,7 @@ export async function generateMetadata({
 }
 
 function renderHeroTitle(title: string) {
-  const match = title.match(/(PNG (?:to|zu|a|en|para) SVG|PNGからSVGへ)/i);
+  const match = title.match(/(PNG[\s-]*(?:to|zu|a|en|para)[\s-]*SVG|PNGからSVGへ)/i);
   if (!match) return title;
 
   const parts = title.split(match[0]);
@@ -57,6 +73,12 @@ export default async function PngToSvgPage({
 
   return (
     <div className="w-full min-w-0 max-w-full flex flex-col items-center">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareApplicationSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <Hero
         title={renderHeroTitle(tTools("h1"))}
         subtitle={tTools("subtitle")}

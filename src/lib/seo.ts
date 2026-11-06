@@ -390,12 +390,12 @@ export function getOrganizationSchema() {
 export function getWebApplicationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
+    "@type": ["WebApplication", "SoftwareApplication"],
     name: "CrushSVG",
     alternateName: "Crush SVG Converter",
     url: SITE_URL,
     description: "Paste your SVG code, upload a file, or drag and drop it. Generate crisp PNGs in seconds.",
-    applicationCategory: "DesignApplication",
+    applicationCategory: "MultimediaApplication",
     operatingSystem: "All",
     browserRequirements: "Requires JavaScript. Requires HTML5.",
     offers: {
@@ -485,21 +485,6 @@ export function getFAQSchema(faqs: { question: string; answer: string }[]) {
         "@type": "Answer",
         text: faq.answer.replace(/href="\//g, `href="${SITE_URL}/`),
       },
-    })),
-  };
-}
-
-export function getHowToSchema(name: string, description: string, steps: { name: string; text: string }[]) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name,
-    description,
-    step: steps.map((step, idx) => ({
-      "@type": "HowToStep",
-      position: idx + 1,
-      name: step.name,
-      text: step.text,
     })),
   };
 }

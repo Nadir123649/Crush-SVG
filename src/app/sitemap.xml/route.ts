@@ -26,7 +26,7 @@ const ROUTE_CONFIG: Record<string, RouteConfig> = {
   "/svg-to-react": { priority: 0.8, changeFrequency: "monthly" },
   "/use-case": { priority: 0.8, changeFrequency: "monthly" },
   "/compare/crushsvg-vs-vectorizer-ai": { priority: 0.8, changeFrequency: "monthly" },
-  "/pricing": { priority: 0.8, changeFrequency: "monthly" },
+  "/compare/crushsvg-vs-adobe-illustrator-image-trace": { priority: 0.8, changeFrequency: "monthly" },
   "/blog": { priority: 0.7, changeFrequency: "daily" },
   "/svg-guides": { priority: 0.7, changeFrequency: "weekly" },
   "/about": { priority: 0.5, changeFrequency: "monthly" },

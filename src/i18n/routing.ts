@@ -65,6 +65,14 @@ export const routing = defineRouting({
       pt: "/comparar/crushsvg-vs-vectorizer-ai",
       ja: "/hikaku/crushsvg-vs-vectorizer-ai",
     },
+    "/compare/crushsvg-vs-adobe-illustrator-image-trace": {
+      en: "/compare/crushsvg-vs-adobe-illustrator-image-trace",
+      es: "/comparar/crushsvg-vs-adobe-illustrator-image-trace",
+      de: "/vergleich/crushsvg-vs-adobe-illustrator-bildnachzeichnen",
+      fr: "/comparatif/crushsvg-vs-adobe-illustrator-vectorisation",
+      pt: "/comparar/crushsvg-vs-adobe-illustrator-tracar-imagem",
+      ja: "/hikaku/crushsvg-vs-adobe-illustrator-image-trace",
+    },
     "/profile": {
       en: "/profile",
       es: "/perfil",

@@ -50,12 +50,18 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export const metadata: Metadata = constructMetadata({
+const rootMetadata = constructMetadata({
   title: "Free SVG to PNG Converter Online | CrushSVG",
   description:
     "Free SVG to PNG converter: convert SVG files or code into PNG images with custom dimensions and a transparent background, entirely in your browser",
   canonicalPath: "/",
 });
+
+// Keep the root layout from forcing index,follow onto the global not-found page.
+// Real pages either declare their own robots metadata or use Next's default.
+delete rootMetadata.robots;
+
+export const metadata: Metadata = rootMetadata;
 
 export default async function RootLayout({
   children,
@@ -197,14 +203,6 @@ export default async function RootLayout({
               f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}}
-        />
-
-        {/* LLMs.txt for AI Search Engine Optimization (GEO) */}
-        <link
-          rel="alternate"
-          type="text/plain"
-          href="/llms.txt"
-          title="LLM Context"
         />
 
       </head>

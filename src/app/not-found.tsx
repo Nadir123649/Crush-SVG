@@ -4,6 +4,7 @@ import { Link } from "@/i18n/routing";
 export default function NotFound() {
   return (
     <div className="w-full flex flex-col items-center py-[100px] text-center px-[24px]">
+      <meta name="robots" content="noindex, nofollow" />
       <p className="font-heading font-bold text-[64px] leading-[100%] text-brand-primary">404</p>
       <h1 className="font-heading font-bold text-[28px] leading-[100%] text-[#353A3E] mt-[16px]">Page not found</h1>
       <p className="font-body font-normal text-[16px] text-[#64748B] mt-[12px] max-w-[400px] leading-[22px]">

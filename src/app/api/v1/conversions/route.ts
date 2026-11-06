@@ -20,13 +20,17 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const parsed = conversionHistoryQuerySchema.safeParse({
-    page: searchParams.get('page'),
-    limit: searchParams.get('limit'),
-    sort: searchParams.get('sort'),
+    page: searchParams.get('page') ?? undefined,
+    limit: searchParams.get('limit') ?? undefined,
+    sort: searchParams.get('sort') ?? undefined,
   })
 
   if (!parsed.success) {
-    return errorResponse(400, '', '', undefined, request)
+    const invalidField = parsed.error.issues[0]?.path[0]
+    const message = invalidField
+      ? `Invalid ${String(invalidField)} query parameter.`
+      : 'Invalid query parameters.'
+    return errorResponse(400, 'invalid_query', message, undefined, request)
   }
 
   const { page, limit } = parsed.data

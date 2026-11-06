@@ -47,14 +47,14 @@
     "ja": "Japonés"
   },
   "homepage": {
-    "metaTitle": "Convertir SVG a PNG Gratis Online – CrushSVG",
-    "metaDescription": "Convierte SVG a PNG nítido en segundos. Gratis, en el navegador y con fondo transparente. Sin instalar programas.",
+    "metaTitle": "Convertir SVG a PNG online gratis | CrushSVG",
+    "metaDescription": "Convierte archivos SVG gratis en imágenes PNG de alta resolución. Fondo transparente, renderizado nítido y escala personalizada para Cricut, Canva y la web.",
     "badgeLoggedIn": "Tienes acceso ilimitado a conversiones.",
     "badgeLoggedOut": "3 conversiones gratis. Crea una cuenta gratuita para acceso ilimitado.",
-    "heroTitlePrefix": "De",
-    "heroTitleHighlight": "SVG a PNG,",
-    "heroTitleSuffix": "Exactamente como Debería Ser",
-    "heroSubtitle": "Pega tu código SVG, sube un archivo o arrástralo y suéltalo. Genera imágenes PNG nítidas en segundos para Outlook, Gmail, newsletters, sitios web y más.",
+    "heroTitlePrefix": "Convertir archivos SVG a",
+    "heroTitleHighlight": "PNG",
+    "heroTitleSuffix": "online (alta resolución)",
+    "heroSubtitle": "Exporta archivos SVG y código sin procesar como imágenes PNG nítidas y transparentes, con escala personalizada, sin pérdida de calidad y sin marcas de agua.",
     "bgRemoverCtaTitle": "¿Necesitas eliminar el",
     "bgRemoverCtaHighlight": "fondo de una imagen",
     "bgRemoverCtaDesc": "Sube cualquier foto y obtén un PNG transparente y limpio en segundos. Gratis, privado y sin instalación.",
@@ -69,13 +69,13 @@
     },
     "svgToPng": {
       "title": "Convertidor de SVG a PNG",
-      "h1": "Convertidor de SVG a PNG online y gratuito",
-      "subtitle": "Convertidor de SVG a PNG gratuito: convierte archivos o código SVG en imágenes PNG con dimensiones personalizadas y fondo transparente. Rápido, online y sin instalar nada."
+      "h1": "Convertir archivos SVG a PNG online (alta resolución)",
+      "subtitle": "Exporta archivos SVG y código sin procesar como imágenes PNG nítidas y transparentes, con escala personalizada, sin pérdida de calidad y sin marcas de agua."
     },
     "pngToSvg": {
-      "title": "Convertidor de PNG a SVG (Vectorizar)",
-      "h1": "De PNG a SVG, Exactamente como Debería Ser",
-      "subtitle": "Sube un archivo PNG o JPG, o arrástralo. Genera vectores SVG escalables en segundos para logos, ilustraciones y diseño web."
+      "title": "Convertir PNG a SVG online — vectorizador de imágenes gratis | CrushSVG",
+      "h1": "Vectorizador y conversor gratuito de PNG a SVG",
+      "subtitle": "Transforma imágenes rasterizadas PNG y JPG, logotipos e ilustraciones en rutas SVG limpias y totalmente escalables con precisión matemática."
     },
     "backgroundRemover": {
       "title": "Eliminador de Fondo de Imágenes",
@@ -207,8 +207,8 @@
     "badgeTypeScriptReady": "Listo para TypeScript & TSX",
     "badgeFrameworkSupport": "React, Vue y Svelte",
     "badgeLucideStyle": "Estilo Lucide y Heroicons",
-    "svgTitle": "Olvídate de programas complejos y convertidores poco fiables",
-    "rasterTitle": "Olvídate de programas complejos y convertidores poco fiables",
+    "svgTitle": "¿Por qué convertir SVG a PNG con CrushSVG?",
+    "rasterTitle": "¿Por qué elegir CrushSVG como vectorizador de imágenes?",
     "bgTitle": "Deja de complicarte con editores fotográficos pesados",
     "resizerTitle": "Deja de perder tiempo con editores de escritorio",
     "svgDesc": "Pega tu código SVG, sube un archivo o arrástralo para generar un PNG de alta calidad en segundos, perfecto para Gmail, Outlook, Canva, páginas web y más.",
@@ -237,14 +237,20 @@
     "badgeMultiRes": ".ICO Multirresolución",
     "badgeAppleAndroid": "Apple Touch y Android Manifest",
     "badgeZipExport": "Exportación ZIP en 1 Clic",
-    "svgBenefit1Title": "Sube un archivo o pega el código",
-    "svgBenefit1Desc": "Empieza con un SVG guardado en tu dispositivo o pega el marcado SVG directamente en el convertidor.",
-    "svgBenefit2Title": "Elige el tamaño de salida",
-    "svgBenefit2Desc": "Ajusta el ancho, el alto o la escala para crear un PNG adecuado para tu uso, hasta 8192 píxeles por lado.",
-    "svgBenefit3Title": "Controla el fondo",
-    "svgBenefit3Desc": "Conserva las áreas transparentes compatibles o elige un color de fondo para la imagen exportada.",
+    "svgBenefit1Title": "Nitidez y escala de alta resolución",
+    "svgBenefit1Desc": "Define las dimensiones o la escala para crear PNG nítidos. El límite es de 8192 píxeles por lado.",
+    "svgBenefit2Title": "Compatibilidad total con transparencia alfa",
+    "svgBenefit2Desc": "Selecciona un fondo transparente para conservar en el PNG las áreas transparentes compatibles del SVG.",
+    "svgBenefit3Title": "Procesamiento seguro y privado de SVG",
+    "svgBenefit3Desc": "Según el tamaño, los archivos SVG se procesan mediante el servicio de conversión o en el navegador. Los registros guardan metadatos, no el código SVG.",
     "svgBenefit4Title": "Previsualiza antes de descargar",
-    "svgBenefit4Desc": "Comprueba la ilustración y el fondo en la vista previa antes de crear el PNG."
+    "svgBenefit4Desc": "Comprueba la ilustración y el fondo en la vista previa antes de crear el PNG.",
+    "rasterBenefit1Title": "Escalabilidad ilimitada sin perder calidad",
+    "rasterBenefit1Desc": "Olvídate de la pixelación. Escala tus gráficos a cualquier tamaño, desde iconos para aplicaciones móviles hasta grandes vallas publicitarias, sin perder nitidez en los bordes.",
+    "rasterBenefit2Title": "Archivos de corte para Cricut y cortadoras láser",
+    "rasterBenefit2Desc": "Genera trazados vectoriales compuestos y limpios, optimizados para plotters de vinilo, máquinas de grabado láser como Glowforge y cortadoras CNC.",
+    "rasterBenefit3Title": "Sin instalar ningún programa",
+    "rasterBenefit3Desc": "Disfruta de una potente vectorización directamente en el navegador, sin pagar por herramientas costosas como Adobe Illustrator o CorelDraw."
   },
   "steps": {
     "react": [
@@ -263,30 +269,30 @@
     ],
     "svg": [
       {
-        "title": "Pega o Sube tu Archivo",
-        "description": "Suelta tu archivo SVG o pega directamente el código markup en el convertidor."
+        "title": "1. Sube un archivo SVG o pega el código",
+        "description": "Arrastra tu archivo vectorial .svg al conversor o pega directamente el código XML de SVG."
       },
       {
-        "title": "Elige las Dimensiones",
-        "description": "Ajusta el ancho en píxeles o escala el archivo para una resolución ultra nítida."
+        "title": "2. Personaliza el tamaño y la transparencia",
+        "description": "Elige una escala, define dimensiones personalizadas y selecciona un fondo transparente o un color personalizado."
       },
       {
-        "title": "Descarga tu PNG",
-        "description": "Obtén un PNG impecable con fondo transparente listo para usar en segundos."
+        "title": "3. Descarga PNG de alta resolución al instante",
+        "description": "Previsualiza el gráfico y descarga un PNG para impresión, web o diseño."
       }
     ],
     "raster": [
       {
-        "title": "Sube PNG o JPG",
-        "description": "Arrastra tu imagen o pégala desde el portapapeles directamente en la herramienta."
+        "title": "1. Selecciona tu imagen PNG o JPG",
+        "description": "Sube tu imagen rasterizada (PNG, JPG o WEBP). Los logotipos, iconos, dibujos lineales y textos limpios ofrecen los mejores resultados de vectorización."
       },
       {
-        "title": "Ajusta la Vectorización",
-        "description": "Configura la calidad, paleta de colores y suavizado de curvas vectoriales."
+        "title": "2. Trazado automático de rutas vectoriales",
+        "description": "CrushSVG traza los contornos y límites de color de la imagen para transformar mapas de bits pixelados en curvas vectoriales Bézier suaves y editables."
       },
       {
-        "title": "Descarga tu SVG",
-        "description": "Exporta código SVG escalable listo para desarrollo web, apps o diseño en Figma."
+        "title": "3. Descarga un vector SVG escalable",
+        "description": "Previsualiza y descarga al instante tu archivo .svg ligero, listo para Cricut Design Space, Adobe Illustrator, Figma o para publicarlo en la web."
       }
     ],
     "bg": [
@@ -433,24 +439,16 @@
     ],
     "svg": [
       {
-        "question": "¿CrushSVG es gratuito?",
-        "answer": "Sí. Puedes convertir hasta 3 SVG a PNG sin iniciar sesión. Inicia sesión para conversiones gratuitas e ilimitadas de SVG a PNG."
+        "question": "¿Puedo convertir archivos SVG a PNG con fondo transparente?",
+        "answer": "Sí. Selecciona la opción de fondo transparente antes de convertir para conservar las áreas transparentes del SVG en el PNG."
       },
       {
-        "question": "¿CrushSVG admite fondo PNG transparente?",
-        "answer": "Sí. Activa la opción Fondo transparente antes de convertir tu SVG para descargar un PNG con fondo transparente."
+        "question": "¿La conversión de SVG a PNG reduce la calidad gráfica?",
+        "answer": "CrushSVG renderiza el SVG con las dimensiones o la escala que elijas. PNG es un formato rasterizado, así que selecciona un tamaño adecuado para el uso previsto."
       },
       {
-        "question": "¿Hasta qué resolución puedo escalar el SVG?",
-        "answer": "Puedes multiplicar la escala hasta 16x o definir dimensiones personalizadas de hasta 4000 píxeles para resultados aptos para impresión. La imagen final está limitada a 4000 píxeles por lado."
-      },
-      {
-        "question": "¿Mis archivos se mantienen privados y seguros?",
-        "answer": "Las conversiones estándar de SVG a PNG utilizan nuestro servidor. Los SVG grandes pueden convertirse en tu navegador. Tus archivos nunca se almacenan ni se comparten."
-      },
-      {
-        "question": "¿Puedo convertir archivos SVG complejos con degradados o estilos incrustados?",
-        "answer": "Sí, CrushSVG soporta degradados lineales y radiales, máscaras de recorte, estilos CSS incrustados y grupos complejos."
+        "question": "¿Es gratis este conversor de SVG a PNG?",
+        "answer": "Puedes usar el conversor online sin instalar software. Se aplican límites de uso gratuito y el PNG no lleva marca de agua."
       }
     ],
     "bg": [
@@ -481,28 +479,16 @@
     ],
     "raster": [
       {
-        "question": "¿Puedo controlar la calidad del SVG vectorizado?",
-        "answer": "¡Sí! Puedes ajustar los preajustes (Bajo, Medio, Alto), la cuantización de colores, el tratamiento del fondo y el suavizado de rutas."
+        "question": "¿Cómo funciona el vectorizador de PNG a SVG?",
+        "answer": "La herramienta analiza los bordes de color y las formas de los píxeles de la imagen rasterizada PNG y los convierte en curvas vectoriales Bézier matemáticas (trazados SVG) que se pueden ampliar sin pixelarse."
       },
       {
-        "question": "¿Mis imágenes PNG y JPG subidas están seguras?",
-        "answer": "Por supuesto. Tus imágenes se procesan de forma segura y nunca almacenamos, compartimos ni utilizamos tus archivos subidos para ningún otro fin."
-      },
-      {
-        "question": "¿Esta herramienta admite la eliminación de fondos?",
-        "answer": "Sí, puedes activar la función 'Ignore Background' para eliminar automáticamente los fondos sólidos durante la vectorización."
-      },
-      {
-        "question": "¿Necesito instalar algún software?",
-        "answer": "No, CrushSVG es totalmente web. Puedes vectorizar imágenes directamente en tu navegador sin ningún plugin."
-      },
-      {
-        "question": "¿CrushSVG es gratuito?",
-        "answer": "¡Sí! Puedes vectorizar imágenes gratis. Crear una cuenta desbloquea conversiones ilimitadas sin costes ocultos."
+        "question": "¿Puedo usar el SVG exportado para Cricut y corte láser?",
+        "answer": "¡Sí! CrushSVG genera trazados SVG estándar compatibles con W3C que se importan sin problemas en Cricut Design Space, Silhouette Studio, Glowforge y software de grabado láser."
       },
       {
         "question": "¿Qué formatos de imagen puedo vectorizar?",
-        "answer": "Puedes subir imágenes PNG, JPG, JPEG y WebP para convertirlas en vectores SVG nítidos y escalables."
+        "answer": "CrushSVG admite los formatos rasterizados más comunes, como PNG, JPG, JPEG y WEBP. Las imágenes de alto contraste y los logotipos ofrecen los resultados vectoriales más limpios."
       }
     ],
     "resizer": [
@@ -625,12 +611,12 @@
   "SEO": {
     "svgToReactTitle": "Convertir SVG a Componentes React JSX/TSX, Vue y Svelte Online",
     "svgToReactDescription": "Generador gratuito de SVG a código online. Convierte vectores SVG en componentes React (TSX/JSX), Vue 3, Svelte y React Native seguros con soporte para currentColor.",
-    "svgToPngTitle": "Convertir SVG a PNG Gratis Online – CrushSVG",
-    "svgToPngDescription": "Convierte SVG a PNG nítido en segundos. Gratis, en el navegador y con fondo transparente. Sin instalar programas.",
+    "svgToPngTitle": "Convertir SVG a PNG online gratis | CrushSVG",
+    "svgToPngDescription": "Convierte archivos SVG gratis en imágenes PNG de alta resolución. Fondo transparente, renderizado nítido y escala personalizada para Cricut, Canva y la web.",
     "svgToPngPageTitle": "Convertidor de SVG a PNG Gratis Online | CrushSVG",
     "svgToPngPageDescription": "Convertidor de SVG a PNG gratuito: convierte archivos o código SVG en imágenes PNG con dimensiones personalizadas y fondo transparente. Rápido, online y sin instalar nada.",
-    "pngToSvgTitle": "Convertir PNG a SVG – Vectorizar Imagen Gratis Online",
-    "pngToSvgDescription": "Convierte imágenes PNG, JPG y JPEG a vectores SVG escalables en segundos. Gratis, en tu navegador.",
+    "pngToSvgTitle": "Convertir PNG a SVG online — vectorizador de imágenes gratis | CrushSVG",
+    "pngToSvgDescription": "Convierte imágenes PNG, JPG y otros formatos rasterizados en vectores SVG escalables en segundos. Vectorizador online gratis con curvas limpias y trazado de color.",
     "bgRemoverTitle": "Eliminador de Fondos Gratis Online – CrushSVG",
     "bgRemoverDescription": "Elimina fondos de fotos e imágenes al instante. Gratis, en tu navegador y con salida en PNG transparente.",
     "imageResizerTitle": "Redimensionar Imágenes Gratis Online – CrushSVG",
@@ -972,22 +958,25 @@
     "headingBgRemoverLine1": "Una imagen.",
     "headingImageResizerHighlight": "Con el tamaño perfecto.",
     "headingImageResizerLine1": "Una imagen.",
-    "headingSvgPngHighlight": "SVG a PNG",
-    "headingSvgPngLine1": "Cómo convertir",
+    "headingSvgPngHighlight": "un archivo SVG a PNG",
+    "headingSvgPngLine1": "Cómo convertir ",
     "howToBgRemover": "Cómo eliminar el fondo de una imagen en línea",
     "howToBgRemoverDesc": "Elimina el fondo de tus fotos en tres sencillos pasos.",
     "howToImageResizer": "Cómo redimensionar imágenes en línea",
     "howToImageResizerDesc": "Redimensiona imágenes PNG, JPG y WebP en segundos.",
     "howToRasterSvg": "Cómo convertir imágenes raster a vectores SVG",
     "howToRasterSvgDesc": "Convierte imágenes raster PNG o JPG en vectores SVG escalables.",
-    "howToSvgPng": "Cómo convertir SVG a PNG en línea",
-    "howToSvgPngDesc": "Convierte código o archivos SVG en imágenes PNG transparentes y nítidas en tres pasos.",
+    "howToSvgPng": "Cómo convertir un archivo SVG a PNG en 3 pasos",
+    "howToSvgPngDesc": "Cómo convertir un archivo SVG a PNG en 3 pasos",
     "headingSvgOptimizerHighlight": "Máxima Compresión.",
     "headingSvgOptimizerLine1": "Un Archivo.",
     "howToSvgOptimizer": "Cómo Optimizar y Minificar Archivos SVG Online",
     "howToSvgOptimizerDesc": "Comprime y limpia archivos vectoriales SVG en tres sencillos pasos.",
     "howToFaviconGenerator": "Cómo Generar Favicons e Iconos desde SVG",
-    "howToFaviconGeneratorDesc": "Sigue tres sencillos pasos para crear favicons, iconos táctiles y manifiestos de alta calidad para tus proyectos web."
+    "howToFaviconGeneratorDesc": "Sigue tres sencillos pasos para crear favicons, iconos táctiles y manifiestos de alta calidad para tus proyectos web.",
+    "headingSvgPngSuffix": " en 3 pasos",
+    "headingRasterSvgLine1": "Cómo convertir PNG a SVG ",
+    "headingRasterSvgHighlight": "online"
   },
   "toasts": {
     "conversionComplete": "Conversión completada. Tu {format} está listo para descargar.",
