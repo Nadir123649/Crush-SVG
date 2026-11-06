@@ -166,8 +166,6 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
           text={
             mode === "background-remover"
               ? t("badgeTransparentPng")
-              : mode === "raster-to-svg"
-              ? t("badgeScalableVector")
               : mode === "image-resizer"
               ? t("badgeExactPixels")
               : mode === "svg-optimizer"
@@ -198,7 +196,6 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               : t("badgeTransparentBg")
           }
         />
-        {mode === "raster-to-svg" && <Badge text={t("badgeColorControls")} />}
         {mode === "background-remover" && <Badge text={t("badgeNoInstall")} />}
         {mode === "image-resizer" && <Badge text={t("badgeFormatsOutput")} />}
         {mode === "svg-optimizer" && <Badge text={t("badgeZeroLag")} />}
