@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LocalTime } from "@/components/utils/LocalTime";
 import { apiFetch } from "@/lib/client/http";
 import { KpiCard } from "@/components/admin/KpiCard";
+import { AdminLoader } from "@/components/admin/AdminLoader";
 
 import { getAdminCached, setAdminCached, getAdminInFlight, setAdminInFlight } from "@/lib/client/admin-cache";
 
@@ -28,7 +29,7 @@ const formatK = (num: number) => {
 
 export default function AdminDashboard() {
   const [cachedOverview] = useState(() => getAdminCached<any>("admin_overview", 120_000));
-  const [loading, setLoading] = useState(!cachedOverview);
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(cachedOverview);
 
   useEffect(() => {
@@ -57,6 +58,10 @@ export default function AdminDashboard() {
 
   if (!data && !loading) {
     return <div className="text-center p-8 text-red-500">Failed to load dashboard data.</div>;
+  }
+
+  if (loading) {
+    return <AdminLoader message="Loading overview..." className="min-h-[calc(100vh-160px)]" />;
   }
 
   const {

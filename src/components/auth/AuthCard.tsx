@@ -18,7 +18,7 @@ interface AuthCardProps {
 }
 
 type OAuthProvider = "google" | "github" | "x";
-type SubmittingState = "email" | null;
+type SubmittingState = "email" | OAuthProvider | null;
 
 export function AuthCard({ type, returnTo }: AuthCardProps) {
   const isLogin = type === "login";
@@ -97,8 +97,7 @@ export function AuthCard({ type, returnTo }: AuthCardProps) {
   }
 async function handleOAuth(provider: OAuthProvider) {
     setError(null);
-    // OAuth opens a popup — the button stays unchanged instead of showing a
-    // loading state (unlike the inline email form).
+    setSubmitting(provider);
     try {
       await loginWithOAuth(provider, true);
       try { sessionStorage.setItem("crush_welcome_back", "1"); } catch { }
@@ -116,6 +115,8 @@ async function handleOAuth(provider: OAuthProvider) {
       if (!cancelled) {
         setError(getErrorMessage(err));
       }
+    } finally {
+      setSubmitting(null);
     }
   }
 
@@ -317,7 +318,7 @@ async function handleOAuth(provider: OAuthProvider) {
 
           <button
             type="submit"
-            disabled={submitting === "email"}
+            disabled={submitting !== null}
             className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {submitLabel}
@@ -335,12 +336,18 @@ async function handleOAuth(provider: OAuthProvider) {
           <button 
             type="button" 
             onClick={() => handleOAuth("google")} 
+            disabled={submitting !== null}
+            aria-busy={submitting === "google"}
             aria-label={t("continueWithGoogleAria")}
             className="flex items-center justify-center w-full h-[42px] rounded-[8px] border-[1px] border-[#C1C1C1] bg-transparent gap-[10px] hover:bg-black/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Image src={IMAGES.google} alt="Google" width={16} height={16} />
+            {submitting === "google" ? (
+              <span aria-hidden="true" className="h-4 w-4 rounded-full border-2 border-[#D94A1E] border-t-transparent animate-spin" />
+            ) : (
+              <Image src={IMAGES.google} alt="Google" width={16} height={16} />
+            )}
             <span className="font-afacad font-medium text-[14px] text-black">
-              {t("continueWithGoogle")}
+              {submitting === "google" ? (isLogin ? t("loggingIn") : t("creatingAccount")) : t("continueWithGoogle")}
             </span>
           </button>
         </div>

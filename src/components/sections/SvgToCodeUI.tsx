@@ -45,6 +45,7 @@ import { getAccessToken } from "@/lib/client/http";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 
 import { IMAGES } from "@/lib/shared/images";
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
 
 
@@ -768,7 +769,7 @@ export function SvgToCodeUI() {
 
                   onChange={(e) => setSvgInput(e.target.value)}
 
-                  placeholder="<svg ...>...</svg>"
+                  placeholder={SVG_EDITOR_PLACEHOLDER}
 
                   spellCheck={false}
 

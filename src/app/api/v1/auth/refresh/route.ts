@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { checkRateLimit, rateLimitHeaders, type RateLimitResult } from '@/lib/security/rate-limit'
 import { buildTokenPayload, verifyRefreshToken } from '@/lib/auth/tokens'
-import { resolveRole } from '@/lib/auth/roles'
+import { isAdminEmail, isVerifiedProfile, resolveRole } from '@/lib/auth/roles'
 import { REFRESH_COOKIE_NAME, setSessionCookies, clearRefreshCookie } from '@/lib/auth/auth'
 import { toUserDTO } from '@/lib/auth/auth'
 import { logger } from '@/lib/shared/logger'
@@ -182,6 +182,14 @@ async function handleRefresh(request: NextRequest): Promise<NextResponse> {
   const user = await User.findById(decoded.id)
   if (!user) {
     return errorResponse('user_not_found', 401, rl)
+  }
+
+  // Apply newly configured admin allowlist entries to existing verified
+  // sessions too. This keeps the refreshed user payload and token role in sync
+  // without granting admin access to unverified email accounts.
+  if (user.role !== 'admin' && isAdminEmail(user.email) && isVerifiedProfile(user)) {
+    await User.updateOne({ _id: user._id }, { $set: { role: 'admin' } })
+    user.role = 'admin'
   }
 
   // Refresh Google profile photoURL if the user has a Google provider.

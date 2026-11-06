@@ -819,10 +819,11 @@
       "loadingButton": "Wird gesendet...",
       "submitButton": "Link zum Zurücksetzen senden",
       "subtitle": "Keine Sorge, wir senden Ihnen Anweisungen zum Zurücksetzen.",
-      "successMessage": "Wir haben einen Link zum Zurücksetzen des Passworts an {email} gesendet",
+      "successMessage": "Falls ein Konto f?r {email} existiert, senden wir einen Link zum Zur?cksetzen des Passworts. Pr?fen Sie auch Ihren Spam-Ordner.",
       "successSpamNote": "Falls Sie die E-Mail nicht sehen, überprüfen Sie Ihren Spam-Ordner.",
       "successTitle": "E-Mail prüfen",
-      "title": "Passwort vergessen?"
+      "title": "Passwort vergessen?",
+      "emailUnavailable": "Der Passwort-Reset-E-Maildienst ist vor?bergehend nicht verf?gbar. Bitte versuchen Sie es sp?ter erneut."
     },
     "continueWithGoogle": "Weiter mit Google",
     "continueWithGithub": "Weiter mit GitHub",

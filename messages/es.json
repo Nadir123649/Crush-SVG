@@ -819,10 +819,11 @@
       "loadingButton": "Enviando...",
       "submitButton": "Enviar enlace de recuperación",
       "subtitle": "No te preocupes, te enviaremos instrucciones para restablecer tu contraseña.",
-      "successMessage": "Hemos enviado un enlace para restablecer la contraseña a {email}",
+      "successMessage": "Si existe una cuenta para {email}, enviaremos un enlace para restablecer la contrase?a. Revisa tambi?n la carpeta de spam.",
       "successSpamNote": "Si no ves el correo, revisa tu carpeta de spam.",
       "successTitle": "Revisa tu correo",
-      "title": "¿Olvidó su contraseña?"
+      "title": "¿Olvidó su contraseña?",
+      "emailUnavailable": "El servicio de restablecimiento de contrase?a no est? disponible temporalmente. Int?ntalo m?s tarde."
     },
     "continueWithGoogle": "Continuar con Google",
     "continueWithGithub": "Continuar con GitHub",

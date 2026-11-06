@@ -987,9 +987,10 @@
       "loadingButton": "Sending...",
       "backToLogin": "Back to login",
       "successTitle": "Check Your Email",
-      "successMessage": "We've sent a password reset link to {email}",
+      "successMessage": "If an account exists for {email}, we'll send a password reset link. Check your spam folder if it doesn't arrive.",
       "successSpamNote": "If you don't see the email, check your spam folder.",
-      "emailInvalidError": "Invalid email format"
+      "emailInvalidError": "Invalid email format",
+      "emailUnavailable": "Password reset email is temporarily unavailable. Please try again later."
     }
   },
   "cookie_consent": {

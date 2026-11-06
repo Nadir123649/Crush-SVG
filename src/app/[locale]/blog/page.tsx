@@ -165,7 +165,7 @@ export default async function BlogListingPage({
   ]);
 
   return (
-    <main className="w-full flex flex-col items-center min-h-[70vh] bg-background pb-[60px] md:pb-[100px]">
+    <main className="w-full flex flex-col items-center min-h-[70vh] bg-background pb-[36px] md:pb-[48px]">
       {/* Structured Data (JSON-LD) */}
       <script
         type="application/ld+json"

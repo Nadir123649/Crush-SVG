@@ -39,7 +39,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
   const gridPosts = showFeaturedSection ? filteredPosts.slice(1) : filteredPosts;
 
   return (
-    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] py-[16px] md:py-[28px] flex flex-col gap-[28px] md:gap-[40px]">
+    <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] pt-[16px] md:pt-[28px] pb-0 flex flex-col gap-[28px] md:gap-[40px]">
       {/* Search & Category Filter Controls */}
       <div className="w-full flex flex-col md:flex-row items-center justify-center gap-[16px] flex-wrap">
         {/* Category Pills */}
@@ -196,7 +196,7 @@ export function BlogListing({ posts, categories, searchPlaceholder }: BlogListin
       </section>
 
       {/* Bottom Conversion CTA Box (Matching Homepage Style) */}
-      <section className="w-full bg-[#FAF6F3] border border-[#EAEAEA] rounded-[16px] md:rounded-[24px] p-[24px] md:p-[44px] flex flex-col md:flex-row items-center justify-between gap-[24px]">
+      <section className="mt-[8px] w-full bg-[#FAF6F3] border border-[#EAEAEA] rounded-[16px] md:rounded-[24px] p-[24px] md:p-[44px] flex flex-col md:flex-row items-center justify-between gap-[24px]">
         <div className="flex flex-col items-center md:items-start gap-[8px] text-center md:text-left max-w-[640px]">
           <span className="text-[12px] font-heading font-semibold uppercase tracking-wider text-brand-primary">
             Universal Email Fix

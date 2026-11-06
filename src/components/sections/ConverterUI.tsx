@@ -32,6 +32,7 @@ import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter";
 import { Link } from "@/i18n/routing";
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -58,12 +59,7 @@ const SAMPLE_SVG = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
-const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <!-- Paste your SVG code here! -->
-  <rect x="10" y="10" width="80" height="80" rx="15" fill="#DA582D"/>
-  <circle cx="50" cy="50" r="20" fill="#FFFFFF"/>
-  <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
-</svg>`;
+const DUMMY_CODE = SVG_EDITOR_PLACEHOLDER;
 
 function normalizeHex(input: string): string {
   let hex = input.trim();
@@ -320,8 +316,9 @@ function SvgToPngConverter() {
         handleSvgChange(text);
         showToast("success", "✨ SVG loaded from clipboard!");
       } else if (text) {
-        handleSvgChange(text);
-        showToast("info", "Pasted code from clipboard");
+        const message = "Invalid SVG code identified";
+        setError(message);
+        showToast("error", message);
       } else {
         showToast("error", "Clipboard is empty");
       }
@@ -407,7 +404,11 @@ function SvgToPngConverter() {
     }
     setSvgCode(clean);
     setResult(null);
-    setError(null);
+    setError(
+      clean && clean !== SAMPLE_SVG && clean !== DUMMY_CODE && !isValidSvgContent(clean)
+        ? "Invalid SVG code identified"
+        : null
+    );
     setPreviewError(false);
   }
 
@@ -878,7 +879,9 @@ function SvgToPngConverter() {
                       const pasted = e.clipboardData.getData("text/plain");
                       if (pasted && !isValidSvgContent(pasted)) {
                         e.preventDefault();
-                        showToast("error", "Invalid SVG code identified");
+                        const message = "Invalid SVG code identified";
+                        setError(message);
+                        showToast("error", message);
                         return;
                       }
                       if (pasted && (isLargeSvg || pasted.length > LARGE_SVG_CHARS)) {
@@ -1095,11 +1098,8 @@ function SvgToPngConverter() {
                                 resetConversion();
                               }
                             }}
-                            onFocus={(event) => {
+                            onFocus={() => {
                               setOpenDropdown("width");
-                              if (!isCustomWidth && selectedWidth === "Original") {
-                                event.currentTarget.select();
-                              }
                             }}
                             aria-label="Width in pixels or centimeters"
                             autoComplete="off"
@@ -1160,7 +1160,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
+                                  className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedWidth === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0`}
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1193,11 +1193,8 @@ function SvgToPngConverter() {
                                 resetConversion();
                               }
                             }}
-                            onFocus={(event) => {
+                            onFocus={() => {
                               setOpenDropdown("height");
-                              if (!isCustomHeight && selectedHeight === "Auto") {
-                                event.currentTarget.select();
-                              }
                             }}
                             aria-label="Height in pixels or centimeters"
                             autoComplete="off"
@@ -1258,7 +1255,7 @@ function SvgToPngConverter() {
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
+                                  className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedHeight === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0`}
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1389,11 +1386,8 @@ function SvgToPngConverter() {
                                   }
                                 }
                               }}
-                              onFocus={(event) => {
+                              onFocus={() => {
                                 setOpenDropdown("scale");
-                                if (!isCustomScale) {
-                                  event.currentTarget.select();
-                                }
                               }}
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
@@ -1460,7 +1454,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedScale === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent`}
                                   >
                                     {opt}
                                   </button>
