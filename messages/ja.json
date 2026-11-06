@@ -51,10 +51,10 @@
     "metaDescription": "SVGファイルを高画質なPNG画像に瞬時に変換。完全無料・ブラウザ完結・透過背景対応。ソフトのインストール不要。",
     "badgeLoggedIn": "無制限の変換アクセスが有効です。",
     "badgeLoggedOut": "3回まで無料変換。無料アカウント作成で無制限利用可能。",
-    "heroTitlePrefix": "SVGファイルをオンラインでPNGに変換（高解像度）",
-    "heroTitleHighlight": "",
-    "heroTitleSuffix": "",
-    "heroSubtitle": "SVGファイルやコードを、サイズと背景を指定して鮮明なPNG画像に書き出せます。",
+    "heroTitlePrefix": "",
+    "heroTitleHighlight": "SVGからPNGへ、",
+    "heroTitleSuffix": "思い通りの高画質変換",
+    "heroSubtitle": "SVGコードの貼り付け、ファイル選択、またはドラッグ＆ドロップするだけ。Outlook、Gmail、ニュースレター、Webサイト用の高解像度PNGを瞬時に生成します。",
     "bgRemoverCtaTitle": "画像の",
     "bgRemoverCtaHighlight": "背景透過・削除",
     "bgRemoverCtaDesc": "写真をアップロードするだけで、きれいに切り抜かれた透過PNGを数秒で取得できます。無料・安全・インストール不要。",
@@ -68,14 +68,14 @@
       "subtitle": "SVGファイルをcurrentColor対応のTypeScriptおよびJavaScriptフロントエンドコンポーネントに即座に変換します。"
     },
     "svgToPng": {
-      "title": "SVGファイルをオンラインでPNGに変換 - 高解像度 | CrushSVG",
-      "h1": "SVGファイルをオンラインでPNGに変換（高解像度）",
-      "subtitle": "SVGファイルやコードを、サイズと背景を指定して鮮明なPNG画像に書き出せます。"
+      "title": "SVG PNG 変換コンバーター",
+      "h1": "無料オンラインSVG PNG変換コンバーター",
+      "subtitle": "無料のSVG PNG変換コンバーター。SVGファイルやコードを、サイズ指定と透過背景に対応したPNG画像に変換。高速・オンライン・インストール不要。"
     },
     "pngToSvg": {
-      "title": "PNGをSVGに変換 - 無料オンライン画像ベクター化 | CrushSVG",
-      "h1": "無料PNGからSVGへのベクター変換ツール",
-      "subtitle": "PNG、JPG、ロゴ、イラストを自動トレースで拡大可能なSVGパスに変換します。"
+      "title": "PNG SVG 変換コンバーター (ベクター化)",
+      "h1": "PNGからSVGへ、拡大しても美しいベクター化",
+      "subtitle": "PNGやJPGのラスター画像をアップロードするだけで、ロゴやイラストに最適なベクターSVGを瞬時に生成します。"
     },
     "backgroundRemover": {
       "title": "画像背景透過・削除ツール",
@@ -207,12 +207,12 @@
     "badgeTypeScriptReady": "TypeScript & TSX対応",
     "badgeFrameworkSupport": "React, Vue & Svelte対応",
     "badgeLucideStyle": "Lucide & Heroiconsスタイル",
-    "svgTitle": "CrushSVGでSVGをPNGに変換する理由",
-    "rasterTitle": "画像のベクター化にCrushSVGを選ぶ理由",
+    "svgTitle": "重いデザインソフトや不安定な変換ツールはもう不要",
+    "rasterTitle": "重いデザインソフトや不安定な変換ツールはもう不要",
     "bgTitle": "複雑な画像編集ソフトでの切り抜き作業にさようなら",
     "resizerTitle": "デスクトップ専用リサイズアプリの手間を解消",
-    "svgDesc": "SVGファイルやコードからPNGを作成し、出力サイズと背景を調整できます。",
-    "rasterDesc": "ラスター画像をブラウザーでSVGパスに変換し、ダウンロード前に結果を確認できます。",
+    "svgDesc": "SVGコードの貼り付けやドラッグ＆ドロップだけで、Gmail、Outlook、Canva、Webサイト用の鮮明な高解像度PNGを瞬時に生成。",
+    "rasterDesc": "PNGやJPGをアップロードするだけで、ロゴやアイコン用の高品質で拡大可能なSVGベクターファイルを瞬時に作成。",
     "bgDesc": "写真をアップロードするだけで背景を自動透過。商品画像、SNS投稿、ポートレート写真の切り抜きに最適。",
     "resizerDesc": "画像を希望のピクセル寸法に一瞬で変更。サムネイルやバナー画像、印刷用素材の作成に最適。",
     "badgeFree": "無料",
@@ -244,19 +244,7 @@
     "svgBenefit3Title": "背景を設定",
     "svgBenefit3Desc": "対応する透明部分を維持するか、書き出す画像の背景色を選択できます。",
     "svgBenefit4Title": "ダウンロード前にプレビュー",
-    "svgBenefit4Desc": "PNGを作成する前に、プレビューでイラストと背景を確認できます。",
-    "seoSvgBenefit1Title": "出力サイズをカスタマイズ",
-    "seoSvgBenefit1Desc": "用途に合わせてPNGの幅、高さ、倍率を設定できます。",
-    "seoRasterBenefit1Title": "拡大できるSVG出力",
-    "seoRasterBenefit1Desc": "ラスター画像のピクセル制限に縛られず、ベクターパスを拡大できます。",
-    "seoSvgBenefit2Title": "透過背景に対応",
-    "seoSvgBenefit2Desc": "透明部分を維持するか、背景色を選択できます。",
-    "seoRasterBenefit2Title": "色とパスの調整",
-    "seoRasterBenefit2Desc": "ベクター化の設定、色の詳細度、パスの滑らかさを調整できます。",
-    "seoSvgBenefit3Title": "ダウンロード前にプレビュー",
-    "seoSvgBenefit3Desc": "PNGを作成する前に画像と背景を確認できます。",
-    "seoRasterBenefit3Title": "ソフトのインストール不要",
-    "seoRasterBenefit3Desc": "ブラウザーで画像をベクター化し、SVGをダウンロードできます。"
+    "svgBenefit4Desc": "PNGを作成する前に、プレビューでイラストと背景を確認できます。"
   },
   "steps": {
     "react": [
@@ -275,30 +263,30 @@
     ],
     "svg": [
       {
-        "title": "1. SVGをアップロードまたはコードを貼り付け",
-        "description": ".svgファイルをコンバーターにドロップするか、SVG XMLコードを直接貼り付けます。"
+        "title": "貼り付けまたはアップロード",
+        "description": "SVGファイルをドロップするか、SVGコードを直接入力エリアに貼り付けます。"
       },
       {
-        "title": "2. サイズと透過を設定",
-        "description": "幅、高さ、倍率を指定し、透明またはカスタム背景を選択します。"
+        "title": "サイズと背景を選択",
+        "description": "希望のピクセル幅や拡大倍率を指定し、透過または背景色を選びます。"
       },
       {
-        "title": "3. プレビューしてPNGをダウンロード",
-        "description": "プレビューを確認し、Webやデザイン用途にPNGをダウンロードします。"
+        "title": "PNGをダウンロード",
+        "description": "美しく透過処理された高解像度PNGをワンクリックですぐに保存できます。"
       }
     ],
     "raster": [
       {
-        "title": "1. PNGまたはJPG画像を選択",
-        "description": "PNG、JPG、JPEG、WebPをアップロードします。コントラストの高いロゴや線画は鮮明にトレースしやすい傾向があります。"
+        "title": "PNG・JPG画像をアップロード",
+        "description": "画像をドラッグ＆ドロップするか、クリップボードから直接貼り付けます。"
       },
       {
-        "title": "2. 画像をベクターパスにトレース",
-        "description": "色や輪郭を検出し、編集可能なSVGパスに変換します。"
+        "title": "ベクター化の設定を調整",
+        "description": "カラーパレット、パスの滑らかさ、精度を微調整します。"
       },
       {
-        "title": "3. 拡大可能なSVGベクターをダウンロード",
-        "description": "結果を確認し、対応するデザインツール用にSVGをダウンロードします。"
+        "title": "SVGをダウンロード",
+        "description": "Web、モバイルアプリ、Figmaですぐに使えるクリーンなSVGを取得します。"
       }
     ],
     "bg": [
@@ -445,16 +433,24 @@
     ],
     "svg": [
       {
-        "question": "透明な背景を保ったままSVGをPNGに変換できますか？",
-        "answer": "はい。変換前に透明背景を選択してください。SVGの透明部分はPNGにも保持されます。"
+        "question": "CrushSVGは無料で利用できますか？",
+        "answer": "はい。ログインなしで最大3回までSVGをPNGに変換できます。ログインすると無制限で無料のSVGからPNGへの変換が可能です。"
       },
       {
-        "question": "SVGをPNGに変換すると画質は下がりますか？",
-        "answer": "SVGは指定したサイズでレンダリングできます。出力はラスターPNGのため、鮮明さは選択したサイズに左右されます。"
+        "question": "透過背景のPNG出力に対応していますか？",
+        "answer": "はい。SVGを変換する前に「透過背景」オプションを有効にすると、透明な背景のPNGをダウンロードできます。"
       },
       {
-        "question": "このSVGからPNGへの変換ツールは無料ですか？",
-        "answer": "はい。ソフトをインストールせずにオンラインで利用できます。無料利用には上限が適用される場合があります。"
+        "question": "どのくらいの大きさまで拡大変換できますか？",
+        "answer": "最大16倍の拡大倍率、または最大4000ピクセルまでのカスタム寸法指定に対応しており、印刷レベルの高精細な画像を出力できます。最終的な画像は1辺あたり最大4000ピクセルです。"
+      },
+      {
+        "question": "アップロードしたファイルの安全性やプライバシーは保護されますか？",
+        "answer": "標準的なSVGからPNGへの変換はサーバーで行われます。大容量のSVGはブラウザ内で変換される場合があります。ファイルが保存されたり共有されることはありません。"
+      },
+      {
+        "question": "グラデーションやスタイルの含まれる複雑なSVGも変換できますか？",
+        "answer": "はい、線形・円形グラデーション、クリッピングパス、埋め込みCSSスタイル、複雑なグループ化を含むSVGに対応しています。"
       }
     ],
     "bg": [
@@ -485,16 +481,28 @@
     ],
     "raster": [
       {
-        "question": "PNGからSVGへのベクター化はどのように動作しますか？",
-        "answer": "画像の色の領域や輪郭をトレースし、SVGパスとして表現します。結果は元画像と設定によって異なります。"
+        "question": "ベクター化したSVGの品質を調整できますか？",
+        "answer": "はい！プリセット（低・中・高）、カラー量子化、背景の処理、パスのスムージングを調整できます。"
       },
       {
-        "question": "出力したSVGをCricutやレーザー加工に使えますか？",
-        "answer": "SVGは多くのデザイン・カッティングアプリが対応する一般的な形式です。加工前に対象ソフトでパスを確認してください。"
+        "question": "アップロードしたPNG・JPG画像は安全ですか？",
+        "answer": "はい。画像は安全に処理され、アップロードされたファイルを他の目的で保存・共有・利用することはありません。"
       },
       {
-        "question": "どの画像形式をベクター化できますか？",
-        "answer": "PNG、JPG、JPEG、WebPに対応しています。コントラストの高い画像はより明瞭にトレースできる傾向があります。"
+        "question": "このツールは背景の削除に対応していますか？",
+        "answer": "はい、'Ignore Background' 機能を有効にすると、ベクター化の際に単色の背景を自動的に削除できます。"
+      },
+      {
+        "question": "ソフトウェアのインストールは必要ですか？",
+        "answer": "いいえ、CrushSVGは完全にブラウザ上で動作します。プラグインなしで、ブラウザから直接画像をベクター化できます。"
+      },
+      {
+        "question": "CrushSVGは無料で利用できますか？",
+        "answer": "はい！画像のベクター化は無料でご利用いただけます。アカウントを作成すると、隠れた費用なしで無制限に変換できます。"
+      },
+      {
+        "question": "どの画像フォーマットをベクター化できますか？",
+        "answer": "PNG、JPG、JPEG、WebP画像をアップロードして、シャープで拡大縮小可能なSVGベクターに変換できます。"
       }
     ],
     "resizer": [
@@ -617,12 +625,12 @@
   "SEO": {
     "svgToReactTitle": "SVGをReact JSX/TSX、Vue、Svelteコンポーネントに変換 | オンライン無料",
     "svgToReactDescription": "無料のオンラインSVGコードジェネレーター。SVGベクターをReact（TSX/JSX）、Vue 3、Svelte、Tailwind、React Nativeコンポーネントに瞬時に変換します。",
-    "svgToPngTitle": "SVGファイルをオンラインでPNGに変換 - 高解像度 | CrushSVG",
-    "svgToPngDescription": "SVGファイルを高解像度PNGに変換。無料、透過背景対応、サイズ調整可能なオンラインツールです。",
+    "svgToPngTitle": "SVG PNG 変換 – 無料オンライン高画質コンバーター | CrushSVG",
+    "svgToPngDescription": "SVGを数秒で鮮明なPNGに変換。無料、ブラウザ完結、透過背景対応。ソフトのインストール不要で高解像度書き出し可能。",
     "svgToPngPageTitle": "無料SVG PNG変換コンバーター（オンライン） | CrushSVG",
     "svgToPngPageDescription": "無料のSVG PNG変換コンバーター。SVGファイルやコードを、サイズ指定と透過背景に対応したPNG画像に変換。高速・オンライン・インストール不要。",
-    "pngToSvgTitle": "PNGをSVGに変換 - 無料オンライン画像ベクター化 | CrushSVG",
-    "pngToSvgDescription": "PNG、JPGなどのラスター画像を拡大可能なSVGベクターに変換。色や形をトレースする無料のブラウザツールです。",
+    "pngToSvgTitle": "PNG SVG 変換 – 無料で画像をベクター化 | CrushSVG",
+    "pngToSvgDescription": "PNG、JPG、JPEG画像を拡大しても劣化しないSVGベクターに瞬時に変換。インストール不要の無料オンラインツール。",
     "bgRemoverTitle": "画像背景透過・削除ツール – 無料オンライン | CrushSVG",
     "bgRemoverDescription": "写真や画像の背景を一瞬で自動削除して透過PNGを作成。無料、ブラウザ完結、高精度な切り抜き。",
     "imageResizerTitle": "画像リサイズツール – 無料オンライン画像サイズ変更 | CrushSVG",
@@ -964,24 +972,22 @@
     "headingBgRemoverLine1": "1枚の画像。",
     "headingImageResizerHighlight": "ぴったりのサイズ。",
     "headingImageResizerLine1": "1枚の画像。",
-    "headingSvgPngHighlight": "",
-    "headingSvgPngLine1": "SVGファイルを3つの簡単な手順でPNGに変換",
+    "headingSvgPngHighlight": "SVGをPNGに",
+    "headingSvgPngLine1": "変換方法",
     "howToBgRemover": "画像の背景をオンラインで削除する方法",
     "howToBgRemoverDesc": "3つの簡単なステップで写真の背景を削除できます。",
     "howToImageResizer": "画像をオンラインでリサイズする方法",
     "howToImageResizerDesc": "PNG、JPG、WebP画像を数秒でリサイズできます。",
-    "howToRasterSvg": "PNGをオンラインでSVGに変換する方法",
-    "howToRasterSvgDesc": "PNGをオンラインでSVGに変換する方法",
-    "howToSvgPng": "SVGファイルを3つの簡単な手順でPNGに変換",
-    "howToSvgPngDesc": "SVGファイルを3つの簡単な手順でPNGに変換",
+    "howToRasterSvg": "ラスター画像をSVGベクターに変換する方法",
+    "howToRasterSvgDesc": "PNGやJPGのラスター画像を、拡大しても劣化しないSVGベクターに変換します。",
+    "howToSvgPng": "SVGをオンラインでPNGに変換する方法",
+    "howToSvgPngDesc": "3つのステップで、SVGコードやファイルを鮮明な透過PNG画像に変換できます。",
     "headingSvgOptimizerHighlight": "最大限の圧縮効果。",
     "headingSvgOptimizerLine1": "1つのファイル。",
     "howToSvgOptimizer": "オンラインでSVGファイルを圧縮・最適化する方法",
     "howToSvgOptimizerDesc": "3つの簡単なステップでSVGベクターファイルを圧縮・整理します。",
     "howToFaviconGenerator": "SVGからファビコンとアプリアイコンを生成する方法",
-    "howToFaviconGeneratorDesc": "3つの簡単なステップで、Webプロジェクト用の高解像度ファビコンやマニフェストを作成できます。",
-    "headingRasterSvgLine1": "PNGをオンラインでSVGに変換する方法",
-    "headingRasterSvgHighlight": ""
+    "howToFaviconGeneratorDesc": "3つの簡単なステップで、Webプロジェクト用の高解像度ファビコンやマニフェストを作成できます。"
   },
   "toasts": {
     "conversionComplete": "変換が完了しました。{format}のダウンロード準備ができました。",
