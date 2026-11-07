@@ -4,9 +4,8 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 import { forgotPasswordSchema } from '@/lib/auth/auth-validation'
 import { User } from '@/lib/database/db'
 import { generateToken, hashToken, RESET_TOKEN_MINUTES } from '@/lib/auth/passwords'
-import { isEmailDeliveryConfigured, resolveTransport, sendResetPasswordEmail } from '@/lib/integrations/email'
+import { sendResetPasswordEmail } from '@/lib/integrations/email'
 import { successResponse, errorResponse, getFrontendOrigin } from '@/lib/http/api-response'
-import { getRequestId } from '@/lib/shared/logger'
 
 export const runtime = 'nodejs'
 
@@ -29,18 +28,6 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     const first = Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Invalid input'
     return errorResponse(400, 'validation_error', first)
-  }
-
-  // Check provider configuration before account lookup so this response does
-  // not reveal whether the submitted address belongs to an account.
-  if (!isEmailDeliveryConfigured()) {
-    return errorResponse(
-      503,
-      'email_unavailable',
-      'Password reset email is temporarily unavailable. Please try again later.',
-      undefined,
-      request,
-    )
   }
 
   const email = parsed.data.email.toLowerCase().trim()
@@ -67,13 +54,11 @@ export async function POST(request: NextRequest) {
   try {
     await sendResetPasswordEmail(email, resetUrl, getFrontendOrigin(request))
   } catch (e) {
-    const error = e as { code?: unknown; statusCode?: unknown }
-    console.error('Password reset email delivery failed', {
-      requestId: getRequestId(request),
-      transport: resolveTransport(),
-      code: typeof error?.code === 'string' ? error.code : 'unknown',
-      statusCode: typeof error?.statusCode === 'number' ? error.statusCode : undefined,
-    })
+    console.error('Reset password email failed to send:', e)
   }
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[dev] Password reset link for ${email}: ${resetUrl}`)
+  }
+
   return successResponse({ message: GENERIC_MESSAGE })
 }

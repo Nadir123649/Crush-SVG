@@ -35,10 +35,10 @@ export function ForgotPasswordCard() {
       
       if (res.ok) {
         setSent(true);
-        showToast("success", t("successMessage", { email }));
+        showToast("success", "Reset link sent. Please check your inbox.");
       } else {
         const data = await res.json().catch(() => null);
-        const errMsg = data?.payload?.error?.message || data?.error?.message || t("emailUnavailable");
+        const errMsg = data?.payload?.error?.message || data?.error?.message || "Something went wrong. Please try again.";
         setError(errMsg);
       }
     } catch (err) {

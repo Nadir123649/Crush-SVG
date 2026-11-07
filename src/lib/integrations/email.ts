@@ -20,26 +20,6 @@ export function resolveTransport(env: NodeJS.ProcessEnv = process.env): EmailTra
   return "none";
 }
 
-export function isEmailDeliveryConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  if (env.EMAIL_LOG_ONLY === "true") return false;
-
-  const smtpReady = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
-  const resendFrom = (env.RESEND_FROM || env.EMAIL_FROM || "").trim();
-  const fromAddress = resendFrom.match(/<([^>]+)>/)?.[1] || resendFrom;
-  const fromDomain = fromAddress.split("@").at(-1)?.toLowerCase();
-  const isProductionSender = Boolean(
-    fromDomain &&
-      !["resend.dev", "gmail.com", "yahoo.com"].includes(fromDomain),
-  );
-  const resendReady = Boolean(
-    env.RESEND_API_KEY &&
-      resendFrom &&
-      (env.NODE_ENV !== "production" || isProductionSender),
-  );
-
-  return smtpReady || resendReady;
-}
-
 export function buildVerifyUrl(origin: string, token: string): string {
   return `${origin}/api/v1/verification/email/verify/${token}`;
 }
@@ -72,11 +52,11 @@ export async function sendEmail(to: string, subject: string, html: string, optio
   const transport = resolveTransport(env);
   const startedAt = Date.now();
   const logSend = (event: string, extra = "") => {
-    console.log(`[email] ${event} subject="${subject}" transport=${transport} took=${Date.now() - startedAt}ms ${extra}`);
+    console.log(`[email] ${event} to=${to} subject="${subject}" transport=${transport} took=${Date.now() - startedAt}ms ${extra}`);
   };
 
   if (env.EMAIL_LOG_ONLY === "true") {
-    console.log(`[email:log-only] subject="${subject}" (no transport used)`);
+    console.log(`[email:log-only] to=${to} subject="${subject}" (no transport used)`);
     return;
   }
 
@@ -112,11 +92,11 @@ export async function sendEmail(to: string, subject: string, html: string, optio
       return;
     } catch (err: any) {
       resendError = err instanceof Error ? err : new Error(String(err));
-      logSend("resend_failed", `code=${(resendError as Error & { code?: string }).code || "unknown"}`);
+      logSend("resend_failed", `error=${resendError.message}`);
       if (!env.SMTP_HOST) {
         throw new Error(`Resend send failed: ${resendError.message}`);
       }
-      console.warn(`[email] Resend failed, automatically falling back to SMTP`);
+      console.warn(`[email] Resend failed, automatically falling back to SMTP: ${resendError.message}`);
     }
   }
 
