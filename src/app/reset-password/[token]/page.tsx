@@ -261,14 +261,14 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[8px] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-[42px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity mt-[4px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {submitting ? "Updating…" : "Set New Password"}
                 </button>
               </form>
 
               {/* Footer Text */}
-              <div className="text-center mt-[24px]">
+              <div className="text-center mt-[16px]">
                 <p className="font-afacad font-normal text-[14px] text-[#57534E]">
                   Remember your password? <Link href="/login" className="font-semibold text-[#D94A1E] hover:underline">Log In</Link>
                 </p>
