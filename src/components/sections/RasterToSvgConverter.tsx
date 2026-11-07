@@ -113,7 +113,6 @@ interface CustomDropdownProps {
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   disabled?: boolean;
   customColor?: string;
-  onCustomColorChange?: (color: string) => void;
 }
 
 function VectorDropdown({
@@ -126,7 +125,6 @@ function VectorDropdown({
   dropdownRef,
   disabled,
   customColor,
-  onCustomColorChange,
 }: CustomDropdownProps) {
   const selected = options.find((o) => o.value === value) || options[0];
 
@@ -241,74 +239,93 @@ function VectorDropdown({
                     {opt.desc}
                   </span>
 
-                  {opt.value === "Custom" && onCustomColorChange && customColor && isSelected && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-[8px] pt-[8px] border-t border-gray-100 flex flex-col gap-[8px]"
-                      style={{ cursor: "default" }}
-                    >
-                      {/* Color presets row */}
-                      <div className="flex items-center gap-[6px] flex-wrap">
-                        {COLOR_PRESETS.map((c) => (
-                          <button
-                            key={c.hex}
-                            type="button"
-                            title={c.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCustomColorChange(c.hex);
-                            }}
-                            className={`w-[20px] h-[20px] rounded-full border-2 transition-transform shrink-0 ${
-                              customColor.toLowerCase() === c.hex.toLowerCase()
-                                ? "border-brand-primary scale-110 ring-2 ring-brand-primary/30"
-                                : "border-gray-200 hover:scale-110 hover:border-gray-400"
-                            }`}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        ))}
-                      </div>
-                      {/* Color picker + hex input row */}
-                      <div className="flex items-center gap-[8px]">
-                        <label
-                          title="Open color picker"
-                          className="w-[32px] h-[32px] rounded-[6px] border border-gray-300 cursor-pointer overflow-hidden flex items-center justify-center shrink-0 hover:border-brand-primary transition-colors"
-                          style={{ backgroundColor: customColor }}
-                        >
-                          <input
-                            type="color"
-                            value={customColor}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              onCustomColorChange(e.target.value);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="opacity-0 w-0 h-0 absolute"
-                            aria-label="Pick custom background color"
-                          />
-                        </label>
-                        <input
-                          type="text"
-                          value={customColor}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onCustomColorChange(e.target.value);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          maxLength={7}
-                          placeholder="#FFFFFF"
-                          className="flex-1 h-[32px] px-2 font-mono text-[12px] border border-gray-300 rounded-[6px] outline-none focus:border-brand-primary uppercase"
-                        />
-                        <span
-                          className="w-[32px] h-[32px] rounded-[6px] border border-gray-200 shrink-0"
-                          style={{ backgroundColor: customColor }}
-                          title={`Preview: ${customColor}`}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomBackgroundColorPicker({
+  color,
+  onChange,
+  disabled,
+}: {
+  color: string;
+  onChange: (color: string) => void;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setIsOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={pickerRef} className="relative mt-2 w-full">
+      <button
+        type="button"
+        aria-label="Choose custom background color"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((open) => !open)}
+        disabled={disabled}
+        className="flex h-9 items-center gap-2 rounded-lg border border-[#F2EDE8] bg-white px-3 text-xs font-medium text-text-dark shadow-sm transition-colors hover:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span className="h-4 w-4 rounded border border-gray-300" style={{ backgroundColor: color }} />
+        <span>{color.toUpperCase()}</span>
+      </button>
+      {isOpen && (
+        <div role="dialog" aria-label="Custom background color" className="absolute left-0 top-[calc(100%+6px)] z-50 w-[min(280px,calc(100vw-2rem))] rounded-xl border border-[#F2EDE8] bg-white p-3 shadow-[0px_12px_32px_rgba(32,36,39,0.16)]">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {COLOR_PRESETS.map((preset) => (
+              <button
+                key={preset.hex}
+                type="button"
+                aria-label={`${preset.name} preset`}
+                title={preset.name}
+                onClick={() => onChange(preset.hex)}
+                className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${color.toLowerCase() === preset.hex ? "border-brand-primary ring-2 ring-brand-primary/25" : "border-gray-200"}`}
+                style={{ backgroundColor: preset.hex }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label title="Open color picker" className="relative h-9 w-9 shrink-0 cursor-pointer overflow-hidden rounded-md border border-gray-300" style={{ backgroundColor: color }}>
+              <input
+                type="color"
+                value={/^#[0-9a-f]{6}$/i.test(color) ? color : "#ffffff"}
+                onChange={(event) => onChange(event.target.value)}
+                aria-label="Pick custom background color"
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </label>
+            <input
+              type="text"
+              value={color}
+              onChange={(event) => onChange(event.target.value)}
+              onBlur={(event) => onChange(normalizeHex(event.target.value))}
+              maxLength={7}
+              aria-label="Custom background hex color"
+              placeholder="#FFFFFF"
+              className="h-9 min-w-0 flex-1 rounded-md border border-gray-300 px-2 font-mono text-xs uppercase outline-none focus:border-brand-primary"
+            />
+            <span aria-hidden="true" className="h-9 w-9 shrink-0 rounded-md border border-gray-200" style={{ backgroundColor: color }} />
           </div>
         </div>
       )}
@@ -386,20 +403,17 @@ export function RasterToSvgConverter() {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "authed" && status !== "authed") {
-      convertAbortRef.current?.abort();
-      setRasterFile(null);
-      setRasterDataUrl(null);
-      setImageName(null);
-      setImageSize(null);
-      setImageDims(null);
-      setResult(null);
-      setError(null);
+      handleClear();
       setUsage(null);
       setShowSignupPrompt(false);
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-        sessionStorage.removeItem(STORAGE_KEY_IMAGE);
-      } catch {}
+      setLimitDownloadDone(false);
+    } else if (prev === "guest" && status === "authed") {
+      // Never carry a guest's failed upload, preview or error into an account.
+      // Start the authenticated workspace clean and discard the guest cache.
+      handleClear();
+      setUsage(null);
+      setShowSignupPrompt(false);
+      setLimitDownloadDone(false);
     }
   }, [status]);
 
@@ -1378,28 +1392,33 @@ export function RasterToSvgConverter() {
                     />
 
                     {/* Background Dropdown */}
-                    <VectorDropdown
-                      label={t("backgroundLabel")}
-                      value={rasterBackground}
-                      options={BACKGROUND_OPTIONS}
-                      onChange={(val) => {
-                        setRasterBackground(val);
-                        setOpenDropdown(null);
-                        setResult(null);
-                      }}
-                      isOpen={openDropdown === "background"}
-                      onToggle={() => setOpenDropdown(openDropdown === "background" ? null : "background")}
-                      dropdownRef={backgroundRef}
-                      disabled={converting}
-                      customColor={rasterBgColor}
-                      onCustomColorChange={(color) => {
-                        setRasterBgColor(color);
-                        // Changing the custom colour invalidates the current
-                        // output, exactly like the dropdown onChange handlers,
-                        // so a stale SVG can never be left on screen or downloaded.
-                        setResult(null);
-                      }}
-                    />
+                    <div className="relative min-w-0">
+                      <VectorDropdown
+                        label={t("backgroundLabel")}
+                        value={rasterBackground}
+                        options={BACKGROUND_OPTIONS}
+                        onChange={(val) => {
+                          setRasterBackground(val);
+                          setOpenDropdown(null);
+                          setResult(null);
+                        }}
+                        isOpen={openDropdown === "background"}
+                        onToggle={() => setOpenDropdown(openDropdown === "background" ? null : "background")}
+                        dropdownRef={backgroundRef}
+                        disabled={converting}
+                        customColor={rasterBgColor}
+                      />
+                      {rasterBackground === "Custom" && (
+                        <CustomBackgroundColorPicker
+                          color={rasterBgColor}
+                          disabled={converting}
+                          onChange={(color) => {
+                            setRasterBgColor(color);
+                            setResult(null);
+                          }}
+                        />
+                      )}
+                    </div>
 
                     {/* Tracing Mode Dropdown */}
                     <VectorDropdown

@@ -154,6 +154,7 @@ const FRAMEWORK_TABS: { id: TargetFramework; label: string; ext: string }[] = [
 export function SvgToCodeUI() {
 
   const t = useTranslations("svg_to_code_ui");
+  const tToast = useTranslations("toasts");
 
   const tUpload = useTranslations("upload_interface");
 
@@ -338,7 +339,7 @@ export function SvgToCodeUI() {
 
       setComponentName(baseName.replace(/[^a-zA-Z0-9_-]/g, "") || "CustomIcon");
 
-      showToast("success", t("fileLoaded"));
+      showToast("success", tToast("fileLoaded"), { duration: 3000 });
 
     } catch {
 

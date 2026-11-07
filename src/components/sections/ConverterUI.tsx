@@ -497,7 +497,7 @@ function SvgToPngConverter() {
     try {
       const text = await file.text();
       handleSvgChange(text.trimEnd());
-      showToast("success", tToast("svgPasted"));
+      showToast("success", tToast("fileLoaded"), { duration: 3000 });
     } catch {
       setError(tToast("fileReadError"));
     }
@@ -826,18 +826,13 @@ function SvgToPngConverter() {
                 <div className="flex min-w-0 items-center justify-between gap-[10px] mb-[12px] h-[36px]">
                   <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
+                    {svgCode && svgCode.trim().length > 0 && svgCode !== SAMPLE_SVG && (
                     <button
                       type="button"
                       onClick={handleClearSvg}
                       disabled={converting}
                       aria-label="Clear SVG editor"
-                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
-                        svgCode && svgCode.trim().length > 0 && svgCode !== SAMPLE_SVG
-                          ? converting
-                            ? "opacity-50 cursor-not-allowed pointer-events-none"
-                            : "opacity-100"
-                          : "opacity-0 pointer-events-none"
-                      }`}
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"}`}
                     >
                       <div
                         className="absolute inset-0 z-0 pointer-events-none"
@@ -853,6 +848,7 @@ function SvgToPngConverter() {
                         {tUpload("clear")}
                       </span>
                     </button>
+                    )}
                     <span suppressHydrationWarning className="min-w-0 break-words text-right font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "loading"
                         ? "\u00A0"
@@ -1003,7 +999,7 @@ function SvgToPngConverter() {
                     </div>
                   )}
 
-                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal lg:whitespace-nowrap">
+                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal sm:whitespace-nowrap">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>
                       {locale === "en" ? (
@@ -1358,16 +1354,27 @@ function SvgToPngConverter() {
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (/^\d*\.?\d*x?$/i.test(value)) {
-                                  // Clamp to max 16x while typing
-                                  const numStr = value.toLowerCase().replace('x', '');
-                                  const num = parseFloat(numStr);
-                                  if (!isNaN(num) && num > 16) {
-                                    setSelectedScale('16x');
-                                  } else {
-                                    setSelectedScale(value);
-                                  }
+                                  // Keep the x suffix visible as soon as a valid
+                                  // custom value is entered, while leaving the
+                                  // caret before it so multi-digit scales remain editable.
+                                  const numStr = value.toLowerCase().replace(/x/g, '');
+                                  const num = Number.parseFloat(numStr);
+                                  const clamped = Number.isFinite(num)
+                                    ? Math.min(16, Math.max(1, num))
+                                    : null;
+                                  const nextValue = clamped === null
+                                    ? value
+                                    : `${clamped === num ? numStr : clamped}x`;
+                                  setSelectedScale(nextValue);
                                   setIsCustomScale(true);
                                   resetConversion();
+
+                                  if (nextValue.endsWith("x")) {
+                                    const caretPosition = nextValue.length - 1;
+                                    window.requestAnimationFrame(() => {
+                                      e.target.setSelectionRange(caretPosition, caretPosition);
+                                    });
+                                  }
                                 }
                               }}
                               onBlur={(event) => {
@@ -1379,8 +1386,8 @@ function SvgToPngConverter() {
                                   if (isCustomScale && selectedScale) {
                                     const trimmed = selectedScale.trim().toLowerCase().replace('x', '');
                                     const num = parseFloat(trimmed);
-                                    if (!isNaN(num) && num > 0) {
-                                      const clamped = Math.min(num, 16);
+                                    if (!isNaN(num)) {
+                                      const clamped = Math.min(16, Math.max(1, num));
                                       setSelectedScale(`${clamped}x`);
                                     }
                                   }
