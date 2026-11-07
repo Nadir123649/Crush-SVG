@@ -122,6 +122,8 @@ function SvgToPngConverter() {
   const [isCustomWidth, setIsCustomWidth] = useState(false);
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
+  const [widthSubmitAttempted, setWidthSubmitAttempted] = useState(false);
+  const [heightSubmitAttempted, setHeightSubmitAttempted] = useState(false);
   const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
   const [scaleSubmitAttempted, setScaleSubmitAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
@@ -349,6 +351,8 @@ function SvgToPngConverter() {
   }, [deferredSvgCode]);
 
   const isValidSvg = useMemo(() => isValidSvgContent(deferredSvgCode), [deferredSvgCode]);
+  const hasInvalidSvgInput = svgCode !== SAMPLE_SVG && svgCode !== DUMMY_CODE && svgCode.trim().length > 0 && !isValidSvg;
+  const hasInvalidSvgError = Boolean(error && /invalid svg/i.test(error));
   const isLargeSvg = svgCode !== SAMPLE_SVG && svgCode.length > LARGE_SVG_CHARS;
   const largeSvgExcerpt = useMemo(
     () =>
@@ -425,6 +429,8 @@ function SvgToPngConverter() {
     setIsCustomWidth(false);
     setIsCustomHeight(false);
     setIsCustomScale(false);
+    setWidthSubmitAttempted(false);
+    setHeightSubmitAttempted(false);
     setScaleValidationAttempted(false);
     setScaleSubmitAttempted(false);
     setTransparent(false);
@@ -512,6 +518,8 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    setWidthSubmitAttempted(true);
+    setHeightSubmitAttempted(true);
     setScaleValidationAttempted(true);
     setScaleSubmitAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
@@ -743,7 +751,7 @@ function SvgToPngConverter() {
   const limitReached = hasQuotaLimitReached(usage);
 
   let validationError: string | null = null;
-  if (isCustomWidth) {
+  if (isCustomWidth && widthSubmitAttempted) {
     if (selectedWidth.trim() === "") {
       validationError = tToast("customWidthRequired");
     } else {
@@ -759,7 +767,7 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && isCustomHeight) {
+  if (!validationError && isCustomHeight && heightSubmitAttempted) {
     if (selectedHeight.trim() === "") {
       validationError = tToast("customHeightRequired");
     } else {
@@ -957,7 +965,7 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
-                {error && (
+                {error && !hasInvalidSvgInput && !hasInvalidSvgError && (
                   <p
                     role="alert"
                     aria-live="polite"
@@ -1004,7 +1012,7 @@ function SvgToPngConverter() {
                     <span>
                       {locale === "en" ? (
                         <>
-                          {tHomepage("privacyNotice")} <Link href="/privacy-policy" className="underline">{tHomepage("privacyPolicyLink")}</Link>.
+                          {tHomepage("privacyNotice")} {" "}<Link href="/privacy-policy" className="underline transition-colors hover:text-brand-primary">{tHomepage("privacyPolicyLink")}</Link>.
                         </>
                       ) : tUpload("privateNotice")}
                     </span>
@@ -1024,6 +1032,12 @@ function SvgToPngConverter() {
                     </span>
                   )}
                 </div>
+
+                {(hasInvalidSvgInput || hasInvalidSvgError) && (
+                  <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error && hasInvalidSvgError ? error : "Invalid SVG code identified"}
+                  </p>
+                )}
 
                 {/* Live Preview Box */}
                 <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]">
@@ -1086,6 +1100,13 @@ function SvgToPngConverter() {
                             type="text"
                             inputMode="decimal"
                             value={selectedWidth}
+                            readOnly={!isCustomWidth}
+                            onMouseDown={(event) => {
+                              if (!isCustomWidth) {
+                                event.preventDefault();
+                                setOpenDropdown("width");
+                              }
+                            }}
                             onChange={(event) => {
                               const value = event.target.value;
                               if (/^\d*\.?\d*$/.test(value)) {
@@ -1100,7 +1121,7 @@ function SvgToPngConverter() {
                             aria-label="Width in pixels or centimeters"
                             autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis read-only:cursor-pointer"
                           />
                           {selectedWidth !== "Original" && selectedWidth !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1149,9 +1170,11 @@ function SvgToPngConverter() {
                                     if (opt === "Custom") {
                                       setIsCustomWidth(true);
                                       setSelectedWidth("");
+                                      setWidthSubmitAttempted(false);
                                     } else {
                                       setIsCustomWidth(false);
                                       setSelectedWidth(opt);
+                                      setWidthSubmitAttempted(false);
                                     }
                                     setOpenDropdown(null);
                                     resetConversion();
@@ -1181,6 +1204,13 @@ function SvgToPngConverter() {
                             type="text"
                             inputMode="decimal"
                             value={selectedHeight}
+                            readOnly={!isCustomHeight}
+                            onMouseDown={(event) => {
+                              if (!isCustomHeight) {
+                                event.preventDefault();
+                                setOpenDropdown("height");
+                              }
+                            }}
                             onChange={(event) => {
                               const value = event.target.value;
                               if (/^\d*\.?\d*$/.test(value)) {
@@ -1195,7 +1225,7 @@ function SvgToPngConverter() {
                             aria-label="Height in pixels or centimeters"
                             autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis read-only:cursor-pointer"
                           />
                           {selectedHeight !== "Auto" && selectedHeight !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1244,9 +1274,11 @@ function SvgToPngConverter() {
                                     if (opt === "Custom") {
                                       setIsCustomHeight(true);
                                       setSelectedHeight("");
+                                      setHeightSubmitAttempted(false);
                                     } else {
                                       setIsCustomHeight(false);
                                       setSelectedHeight(opt);
+                                      setHeightSubmitAttempted(false);
                                     }
                                     setOpenDropdown(null);
                                     resetConversion();
@@ -1351,6 +1383,13 @@ function SvgToPngConverter() {
                               id="scale-multiplier-input"
                               type="text"
                               value={selectedScale}
+                              readOnly={!isCustomScale}
+                              onMouseDown={(event) => {
+                                if (!isCustomScale) {
+                                  event.preventDefault();
+                                  setOpenDropdown("scale");
+                                }
+                              }}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (/^\d*\.?\d*x?$/i.test(value)) {
@@ -1399,7 +1438,7 @@ function SvgToPngConverter() {
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
                               title="Enter a custom scale factor (e.g. 3x) or select from dropdown"
-                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis cursor-text"
+                              className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${isCustomScale ? "cursor-text" : "read-only:cursor-pointer"}`}
                             />
                             <button
                               type="button"

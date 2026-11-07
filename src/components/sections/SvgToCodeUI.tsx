@@ -751,13 +751,6 @@ export function SvgToCodeUI() {
 
 
 
-              {/* Invalid SVG warning */}
-              {svgInput && svgInput.trim().length > 0 && !isValid && (
-                <p className="text-amber-600 text-[12px] font-body mt-[-8px] mb-[4px] flex items-center gap-1" role="alert">
-                  <span>⚠</span> Invalid SVG code identified
-                </p>
-              )}
-
               {/* SVG Code Textarea Box */}
 
               <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
@@ -980,6 +973,12 @@ export function SvgToCodeUI() {
               </div>
 
 
+
+              {svgInput && svgInput.trim().length > 0 && !isValid && (
+                <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Invalid SVG code identified
+                </p>
+              )}
 
               {/* Live Vector Visual / Code Preview Box */}
 

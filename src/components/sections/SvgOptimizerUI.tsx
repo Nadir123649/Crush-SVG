@@ -272,12 +272,6 @@ export function SvgOptimizerUI() {
                   </svg>
                 </button>
               </div>
-              {!isValid && svgCode && (
-                <p className="font-body text-xs text-amber-600 mt-1.5 font-medium flex items-center gap-1">
-                  <span>Invalid SVG code. Please provide valid SVG markup starting with &lt;svg&gt;.</span>
-                </p>
-              )}
-
               <input
                 ref={fileInputRef}
                 type="file"
@@ -344,11 +338,7 @@ export function SvgOptimizerUI() {
             <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{t("previewTitle")}</h2>
-                {!isValid && svgCode ? (
-                  <span className="font-body text-[11px] md:text-[12px] font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                    Invalid SVG
-                  </span>
-                ) : isValid && optimization.bytesSaved > 0 ? (
+                {isValid && optimization.bytesSaved > 0 ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {t("savingsBadge", { percent: optimization.percentSaved })}
                   </span>
@@ -358,6 +348,12 @@ export function SvgOptimizerUI() {
                   </span>
                 ) : null}
               </div>
+
+              {!isValid && svgCode.trim().length > 0 && (
+                <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Invalid SVG code identified
+                </p>
+              )}
 
               {/* Live Preview Box */}
               <div
