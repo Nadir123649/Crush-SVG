@@ -23,7 +23,7 @@ export async function generateMetadata({
     routeKey: "/signup",
     title: `${t("signupTitle")} | CrushSVG`,
     description: "Create a free CrushSVG account to convert SVGs to PNGs without limits.",
-    noindex: true,
+    noindex: false,
   });
 }
 
@@ -36,13 +36,15 @@ export default async function SignupPage({
   setRequestLocale(locale);
 
   return (
-    <Suspense fallback={<div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center"><AuthStaticForm type="signup" /></div>}>
-      <GuestOnly>
-        <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
-          <h1 className="sr-only">Create Your CrushSVG Account</h1>
-          <AuthCard type="signup" />
-        </div>
-      </GuestOnly>
-    </Suspense>
+    <>
+      <h1 className="sr-only">Create Your CrushSVG Account</h1>
+      <Suspense fallback={<div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center"><AuthStaticForm type="signup" /></div>}>
+        <GuestOnly>
+          <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
+            <AuthCard type="signup" />
+          </div>
+        </GuestOnly>
+      </Suspense>
+    </>
   );
 }

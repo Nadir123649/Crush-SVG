@@ -15,22 +15,8 @@ import { getUsage, trackConversionUsage } from "@/lib/client/sessions";
 import { hasQuotaLimitReached } from "@/lib/client/quota";
 import { resolveQuotaDisplay } from "@/lib/client/quota";
 import type { UsageInfo } from "@/lib/shared/shared-types";
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
-
-const SAMPLE_OPTIMIZE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" width="500" height="500" data-name="Layer 1">
-  <!-- Generator: Adobe Illustrator 28.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0 -->
-  <defs>
-    <linearGradient id="crushGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D94A1E" stop-opacity="1.000000" />
-      <stop offset="100%" stop-color="#FF9A3D" stop-opacity="1.000000" />
-    </linearGradient>
-  </defs>
-  <g id="illustration" data-name="Layer_1_1">
-    <rect x="50.0000" y="50.0000" width="400.0000" height="400.0000" rx="80.0000" fill="url(#crushGrad)" />
-    <circle cx="250.0000" cy="250.0000" r="120.0000" fill="#ffffff" />
-    <path d="M 210.0000 190.0000 L 310.0000 250.0000 L 210.0000 310.0000 Z" fill="#D94A1E" />
-  </g>
-</svg>`;
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -74,7 +60,6 @@ export function SvgOptimizerUI() {
   const [minifyColors, setMinifyColors] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedDataUri, setCopiedDataUri] = useState(false);
   const [fileName, setFileName] = useState<string>("optimized.svg");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -198,19 +183,6 @@ export function SvgOptimizerUI() {
     }
   }
 
-  async function handleCopyDataUri() {
-    if (!optimization.optimizedSvg) return;
-    try {
-      const dataUri = svgToDataUrl(optimization.optimizedSvg);
-      await navigator.clipboard.writeText(dataUri);
-      setCopiedDataUri(true);
-      setTimeout(() => setCopiedDataUri(false), 2000);
-      showToast("success", t("dataUriCopied"));
-    } catch {
-      showToast("error", t("copyFailed"));
-    }
-  }
-
   function handleClear() {
     setSvgCode("");
     setFileName("optimized.svg");
@@ -280,7 +252,7 @@ export function SvgOptimizerUI() {
                   id="optimizer-svg-textarea"
                   value={svgCode}
                   onChange={(e) => setSvgCode(e.target.value)}
-                  placeholder={SAMPLE_OPTIMIZE_SVG}
+                  placeholder={SVG_EDITOR_PLACEHOLDER}
                   spellCheck={false}
                   aria-label="SVG input code"
                   className="w-full min-w-0 h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
@@ -300,12 +272,6 @@ export function SvgOptimizerUI() {
                   </svg>
                 </button>
               </div>
-              {!isValid && svgCode && (
-                <p className="font-body text-xs text-amber-600 mt-1.5 font-medium flex items-center gap-1">
-                  <span>Invalid SVG code. Please provide valid SVG markup starting with &lt;svg&gt;.</span>
-                </p>
-              )}
-
               <input
                 ref={fileInputRef}
                 type="file"
@@ -372,11 +338,7 @@ export function SvgOptimizerUI() {
             <div className="w-full min-w-0 lg:w-[537px] flex flex-col">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-[8px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{t("previewTitle")}</h2>
-                {!isValid && svgCode ? (
-                  <span className="font-body text-[11px] md:text-[12px] font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                    Invalid SVG
-                  </span>
-                ) : isValid && optimization.bytesSaved > 0 ? (
+                {isValid && optimization.bytesSaved > 0 ? (
                   <span className="font-body text-[11px] md:text-[12px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {t("savingsBadge", { percent: optimization.percentSaved })}
                   </span>
@@ -386,6 +348,12 @@ export function SvgOptimizerUI() {
                   </span>
                 ) : null}
               </div>
+
+              {!isValid && svgCode.trim().length > 0 && (
+                <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Invalid SVG code identified
+                </p>
+              )}
 
               {/* Live Preview Box */}
               <div
@@ -533,34 +501,6 @@ export function SvgOptimizerUI() {
                     </span>
                   </Button>
 
-                  {/* Secondary Actions */}
-                  <div className="flex items-center gap-[16px] mt-[2px]">
-                    <button
-                      type="button"
-                      onClick={handleCopyCode}
-                      disabled={!optimization.optimizedSvg || !isValid}
-                      className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                      {copiedCode ? t("copied") : t("copyCode")}
-                    </button>
-                    <span className="text-[#CBD5E1]">&bull;</span>
-                    <button
-                      type="button"
-                      onClick={handleCopyDataUri}
-                      disabled={!optimization.optimizedSvg || !isValid}
-                      className="font-body text-[13px] font-medium text-[#475569] hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-1"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                      </svg>
-                      {copiedDataUri ? t("copied") : t("copyDataUri")}
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

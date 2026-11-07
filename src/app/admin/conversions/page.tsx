@@ -34,6 +34,8 @@ export default function ConversionsPage() {
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [activeDatePreset, setActiveDatePreset] = useState<DateRangePresetId | null>(null);
@@ -46,6 +48,15 @@ export default function ConversionsPage() {
   const [exporting, setExporting] = useState(false);
   const [failedPhotoUrls, setFailedPhotoUrls] = useState<Record<string, true>>({});
   const requestSequence = useRef(new LatestRequestSequence());
+
+  useEffect(() => {
+    if (!isStatusDropdownOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!statusDropdownRef.current?.contains(event.target as Node)) setIsStatusDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [isStatusDropdownOpen]);
 
   const buildQueryParams = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -284,22 +295,47 @@ export default function ConversionsPage() {
 
         {/* Status Filter */}
         <div className="md:col-span-4 bg-white border border-[#F2EDE8] rounded-[12px] p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06)] flex flex-col justify-start gap-2">
-          <label className="font-body font-semibold text-sm text-text-muted">Status</label>
-          <div className="flex gap-3">
-            <select 
-              value={status}
-              onChange={(e) => {
-                if (e.target.value !== status) requestSequence.current.invalidate();
-                setStatus(e.target.value);
-                setPage(1);
-              }}
-              className="w-full pl-3 pr-8 py-2.5 bg-[#FFFCFA] border border-[#F2EDE8] rounded-[8px] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 font-body text-text-dark transition-all outline-none cursor-pointer appearance-none"
-              style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23353A3E%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem top 50%', backgroundSize: '0.65rem auto' }}
+          <label id="conversion-status-label" className="font-body font-semibold text-sm text-text-muted">Status</label>
+          <div ref={statusDropdownRef} className="relative w-full">
+            <button
+              type="button"
+              aria-labelledby="conversion-status-label conversion-status-value"
+              aria-haspopup="listbox"
+              aria-expanded={isStatusDropdownOpen}
+              onClick={() => setIsStatusDropdownOpen((open) => !open)}
+              className="flex min-h-[42px] w-full items-center justify-between rounded-[8px] border border-[#F2EDE8] bg-[#FFFCFA] px-3 py-2.5 text-left font-body text-text-dark transition-colors hover:border-brand-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/20"
             >
-              <option value="all">All Statuses</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-            </select>
+              <span id="conversion-status-value">{status === "all" ? "All Statuses" : status === "success" ? "Success" : "Failed"}</span>
+              <svg aria-hidden="true" viewBox="0 0 12 8" className={`ml-3 h-2 w-3 shrink-0 transition-transform ${isStatusDropdownOpen ? "rotate-180" : ""}`} fill="none">
+                <path d="m1 1.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {isStatusDropdownOpen && (
+              <div role="listbox" aria-labelledby="conversion-status-label" className="absolute left-0 top-[calc(100%+6px)] z-50 w-full overflow-hidden rounded-[10px] border border-[#F2EDE8] bg-white p-1.5 shadow-[0px_12px_32px_rgba(32,36,39,0.14)]">
+                {[["all", "All Statuses"], ["success", "Success"], ["failed", "Failed"]].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="option"
+                    aria-selected={status === value}
+                    onClick={() => {
+                      if (value !== status) requestSequence.current.invalidate();
+                      setStatus(value);
+                      setPage(1);
+                      setIsStatusDropdownOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left font-body text-sm transition-colors ${status === value ? "bg-[#FFF1EC] font-semibold text-brand-primary" : "text-text-dark hover:bg-[#FFF7F4] hover:text-brand-primary"}`}
+                  >
+                    {label}
+                    {status === value && (
+                      <svg aria-hidden="true" viewBox="0 0 14 14" className="ml-3 h-3.5 w-3.5 text-brand-primary" fill="none">
+                        <path d="m2 7 3.2 3.2L12 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

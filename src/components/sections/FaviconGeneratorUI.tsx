@@ -20,25 +20,15 @@ import { resolveQuotaDisplay } from "@/lib/client/quota";
 import { getAccessToken } from "@/lib/client/http";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 import { IMAGES } from "@/lib/shared/images";
-
-const SAMPLE_FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="favGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D94A1E" />
-      <stop offset="100%" stop-color="#FF9A3D" />
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="128" fill="url(#favGrad)" />
-  <path d="M160 352 L256 160 L352 352 L288 352 L256 280 L224 352 Z" fill="#FFFFFF" />
-  <circle cx="256" cy="230" r="28" fill="#D94A1E" />
-</svg>`;
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
 export function FaviconGeneratorUI() {
   const t = useTranslations("favicon_generator_ui");
   const tUpload = useTranslations("upload_interface");
   const tUsage = useTranslations("usage");
+  const tOptimizer = useTranslations("svg_optimizer_ui");
 
-  const [svgCode, setSvgCode] = useState<string>(SAMPLE_FAVICON_SVG);
+  const [svgCode, setSvgCode] = useState<string>("");
   const [appName, setAppName] = useState<string>("My Awesome App");
   const [themeColor, setThemeColor] = useState<string>("#D94A1E");
   const [backgroundColor, setBackgroundColor] = useState<string>("transparent");
@@ -58,7 +48,7 @@ export function FaviconGeneratorUI() {
   const [inputError, setInputError] = useState(false);
   const [generationError, setGenerationError] = useState<boolean>(false);
   const [isZipping, setIsZipping] = useState<boolean>(false);
-  const [copiedSnippet, setCopiedSnippet] = useState<boolean>(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [dragOver, setDragOver] = useState<boolean>(false);
 
   // Conversion usage shown on the code card header. `/api/v1/usage` is the
@@ -233,15 +223,15 @@ export function FaviconGeneratorUI() {
     }
   }
 
-  async function handleCopySnippet() {
-    if (!packResult) return;
+  async function handleCopySvgCode() {
+    if (!svgCode.trim()) return;
     try {
-      await navigator.clipboard.writeText(packResult.htmlSnippet);
-      setCopiedSnippet(true);
-      setTimeout(() => setCopiedSnippet(false), 2000);
-      showToast("success", t("snippetCopied"));
+      await navigator.clipboard.writeText(svgCode);
+      setCopiedCode(true);
+      window.setTimeout(() => setCopiedCode(false), 2000);
+      showToast("success", tOptimizer("copied"));
     } catch {
-      showToast("error", t("copyFailed"));
+      showToast("error", tOptimizer("copyFailed"));
     }
   }
 
@@ -280,26 +270,28 @@ export function FaviconGeneratorUI() {
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-[10px] gap-y-[4px] mb-[12px] min-h-[36px]">
                 <h2 className="font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                 <div className="flex items-center gap-[10px]">
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    aria-label="Reset favicon generator"
-                    className="group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 opacity-100 cursor-pointer"
-                  >
-                    <div
-                      className="absolute inset-0 z-0 pointer-events-none"
-                      style={{
-                        border: "1px solid transparent",
-                        background:
-                          "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
-                        borderRadius: "inherit",
-                      }}
-                    />
-                    <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
-                    <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
-                      {tUpload("clear")}
-                    </span>
-                  </button>
+                  {svgCode.trim().length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClear}
+                      aria-label="Reset favicon generator"
+                      className="group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] overflow-hidden transition-opacity duration-300 opacity-100 cursor-pointer"
+                    >
+                      <div
+                        className="absolute inset-0 z-0 pointer-events-none"
+                        style={{
+                          border: "1px solid transparent",
+                          background:
+                            "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(to right, #D94A1E, #FF9A3D) border-box",
+                          borderRadius: "inherit",
+                        }}
+                      />
+                      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D]" />
+                      <span className="relative z-10 text-[#D94A1E] group-hover:text-white transition-colors duration-300 ease-in-out">
+                        {tUpload("clear")}
+                      </span>
+                    </button>
+                  )}
                   <span suppressHydrationWarning className="font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                     {status === "loading"
                       ? "\u00A0"
@@ -318,12 +310,25 @@ export function FaviconGeneratorUI() {
                   id="favicon-svg-textarea"
                   value={svgCode}
                   onChange={(e) => setSvgCode(e.target.value)}
-                  placeholder={SAMPLE_FAVICON_SVG}
+                  placeholder={SVG_EDITOR_PLACEHOLDER}
                   spellCheck={false}
                   aria-label="SVG input code"
                   className="w-full h-full p-3 md:p-4 resize-none outline-none border-none bg-transparent font-mono text-[13px] leading-[1.6] text-black placeholder:text-[#94A3B8] whitespace-pre-wrap break-all overflow-auto brand-scrollbar"
                 />
                 <div className="absolute bottom-0 left-0 right-[16px] h-[13px] md:h-[21px] bg-[#FFFFFF] pointer-events-none rounded-bl-[16px]" />
+                <button
+                  type="button"
+                  onClick={() => void handleCopySvgCode()}
+                  disabled={!svgCode.trim()}
+                  aria-label={copiedCode ? tOptimizer("copied") : tOptimizer("copyCode")}
+                  title={copiedCode ? tOptimizer("copied") : tOptimizer("copyCode")}
+                  className="absolute top-2 right-2 md:top-3 md:right-3 bg-white border border-[#E2E8F0] hover:border-brand-primary text-[#475569] hover:text-brand-primary rounded-[6px] p-1 md:p-1.5 flex items-center justify-center z-30 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
               </div>
 
               <input
@@ -626,17 +631,9 @@ export function FaviconGeneratorUI() {
                   >
                     {t("downloadWebpOnly")}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleCopySnippet}
-                    disabled={!packResult}
-                    className="grow py-[8px] px-[12px] rounded-[10px] bg-white border border-[#CBD5E1] hover:border-brand-primary text-text-dark hover:text-brand-primary text-[12px] md:text-[13px] font-body font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
-                  >
-                    {copiedSnippet ? t("snippetCopied") : t("copyHeadTags")}
-                  </button>
                 </div>
-                {/* Primary ZIP Download — right-aligned below export buttons */}
-                <div className="flex justify-end mt-[16px]">
+                {/* Primary ZIP Download — centered beneath the customization panel */}
+                <div className="flex justify-center mt-[16px]">
                   <Button
                     variant="solid"
                     onClick={handleDownloadZip}

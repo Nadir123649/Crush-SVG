@@ -26,11 +26,9 @@ let auth: Auth | undefined;
 export function getFirebaseAuth(): Auth {
   if (auth) return auth;
   if (!app) {
-    // Prefer NEXT_PUBLIC_FIREBASE_CUSTOM_AUTH_DOMAIN (e.g. "crushsvg.net") so
-    // the Google OAuth consent screen shows the product domain instead of the
-    // default "crushsvg-b306d.firebaseapp.com" Firebase disclaimer.
-    // Set NEXT_PUBLIC_FIREBASE_CUSTOM_AUTH_DOMAIN in Vercel env vars and add
-    // crushsvg.net to Firebase Console > Authentication > Authorized domains.
+    // Use a custom auth domain only after it is configured in Firebase Hosting,
+    // added to Firebase authorized domains, and its /__/auth/handler callback
+    // is allowlisted in Google OAuth. Otherwise keep the Firebase-provided host.
     app = initializeApp({
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
       authDomain:
@@ -82,34 +80,10 @@ export function getErrorMessage(error: unknown): string {
   }
 }
 
-/**
- * Minimum scope required to call Google People API `people.get` for the signed-in
- * user. Requested on the SAME popup/authorization request as the Firebase sign-in,
- * so this adds no second OAuth flow and no second consent interaction.
- */
-export const GOOGLE_PROFILE_SCOPE = "https://www.googleapis.com/auth/userinfo.profile";
-
-/**
- * Result of the Google popup. The Firebase user, plus the short-lived Google
- * OAuth access token when Google granted it. The token is forwarded once to our
- * own API for a single People API lookup and is never persisted or logged.
- */
-export interface GoogleSignInResult {
-  user: User;
-  googleAccessToken: string | null;
-}
-
-export async function signInWithGoogle(): Promise<GoogleSignInResult> {
+export async function signInWithGoogle(): Promise<User> {
   const provider = new GoogleAuthProvider();
-  // Use select_account so returning users skip the extra consent step,
-  // which is the main cause of the perceived slowness.
-  provider.setCustomParameters({ prompt: "select_account" });
-  provider.addScope(GOOGLE_PROFILE_SCOPE);
   const result = await signInWithPopup(getFirebaseAuth(), provider);
-  // v12 removed `UserCredential.credential`; the supported accessor is the
-  // provider's static helper, which reads the internal token response.
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  return { user: result.user, googleAccessToken: credential?.accessToken ?? null };
+  return result.user;
 }
 
 export async function signInWithGitHub() {
@@ -132,23 +106,22 @@ export interface SessionResponse {
   sessionId: string;
 }
 
-export async function exchangeIdToken(rememberMe = true, googleAccessToken: string | null = null): Promise<SessionResponse> {
+export async function exchangeIdToken(rememberMe = true): Promise<SessionResponse> {
   const currentUser = getFirebaseAuth().currentUser;
   if (!currentUser) {
     throw new Error("Not signed in");
   }
   const providerId = currentUser.providerData[0]?.providerId;
   const provider = providerId ? (PROVIDER_URL_MAP[providerId] ?? "password") : "password";
-  const idToken = await currentUser.getIdToken(true);
+  // The popup has just authenticated this Firebase user, so reuse its valid
+  // token instead of forcing a second token-refresh request before session setup.
+  const idToken = await currentUser.getIdToken();
   const response = await fetch(apiBase(`/api/v1/oauth/${provider}`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // googleAccessToken is sent only when Google actually issued one; omitting
-    // it (rather than sending null) keeps the request schema-valid.
     body: JSON.stringify({
       firebaseToken: idToken,
       rememberMe,
-      ...(googleAccessToken ? { googleAccessToken } : {}),
     }),
     // Without this the browser drops the session cookies the API (a separate
     // origin in production) sets on the response.

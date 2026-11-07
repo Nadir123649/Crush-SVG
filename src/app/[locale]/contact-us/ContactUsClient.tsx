@@ -16,7 +16,6 @@ export function ContactUsClient() {
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,7 +26,6 @@ export function ContactUsClient() {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
     if (!message.trim() || message.trim().length < 10) return;
 
-    setSubmitError(null);
     setLoading(true);
     try {
       await apiFetch<{ message: string }>("/api/v1/contact", {
@@ -45,7 +43,6 @@ export function ContactUsClient() {
       const msg = err instanceof ApiError && err.status >= 400 && err.status < 500
         ? err.message
         : tContact("errorMessage");
-      setSubmitError(msg);
       showToast("error", msg);
     } finally {
       setLoading(false);
@@ -106,8 +103,7 @@ export function ContactUsClient() {
       <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
-        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]" aria-describedby={submitError ? "contact-submit-error" : undefined}>
-          {submitError && <p id="contact-submit-error" role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>}
+        <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]">
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="contact-name" className="font-afacad text-[14px] font-semibold text-brand-primary">{t("nameLabel")}</label>
             <input 
@@ -156,18 +152,18 @@ export function ContactUsClient() {
               placeholder={t("messagePlaceholder")}
               required
               minLength={10}
-              maxLength={5000}
+              maxLength={2000}
               aria-required="true"
               rows={5}
               className={`w-full rounded-[8px] border-[1px] ${isMessageInvalid ? "border-[#EF4444] focus:border-[#EF4444]" : "border-[#C1C1C1] focus:border-brand-primary"} bg-transparent p-[14px] font-afacad text-[14px] outline-none placeholder:text-[#94A3B8] transition-colors resize-none overflow-y-auto`}
             ></textarea>
-            <div className="flex justify-end">
-              <span className={`text-[11px] font-afacad ${message.length > 4800 ? "text-[#EF4444]" : "text-[#94A3B8]"}`}>
-                {message.length} / 5,000
+            <div className="-mb-1 flex justify-end">
+              <span className={`text-[11px] font-afacad ${message.length > 1800 ? "text-[#EF4444]" : "text-[#94A3B8]"}`}>
+                {message.length} / 2,000
               </span>
             </div>
             {isMessageInvalid && (
-              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight mt-[-2px]">
+              <span className="text-[#EF4444] text-[12px] font-afacad leading-tight -mt-1">
                 {tContact("messageMinError")}
               </span>
             )}
@@ -176,7 +172,7 @@ export function ContactUsClient() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full mt-[12px] h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full -mt-1 h-[48px] rounded-[12px] bg-gradient-to-r from-[#D94A1E] to-[#FF9A3D] text-white font-bricolage font-semibold text-[16px] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? t("sendingButton") : messageSent ? tContact("sendAnother") : t("sendButton")}
           </button>
@@ -185,7 +181,7 @@ export function ContactUsClient() {
         <div className="w-full flex flex-col items-center justify-center gap-[8px] mt-[16px] md:mt-[24px] pt-[16px] md:pt-[24px] border-t border-[#F2EDE8]">
           <span className="font-afacad text-[16px] text-text-muted">{tContact("orEmailUs")}</span>
           <a href="mailto:team@thenevon.com" className="font-afacad font-semibold text-[16px] text-brand-primary hover:underline">
-            support@crushsvg.net
+            team@thenevon.com
           </a>
         </div>
       </div>

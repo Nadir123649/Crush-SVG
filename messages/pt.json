@@ -819,10 +819,11 @@
       "loadingButton": "Enviando...",
       "submitButton": "Enviar link de recuperação",
       "subtitle": "Não se preocupe, enviaremos instruções para redefinir sua senha.",
-      "successMessage": "Enviamos um link para redefinir a senha para {email}",
+      "successMessage": "Se existir uma conta para {email}, enviaremos um link para redefinir a palavra-passe. Verifique tamb?m a pasta de spam.",
       "successSpamNote": "Se não encontrar o e-mail, verifique sua pasta de spam.",
       "successTitle": "Verifique seu e-mail",
-      "title": "Esqueceu a senha?"
+      "title": "Esqueceu a senha?",
+      "emailUnavailable": "O servi?o de redefini??o de palavra-passe est? temporariamente indispon?vel. Tente novamente mais tarde."
     },
     "continueWithGoogle": "Continuar com o Google",
     "continueWithGithub": "Continuar com o GitHub",

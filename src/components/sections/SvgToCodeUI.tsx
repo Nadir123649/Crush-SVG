@@ -45,6 +45,7 @@ import { getAccessToken } from "@/lib/client/http";
 import type { UsageInfo } from "@/lib/shared/shared-types";
 
 import { IMAGES } from "@/lib/shared/images";
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
 
 
@@ -153,6 +154,7 @@ const FRAMEWORK_TABS: { id: TargetFramework; label: string; ext: string }[] = [
 export function SvgToCodeUI() {
 
   const t = useTranslations("svg_to_code_ui");
+  const tToast = useTranslations("toasts");
 
   const tUpload = useTranslations("upload_interface");
 
@@ -337,7 +339,7 @@ export function SvgToCodeUI() {
 
       setComponentName(baseName.replace(/[^a-zA-Z0-9_-]/g, "") || "CustomIcon");
 
-      showToast("success", t("fileLoaded"));
+      showToast("success", tToast("fileLoaded"), { duration: 3000 });
 
     } catch {
 
@@ -749,13 +751,6 @@ export function SvgToCodeUI() {
 
 
 
-              {/* Invalid SVG warning */}
-              {svgInput && svgInput.trim().length > 0 && !isValid && (
-                <p className="text-amber-600 text-[12px] font-body mt-[-8px] mb-[4px] flex items-center gap-1" role="alert">
-                  <span>⚠</span> Invalid SVG code identified
-                </p>
-              )}
-
               {/* SVG Code Textarea Box */}
 
               <div className="relative w-full min-w-0 h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] bg-[#FFFFFF] overflow-hidden focus-within:border-brand-primary transition-colors">
@@ -768,7 +763,7 @@ export function SvgToCodeUI() {
 
                   onChange={(e) => setSvgInput(e.target.value)}
 
-                  placeholder="<svg ...>...</svg>"
+                  placeholder={SVG_EDITOR_PLACEHOLDER}
 
                   spellCheck={false}
 
@@ -978,6 +973,12 @@ export function SvgToCodeUI() {
               </div>
 
 
+
+              {svgInput && svgInput.trim().length > 0 && !isValid && (
+                <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Invalid SVG code identified
+                </p>
+              )}
 
               {/* Live Vector Visual / Code Preview Box */}
 

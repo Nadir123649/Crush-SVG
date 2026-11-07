@@ -41,7 +41,7 @@ const ROUTE_CONFIG: Record<string, RouteConfig> = {
 };
 
 const EXCLUDED_PATTERNS = [
-  /^\/(login|signin|signup|register)($|\/)/i,
+  /^\/(login|signin|register)($|\/)/i,
   /^\/(forgot-password|reset-password|verify-email|email-verification|verify)($|\/)/i,
   /^\/(dashboard|account|profile|settings)($|\/)/i,
   /^\/(billing|subscription|history|my-files)($|\/)/i,
@@ -68,14 +68,13 @@ function localizedEntries(
   const basePriority = overridePriority ?? config.priority;
   const changeFreq = overrideFreq ?? config.changeFrequency;
 
-  return routing.locales.map((locale) => ({
-    url: `${BASE_URL}${getLocalizedHref(path, locale as Locale)}`,
+  const locale = routing.defaultLocale as Locale;
+  return [{
+    url: `${BASE_URL}${getLocalizedHref(path, locale)}`,
     lastModified,
     changeFrequency: changeFreq,
-    priority: locale === routing.defaultLocale
-      ? basePriority
-      : Math.max(0.5, Number((basePriority - 0.1).toFixed(1))),
-  }));
+    priority: basePriority,
+  }];
 }
 
 async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {

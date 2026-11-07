@@ -28,7 +28,7 @@ const formatK = (num: number) => {
 
 export default function AdminDashboard() {
   const [cachedOverview] = useState(() => getAdminCached<any>("admin_overview", 120_000));
-  const [loading, setLoading] = useState(!cachedOverview);
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(cachedOverview);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
           title="Total Conversions" 
           icon={SvgTrendingUp} 
           value={formatK(totalConversions || 0)} 
-          description="Lifetime platform requests" 
+          description="All successful conversions"
         />
         <KpiCard 
           title="Monthly Revenue" 

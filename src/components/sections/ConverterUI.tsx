@@ -32,6 +32,7 @@ import { trackConversion } from "@/lib/client/analytics";
 import { IMAGES } from "@/lib/shared/images";
 import { RasterToSvgConverter } from "@/components/sections/RasterToSvgConverter";
 import { Link } from "@/i18n/routing";
+import { SVG_EDITOR_PLACEHOLDER } from "@/lib/svg/editor-placeholder";
 
 const SCALE_OPTIONS = ["Custom", "1x", "2x", "3x", "4x", "5x", "8x", "10x", "16x"];
 const PRESET_SIZES = ["120", "240", "480", "720", "1080", "1920", "2560", "3840"];
@@ -58,12 +59,7 @@ const SAMPLE_SVG = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="h
   <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
-const DUMMY_CODE = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <!-- Paste your SVG code here! -->
-  <rect x="10" y="10" width="80" height="80" rx="15" fill="#DA582D"/>
-  <circle cx="50" cy="50" r="20" fill="#FFFFFF"/>
-  <path d="M45 40L55 50L45 60" stroke="#DA582D" stroke-width="4" stroke-linecap="round"/>
-</svg>`;
+const DUMMY_CODE = SVG_EDITOR_PLACEHOLDER;
 
 function normalizeHex(input: string): string {
   let hex = input.trim();
@@ -126,6 +122,8 @@ function SvgToPngConverter() {
   const [isCustomWidth, setIsCustomWidth] = useState(false);
   const [isCustomHeight, setIsCustomHeight] = useState(false);
   const [isCustomScale, setIsCustomScale] = useState(false);
+  const [widthSubmitAttempted, setWidthSubmitAttempted] = useState(false);
+  const [heightSubmitAttempted, setHeightSubmitAttempted] = useState(false);
   const [scaleValidationAttempted, setScaleValidationAttempted] = useState(false);
   const [scaleSubmitAttempted, setScaleSubmitAttempted] = useState(false);
   const [transparent, setTransparent] = useState(false);
@@ -320,8 +318,9 @@ function SvgToPngConverter() {
         handleSvgChange(text);
         showToast("success", "✨ SVG loaded from clipboard!");
       } else if (text) {
-        handleSvgChange(text);
-        showToast("info", "Pasted code from clipboard");
+        const message = "Invalid SVG code identified";
+        setError(message);
+        showToast("error", message);
       } else {
         showToast("error", "Clipboard is empty");
       }
@@ -352,6 +351,8 @@ function SvgToPngConverter() {
   }, [deferredSvgCode]);
 
   const isValidSvg = useMemo(() => isValidSvgContent(deferredSvgCode), [deferredSvgCode]);
+  const hasInvalidSvgInput = svgCode !== SAMPLE_SVG && svgCode !== DUMMY_CODE && svgCode.trim().length > 0 && !isValidSvg;
+  const hasInvalidSvgError = Boolean(error && /invalid svg/i.test(error));
   const isLargeSvg = svgCode !== SAMPLE_SVG && svgCode.length > LARGE_SVG_CHARS;
   const largeSvgExcerpt = useMemo(
     () =>
@@ -407,7 +408,11 @@ function SvgToPngConverter() {
     }
     setSvgCode(clean);
     setResult(null);
-    setError(null);
+    setError(
+      clean && clean !== SAMPLE_SVG && clean !== DUMMY_CODE && !isValidSvgContent(clean)
+        ? "Invalid SVG code identified"
+        : null
+    );
     setPreviewError(false);
   }
 
@@ -424,6 +429,8 @@ function SvgToPngConverter() {
     setIsCustomWidth(false);
     setIsCustomHeight(false);
     setIsCustomScale(false);
+    setWidthSubmitAttempted(false);
+    setHeightSubmitAttempted(false);
     setScaleValidationAttempted(false);
     setScaleSubmitAttempted(false);
     setTransparent(false);
@@ -496,7 +503,7 @@ function SvgToPngConverter() {
     try {
       const text = await file.text();
       handleSvgChange(text.trimEnd());
-      showToast("success", tToast("svgPasted"));
+      showToast("success", tToast("fileLoaded"), { duration: 3000 });
     } catch {
       setError(tToast("fileReadError"));
     }
@@ -511,6 +518,8 @@ function SvgToPngConverter() {
   }
 
   async function handleConvert() {
+    setWidthSubmitAttempted(true);
+    setHeightSubmitAttempted(true);
     setScaleValidationAttempted(true);
     setScaleSubmitAttempted(true);
     // `converting` state lags a render behind; the ref blocks a second click
@@ -742,7 +751,7 @@ function SvgToPngConverter() {
   const limitReached = hasQuotaLimitReached(usage);
 
   let validationError: string | null = null;
-  if (isCustomWidth) {
+  if (isCustomWidth && widthSubmitAttempted) {
     if (selectedWidth.trim() === "") {
       validationError = tToast("customWidthRequired");
     } else {
@@ -758,7 +767,7 @@ function SvgToPngConverter() {
     }
   }
 
-  if (!validationError && isCustomHeight) {
+  if (!validationError && isCustomHeight && heightSubmitAttempted) {
     if (selectedHeight.trim() === "") {
       validationError = tToast("customHeightRequired");
     } else {
@@ -825,18 +834,13 @@ function SvgToPngConverter() {
                 <div className="flex min-w-0 items-center justify-between gap-[10px] mb-[12px] h-[36px]">
                   <h2 className="min-w-0 font-heading font-semibold text-[16px] text-[#475569]">{tUpload("svgCodeTab")}</h2>
                   <div className="flex min-w-0 flex-wrap items-center justify-end gap-[10px]">
+                    {svgCode && svgCode.trim().length > 0 && svgCode !== SAMPLE_SVG && (
                     <button
                       type="button"
                       onClick={handleClearSvg}
                       disabled={converting}
                       aria-label="Clear SVG editor"
-                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${
-                        svgCode && svgCode.trim().length > 0 && svgCode !== SAMPLE_SVG
-                          ? converting
-                            ? "opacity-50 cursor-not-allowed pointer-events-none"
-                            : "opacity-100"
-                          : "opacity-0 pointer-events-none"
-                      }`}
+                      className={`group relative rounded-[6px] px-[12px] py-[4px] font-body font-medium text-[12px] md:text-[12px] overflow-hidden transition-opacity duration-300 ${converting ? "opacity-50 cursor-not-allowed pointer-events-none" : "opacity-100"}`}
                     >
                       <div
                         className="absolute inset-0 z-0 pointer-events-none"
@@ -852,6 +856,7 @@ function SvgToPngConverter() {
                         {tUpload("clear")}
                       </span>
                     </button>
+                    )}
                     <span suppressHydrationWarning className="min-w-0 break-words text-right font-body font-normal text-[12px] md:text-[14px] text-[#475569]">
                       {status === "loading"
                         ? "\u00A0"
@@ -878,7 +883,9 @@ function SvgToPngConverter() {
                       const pasted = e.clipboardData.getData("text/plain");
                       if (pasted && !isValidSvgContent(pasted)) {
                         e.preventDefault();
-                        showToast("error", "Invalid SVG code identified");
+                        const message = "Invalid SVG code identified";
+                        setError(message);
+                        showToast("error", message);
                         return;
                       }
                       if (pasted && (isLargeSvg || pasted.length > LARGE_SVG_CHARS)) {
@@ -958,7 +965,7 @@ function SvgToPngConverter() {
                   </div>
                 </div>
 
-                {error && (
+                {error && !hasInvalidSvgInput && !hasInvalidSvgError && (
                   <p
                     role="alert"
                     aria-live="polite"
@@ -1000,12 +1007,12 @@ function SvgToPngConverter() {
                     </div>
                   )}
 
-                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal lg:whitespace-nowrap">
+                  <p className="font-body text-[12px] md:text-[13px] text-[#475569] flex items-center justify-start gap-[6px] whitespace-normal sm:whitespace-nowrap">
                     <Image src={IMAGES.lock} alt="Lock" width={12} height={12} className="shrink-0 w-[12px] h-[12px]" style={{ width: "auto", height: "auto" }} />
                     <span>
                       {locale === "en" ? (
                         <>
-                          {tHomepage("privacyNotice")} <Link href="/privacy-policy" className="underline">{tHomepage("privacyPolicyLink")}</Link>.
+                          {tHomepage("privacyNotice")} {" "}<Link href="/privacy-policy" className="underline transition-colors hover:text-brand-primary">{tHomepage("privacyPolicyLink")}</Link>.
                         </>
                       ) : tUpload("privateNotice")}
                     </span>
@@ -1025,6 +1032,12 @@ function SvgToPngConverter() {
                     </span>
                   )}
                 </div>
+
+                {(hasInvalidSvgInput || hasInvalidSvgError) && (
+                  <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error && hasInvalidSvgError ? error : "Invalid SVG code identified"}
+                  </p>
+                )}
 
                 {/* Live Preview Box */}
                 <div className="w-full h-[200px] md:h-[302px] rounded-[16px] border border-[#8F8F8F] flex items-center justify-center relative overflow-hidden bg-transparent md:bg-gray-50/30 p-[24px] md:p-[40px]">
@@ -1087,6 +1100,13 @@ function SvgToPngConverter() {
                             type="text"
                             inputMode="decimal"
                             value={selectedWidth}
+                            readOnly={!isCustomWidth}
+                            onMouseDown={(event) => {
+                              if (!isCustomWidth) {
+                                event.preventDefault();
+                                setOpenDropdown("width");
+                              }
+                            }}
                             onChange={(event) => {
                               const value = event.target.value;
                               if (/^\d*\.?\d*$/.test(value)) {
@@ -1095,16 +1115,13 @@ function SvgToPngConverter() {
                                 resetConversion();
                               }
                             }}
-                            onFocus={(event) => {
+                            onFocus={() => {
                               setOpenDropdown("width");
-                              if (!isCustomWidth && selectedWidth === "Original") {
-                                event.currentTarget.select();
-                              }
                             }}
                             aria-label="Width in pixels or centimeters"
                             autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis read-only:cursor-pointer"
                           />
                           {selectedWidth !== "Original" && selectedWidth !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1153,14 +1170,16 @@ function SvgToPngConverter() {
                                     if (opt === "Custom") {
                                       setIsCustomWidth(true);
                                       setSelectedWidth("");
+                                      setWidthSubmitAttempted(false);
                                     } else {
                                       setIsCustomWidth(false);
                                       setSelectedWidth(opt);
+                                      setWidthSubmitAttempted(false);
                                     }
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
+                                  className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedWidth === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0`}
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1185,6 +1204,13 @@ function SvgToPngConverter() {
                             type="text"
                             inputMode="decimal"
                             value={selectedHeight}
+                            readOnly={!isCustomHeight}
+                            onMouseDown={(event) => {
+                              if (!isCustomHeight) {
+                                event.preventDefault();
+                                setOpenDropdown("height");
+                              }
+                            }}
                             onChange={(event) => {
                               const value = event.target.value;
                               if (/^\d*\.?\d*$/.test(value)) {
@@ -1193,16 +1219,13 @@ function SvgToPngConverter() {
                                 resetConversion();
                               }
                             }}
-                            onFocus={(event) => {
+                            onFocus={() => {
                               setOpenDropdown("height");
-                              if (!isCustomHeight && selectedHeight === "Auto") {
-                                event.currentTarget.select();
-                              }
                             }}
                             aria-label="Height in pixels or centimeters"
                             autoComplete="off"
                             placeholder={unit === "cm" ? "e.g. 50" : "e.g. 500"}
-                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis"
+                            className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis read-only:cursor-pointer"
                           />
                           {selectedHeight !== "Auto" && selectedHeight !== "" && (
                             <span className="font-body font-medium text-[14px] md:text-[16px] text-[#475569] pointer-events-none select-none">
@@ -1251,14 +1274,16 @@ function SvgToPngConverter() {
                                     if (opt === "Custom") {
                                       setIsCustomHeight(true);
                                       setSelectedHeight("");
+                                      setHeightSubmitAttempted(false);
                                     } else {
                                       setIsCustomHeight(false);
                                       setSelectedHeight(opt);
+                                      setHeightSubmitAttempted(false);
                                     }
                                     setOpenDropdown(null);
                                     resetConversion();
                                   }}
-                                  className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0"
+                                  className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedHeight === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0`}
                                 >
                                   {formatDimensionLabel(opt, unit)}
                                 </button>
@@ -1358,19 +1383,37 @@ function SvgToPngConverter() {
                               id="scale-multiplier-input"
                               type="text"
                               value={selectedScale}
+                              readOnly={!isCustomScale}
+                              onMouseDown={(event) => {
+                                if (!isCustomScale) {
+                                  event.preventDefault();
+                                  setOpenDropdown("scale");
+                                }
+                              }}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (/^\d*\.?\d*x?$/i.test(value)) {
-                                  // Clamp to max 16x while typing
-                                  const numStr = value.toLowerCase().replace('x', '');
-                                  const num = parseFloat(numStr);
-                                  if (!isNaN(num) && num > 16) {
-                                    setSelectedScale('16x');
-                                  } else {
-                                    setSelectedScale(value);
-                                  }
+                                  // Keep the x suffix visible as soon as a valid
+                                  // custom value is entered, while leaving the
+                                  // caret before it so multi-digit scales remain editable.
+                                  const numStr = value.toLowerCase().replace(/x/g, '');
+                                  const num = Number.parseFloat(numStr);
+                                  const clamped = Number.isFinite(num)
+                                    ? Math.min(16, Math.max(1, num))
+                                    : null;
+                                  const nextValue = clamped === null
+                                    ? value
+                                    : `${clamped === num ? numStr : clamped}x`;
+                                  setSelectedScale(nextValue);
                                   setIsCustomScale(true);
                                   resetConversion();
+
+                                  if (nextValue.endsWith("x")) {
+                                    const caretPosition = nextValue.length - 1;
+                                    window.requestAnimationFrame(() => {
+                                      e.target.setSelectionRange(caretPosition, caretPosition);
+                                    });
+                                  }
                                 }
                               }}
                               onBlur={(event) => {
@@ -1382,23 +1425,20 @@ function SvgToPngConverter() {
                                   if (isCustomScale && selectedScale) {
                                     const trimmed = selectedScale.trim().toLowerCase().replace('x', '');
                                     const num = parseFloat(trimmed);
-                                    if (!isNaN(num) && num > 0) {
-                                      const clamped = Math.min(num, 16);
+                                    if (!isNaN(num)) {
+                                      const clamped = Math.min(16, Math.max(1, num));
                                       setSelectedScale(`${clamped}x`);
                                     }
                                   }
                                 }
                               }}
-                              onFocus={(event) => {
+                              onFocus={() => {
                                 setOpenDropdown("scale");
-                                if (!isCustomScale) {
-                                  event.currentTarget.select();
-                                }
                               }}
                               aria-label="Scale multiplier factor"
                               placeholder="e.g. 6x"
                               title="Enter a custom scale factor (e.g. 3x) or select from dropdown"
-                              className="flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis cursor-text"
+                              className={`flex-1 min-w-0 h-full bg-transparent pl-[8px] md:pl-[12px] pr-[2px] font-body font-medium text-[14px] md:text-[16px] text-[#353A3E] outline-none text-ellipsis ${isCustomScale ? "cursor-text" : "read-only:cursor-pointer"}`}
                             />
                             <button
                               type="button"
@@ -1460,7 +1500,7 @@ function SvgToPngConverter() {
                                       setOpenDropdown(null);
                                       resetConversion();
                                     }}
-                                    className="w-full text-center block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] text-[#353A3E] hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className={`w-full text-left block px-[16px] py-[10px] font-body text-[14px] md:text-[16px] ${selectedScale === opt ? "bg-[#FFF7F4] text-brand-primary" : "text-[#353A3E]"} hover:bg-[#FFF7F4] hover:text-brand-primary cursor-pointer transition-colors select-none outline-none focus:outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent`}
                                   >
                                     {opt}
                                   </button>

@@ -819,10 +819,11 @@
       "loadingButton": "Envoi en cours...",
       "submitButton": "Envoyer le lien de réinitialisation",
       "subtitle": "Pas de souci, nous vous enverrons les instructions de réinitialisation.",
-      "successMessage": "Nous avons envoyé un lien de réinitialisation du mot de passe à {email}",
+      "successMessage": "Si un compte existe pour {email}, nous enverrons un lien de r?initialisation. V?rifiez aussi votre dossier de courriers ind?sirables.",
       "successSpamNote": "Si vous ne voyez pas l'email, vérifiez votre dossier spam.",
       "successTitle": "Vérifiez vos emails",
-      "title": "Mot de passe oublié ?"
+      "title": "Mot de passe oublié ?",
+      "emailUnavailable": "Le service de r?initialisation du mot de passe est temporairement indisponible. R?essayez plus tard."
     },
     "continueWithGoogle": "Continuer avec Google",
     "continueWithGithub": "Continuer avec GitHub",
