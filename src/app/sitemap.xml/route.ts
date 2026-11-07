@@ -41,7 +41,7 @@ const ROUTE_CONFIG: Record<string, RouteConfig> = {
 };
 
 const EXCLUDED_PATTERNS = [
-  /^\/(login|signin|signup|register)($|\/)/i,
+  /^\/(login|signin|register)($|\/)/i,
   /^\/(forgot-password|reset-password|verify-email|email-verification|verify)($|\/)/i,
   /^\/(dashboard|account|profile|settings)($|\/)/i,
   /^\/(billing|subscription|history|my-files)($|\/)/i,

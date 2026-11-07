@@ -23,7 +23,7 @@ export async function generateMetadata({
     routeKey: "/signup",
     title: `${t("signupTitle")} | CrushSVG`,
     description: "Create a free CrushSVG account to convert SVGs to PNGs without limits.",
-    noindex: true,
+    noindex: false,
   });
 }
 
