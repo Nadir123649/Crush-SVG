@@ -91,10 +91,10 @@
     "metaDescription": "Convert SVG files to high-resolution PNG images online for free. Transparent background, crisp rendering, and custom scaling for Cricut, Canva, and web.",
     "badgeLoggedIn": "You have unlimited conversions access.",
     "badgeLoggedOut": "Try 3 free conversions without signing up.",
-    "heroTitlePrefix": "Convert",
-    "heroTitleHighlight": "SVG File to PNG",
-    "heroTitleSuffix": "Online (High Resolution)",
-    "heroSubtitle": "Export vector SVG files and raw code into crisp, transparent PNG images with custom scaling, zero loss in quality, and no watermarks.",
+    "heroTitlePrefix": "Turn",
+    "heroTitleHighlight": "SVG into PNG",
+    "heroTitleSuffix": "Online (Free & High Resolution)",
+    "heroSubtitle": "Need to turn your SVG into PNG? CrushSVG allows you to convert vector SVG files and raw code into crisp, transparent PNG images with custom scaling, 300 DPI support, and zero watermarks.",
     "bgRemoverCtaTitle": "Need to remove an image",
     "bgRemoverCtaHighlight": "background",
     "bgRemoverCtaDesc": "Upload any photo and get a clean, transparent PNG in seconds. Free, private, no install needed.",
@@ -317,16 +317,16 @@
     ],
     "svg": [
       {
-        "title": "1. Upload SVG File or Paste Code",
-        "description": "Drag and drop your .svg vector file into the converter box or paste raw SVG XML code directly."
+        "title": "1. Upload Your SVG File or Code",
+        "description": "Drag and drop your .svg vector artwork or paste raw SVG XML code directly into the converter box."
       },
       {
-        "title": "2. Customize Output Size & Transparency",
-        "description": "Choose a scale multiplier, set custom output dimensions, and select a transparent or custom background."
+        "title": "2. Choose Resolution & Transparency",
+        "description": "Customize your export resolution (1x, 2x, 4x, or custom DPI) and toggle transparent background support."
       },
       {
-        "title": "3. Instant High-Res PNG Download",
-        "description": "Preview your rendered graphic and download a high-resolution PNG for print, web, or design tools."
+        "title": "3. Turn SVG into PNG & Download",
+        "description": "Preview your rendered image in real-time and download your pixel-perfect PNG ready for Canva, Cricut, web, or print."
       }
     ],
     "raster": [
@@ -487,16 +487,20 @@
     ],
     "svg": [
       {
-        "question": "Can I convert SVG files to PNG with a transparent background?",
-        "answer": "Yes. Select the transparent background option before converting to preserve transparent areas from your SVG in the PNG."
+        "question": "How can I turn an SVG into a PNG for free?",
+        "answer": "Simply upload your SVG vector file to CrushSVG, choose your desired image resolution multiplier, and click download. It takes less than 3 seconds with no signup required."
       },
       {
-        "question": "Does converting SVG to PNG reduce graphic quality?",
-        "answer": "CrushSVG renders the SVG at your selected dimensions or scale. PNG is a raster format, so choose an output size that suits how you plan to use it."
+        "question": "Does turning an SVG into a PNG lose quality?",
+        "answer": "No! Because SVG is mathematical vector code, CrushSVG renders your graphic at your selected resolution (up to 4x high-res) before rasterizing, ensuring razor-sharp edges without blur."
       },
       {
-        "question": "Is this SVG to PNG converter free to use?",
-        "answer": "You can use the converter online without installing software. Free usage limits apply; no watermark is added to the PNG."
+        "question": "Can I turn SVG files into PNG with transparent backgrounds?",
+        "answer": "Yes! CrushSVG preserves transparent backgrounds by default, making it ideal for dark mode websites, app icons, and t-shirt printing."
+      },
+      {
+        "question": "Is this tool compatible with Figma, Illustrator, and Cricut files?",
+        "answer": "Yes, CrushSVG supports SVG files exported from Figma, Adobe Illustrator, Canva, Inkscape, and Cricut Design Space."
       }
     ],
     "bg": [
@@ -1369,8 +1373,8 @@
     "howToImageResizerDesc": "Resize PNG, JPG, and WebP images in seconds.",
     "howToSvgOptimizer": "How to Optimize & Minify SVG Files Online",
     "howToSvgOptimizerDesc": "Compress and clean SVG vector files in three simple steps.",
-    "headingSvgPngLine1": "How to Convert ",
-    "headingSvgPngHighlight": "SVG File to PNG",
+    "headingSvgPngLine1": "How to Turn ",
+    "headingSvgPngHighlight": "SVG into PNG",
     "headingBgRemoverLine1": "One Image.",
     "headingBgRemoverHighlight": "Three Simple Steps.",
     "headingImageResizerLine1": "One Image.",
