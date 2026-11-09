@@ -26,7 +26,12 @@ export function VerificationModal({
   const t = useTranslations("auth_pages.verification");
 
   return (
-    <div className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(event) => event.stopPropagation()}
+      className="w-full max-w-[440px] bg-[#FFFCFA] rounded-[8px] p-[24px_16px] sm:p-[24px_32px] shadow-[0px_4px_44px_0px_rgba(0,0,0,0.06)] flex flex-col mx-auto border-[1px] border-[#F2EDE8]"
+    >
       <div className="flex flex-col items-center text-center gap-6">
         <div className="flex items-center gap-[4px]">
           <Image

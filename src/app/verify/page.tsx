@@ -33,6 +33,19 @@ function VerificationContent() {
     }
   }, [variant, redirectIn, router]);
 
+  if (variant === "invalid") {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+        onClick={() => router.push("/")}
+      >
+        <div className="w-full max-w-[440px]">
+          <VerificationModal variant="invalid" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex justify-center py-[40px] md:py-[60px] px-[16px] md:px-0 min-h-[75vh] items-center">
       <div className="w-full max-w-[440px]">
