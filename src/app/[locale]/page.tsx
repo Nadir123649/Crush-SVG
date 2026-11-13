@@ -24,13 +24,37 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "SEO" });
 
-  return constructLocalizedMetadata({
+  const metadata = constructLocalizedMetadata({
     locale,
     routeKey: "/",
     title: t("svgToPngTitle"),
     description: t("svgToPngDescription"),
     keywords: DEFAULT_KEYWORDS,
   });
+
+  if (locale !== "en") return metadata;
+
+  const title = "Turn SVG into PNG Online Free — High Resolution | CrushSVG";
+  const description =
+    "Turn SVG into PNG online for free. Export crisp, high-resolution PNG images with transparent backgrounds, custom scaling, and zero quality loss with CrushSVG.";
+
+  return {
+    ...metadata,
+    title,
+    description,
+    alternates: {
+      ...metadata.alternates,
+      canonical: "https://www.crushsvg.net/",
+    },
+    openGraph: {
+      ...metadata.openGraph,
+      type: "website",
+      url: "https://www.crushsvg.net/",
+      title,
+      description:
+        "Turn SVG into PNG online for free. Export crisp, high-resolution PNG images with transparent backgrounds and zero quality loss.",
+    },
+  };
 }
 
 export default async function Home({

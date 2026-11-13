@@ -15,6 +15,13 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
 
   const chartData = data;
   const chartLabels = labels;
+  const mobileLabelIndices = new Set(
+    Array.from({ length: Math.min(chartData.length, 5) }, (_, index) =>
+      chartData.length <= 5
+        ? index
+        : Math.round((index * (chartData.length - 1)) / 4)
+    )
+  );
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (chartContainerRef.current) {
@@ -121,8 +128,15 @@ export function AnalyticsChart({ data, labels }: AnalyticsChartProps) {
                   />
                 </div>
 
-                {/* X-Axis Label */}
-                <span className={`absolute -bottom-1 translate-y-full text-[#9ca3af] text-[10px] sm:text-xs whitespace-nowrap ${i % 2 !== 0 ? 'hidden sm:inline-block' : 'inline-block'}`}>
+                {/* Mobile uses five evenly spaced day numbers; desktop keeps weekday + date. */}
+                <span
+                  className={`absolute left-1/2 -bottom-1 w-7 -translate-x-1/2 translate-y-full text-center text-[10px] text-[#9ca3af] sm:hidden ${mobileLabelIndices.has(i) ? "inline-block" : "hidden"}`}
+                >
+                  {chartLabels[i]?.split(" ").pop()}
+                </span>
+                <span
+                  className={`absolute left-1/2 -bottom-1 hidden -translate-x-1/2 translate-y-full whitespace-nowrap text-center text-xs text-[#9ca3af] sm:inline-block ${i % 2 !== 0 ? "sm:hidden" : ""}`}
+                >
                   {chartLabels[i]}
                 </span>
               </div>

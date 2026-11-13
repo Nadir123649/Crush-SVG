@@ -43,7 +43,7 @@ export async function generateMetadata({
 }
 
 function renderHeroTitle(title: string) {
-  const match = title.match(/(Optimize SVG|Compress and Optimize|SVG Files|SVG optimieren|Optimizador SVG|Optimiser SVG)/i);
+  const match = title.match(/(SVG Optimizer|Optimize SVG|Compress and Optimize|SVG Files|SVG optimieren|Optimizador SVG|Optimiser SVG)/i);
   if (!match) return title;
 
   const parts = title.split(match[0]);

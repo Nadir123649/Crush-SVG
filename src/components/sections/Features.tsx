@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/client/auth-context";
 import { useLocale, useTranslations } from "next-intl";
 
 function renderFeaturesTitle(title: string) {
-  const match = title.match(/(juggling design tools|überladener Software|programas complejos|logiciels complexes|softwares pesados|重いデザインソフト)/i);
+  const match = title.match(/(SVG to React Conversion|Transparent Cutouts|Precision Resizing|SVG Optimization|Browser Favicons|juggling design tools|überladener Software|programas complejos|logiciels complexes|softwares pesados|重いデザインソフト)/i);
   if (match) {
     const parts = title.split(match[0]);
     return (
@@ -60,8 +60,38 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const svgPngDescription = mode === "svg-to-png" && locale === "en"
-    ? "SVG is useful for scalable graphics, but some upload forms and publishing workflows require a PNG.SVG is useful for scalable graphics, but some upload forms and publishing workflows require a PNG. CrushSVG lets you turn an SVG logo, icon, or illustration into a raster image with the dimensions and background you need."
+    ? "SVG is useful for scalable graphics, but some upload forms and publishing workflows require a PNG. CrushSVG lets you turn an SVG logo, icon, or illustration into a raster image with the dimensions and background you need."
     : t("svgDesc");
+  const featureContent = {
+    "svg-to-react": [
+      { index: 1, title: "Full TypeScript TSX & Prop Typing", description: "Generates TypeScript component props extending React.SVGProps<SVGSVGElement>, so standard SVG element props can be passed to the component." },
+      { index: 2, title: "Dynamic currentColor & Tailwind Friendly", description: "Enable currentColor to replace supported hardcoded fill and stroke colors, making generated icons easier to style with CSS and Tailwind utilities." },
+      { index: 3, title: "Framework-Ready Component Output", description: "Generate a component for your selected framework and copy it into your project. Your build tooling can include only the components your application imports." },
+    ],
+    "background-remover": [
+      { index: 1, title: "No Watermark on Downloads", description: "Download the processed PNG without a CrushSVG watermark. Guest use has a free conversion limit; account access follows the current quota rules." },
+      { index: 2, title: "Useful for Logos and Cricut Artwork", description: "Remove a solid background from logos, signatures, and graphics to create a transparent image for design and craft projects." },
+      { index: 3, title: "Image Processing with Privacy Information", description: "Images are sent to the background-removal API for processing. Review the Privacy Policy for details about how uploaded images are handled." },
+    ],
+    "image-resizer": [
+      { index: 1, title: "Exact Dimensions for Print and Crafts", description: "Set the output width and height in pixels for your project. Print size and effective DPI depend on the pixel dimensions and the physical size at which you print." },
+      { index: 2, title: "Canvas-Based Image Resampling", description: "Resize images in your browser with the Canvas API. Preview the result to confirm that the selected dimensions and image detail suit your use." },
+      { index: 3, title: "Preserves PNG Transparency", description: "Exporting to PNG retains transparent areas from the source image. JPG output uses a solid background because JPEG does not support alpha transparency." },
+    ],
+    "svg-optimizer": [
+      { index: 1, title: "Reduce SVG Markup and File Size", description: "Remove selected comments, editor metadata, redundant attributes, and empty groups, then compare the resulting file size before downloading." },
+      { index: 2, title: "Adjustable Coordinate Precision", description: "Choose decimal precision for path coordinates. Lower precision can reduce file size but may change the rendered artwork, so review the preview before using the result." },
+      { index: 3, title: "Clean Up SVG Markup", description: "The optimizer removes configured comments and metadata and cleans selected SVG markup. It is not a general-purpose SVG security sanitizer; review files before publishing untrusted content." },
+    ],
+    "favicon-generator": [
+      { index: 1, title: "Multi-Resolution ICO Container", description: "The generated favicon.ico includes PNG-backed icon resolutions from 16×16 through 256×256 pixels for browsers that support multi-size ICO files." },
+      { index: 2, title: "Ready-to-Use HTML and PWA Files", description: "The ZIP includes the generated favicon assets, a site.webmanifest, and HTML link tags you can adapt to your site's public asset paths." },
+      { index: 3, title: "Transparent SVG Rendering", description: "The generator can retain transparent areas from the source SVG when the selected background is transparent. Preview the icons against light and dark surfaces." },
+    ],
+  };
+  const detailedFeatures = locale === "en" && mode in featureContent
+    ? featureContent[mode as keyof typeof featureContent]
+    : null;
 
   useEffect(() => {
     setMounted(true);
@@ -92,7 +122,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
               : t("svgTitle")
           )}
         </h2>
-        <p className={`w-full min-w-0 break-words [overflow-wrap:anywhere] font-body font-normal text-center text-text-muted ${mode === "svg-to-png" && locale === "en" ? "max-w-[760px] text-[12px] leading-[20px]" : "max-w-[640px] text-[14px] leading-[20px] md:text-[16px] md:leading-[22px]"}`}>
+        {!detailedFeatures && <p className={`w-full min-w-0 break-words [overflow-wrap:anywhere] font-body font-normal text-center text-text-muted ${mode === "svg-to-png" && locale === "en" ? "max-w-[760px] text-[12px] leading-[20px]" : "max-w-[640px] text-[14px] leading-[20px] md:text-[16px] md:leading-[22px]"}`}>
           {mode === "background-remover" ? (
             t("bgDesc")
           ) : mode === "image-resizer" ? (
@@ -108,7 +138,7 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
           ) : (
             t("rasterDesc")
           )}
-        </p>
+        </p>}
       </div>
 
       {mode === "svg-to-png" && locale === "en" ? (
@@ -153,6 +183,25 @@ export function Features({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raste
                 {title}
               </h3>
               <p className="mt-[10px] font-body text-[12px] leading-[17px] text-[#716761]">
+                {description}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : detailedFeatures ? (
+        <div className="mt-[32px] md:mt-[40px] grid w-full max-w-[1028px] grid-cols-1 gap-[20px] md:grid-cols-3 md:gap-[24px]">
+          {detailedFeatures.map(({ index, title, description }) => (
+            <article
+              key={index}
+              className="min-w-0 rounded-[20px] border border-[#FFA98F] bg-[#FDEBE4] p-[20px] sm:p-[24px] md:p-[30px]"
+            >
+              <div className="mb-[14px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-white text-brand-primary">
+                <BenefitIcon index={index} />
+              </div>
+              <h3 className="break-words font-heading text-[18px] font-bold leading-[24px] text-[#171A23]">
+                {title}
+              </h3>
+              <p className="mt-[10px] break-words font-body text-[12px] leading-[17px] text-[#716761]">
                 {description}
               </p>
             </article>
