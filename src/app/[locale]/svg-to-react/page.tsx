@@ -44,7 +44,7 @@ export async function generateMetadata({
 }
 
 function renderHeroTitle(title: string) {
-  const match = title.match(/(React & Vue Components|React & JSX|React-Komponenten|Componentes React|Composants React|React コンポーネント)/i);
+  const match = title.match(/(React Component Online|React & Vue Components|React & JSX|React-Komponenten|Componentes React|Composants React|React コンポーネント)/i);
   if (!match) return title;
 
   const parts = title.split(match[0]);

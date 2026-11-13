@@ -186,6 +186,17 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
         </div>
       </div>
 
+      <p className="w-full min-w-0 max-w-[800px] mt-8 text-center font-afacad text-sm md:text-base text-text-muted">
+        Need to convert other graphics? Use our free tool to{" "}
+        <a
+          href="https://www.crushsvg.net/"
+          className="text-brand-primary hover:underline"
+        >
+          turn SVG into PNG
+        </a>{" "}
+        with high resolution and transparent backgrounds.
+      </p>
+
       <UseCaseFaqSection faqs={faqs} heading={tFaq("title")} />
     </div>
   );

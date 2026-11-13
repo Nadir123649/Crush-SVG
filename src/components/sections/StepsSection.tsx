@@ -1,13 +1,23 @@
 import React from "react";
 import Image from "next/image";
 import { IMAGES } from "@/lib/shared/images";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "raster-to-svg" | "background-remover" | "image-resizer" | "svg-optimizer" | "favicon-generator" | "svg-to-react" }) {
   const t = useTranslations("steps");
   const tSection = useTranslations("steps_section");
+  const locale = useLocale();
 
   const icons = [IMAGES.uploadImage, IMAGES.exportIcon, IMAGES.downloadImage];
+  const howToHeadingKey = locale !== "en" ? null : mode === "background-remover"
+    ? "howToBgRemover"
+    : mode === "image-resizer"
+    ? "howToImageResizer"
+    : mode === "svg-optimizer"
+    ? "howToSvgOptimizer"
+    : mode === "favicon-generator"
+    ? "howToFaviconGenerator"
+    : null;
   const imgClasses = [
     "w-[60px] h-[60px] md:w-[95px] md:h-[95px]",
     "w-[80px] h-[80px] md:w-[104px] md:h-[104px]",
@@ -87,7 +97,7 @@ export function StepsSection({ mode = "svg-to-png" }: { mode?: "svg-to-png" | "r
     <section id="how-it-works" className="w-full min-w-0 flex flex-col items-center mb-[60px] md:mb-[100px] scroll-mt-[100px] md:scroll-mt-[140px]">
       {/* Heading */}
       <h2 className="font-heading font-semibold text-[24px] leading-[30px] md:text-[48px] md:leading-[61px] tracking-[0.04em] text-center text-text-dark w-full min-w-0 max-w-[807px] break-words [overflow-wrap:anywhere]">
-        {mode === "background-remover" ? (
+        {locale === "en" && mode === "svg-to-react" ? "How to Convert SVG to React Components in 3 Seconds" : howToHeadingKey ? tSection(howToHeadingKey) : mode === "background-remover" ? (
           <>{tSection("headingBgRemoverLine1")} <span className="text-[#D94A1E]">{tSection("headingBgRemoverHighlight")}</span></>
         ) : mode === "image-resizer" ? (
           <>{tSection("headingImageResizerLine1")} <span className="text-[#D94A1E]">{tSection("headingImageResizerHighlight")}</span></>
