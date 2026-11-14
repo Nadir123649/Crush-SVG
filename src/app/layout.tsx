@@ -7,9 +7,6 @@ import { AdSenseConsentGate } from "@/components/providers/AdSenseConsentGate";
 import { AuthProvider } from "@/lib/client/auth-context";
 import {
   constructMetadata,
-  getOrganizationSchema,
-  getWebApplicationSchema,
-  getWebSiteSchema,
   getMasterGraphSchema,
 } from "@/lib/seo";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
@@ -130,6 +127,15 @@ export default async function RootLayout({
           href="https://www.googletagmanager.com"
         />
 
+        {/* Brand and software entity graph for search engines. */}
+        <script
+          id="jsonld-crushsvg-entities"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(getMasterGraphSchema()).replace(/</g, "\\u003c"),
+          }}
+        />
+
         {/* Consent Mode v2 default must run before GTM tags are evaluated. */}
         <Script
           id="consent-default"
@@ -211,34 +217,6 @@ export default async function RootLayout({
         className="min-h-full flex flex-col items-center bg-background overflow-x-hidden w-full"
         suppressHydrationWarning
       >
-        {/* Structured Data (JSON-LD) */}
-        <Script
-          id="jsonld-master-graph"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(getMasterGraphSchema()) }}
-        />
-        <Script
-          id="jsonld-website"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebSiteSchema()),
-          }}
-        />
-        <Script
-          id="jsonld-org"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getOrganizationSchema()),
-          }}
-        />
-        <Script
-          id="jsonld-webapp"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getWebApplicationSchema()),
-          }}
-        />
-
         {/* Google Tag Manager - noscript */}
         <noscript>
           <iframe

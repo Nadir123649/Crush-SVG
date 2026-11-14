@@ -408,6 +408,8 @@ export function getWebApplicationSchema() {
 
 export function getMasterGraphSchema() {
   const organizationId = "https://thenevon.com/#organization";
+  const crushSvgOrganizationId = `${SITE_URL}/#organization`;
+  const softwareId = `${SITE_URL}/#software`;
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -427,17 +429,36 @@ export function getMasterGraphSchema() {
         ],
       },
       {
-        "@type": "WebApplication",
-        "@id": `${SITE_URL}/#software`,
+        "@type": "Organization",
+        "@id": crushSvgOrganizationId,
         name: "CrushSVG",
         url: `${SITE_URL}/`,
-        applicationCategory: "MultimediaApplication",
-        operatingSystem: "All (Web Browser)",
+        logo: `${SITE_URL}/icon-512.png`,
+        parentOrganization: { "@id": organizationId },
+      },
+      {
+        "@type": ["SoftwareApplication", "WebApplication"],
+        "@id": softwareId,
+        name: "CrushSVG",
+        url: `${SITE_URL}/`,
+        image: `${SITE_URL}/crushsvg.webp`,
+        applicationCategory: "DesignApplication",
+        operatingSystem: "Web browser",
         browserRequirements: "Requires JavaScript and HTML5 Canvas support",
         description:
-          "Free online SVG to PNG converter, raster to vector image vectorizer, and SVG optimizer with 100% in-browser client-side processing.",
+          "CrushSVG is a free online graphics utility suite for converting SVG artwork to PNG, vectorizing raster images, generating React components, resizing images, removing backgrounds, optimizing SVG markup, and creating favicon assets.",
+        featureList: [
+          "Convert SVG artwork to PNG with custom dimensions and transparent backgrounds",
+          "Convert raster images to SVG paths or embedded-image SVG output",
+          "Generate React and TypeScript components from SVG",
+          "Remove image backgrounds and export transparent PNG cutouts",
+          "Resize images with pixel dimensions and aspect ratio controls",
+          "Optimize SVG markup and adjust path coordinate precision",
+          "Generate multi-resolution favicon and web app icon packs",
+        ],
+        provider: { "@id": crushSvgOrganizationId },
         creator: {
-          "@id": organizationId,
+          "@id": crushSvgOrganizationId,
         },
         offers: {
           "@type": "Offer",
@@ -454,7 +475,7 @@ export function getMasterGraphSchema() {
         url: `${SITE_URL}/`,
         name: "CrushSVG",
         publisher: {
-          "@id": organizationId,
+          "@id": crushSvgOrganizationId,
         },
       },
     ],

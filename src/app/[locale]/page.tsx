@@ -34,7 +34,7 @@ export async function generateMetadata({
 
   if (locale !== "en") return metadata;
 
-  const title = "Turn SVG into PNG Online Free — High Resolution | CrushSVG";
+  const title = "Turn SVG into PNG Online Free - High Resolution | CrushSVG";
   const description =
     "Turn SVG into PNG online for free. Export crisp, high-resolution PNG images with transparent backgrounds, custom scaling, and zero quality loss with CrushSVG.";
 
