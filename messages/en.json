@@ -94,7 +94,7 @@
     "heroTitlePrefix": "Turn",
     "heroTitleHighlight": "SVG into PNG",
     "heroTitleSuffix": "Online (Free & High Resolution)",
-    "heroSubtitle": "Need to turn your SVG into PNG? CrushSVG allows you to convert vector SVG files and raw code into crisp, transparent PNG images with custom scaling, 300 DPI support, and zero watermarks.",
+    "heroSubtitle": "CrushSVG is a free online graphics toolkit for designers, developers, and crafters. Convert SVG to PNG, vectorize raster images, and create React components, resized images, transparent cutouts, optimized SVGs, and favicon packs.",
     "bgRemoverCtaTitle": "Need to remove an image",
     "bgRemoverCtaHighlight": "background",
     "bgRemoverCtaDesc": "Upload any photo and get a clean, transparent PNG in seconds. Free, private, no install needed.",

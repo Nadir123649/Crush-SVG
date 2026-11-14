@@ -80,7 +80,9 @@ export default async function AboutUsPage({
       <Hero
         badge={t("badge")}
         title={<>{t("titlePrefix")} <span className="bg-gradient-to-r from-brand-primary to-brand-secondary text-transparent bg-clip-text">{t("titleHighlight")}</span></>}
-        subtitle={t("subtitle")}
+        subtitle={locale === "en"
+          ? "About CrushSVG: CrushSVG is a free web-based graphics utility suite for designers, Cricut makers, and frontend developers. It helps users convert SVG artwork to PNG, vectorize raster images, and generate React components, with additional tools for resizing images, removing backgrounds, optimizing SVG files, and creating favicon assets. Guest conversions are available without registration; continued use may require an account."
+          : t("subtitle")}
         className="mb-[24px] md:mb-[60px]"
       />
 
