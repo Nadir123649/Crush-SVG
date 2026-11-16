@@ -1519,6 +1519,7 @@
     "viewUseCase": "Anwendungsfall ansehen",
     "notFoundTitle": "Nicht gefunden",
     "notFoundDesc": "Dieser Anwendungsfall existiert nicht.",
+    "listingSectionTitle": "Anwendungsfälle entdecken",
     "categories": {
       "designTools": "Designtools",
       "webDev": "Web & Entwicklung",

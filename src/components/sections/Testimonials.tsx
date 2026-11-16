@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Testimonial {
@@ -168,9 +170,12 @@ function TestimonialCard({ item }: { item: Testimonial }) {
         {/* Avatar + name + role */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 ring-2 ring-[#F0C9B9] bg-[#FCF1ED]">
-            <img
+            <Image
               src={item.avatar}
               alt={item.name}
+              width={40}
+              height={40}
+              unoptimized
               className="w-full h-full object-cover select-none"
               loading="lazy"
             />

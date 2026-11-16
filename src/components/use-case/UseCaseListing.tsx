@@ -29,6 +29,10 @@ export function UseCaseListing({ useCases, categories }: UseCaseListingProps) {
 
   return (
     <div className="w-full max-w-[1140px] px-[16px] md:px-[32px] pt-[32px] pb-[32px] md:pt-[56px] md:pb-[40px] flex flex-col gap-[40px] md:gap-[60px]">
+      <h2 className="text-center font-heading font-semibold text-[22px] leading-tight text-text-dark md:text-[28px]">
+        {t("listingSectionTitle")}
+      </h2>
+
       {/* Category Filters */}
       <div className="w-full flex items-center justify-center">
         <div className="flex flex-wrap items-center justify-center gap-[8px] w-full">

@@ -145,21 +145,31 @@ export default async function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
-              var isConsentGranted = false;
+              var savedConsent = null;
               try {
-                isConsentGranted = localStorage.getItem('crush_cookie_consent') === 'granted';
+                savedConsent = localStorage.getItem('crush_cookie_consent');
               } catch (e) {}
 
-              if (isConsentGranted) {
+              if (savedConsent === 'granted') {
                 gtag('consent', 'default', {
                   'analytics_storage': 'granted',
                   'ad_storage': 'granted',
                   'ad_user_data': 'granted',
                   'ad_personalization': 'granted'
                 });
-              } else {
+              } else if (savedConsent === 'denied') {
                 gtag('consent', 'default', {
                   'analytics_storage': 'denied',
+                  'ad_storage': 'denied',
+                  'ad_user_data': 'denied',
+                  'ad_personalization': 'denied',
+                  'wait_for_update': 500
+                });
+              } else {
+                // Measure analytics by default unless the visitor has opted out.
+                // Advertising consent remains denied until the visitor accepts.
+                gtag('consent', 'default', {
+                  'analytics_storage': 'granted',
                   'ad_storage': 'denied',
                   'ad_user_data': 'denied',
                   'ad_personalization': 'denied',

@@ -125,7 +125,7 @@ export function constructLocalizedMetadata({
     metadataBase: new URL(SITE_URL),
     alternates: {
       canonical: canonicalUrl,
-      languages,
+      ...(!noindex ? { languages } : {}),
     },
     openGraph: {
       title,

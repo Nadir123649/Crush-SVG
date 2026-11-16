@@ -1519,6 +1519,7 @@
     "viewUseCase": "Ver caso de uso",
     "notFoundTitle": "Caso de uso não encontrado",
     "notFoundDesc": "Este caso de uso não existe.",
+    "listingSectionTitle": "Explorar casos de uso",
     "categories": {
       "designTools": "Ferramentas de design",
       "webDev": "Web e Dev",
