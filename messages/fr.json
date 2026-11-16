@@ -606,7 +606,18 @@
     "privacy": "Confidentialité",
     "cookies": "Cookies",
     "blog": "Blog",
-    "support": "Assistance"
+    "support": "Assistance",
+    "newsletterEyebrow": "Restez informé",
+    "newsletterTitleMain": "Nouveaux modèles et conseils,",
+    "newsletterTitleHighlight": "dans votre boîte mail.",
+    "newsletterDescription": "De temps en temps, jamais trop souvent.",
+    "newsletterEmailLabel": "Adresse e-mail",
+    "newsletterEmailPlaceholder": "Saisissez votre adresse e-mail",
+    "newsletterSubscribe": "S’abonner",
+    "newsletterSubmitting": "Inscription en cours...",
+    "newsletterPrivacy": "Pas de spam. Désabonnement à tout moment.",
+    "newsletterSuccess": "Inscription réussie. Merci de rester avec nous !",
+    "newsletterError": "Une erreur est survenue. Veuillez réessayer."
   },
   "SEO": {
     "svgToReactTitle": "Convertir SVG en Composants React JSX/TSX, Vue et Svelte en Ligne",

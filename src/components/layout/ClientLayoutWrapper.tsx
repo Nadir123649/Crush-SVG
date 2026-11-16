@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/sections/Footer";
+import { NewsletterSignup } from "@/components/sections/NewsletterSignup";
 import { ScrollToTop } from "@/components/utils/ScrollToTop";
 
 export function ClientLayoutWrapper({ children, logoUrl }: { children: React.ReactNode, logoUrl?: string }) {
@@ -64,6 +65,7 @@ export function ClientLayoutWrapper({ children, logoUrl }: { children: React.Rea
           {children}
         </main>
       </div>
+      <NewsletterSignup />
       <Footer logoUrl={logoUrl} />
     </>
   );

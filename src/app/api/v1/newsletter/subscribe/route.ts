@@ -6,6 +6,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
+  source: z.enum(['changelog', 'footer']).default('changelog'),
 })
 
 export async function POST(request: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     return errorResponse(400, 'validation_error', first, undefined, request)
   }
 
-  const { email } = parsed.data
+  const { email, source } = parsed.data
 
   try {
     const existing = await NewsletterSubscriber.findOne({ email: email.toLowerCase() })
@@ -42,11 +43,14 @@ export async function POST(request: NextRequest) {
 
     await NewsletterSubscriber.create({
       email: email.toLowerCase(),
-      source: 'changelog',
+      source,
       active: true,
     })
 
-    return successResponse({ message: 'Successfully subscribed to changelog updates!' }, 201, undefined, request)
+    const message = source === 'changelog'
+      ? 'Successfully subscribed to changelog updates!'
+      : 'Successfully subscribed!'
+    return successResponse({ message }, 201, undefined, request)
   } catch (error) {
     console.error('Newsletter subscription failed:', error)
     return errorResponse(500, 'server_error', 'Something went wrong. Please try again.', undefined, request)

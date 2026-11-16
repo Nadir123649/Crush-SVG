@@ -606,7 +606,18 @@
     "privacy": "Privacidad",
     "cookies": "Cookies",
     "blog": "Blog",
-    "support": "Soporte"
+    "support": "Soporte",
+    "newsletterEyebrow": "Mantente al día",
+    "newsletterTitleMain": "Nuevas plantillas y consejos,",
+    "newsletterTitleHighlight": "en tu bandeja de entrada.",
+    "newsletterDescription": "De vez en cuando, nunca demasiado.",
+    "newsletterEmailLabel": "Correo electrónico",
+    "newsletterEmailPlaceholder": "Introduce tu correo electrónico",
+    "newsletterSubscribe": "Suscribirme",
+    "newsletterSubmitting": "Suscribiendo...",
+    "newsletterPrivacy": "Sin spam. Cancela cuando quieras.",
+    "newsletterSuccess": "¡Te has suscrito! Gracias por estar al día.",
+    "newsletterError": "Algo salió mal. Inténtalo de nuevo."
   },
   "SEO": {
     "svgToReactTitle": "Convertir SVG a Componentes React JSX/TSX, Vue y Svelte Online",

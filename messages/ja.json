@@ -606,7 +606,18 @@
     "privacy": "プライバシー",
     "cookies": "Cookieポリシー",
     "blog": "ブログ",
-    "support": "サポート"
+    "support": "サポート",
+    "newsletterEyebrow": "最新情報をお届け",
+    "newsletterTitleMain": "新しいテンプレートとヒントを、",
+    "newsletterTitleHighlight": "メールでお届けします。",
+    "newsletterDescription": "たまにお届け。配信は控えめです。",
+    "newsletterEmailLabel": "メールアドレス",
+    "newsletterEmailPlaceholder": "メールアドレスを入力",
+    "newsletterSubscribe": "登録する",
+    "newsletterSubmitting": "登録中...",
+    "newsletterPrivacy": "迷惑メールはありません。いつでも解除できます。",
+    "newsletterSuccess": "登録ありがとうございます！",
+    "newsletterError": "エラーが発生しました。もう一度お試しください。"
   },
   "SEO": {
     "svgToReactTitle": "SVGをReact JSX/TSX、Vue、Svelteコンポーネントに変換 | オンライン無料",

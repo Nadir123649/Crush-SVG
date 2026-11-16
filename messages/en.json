@@ -655,7 +655,18 @@
     "privacy": "Privacy",
     "cookies": "Cookies",
     "blog": "Blog",
-    "support": "Support"
+    "support": "Support",
+    "newsletterEyebrow": "Stay in the loop",
+    "newsletterTitleMain": "New templates and signature tips,",
+    "newsletterTitleHighlight": "in your inbox.",
+    "newsletterDescription": "Occasionally, never noisy.",
+    "newsletterEmailLabel": "Email address",
+    "newsletterEmailPlaceholder": "Enter your email address",
+    "newsletterSubscribe": "Subscribe",
+    "newsletterSubmitting": "Subscribing...",
+    "newsletterPrivacy": "No spam. Unsubscribe anytime.",
+    "newsletterSuccess": "You're subscribed! Thank you for staying in the loop.",
+    "newsletterError": "Something went wrong. Please try again."
   },
   "SEO": {
     "svgToReactTitle": "Convert SVG to React & TSX Component Online Free — JSX Generator | CrushSVG",

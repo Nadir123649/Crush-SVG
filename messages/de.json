@@ -606,7 +606,18 @@
     "privacy": "Datenschutz",
     "cookies": "Cookies",
     "blog": "Blog",
-    "support": "Support"
+    "support": "Support",
+    "newsletterEyebrow": "Bleib auf dem Laufenden",
+    "newsletterTitleMain": "Neue Vorlagen und Signaturtipps,",
+    "newsletterTitleHighlight": "direkt in dein Postfach.",
+    "newsletterDescription": "Ab und zu, niemals zu viel.",
+    "newsletterEmailLabel": "E-Mail-Adresse",
+    "newsletterEmailPlaceholder": "E-Mail-Adresse eingeben",
+    "newsletterSubscribe": "Abonnieren",
+    "newsletterSubmitting": "Wird abonniert...",
+    "newsletterPrivacy": "Kein Spam. Jederzeit abbestellbar.",
+    "newsletterSuccess": "Du hast dich angemeldet. Schön, dass du dabei bist!",
+    "newsletterError": "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
   },
   "SEO": {
     "svgToReactTitle": "SVG in React JSX/TSX, Vue & Svelte Komponenten online umwandeln",
