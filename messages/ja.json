@@ -1519,6 +1519,7 @@
     "viewUseCase": "ユースケースを見る",
     "notFoundTitle": "見つかりません",
     "notFoundDesc": "このユースケースは存在しません。",
+    "listingSectionTitle": "ユースケースを見る",
     "categories": {
       "designTools": "デザインツール",
       "webDev": "Web・開発",

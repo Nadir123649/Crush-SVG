@@ -9,6 +9,7 @@ const excludedRoutes = new Set([
   // Authentication & account entry points
   "login",
   "signin",
+  "signup",
   "register",
   "forgot-password",
   "reset-password",

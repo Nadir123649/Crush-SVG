@@ -65,7 +65,7 @@ test("constructMetadata with noindex emits noindex, follow directive", () => {
   assert.equal(robots.googleBot.follow, true, "googleBot.follow must be true");
 });
 
-test("constructLocalizedMetadata with noindex emits noindex, follow directive", () => {
+test("constructLocalizedMetadata with noindex emits noindex, follow and omits hreflang alternates", () => {
   const meta = constructLocalizedMetadata({
     locale: "en",
     routeKey: "/login",
@@ -79,4 +79,18 @@ test("constructLocalizedMetadata with noindex emits noindex, follow directive", 
   assert.equal(robots.follow, true, "localized robots.follow must be true for PageRank flow");
   assert.equal(robots.googleBot.index, false, "localized googleBot.index must be false");
   assert.equal(robots.googleBot.follow, true, "localized googleBot.follow must be true");
+  assert.deepEqual(meta.alternates, { canonical: "https://www.crushsvg.net/login" });
+});
+
+test("constructLocalizedMetadata keeps canonical and hreflang alternates for indexable pages", () => {
+  const meta = constructLocalizedMetadata({
+    locale: "en",
+    routeKey: "/use-case",
+    title: "Use cases",
+    description: "Explore use cases",
+  });
+
+  assert.equal(meta.alternates?.canonical, "https://www.crushsvg.net/use-case");
+  assert.ok(meta.alternates?.languages);
+  assert.equal(meta.alternates?.languages?.["x-default"], "https://www.crushsvg.net/use-case");
 });

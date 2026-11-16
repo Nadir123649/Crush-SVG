@@ -103,6 +103,9 @@ export function ContactUsClient() {
       <div className="w-full max-w-[600px] flex flex-col items-center bg-white rounded-[16px] px-[20px] py-[12px] md:px-[48px] md:py-[20px] border border-[#F2EDE8]"
         style={{ boxShadow: "6px 1px 50px 0px rgba(0, 0, 0, 0.04)" }}
       >
+        <h2 className="mb-4 text-center font-heading text-[20px] font-semibold text-text-dark">
+          {t("formTitle")}
+        </h2>
         <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-[20px]">
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="contact-name" className="font-afacad text-[14px] font-semibold text-brand-primary">{t("nameLabel")}</label>

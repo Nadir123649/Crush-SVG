@@ -30,6 +30,7 @@
     "viewUseCase": "View Use Case",
     "notFoundTitle": "Not Found",
     "notFoundDesc": "This use case does not exist.",
+    "listingSectionTitle": "Browse use cases",
     "categories": {
       "designTools": "Design Tools",
       "webDev": "Web & Dev",
